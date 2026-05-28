@@ -1,0 +1,73 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Participants - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Participants</h1>
+    <p>Find, filter, and manage participant records.</p>
+  </div>
+  <a class="button" href="{% url 'participant_create' %}">Add Participant</a>
+</div>
+
+<form class="filter-bar" method="get">
+  <label>
+    Search
+    <input type="search" name="q" value="{{ query }}" placeholder="Name or NDIS number">
+  </label>
+  <label>
+    Status
+    <select name="status">
+      <option value="">All statuses</option>
+      {% for value, label in status_choices %}
+        <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button type="submit">Search</button>
+  <a class="button secondary" href="{% url 'participant_list' %}">Reset</a>
+</form>
+
+<section class="card table-card">
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>NDIS Number</th>
+        <th>Management</th>
+        <th>Plan Period</th>
+        <th>Support Coordinator</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for participant in participants %}
+        <tr>
+          <td>{{ participant.display_name }}</td>
+          <td>{{ participant.ndis_number|default:"-" }}</td>
+          <td>{{ participant.get_management_type_display|default:"-" }}</td>
+          <td>
+            {% if participant.plan_start_date or participant.plan_end_date %}
+              {{ participant.plan_start_date|default:"-" }} to {{ participant.plan_end_date|default:"-" }}
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td>{{ participant.support_coordinator_name|default:"-" }}</td>
+          <td><span class="status-pill">{{ participant.get_status_display }}</span></td>
+          <td class="actions">
+            <a href="{% url 'participant_detail' participant.id %}">View</a>
+            <a href="{% url 'participant_edit' participant.id %}">Edit</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="7">No participants found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
