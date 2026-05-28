@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from django.shortcuts import redirect
 
-from .models import UserProfile
+from .permissions import ACCOUNTANT, ADMIN_ROLES, SUPPORT_WORKER, get_role
 
 
 class BSCLoginView(LoginView):
@@ -15,14 +15,14 @@ class BSCLogoutView(LogoutView):
 
 @login_required
 def role_redirect(request):
-    profile = getattr(request.user, "userprofile", None)
-    if profile is None:
+    role = get_role(request.user)
+    if role is None:
         return redirect("login")
-    if profile.role in [UserProfile.Role.SUPER_ADMIN, UserProfile.Role.ADMIN]:
+    if role in ADMIN_ROLES:
         return redirect("admin_dashboard")
-    if profile.role == UserProfile.Role.SUPPORT_WORKER:
+    if role == SUPPORT_WORKER:
         return redirect("worker_dashboard")
-    if profile.role == UserProfile.Role.ACCOUNTANT:
+    if role == ACCOUNTANT:
         return redirect("invoice_placeholder")
     return redirect("login")
 
