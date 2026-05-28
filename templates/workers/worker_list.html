@@ -1,0 +1,79 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Support Workers - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Support Workers</h1>
+    <p>Find, filter, and manage support worker records.</p>
+  </div>
+  <a class="button" href="{% url 'worker_create' %}">Add Worker</a>
+</div>
+
+<form class="filter-bar" method="get">
+  <label>
+    Search
+    <input type="search" name="q" value="{{ query }}" placeholder="Name, email, or phone">
+  </label>
+  <label>
+    Status
+    <select name="status">
+      <option value="">All statuses</option>
+      {% for value, label in status_choices %}
+        <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>
+    Employment type
+    <select name="employment_type">
+      <option value="">All types</option>
+      {% for value, label in employment_type_choices %}
+        <option value="{{ value }}" {% if employment_type == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button type="submit">Search</button>
+  <a class="button secondary" href="{% url 'worker_list' %}">Reset</a>
+</form>
+
+<section class="card table-card">
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Type</th>
+        <th>Compliance</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for worker in workers %}
+        <tr>
+          <td>{{ worker.display_name }}</td>
+          <td>{{ worker.email }}</td>
+          <td>{{ worker.phone|default:"-" }}</td>
+          <td>{{ worker.get_employment_type_display }}</td>
+          <td>
+            Police: {{ worker.get_police_check_status_display }}<br>
+            WWCC: {{ worker.get_wwcc_status_display }}
+          </td>
+          <td><span class="status-pill">{{ worker.get_status_display }}</span></td>
+          <td class="actions">
+            <a href="{% url 'worker_detail' worker.id %}">View</a>
+            <a href="{% url 'worker_edit' worker.id %}">Edit</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="7">No support workers found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
