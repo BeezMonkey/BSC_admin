@@ -1,0 +1,85 @@
+{% extends "admin_base.html" %}
+
+{% block title %}{{ title }} - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ title }}</h1>
+    <p>Keep worker-visible notes separate from admin-only information.</p>
+  </div>
+  <a class="button secondary" href="{% if participant %}{% url 'participant_detail' participant.id %}{% else %}{% url 'participant_list' %}{% endif %}">Cancel</a>
+</div>
+
+<form class="record-form" method="post" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+    <div class="error">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <section class="card form-section">
+    <h2>Basic Information</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.first_name %}
+      {% include "participants/partials/field.html" with field=form.last_name %}
+      {% include "participants/partials/field.html" with field=form.preferred_name %}
+      {% include "participants/partials/field.html" with field=form.date_of_birth %}
+      {% include "participants/partials/field.html" with field=form.ndis_number %}
+      {% include "participants/partials/field.html" with field=form.status %}
+    </div>
+  </section>
+
+  <section class="card form-section">
+    <h2>Contact Information</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.phone %}
+      {% include "participants/partials/field.html" with field=form.email %}
+      {% include "participants/partials/field.html" with field=form.address_line_1 %}
+      {% include "participants/partials/field.html" with field=form.address_line_2 %}
+      {% include "participants/partials/field.html" with field=form.suburb %}
+      {% include "participants/partials/field.html" with field=form.state %}
+      {% include "participants/partials/field.html" with field=form.postcode %}
+    </div>
+  </section>
+
+  <section class="card form-section">
+    <h2>Emergency Contact</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.emergency_contact_name %}
+      {% include "participants/partials/field.html" with field=form.emergency_contact_relationship %}
+      {% include "participants/partials/field.html" with field=form.emergency_contact_phone %}
+      {% include "participants/partials/field.html" with field=form.emergency_contact_email %}
+    </div>
+  </section>
+
+  <section class="card form-section">
+    <h2>NDIS Plan</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.plan_start_date %}
+      {% include "participants/partials/field.html" with field=form.plan_end_date %}
+      {% include "participants/partials/field.html" with field=form.management_type %}
+      {% include "participants/partials/field.html" with field=form.plan_manager_name %}
+      {% include "participants/partials/field.html" with field=form.plan_manager_email %}
+      {% include "participants/partials/field.html" with field=form.plan_manager_phone %}
+      {% include "participants/partials/field.html" with field=form.support_coordinator_name %}
+      {% include "participants/partials/field.html" with field=form.support_coordinator_email %}
+      {% include "participants/partials/field.html" with field=form.support_coordinator_phone %}
+    </div>
+  </section>
+
+  <section class="card form-section">
+    <h2>Notes</h2>
+    <div class="form-grid single">
+      {% include "participants/partials/field.html" with field=form.worker_visible_notes %}
+      {% include "participants/partials/field.html" with field=form.address_access_instructions %}
+      {% include "participants/partials/field.html" with field=form.risk_safety_notes %}
+      {% include "participants/partials/field.html" with field=form.internal_notes %}
+    </div>
+  </section>
+
+  <div class="form-actions">
+    <button type="submit">Save</button>
+    <a class="button secondary" href="{% if participant %}{% url 'participant_detail' participant.id %}{% else %}{% url 'participant_list' %}{% endif %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

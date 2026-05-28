@@ -1,0 +1,82 @@
+{% extends "admin_base.html" %}
+
+{% block title %}{{ participant.display_name }} - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ participant.display_name }}</h1>
+    <p>{{ participant.get_status_display }}{% if participant.ndis_number %} | NDIS {{ participant.ndis_number }}{% endif %}</p>
+  </div>
+  <div class="button-row">
+    <a class="button" href="{% url 'participant_edit' participant.id %}">Edit</a>
+    {% if participant.status != "archived" %}
+      <form method="post" action="{% url 'participant_archive' participant.id %}">
+        {% csrf_token %}
+        <button class="danger" type="submit">Archive</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="detail-grid">
+  <section class="card">
+    <h2>Overview</h2>
+    <dl class="detail-list">
+      <dt>Preferred name</dt>
+      <dd>{{ participant.preferred_name|default:"-" }}</dd>
+      <dt>Date of birth</dt>
+      <dd>{{ participant.date_of_birth|default:"-" }}</dd>
+      <dt>Phone</dt>
+      <dd>{{ participant.phone|default:"-" }}</dd>
+      <dt>Email</dt>
+      <dd>{{ participant.email|default:"-" }}</dd>
+      <dt>Address</dt>
+      <dd>
+        {{ participant.address_line_1|default:"-" }}
+        {% if participant.suburb %}<br>{{ participant.suburb }} {{ participant.state }} {{ participant.postcode }}{% endif %}
+      </dd>
+    </dl>
+  </section>
+
+  <section class="card">
+    <h2>NDIS Plan</h2>
+    <dl class="detail-list">
+      <dt>Management type</dt>
+      <dd>{{ participant.get_management_type_display|default:"-" }}</dd>
+      <dt>Plan period</dt>
+      <dd>{{ participant.plan_start_date|default:"-" }} to {{ participant.plan_end_date|default:"-" }}</dd>
+      <dt>Plan manager</dt>
+      <dd>{{ participant.plan_manager_name|default:"-" }}</dd>
+      <dt>Support coordinator</dt>
+      <dd>{{ participant.support_coordinator_name|default:"-" }}</dd>
+    </dl>
+  </section>
+</div>
+
+<section class="card">
+  <h2>Notes</h2>
+  <dl class="detail-list">
+    <dt>Worker visible notes</dt>
+    <dd>{{ participant.worker_visible_notes|default:"-" }}</dd>
+    <dt>Address access instructions</dt>
+    <dd>{{ participant.address_access_instructions|default:"-" }}</dd>
+    <dt>Risk/safety notes</dt>
+    <dd>{{ participant.risk_safety_notes|default:"-" }}</dd>
+    <dt>Internal notes</dt>
+    <dd>{{ participant.internal_notes|default:"-" }}</dd>
+  </dl>
+</section>
+
+<section class="card">
+  <h2>Related Records</h2>
+  <div class="tabs-placeholder">
+    <span>Roster</span>
+    <span>Service Logs</span>
+    <span>Invoices</span>
+    <span>Assigned Workers</span>
+    <span>Documents</span>
+    <span>Notes</span>
+  </div>
+</section>
+{% endblock %}
