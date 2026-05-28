@@ -1,14 +1,14 @@
 from django.shortcuts import render
 
-from accounts.decorators import role_required
+from accounts.decorators import admin_required, worker_required
 
 
-@role_required("super_admin", "admin")
+@admin_required
 def admin_dashboard(request):
     return render(request, "core/admin_dashboard.html")
 
 
-@role_required("support_worker")
+@worker_required
 def worker_dashboard(request):
     return render(request, "core/worker_dashboard.html")
 
