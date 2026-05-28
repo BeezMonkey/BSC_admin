@@ -1,0 +1,83 @@
+{% extends "admin_base.html" %}
+
+{% block title %}{{ title }} - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ title }}</h1>
+    <p>Create and maintain worker account, contact, employment, and compliance information.</p>
+  </div>
+  <a class="button secondary" href="{% if worker %}{% url 'worker_detail' worker.id %}{% else %}{% url 'worker_list' %}{% endif %}">Cancel</a>
+</div>
+
+<form class="record-form" method="post" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+    <div class="error">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  {% if form.username %}
+    <section class="card form-section">
+      <h2>Login Account</h2>
+      <div class="form-grid">
+        {% include "participants/partials/field.html" with field=form.username %}
+        {% include "participants/partials/field.html" with field=form.email %}
+        {% include "participants/partials/field.html" with field=form.password1 %}
+        {% include "participants/partials/field.html" with field=form.password2 %}
+        {% include "participants/partials/field.html" with field=form.account_active %}
+      </div>
+    </section>
+  {% else %}
+    <section class="card form-section">
+      <h2>Login Account</h2>
+      <div class="form-grid">
+        {% include "participants/partials/field.html" with field=form.email %}
+        {% include "participants/partials/field.html" with field=form.account_active %}
+      </div>
+    </section>
+  {% endif %}
+
+  <section class="card form-section">
+    <h2>Personal Details</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.first_name %}
+      {% include "participants/partials/field.html" with field=form.last_name %}
+      {% include "participants/partials/field.html" with field=form.phone %}
+      {% include "participants/partials/field.html" with field=form.address %}
+    </div>
+  </section>
+
+  <section class="card form-section">
+    <h2>Employment</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.employment_type %}
+      {% include "participants/partials/field.html" with field=form.abn %}
+      {% include "participants/partials/field.html" with field=form.start_date %}
+      {% include "participants/partials/field.html" with field=form.status %}
+    </div>
+  </section>
+
+  <section class="card form-section">
+    <h2>Compliance</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.police_check_status %}
+      {% include "participants/partials/field.html" with field=form.police_check_expiry %}
+      {% include "participants/partials/field.html" with field=form.wwcc_status %}
+      {% include "participants/partials/field.html" with field=form.wwcc_expiry %}
+    </div>
+  </section>
+
+  <section class="card form-section">
+    <h2>Internal Notes</h2>
+    <div class="form-grid single">
+      {% include "participants/partials/field.html" with field=form.notes %}
+    </div>
+  </section>
+
+  <div class="form-actions">
+    <button type="submit">Save</button>
+    <a class="button secondary" href="{% if worker %}{% url 'worker_detail' worker.id %}{% else %}{% url 'worker_list' %}{% endif %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "admin_base.html" %}
+
+{% block title %}{{ worker.display_name }} - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ worker.display_name }}</h1>
+    <p>{{ worker.get_status_display }} | {{ worker.get_employment_type_display }}</p>
+  </div>
+  <a class="button" href="{% url 'worker_edit' worker.id %}">Edit</a>
+</div>
+
+<div class="detail-grid">
+  <section class="card">
+    <h2>Contact</h2>
+    <dl class="detail-list">
+      <dt>Email</dt>
+      <dd>{{ worker.email }}</dd>
+      <dt>Phone</dt>
+      <dd>{{ worker.phone|default:"-" }}</dd>
+      <dt>Address</dt>
+      <dd>{{ worker.address|default:"-" }}</dd>
+      <dt>Account active</dt>
+      <dd>{{ worker.user.is_active|yesno:"Yes,No" }}</dd>
+    </dl>
+  </section>
+
+  <section class="card">
+    <h2>Employment</h2>
+    <dl class="detail-list">
+      <dt>Employment type</dt>
+      <dd>{{ worker.get_employment_type_display }}</dd>
+      <dt>ABN</dt>
+      <dd>{{ worker.abn|default:"-" }}</dd>
+      <dt>Start date</dt>
+      <dd>{{ worker.start_date|default:"-" }}</dd>
+      <dt>Status</dt>
+      <dd>{{ worker.get_status_display }}</dd>
+    </dl>
+  </section>
+</div>
+
+<section class="card">
+  <h2>Compliance</h2>
+  <dl class="detail-list">
+    <dt>Police check</dt>
+    <dd>{{ worker.get_police_check_status_display }}{% if worker.police_check_expiry %} | expires {{ worker.police_check_expiry }}{% endif %}</dd>
+    <dt>WWCC / Blue Card</dt>
+    <dd>{{ worker.get_wwcc_status_display }}{% if worker.wwcc_expiry %} | expires {{ worker.wwcc_expiry }}{% endif %}</dd>
+  </dl>
+</section>
+
+<section class="card">
+  <h2>Related Records</h2>
+  <div class="tabs-placeholder">
+    <span>Roster</span>
+    <span>Service Logs</span>
+    <span>Assigned Participants</span>
+    <span>Documents</span>
+    <span>Notes</span>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "worker_base.html" %}
+
+{% block title %}My Profile - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<section class="worker-card">
+  <h1>{{ worker.display_name }}</h1>
+  <dl class="detail-list">
+    <dt>Email</dt>
+    <dd>{{ worker.email }}</dd>
+    <dt>Phone</dt>
+    <dd>{{ worker.phone|default:"-" }}</dd>
+    <dt>Status</dt>
+    <dd>{{ worker.get_status_display }}</dd>
+    <dt>Employment type</dt>
+    <dd>{{ worker.get_employment_type_display }}</dd>
+  </dl>
+</section>
+{% endblock %}
