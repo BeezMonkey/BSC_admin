@@ -61,7 +61,12 @@ def worker_create(request):
 
 @admin_required
 def worker_detail(request, worker_id):
-    worker = get_object_or_404(SupportWorker.objects.select_related("user"), id=worker_id)
+    worker = get_object_or_404(
+        SupportWorker.objects.select_related("user").prefetch_related(
+            "participant_assignments__participant"
+        ),
+        id=worker_id,
+    )
     return render(request, "workers/worker_detail.html", {"worker": worker})
 
 
@@ -86,7 +91,11 @@ def worker_edit(request, worker_id):
 
 @worker_required
 def worker_profile(request):
-    worker = SupportWorker.objects.filter(user=request.user).first()
+    worker = (
+        SupportWorker.objects.filter(user=request.user)
+        .prefetch_related("participant_assignments__participant")
+        .first()
+    )
     if worker is None:
         return render(
             request,

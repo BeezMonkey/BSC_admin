@@ -344,6 +344,16 @@ th {
   background: #f8fafc;
 }
 
+.inline-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.inline-form input {
+  min-width: 140px;
+}
+
 .worker-shell {
   display: grid;
   min-height: 100vh;

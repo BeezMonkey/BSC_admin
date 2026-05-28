@@ -72,4 +72,36 @@ class Participant(models.Model):
     def get_absolute_url(self):
         return reverse("participant_detail", args=[self.id])
 
+
+class ParticipantWorkerAssignment(models.Model):
+    participant = models.ForeignKey(
+        Participant,
+        on_delete=models.CASCADE,
+        related_name="worker_assignments",
+    )
+    worker = models.ForeignKey(
+        "workers.SupportWorker",
+        on_delete=models.CASCADE,
+        related_name="participant_assignments",
+    )
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-is_active", "-start_date", "worker__last_name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["participant", "worker"],
+                condition=models.Q(is_active=True),
+                name="unique_active_participant_worker_assignment",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.participant} -> {self.worker}"
+
 # Create your models here.
