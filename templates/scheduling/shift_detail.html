@@ -1,0 +1,52 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Shift - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ shift.participant.display_name }}</h1>
+    <p>{{ shift.service_date }} | {{ shift.start_time }} - {{ shift.end_time }} | {{ shift.get_status_display }}</p>
+  </div>
+  <div class="button-row">
+    <a class="button" href="{% url 'shift_edit' shift.id %}">Edit</a>
+    {% if shift.status == "draft" %}
+      <form method="post" action="{% url 'shift_publish' shift.id %}">{% csrf_token %}<button type="submit">Publish</button></form>
+    {% endif %}
+  </div>
+</div>
+
+<div class="detail-grid">
+  <section class="card">
+    <h2>Shift Details</h2>
+    <dl class="detail-list">
+      <dt>Participant</dt><dd>{{ shift.participant.display_name }}</dd>
+      <dt>Worker</dt><dd>{{ shift.worker.display_name }}</dd>
+      <dt>Support item</dt><dd>{{ shift.support_item }}</dd>
+      <dt>Service type</dt><dd>{{ shift.get_service_type_display }}</dd>
+      <dt>Planned hours</dt><dd>{{ shift.planned_hours }}</dd>
+      <dt>Status</dt><dd>{{ shift.get_status_display }}</dd>
+    </dl>
+  </section>
+  <section class="card">
+    <h2>Location and Notes</h2>
+    <dl class="detail-list">
+      <dt>Location</dt><dd>{{ shift.location|default:"-" }}</dd>
+      <dt>Address</dt><dd>{{ shift.address|default:"-" }}</dd>
+      <dt>Instructions</dt><dd>{{ shift.instructions|default:"-" }}</dd>
+      <dt>Admin notes</dt><dd>{{ shift.admin_notes|default:"-" }}</dd>
+    </dl>
+  </section>
+</div>
+
+{% if shift.status != "cancelled" %}
+<section class="card">
+  <h2>Cancel Shift</h2>
+  <form method="post" action="{% url 'shift_cancel' shift.id %}" class="filter-bar">
+    {% csrf_token %}
+    <label>Reason <input type="text" name="cancellation_reason"></label>
+    <button class="danger" type="submit">Cancel Shift</button>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

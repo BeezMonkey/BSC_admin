@@ -1,0 +1,23 @@
+{% extends "worker_base.html" %}
+
+{% block title %}Shift Detail - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<section class="worker-card">
+  <h1>{{ shift.participant.display_name }}</h1>
+  <dl class="detail-list">
+    <dt>Date</dt><dd>{{ shift.service_date }}</dd>
+    <dt>Time</dt><dd>{{ shift.start_time }} - {{ shift.end_time }}</dd>
+    <dt>Status</dt><dd>{{ shift.get_status_display }}</dd>
+    <dt>Address</dt><dd>{{ shift.address|default:"-" }}</dd>
+    <dt>Instructions</dt><dd>{{ shift.instructions|default:"-" }}</dd>
+    <dt>Service</dt><dd>{{ shift.get_service_type_display }}</dd>
+  </dl>
+  {% if shift.status == "published" %}
+    <form method="post" action="{% url 'worker_shift_confirm' shift.id %}">
+      {% csrf_token %}
+      <button type="submit">Confirm Shift</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}
