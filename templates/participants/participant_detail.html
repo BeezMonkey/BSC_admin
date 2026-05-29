@@ -10,6 +10,7 @@
   </div>
   <div class="button-row">
     <a class="button" href="{% url 'participant_edit' participant.id %}">Edit</a>
+    <a class="button" href="{% url 'participant_assign_worker' participant.id %}">Assign Worker</a>
     {% if participant.status != "archived" %}
       <form method="post" action="{% url 'participant_archive' participant.id %}">
         {% csrf_token %}
@@ -66,6 +67,48 @@
     <dt>Internal notes</dt>
     <dd>{{ participant.internal_notes|default:"-" }}</dd>
   </dl>
+</section>
+
+<section class="card">
+  <h2>Assigned Workers</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Worker</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Status</th>
+        <th>Notes</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for assignment in participant.worker_assignments.all %}
+        <tr>
+          <td>{{ assignment.worker.display_name }}</td>
+          <td>{{ assignment.start_date }}</td>
+          <td>{{ assignment.end_date|default:"-" }}</td>
+          <td>{{ assignment.is_active|yesno:"Active,Ended" }}</td>
+          <td>{{ assignment.notes|default:"-" }}</td>
+          <td>
+            {% if assignment.is_active %}
+              <form method="post" action="{% url 'assignment_end' assignment.id %}" class="inline-form">
+                {% csrf_token %}
+                <input type="date" name="end_date">
+                <button type="submit">End</button>
+              </form>
+            {% else %}
+              -
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="6">No workers assigned.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </section>
 
 <section class="card">

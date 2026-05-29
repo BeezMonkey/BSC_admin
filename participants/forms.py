@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Participant
+from .models import Participant, ParticipantWorkerAssignment
 
 
 class ParticipantForm(forms.ModelForm):
@@ -78,3 +78,50 @@ class ParticipantForm(forms.ModelForm):
                 "Plan end date cannot be earlier than plan start date.",
             )
         return cleaned_data
+
+
+class ParticipantWorkerAssignmentForm(forms.ModelForm):
+    class Meta:
+        model = ParticipantWorkerAssignment
+        fields = ["worker", "start_date", "end_date", "is_active", "notes"]
+        widgets = {
+            "start_date": forms.DateInput(attrs={"type": "date"}),
+            "end_date": forms.DateInput(attrs={"type": "date"}),
+            "notes": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.participant = kwargs.pop("participant")
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        worker = cleaned_data.get("worker")
+        start_date = cleaned_data.get("start_date")
+        end_date = cleaned_data.get("end_date")
+        is_active = cleaned_data.get("is_active")
+
+        if start_date and end_date and end_date < start_date:
+            self.add_error("end_date", "End date cannot be earlier than start date.")
+
+        if worker and is_active:
+            duplicate = ParticipantWorkerAssignment.objects.filter(
+                participant=self.participant,
+                worker=worker,
+                is_active=True,
+            )
+            if self.instance.pk:
+                duplicate = duplicate.exclude(pk=self.instance.pk)
+            if duplicate.exists():
+                self.add_error(
+                    "worker",
+                    "This worker already has an active assignment for this participant.",
+                )
+        return cleaned_data
+
+    def save(self, commit=True):
+        assignment = super().save(commit=False)
+        assignment.participant = self.participant
+        if commit:
+            assignment.save()
+        return assignment

@@ -1,0 +1,31 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Assign Worker - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Assign Worker</h1>
+    <p>{{ participant.display_name }}</p>
+  </div>
+  <a class="button secondary" href="{% url 'participant_detail' participant.id %}">Cancel</a>
+</div>
+
+<form class="record-form" method="post" novalidate>
+  {% csrf_token %}
+  <section class="card form-section">
+    <h2>Assignment Details</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.worker %}
+      {% include "participants/partials/field.html" with field=form.start_date %}
+      {% include "participants/partials/field.html" with field=form.end_date %}
+      {% include "participants/partials/field.html" with field=form.is_active %}
+      {% include "participants/partials/field.html" with field=form.notes %}
+    </div>
+  </section>
+  <div class="form-actions">
+    <button type="submit">Save Assignment</button>
+    <a class="button secondary" href="{% url 'participant_detail' participant.id %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

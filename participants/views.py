@@ -5,8 +5,8 @@ from django.views.decorators.http import require_POST
 
 from accounts.decorators import admin_required
 
-from .forms import ParticipantForm
-from .models import Participant
+from .forms import ParticipantForm, ParticipantWorkerAssignmentForm
+from .models import Participant, ParticipantWorkerAssignment
 
 
 @admin_required
@@ -57,7 +57,10 @@ def participant_create(request):
 
 @admin_required
 def participant_detail(request, participant_id):
-    participant = get_object_or_404(Participant, id=participant_id)
+    participant = get_object_or_404(
+        Participant.objects.prefetch_related("worker_assignments__worker"),
+        id=participant_id,
+    )
     return render(
         request,
         "participants/participant_detail.html",
@@ -92,3 +95,34 @@ def participant_archive(request, participant_id):
     participant.save(update_fields=["status", "updated_at"])
     messages.success(request, "Participant archived.")
     return redirect(participant)
+
+
+@admin_required
+def participant_assign_worker(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+    if request.method == "POST":
+        form = ParticipantWorkerAssignmentForm(request.POST, participant=participant)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Worker assigned.")
+            return redirect(participant)
+    else:
+        form = ParticipantWorkerAssignmentForm(participant=participant)
+
+    return render(
+        request,
+        "participants/assignment_form.html",
+        {"form": form, "participant": participant},
+    )
+
+
+@admin_required
+@require_POST
+def assignment_end(request, assignment_id):
+    assignment = get_object_or_404(ParticipantWorkerAssignment, id=assignment_id)
+    end_date = request.POST.get("end_date") or None
+    assignment.end_date = end_date
+    assignment.is_active = False
+    assignment.save(update_fields=["end_date", "is_active", "updated_at"])
+    messages.success(request, "Assignment ended.")
+    return redirect(assignment.participant)
