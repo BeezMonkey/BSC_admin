@@ -1,0 +1,35 @@
+{% extends "admin_base.html" %}
+
+{% block title %}{{ title }} - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ title }}</h1>
+    <p>Enter verified support item details. The system does not invent NDIS item numbers.</p>
+  </div>
+  <a class="button secondary" href="{% if support_item %}{% url 'support_item_detail' support_item.id %}{% else %}{% url 'support_item_list' %}{% endif %}">Cancel</a>
+</div>
+
+<form class="record-form" method="post" novalidate>
+  {% csrf_token %}
+  <section class="card form-section">
+    <h2>Support Item Details</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.item_number %}
+      {% include "participants/partials/field.html" with field=form.name %}
+      {% include "participants/partials/field.html" with field=form.category %}
+      {% include "participants/partials/field.html" with field=form.unit %}
+      {% include "participants/partials/field.html" with field=form.price_limit %}
+      {% include "participants/partials/field.html" with field=form.gst_code %}
+      {% include "participants/partials/field.html" with field=form.is_active %}
+      {% include "participants/partials/field.html" with field=form.notes %}
+    </div>
+  </section>
+
+  <div class="form-actions">
+    <button type="submit">Save</button>
+    <a class="button secondary" href="{% if support_item %}{% url 'support_item_detail' support_item.id %}{% else %}{% url 'support_item_list' %}{% endif %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}
