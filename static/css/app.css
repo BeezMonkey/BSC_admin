@@ -354,6 +354,13 @@ th {
   min-width: 140px;
 }
 
+.list-item {
+  display: grid;
+  gap: 0.35rem;
+  border-bottom: 1px solid var(--line);
+  padding: 0.9rem 0;
+}
+
 .worker-shell {
   display: grid;
   min-height: 100vh;

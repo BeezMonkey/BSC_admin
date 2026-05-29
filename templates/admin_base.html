@@ -6,11 +6,12 @@
     <div class="brand">Brisbane Star Care</div>
     <nav>
       <a href="{% url 'admin_dashboard' %}">Dashboard</a>
-      <a href="#">Participants</a>
-      <a href="#">Support Workers</a>
-      <a href="#">Roster</a>
-      <a href="#">Service Logs</a>
+      <a href="{% url 'participant_list' %}">Participants</a>
+      <a href="{% url 'worker_list' %}">Support Workers</a>
+      <a href="{% url 'roster_list' %}">Roster</a>
+      <a href="{% url 'service_log_list' %}">Service Logs</a>
       <a href="{% url 'invoice_placeholder' %}">Invoices</a>
+      <a href="{% url 'support_item_list' %}">Support Items</a>
     </nav>
   </aside>
   <section class="content">
