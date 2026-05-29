@@ -1,0 +1,33 @@
+{% extends "admin_base.html" %}
+
+{% block title %}{{ support_item.name }} - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ support_item.name }}</h1>
+    <p>{{ support_item.item_number }}</p>
+  </div>
+  <a class="button" href="{% url 'support_item_edit' support_item.id %}">Edit</a>
+</div>
+
+<section class="card">
+  <h2>Configuration</h2>
+  <dl class="detail-list">
+    <dt>Item number</dt>
+    <dd>{{ support_item.item_number }}</dd>
+    <dt>Category</dt>
+    <dd>{{ support_item.category|default:"-" }}</dd>
+    <dt>Unit</dt>
+    <dd>{{ support_item.get_unit_display }}</dd>
+    <dt>Price limit</dt>
+    <dd>${{ support_item.price_limit }}</dd>
+    <dt>GST</dt>
+    <dd>{{ support_item.get_gst_code_display }}</dd>
+    <dt>Status</dt>
+    <dd>{{ support_item.is_active|yesno:"Active,Inactive" }}</dd>
+    <dt>Notes</dt>
+    <dd>{{ support_item.notes|default:"-" }}</dd>
+  </dl>
+</section>
+{% endblock %}
