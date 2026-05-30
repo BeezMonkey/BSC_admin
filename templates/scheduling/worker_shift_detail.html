@@ -19,5 +19,8 @@
       <button type="submit">Confirm Shift</button>
     </form>
   {% endif %}
+  {% if shift.status == "published" or shift.status == "confirmed" %}
+    <p><a class="button" href="{% url 'worker_service_log_create' shift.id %}">Complete Service Log</a></p>
+  {% endif %}
 </section>
 {% endblock %}

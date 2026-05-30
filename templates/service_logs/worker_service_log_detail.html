@@ -1,0 +1,18 @@
+{% extends "worker_base.html" %}
+
+{% block title %}Service Log - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<section class="worker-card">
+  <h1>{{ service_log.participant.display_name }}</h1>
+  <dl class="detail-list">
+    <dt>Date</dt><dd>{{ service_log.service_date }}</dd>
+    <dt>Status</dt><dd>{{ service_log.get_status_display }}</dd>
+    <dt>Actual time</dt><dd>{{ service_log.actual_start_time }} - {{ service_log.actual_end_time }}</dd>
+    <dt>Actual hours</dt><dd>{{ service_log.actual_hours }}</dd>
+    <dt>Kilometres</dt><dd>{{ service_log.kilometres }}</dd>
+    <dt>Case notes</dt><dd>{{ service_log.case_notes }}</dd>
+    <dt>Worker notes</dt><dd>{{ service_log.worker_notes|default:"-" }}</dd>
+  </dl>
+</section>
+{% endblock %}

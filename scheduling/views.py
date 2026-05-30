@@ -86,7 +86,12 @@ def shift_detail(request, shift_id):
         Shift.objects.select_related("participant", "worker", "support_item", "created_by"),
         id=shift_id,
     )
-    return render(request, "scheduling/shift_detail.html", {"shift": shift})
+    service_log = getattr(shift, "service_log", None)
+    return render(
+        request,
+        "scheduling/shift_detail.html",
+        {"shift": shift, "service_log": service_log},
+    )
 
 
 @admin_required

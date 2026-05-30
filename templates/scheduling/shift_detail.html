@@ -26,6 +26,14 @@
       <dt>Service type</dt><dd>{{ shift.get_service_type_display }}</dd>
       <dt>Planned hours</dt><dd>{{ shift.planned_hours }}</dd>
       <dt>Status</dt><dd>{{ shift.get_status_display }}</dd>
+      <dt>Service log</dt>
+      <dd>
+        {% if service_log %}
+          <a href="{% url 'service_log_detail' service_log.id %}">View submitted log</a>
+        {% else %}
+          -
+        {% endif %}
+      </dd>
     </dl>
   </section>
   <section class="card">
