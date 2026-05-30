@@ -8,6 +8,10 @@
     <h1>{{ invoice.invoice_number }}</h1>
     <p>{{ invoice.participant.display_name }} | {{ invoice.period_start }} - {{ invoice.period_end }}</p>
   </div>
+  <div class="button-row">
+    <a class="button" href="{% url 'invoice_csv' invoice.id %}">Download CSV</a>
+    <a class="button" href="{% url 'invoice_pdf' invoice.id %}">Download PDF</a>
+  </div>
 </div>
 
 <section class="card">
@@ -45,4 +49,28 @@
     </tbody>
   </table>
 </section>
+
+{% if invoice.status == "draft" or invoice.status == "issued" %}
+<section class="card">
+  <h2>Status Actions</h2>
+  <div class="button-row">
+    {% if invoice.status == "draft" %}
+      <form method="post" action="{% url 'invoice_mark_issued' invoice.id %}">
+        {% csrf_token %}
+        <button type="submit">Mark as Issued</button>
+      </form>
+    {% endif %}
+    {% if invoice.status == "issued" %}
+      <form method="post" action="{% url 'invoice_mark_paid' invoice.id %}">
+        {% csrf_token %}
+        <button type="submit">Mark as Paid</button>
+      </form>
+    {% endif %}
+    <form method="post" action="{% url 'invoice_cancel' invoice.id %}">
+      {% csrf_token %}
+      <button class="danger" type="submit">Cancel Invoice</button>
+    </form>
+  </div>
+</section>
+{% endif %}
 {% endblock %}
