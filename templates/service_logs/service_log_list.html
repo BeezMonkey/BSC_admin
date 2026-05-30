@@ -10,6 +10,19 @@
   </div>
 </div>
 
+<form method="get" class="filter-bar">
+  <label>Status
+    <select name="status">
+      <option value="">All</option>
+      {% for value, label in status_choices %}
+        <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button type="submit">Filter</button>
+  <a class="button secondary" href="{% url 'service_log_list' %}">Clear</a>
+</form>
+
 <section class="card">
   <table>
     <thead>

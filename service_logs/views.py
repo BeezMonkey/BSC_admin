@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from accounts.decorators import admin_required, worker_required
 from scheduling.models import Shift
@@ -18,10 +19,17 @@ def service_log_list(request):
         "worker",
         "support_item",
     )
+    status = request.GET.get("status", "").strip()
+    if status:
+        service_logs = service_logs.filter(status=status)
     return render(
         request,
         "service_logs/service_log_list.html",
-        {"service_logs": service_logs},
+        {
+            "service_logs": service_logs,
+            "status": status,
+            "status_choices": ServiceLog.Status.choices,
+        },
     )
 
 
@@ -41,6 +49,61 @@ def service_log_detail(request, service_log_id):
         "service_logs/service_log_detail.html",
         {"service_log": service_log},
     )
+
+
+@admin_required
+@require_POST
+def service_log_approve(request, service_log_id):
+    service_log = get_object_or_404(
+        ServiceLog,
+        id=service_log_id,
+        status=ServiceLog.Status.SUBMITTED,
+    )
+    service_log.status = ServiceLog.Status.APPROVED
+    service_log.reviewed_by = request.user
+    service_log.reviewed_at = timezone.now()
+    service_log.rejection_reason = ""
+    service_log.save(
+        update_fields=[
+            "status",
+            "reviewed_by",
+            "reviewed_at",
+            "rejection_reason",
+            "updated_at",
+        ],
+    )
+    messages.success(request, "Service log approved.")
+    return redirect("service_log_detail", service_log_id=service_log.id)
+
+
+@admin_required
+@require_POST
+def service_log_reject(request, service_log_id):
+    service_log = get_object_or_404(
+        ServiceLog,
+        id=service_log_id,
+        status=ServiceLog.Status.SUBMITTED,
+    )
+    rejection_reason = request.POST.get("rejection_reason", "").strip()
+    if not rejection_reason:
+        messages.error(request, "Rejection reason is required.")
+        return redirect("service_log_detail", service_log_id=service_log.id)
+
+    service_log.status = ServiceLog.Status.REJECTED
+    service_log.reviewed_by = request.user
+    service_log.reviewed_at = timezone.now()
+    service_log.rejection_reason = rejection_reason
+    service_log.save(
+        update_fields=[
+            "status",
+            "reviewed_by",
+            "reviewed_at",
+            "rejection_reason",
+            "updated_at",
+        ],
+    )
+    messages.success(request, "Service log rejected.")
+    return redirect("service_log_detail", service_log_id=service_log.id)
 
 
 @worker_required

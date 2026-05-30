@@ -21,6 +21,8 @@
       <dt>Break</dt><dd>{{ service_log.break_minutes }} minutes</dd>
       <dt>Actual hours</dt><dd>{{ service_log.actual_hours }}</dd>
       <dt>Kilometres</dt><dd>{{ service_log.kilometres }}</dd>
+      <dt>Reviewed by</dt><dd>{{ service_log.reviewed_by|default:"-" }}</dd>
+      <dt>Reviewed at</dt><dd>{{ service_log.reviewed_at|default:"-" }}</dd>
     </dl>
   </section>
   <section class="card">
@@ -28,8 +30,26 @@
     <dl class="detail-list">
       <dt>Case notes</dt><dd>{{ service_log.case_notes }}</dd>
       <dt>Worker notes</dt><dd>{{ service_log.worker_notes|default:"-" }}</dd>
+      <dt>Rejection reason</dt><dd>{{ service_log.rejection_reason|default:"-" }}</dd>
       <dt>Submitted</dt><dd>{{ service_log.submitted_at }}</dd>
     </dl>
   </section>
 </div>
+
+{% if service_log.status == "submitted" %}
+<section class="card">
+  <h2>Review</h2>
+  <div class="button-row">
+    <form method="post" action="{% url 'service_log_approve' service_log.id %}">
+      {% csrf_token %}
+      <button type="submit">Approve</button>
+    </form>
+  </div>
+  <form method="post" action="{% url 'service_log_reject' service_log.id %}" class="filter-bar">
+    {% csrf_token %}
+    <label>Reason <input type="text" name="rejection_reason"></label>
+    <button class="danger" type="submit">Reject</button>
+  </form>
+</section>
+{% endif %}
 {% endblock %}
