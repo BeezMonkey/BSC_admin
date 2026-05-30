@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .views import (
+    recurring_shift_create,
     roster_list,
     shift_cancel,
     shift_create,
@@ -19,6 +20,7 @@ from .views import (
 urlpatterns = [
     path("roster/", roster_list, name="roster_list"),
     path("roster/new/", shift_create, name="shift_create"),
+    path("roster/recurring/new/", recurring_shift_create, name="recurring_shift_create"),
     path("roster/<int:shift_id>/", shift_detail, name="shift_detail"),
     path("roster/<int:shift_id>/edit/", shift_edit, name="shift_edit"),
     path("roster/<int:shift_id>/publish/", shift_publish, name="shift_publish"),

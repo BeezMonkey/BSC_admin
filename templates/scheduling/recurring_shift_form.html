@@ -1,0 +1,47 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Create Recurring Shifts - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Create Recurring Shifts</h1>
+    <p>Preview weekly or fortnightly draft shifts before creating them.</p>
+  </div>
+</div>
+
+<form method="get" class="card">
+  {{ form.as_p }}
+  <button type="submit">Preview</button>
+</form>
+
+{% if preview %}
+<section class="card">
+  <h2>Preview</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in preview %}
+        <tr>
+          <td>{{ item.service_date }}</td>
+          <td>{{ item.status }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <input type="hidden" name="{{ field.name }}" value="{{ field.value|default:'' }}">
+    {% endfor %}
+    <input type="hidden" name="confirm" value="1">
+    <button type="submit">Create Non-conflicting Draft Shifts</button>
+  </form>
+</section>
+{% endif %}
+{% endblock %}
