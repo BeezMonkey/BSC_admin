@@ -1,0 +1,15 @@
+{% extends "worker_base.html" %}
+
+{% block title %}Complete Service Log - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<section class="worker-card">
+  <h1>Complete Service Log</h1>
+  <p>{{ shift.participant.display_name }} | {{ shift.service_date }} | {{ shift.start_time }} - {{ shift.end_time }}</p>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit Service Log</button>
+  </form>
+</section>
+{% endblock %}

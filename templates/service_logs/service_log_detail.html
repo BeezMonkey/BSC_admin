@@ -1,0 +1,35 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Service Log - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ service_log.participant.display_name }}</h1>
+    <p>{{ service_log.service_date }} | {{ service_log.get_status_display }}</p>
+  </div>
+</div>
+
+<div class="detail-grid">
+  <section class="card">
+    <h2>Service Log</h2>
+    <dl class="detail-list">
+      <dt>Shift ID</dt><dd>{{ service_log.shift.id }}</dd>
+      <dt>Worker</dt><dd>{{ service_log.worker.display_name }}</dd>
+      <dt>Support item</dt><dd>{{ service_log.support_item }}</dd>
+      <dt>Actual time</dt><dd>{{ service_log.actual_start_time }} - {{ service_log.actual_end_time }}</dd>
+      <dt>Break</dt><dd>{{ service_log.break_minutes }} minutes</dd>
+      <dt>Actual hours</dt><dd>{{ service_log.actual_hours }}</dd>
+      <dt>Kilometres</dt><dd>{{ service_log.kilometres }}</dd>
+    </dl>
+  </section>
+  <section class="card">
+    <h2>Notes</h2>
+    <dl class="detail-list">
+      <dt>Case notes</dt><dd>{{ service_log.case_notes }}</dd>
+      <dt>Worker notes</dt><dd>{{ service_log.worker_notes|default:"-" }}</dd>
+      <dt>Submitted</dt><dd>{{ service_log.submitted_at }}</dd>
+    </dl>
+  </section>
+</div>
+{% endblock %}
