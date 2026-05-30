@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.contrib import messages
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -6,7 +8,7 @@ from django.views.decorators.http import require_POST
 
 from accounts.decorators import admin_required, worker_required
 
-from .forms import ShiftForm, SupportItemForm
+from .forms import RecurringShiftForm, ShiftForm, SupportItemForm
 from .models import Shift, SupportItem
 
 
@@ -77,6 +79,80 @@ def shift_create(request):
         request,
         "scheduling/shift_form.html",
         {"form": form, "title": "New Shift"},
+    )
+
+
+def recurring_shift_preview(form):
+    if not form.is_valid():
+        return []
+
+    data = form.cleaned_data
+    step_days = 7 if data["frequency"] == RecurringShiftForm.FREQUENCY_WEEKLY else 14
+    preview = []
+    service_date = data["start_date"]
+    while service_date <= data["end_date"]:
+        conflict = Shift.objects.filter(
+            worker=data["worker"],
+            service_date=service_date,
+            status__in=Shift.ACTIVE_CONFLICT_STATUSES,
+            start_time__lt=data["end_time"],
+            end_time__gt=data["start_time"],
+        ).exists()
+        preview.append(
+            {
+                "service_date": service_date,
+                "has_conflict": conflict,
+                "status": "Skipped - worker conflict" if conflict else "Will create",
+            }
+        )
+        service_date += timedelta(days=step_days)
+    return preview
+
+
+@admin_required
+def recurring_shift_create(request):
+    if request.method == "POST":
+        form = RecurringShiftForm(request.POST)
+        preview = recurring_shift_preview(form)
+        if form.is_valid():
+            created_count = 0
+            skipped_count = 0
+            data = form.cleaned_data
+            for item in preview:
+                if item["has_conflict"]:
+                    skipped_count += 1
+                    continue
+                Shift.objects.create(
+                    participant=data["participant"],
+                    worker=data["worker"],
+                    service_date=item["service_date"],
+                    start_time=data["start_time"],
+                    end_time=data["end_time"],
+                    break_minutes=data["break_minutes"],
+                    planned_hours=data["planned_hours"],
+                    support_item=data["support_item"],
+                    service_type=data["service_type"],
+                    location=data["location"],
+                    address=data["address"],
+                    instructions=data["instructions"],
+                    admin_notes=data["admin_notes"],
+                    status=Shift.Status.DRAFT,
+                    created_by=request.user,
+                )
+                created_count += 1
+            messages.success(
+                request,
+                f"Recurring shifts created: {created_count}; skipped: {skipped_count}.",
+            )
+            return redirect("roster_list")
+    else:
+        form = RecurringShiftForm(request.GET or None)
+        preview = recurring_shift_preview(form)
+
+    return render(
+        request,
+        "scheduling/recurring_shift_form.html",
+        {"form": form, "preview": preview},
     )
 
 

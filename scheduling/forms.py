@@ -119,3 +119,64 @@ class ShiftForm(forms.ModelForm):
             shift.save()
             self.save_m2m()
         return shift
+
+
+class RecurringShiftForm(forms.Form):
+    FREQUENCY_WEEKLY = "weekly"
+    FREQUENCY_FORTNIGHTLY = "fortnightly"
+    FREQUENCY_CHOICES = (
+        (FREQUENCY_WEEKLY, "Weekly"),
+        (FREQUENCY_FORTNIGHTLY, "Fortnightly"),
+    )
+
+    participant = forms.ModelChoiceField(queryset=None)
+    worker = forms.ModelChoiceField(queryset=None)
+    frequency = forms.ChoiceField(choices=FREQUENCY_CHOICES)
+    start_date = forms.DateField(widget=forms.DateInput(attrs={"type": "date"}))
+    end_date = forms.DateField(widget=forms.DateInput(attrs={"type": "date"}))
+    start_time = forms.TimeField(widget=forms.TimeInput(attrs={"type": "time"}))
+    end_time = forms.TimeField(widget=forms.TimeInput(attrs={"type": "time"}))
+    break_minutes = forms.IntegerField(min_value=0, initial=0)
+    support_item = forms.ModelChoiceField(queryset=SupportItem.active_items())
+    service_type = forms.ChoiceField(choices=Shift.ServiceType.choices)
+    location = forms.CharField(required=False, max_length=150)
+    address = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 3}))
+    instructions = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 3}))
+    admin_notes = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 3}))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from participants.models import Participant
+        from workers.models import SupportWorker
+
+        self.fields["participant"].queryset = Participant.objects.all()
+        self.fields["worker"].queryset = SupportWorker.objects.all()
+        self.fields["support_item"].queryset = SupportItem.active_items()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get("start_date")
+        end_date = cleaned_data.get("end_date")
+        start_time = cleaned_data.get("start_time")
+        end_time = cleaned_data.get("end_time")
+        break_minutes = cleaned_data.get("break_minutes") or 0
+
+        if start_date and end_date and end_date < start_date:
+            self.add_error("end_date", "End date must be on or after start date.")
+
+        if start_time and end_time and end_time <= start_time:
+            self.add_error("end_time", "End time must be after start time.")
+            return cleaned_data
+
+        if start_time and end_time:
+            start_minutes = start_time.hour * 60 + start_time.minute
+            end_minutes = end_time.hour * 60 + end_time.minute
+            total_minutes = end_minutes - start_minutes - break_minutes
+            if total_minutes <= 0:
+                self.add_error("break_minutes", "Planned hours must be greater than 0.")
+            else:
+                cleaned_data["planned_hours"] = (
+                    Decimal(total_minutes) / Decimal(60)
+                ).quantize(Decimal("0.01"))
+
+        return cleaned_data

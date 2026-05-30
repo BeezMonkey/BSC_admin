@@ -8,7 +8,10 @@
     <h1>Roster</h1>
     <p>Manage scheduled shifts.</p>
   </div>
-  <a class="button" href="{% url 'shift_create' %}">New Shift</a>
+  <div class="button-row">
+    <a class="button" href="{% url 'shift_create' %}">New Shift</a>
+    <a class="button secondary" href="{% url 'recurring_shift_create' %}">Create Recurring Shifts</a>
+  </div>
 </div>
 
 <form class="filter-bar" method="get">
