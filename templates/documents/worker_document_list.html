@@ -1,0 +1,18 @@
+{% extends "worker_base.html" %}
+
+{% block title %}My Documents - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<section class="worker-card">
+  <h1>My Documents</h1>
+  {% for document in documents %}
+    <a class="list-item" href="{% url 'worker_document_detail' document.id %}">
+      <strong>{{ document.title }}</strong>
+      <span>{{ document.get_category_display }}</span>
+      <span>{{ document.filename }}</span>
+    </a>
+  {% empty %}
+    <p>No documents yet.</p>
+  {% endfor %}
+</section>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Upload Document - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Upload Document</h1>
+    <p>Attach a file to one or more business records.</p>
+  </div>
+</div>
+
+<section class="card">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Upload Document</button>
+  </form>
+</section>
+{% endblock %}
