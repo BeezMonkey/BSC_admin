@@ -1,0 +1,48 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Invoice - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ invoice.invoice_number }}</h1>
+    <p>{{ invoice.participant.display_name }} | {{ invoice.period_start }} - {{ invoice.period_end }}</p>
+  </div>
+</div>
+
+<section class="card">
+  <dl class="detail-list">
+    <dt>Status</dt><dd>{{ invoice.get_status_display }}</dd>
+    <dt>Created by</dt><dd>{{ invoice.created_by }}</dd>
+    <dt>Total</dt><dd>${{ invoice.total_amount }}</dd>
+  </dl>
+</section>
+
+<section class="card">
+  <h2>Lines</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Description</th>
+        <th>Unit</th>
+        <th>Quantity</th>
+        <th>Unit price</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for line in invoice.lines.all %}
+        <tr>
+          <td>{{ line.support_item_number }}</td>
+          <td>{{ line.description }}</td>
+          <td>{{ line.unit }}</td>
+          <td>{{ line.quantity }}</td>
+          <td>${{ line.unit_price }}</td>
+          <td>${{ line.line_total }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Invoices - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Invoices</h1>
+    <p>Generated invoices from approved service logs.</p>
+  </div>
+  <a class="button" href="{% url 'invoice_create' %}">Create Invoice</a>
+</div>
+
+<section class="card">
+  <table>
+    <thead>
+      <tr>
+        <th>Invoice</th>
+        <th>Participant</th>
+        <th>Period</th>
+        <th>Status</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for invoice in invoices %}
+        <tr>
+          <td><a href="{% url 'invoice_detail' invoice.id %}">{{ invoice.invoice_number }}</a></td>
+          <td>{{ invoice.participant.display_name }}</td>
+          <td>{{ invoice.period_start }} - {{ invoice.period_end }}</td>
+          <td>{{ invoice.get_status_display }}</td>
+          <td>${{ invoice.total_amount }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5">No invoices yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

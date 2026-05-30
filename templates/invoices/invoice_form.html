@@ -1,0 +1,55 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Create Invoice - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Create Invoice</h1>
+    <p>Select approved service logs for one participant and period.</p>
+  </div>
+</div>
+
+<form method="get" class="filter-bar">
+  {{ form.as_p }}
+  <button type="submit">Preview Logs</button>
+</form>
+
+<section class="card">
+  <h2>Approved Logs</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Worker</th>
+        <th>Support item</th>
+        <th>Hours</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for service_log in service_logs %}
+        <tr>
+          <td>{{ service_log.service_date }}</td>
+          <td>{{ service_log.worker.display_name }}</td>
+          <td>{{ service_log.support_item }}</td>
+          <td>{{ service_log.actual_hours }}</td>
+          <td>{{ service_log.case_notes|truncatechars:80 }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5">No approved logs found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if service_logs %}
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="participant" value="{{ form.cleaned_data.participant.id }}">
+      <input type="hidden" name="period_start" value="{{ form.cleaned_data.period_start|date:'Y-m-d' }}">
+      <input type="hidden" name="period_end" value="{{ form.cleaned_data.period_end|date:'Y-m-d' }}">
+      <button type="submit">Create Invoice</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}
