@@ -7,6 +7,8 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from accounts.decorators import admin_required, worker_required
+from core.audit import write_audit_log
+from core.models import AuditLog
 
 from .forms import RecurringShiftForm, ShiftForm, SupportItemForm
 from .models import Shift, SupportItem
@@ -210,6 +212,12 @@ def shift_cancel(request, shift_id):
     shift.status = Shift.Status.CANCELLED
     shift.cancellation_reason = request.POST.get("cancellation_reason", "")
     shift.save(update_fields=["status", "cancellation_reason", "updated_at"])
+    write_audit_log(
+        request.user,
+        AuditLog.Action.SHIFT_CANCELLED,
+        shift,
+        f"Cancelled shift {shift.id}.",
+    )
     messages.success(request, "Shift cancelled.")
     return redirect(shift)
 

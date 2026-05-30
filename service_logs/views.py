@@ -5,6 +5,8 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from accounts.decorators import admin_required, worker_required
+from core.audit import write_audit_log
+from core.models import AuditLog
 from scheduling.models import Shift
 
 from .forms import ServiceLogForm
@@ -72,6 +74,12 @@ def service_log_approve(request, service_log_id):
             "updated_at",
         ],
     )
+    write_audit_log(
+        request.user,
+        AuditLog.Action.SERVICE_LOG_APPROVED,
+        service_log,
+        f"Approved service log {service_log.id}.",
+    )
     messages.success(request, "Service log approved.")
     return redirect("service_log_detail", service_log_id=service_log.id)
 
@@ -101,6 +109,12 @@ def service_log_reject(request, service_log_id):
             "rejection_reason",
             "updated_at",
         ],
+    )
+    write_audit_log(
+        request.user,
+        AuditLog.Action.SERVICE_LOG_REJECTED,
+        service_log,
+        f"Rejected service log {service_log.id}.",
     )
     messages.success(request, "Service log rejected.")
     return redirect("service_log_detail", service_log_id=service_log.id)

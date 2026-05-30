@@ -1,0 +1,22 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Audit Log - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ audit_log.get_action_display }}</h1>
+    <p>{{ audit_log.created_at }}</p>
+  </div>
+</div>
+
+<section class="card">
+  <dl class="detail-list">
+    <dt>Actor</dt><dd>{{ audit_log.actor|default:"System" }}</dd>
+    <dt>Action</dt><dd>{{ audit_log.action }}</dd>
+    <dt>Object type</dt><dd>{{ audit_log.object_type }}</dd>
+    <dt>Object ID</dt><dd>{{ audit_log.object_id }}</dd>
+    <dt>Summary</dt><dd>{{ audit_log.summary }}</dd>
+  </dl>
+</section>
+{% endblock %}
