@@ -2,6 +2,8 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.decorators import admin_required, worker_required
+from core.audit import write_audit_log
+from core.models import AuditLog
 
 from .forms import DocumentForm
 from .models import Document
@@ -31,6 +33,12 @@ def document_create(request):
             document = form.save(commit=False)
             document.uploaded_by = request.user
             document.save()
+            write_audit_log(
+                request.user,
+                AuditLog.Action.DOCUMENT_UPLOADED,
+                document,
+                f"Uploaded document {document.id}: {document.title}.",
+            )
             return redirect(document)
     else:
         form = DocumentForm()
@@ -54,6 +62,12 @@ def document_download(request, document_id):
     with document.file.open("rb") as file_handle:
         response = HttpResponse(file_handle.read(), content_type="application/octet-stream")
     response["Content-Disposition"] = f'attachment; filename="{document.filename}"'
+    write_audit_log(
+        request.user,
+        AuditLog.Action.DOCUMENT_DOWNLOADED,
+        document,
+        f"Downloaded document {document.id}: {document.title}.",
+    )
     return response
 
 

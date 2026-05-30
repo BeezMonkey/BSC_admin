@@ -7,6 +7,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from accounts.decorators import finance_required
+from core.audit import write_audit_log
+from core.models import AuditLog
 from service_logs.models import ServiceLog
 
 from .forms import InvoiceCreateForm
@@ -64,6 +66,12 @@ def invoice_create(request):
                     )
                     service_log.status = ServiceLog.Status.INVOICED
                     service_log.save(update_fields=["status", "updated_at"])
+                write_audit_log(
+                    request.user,
+                    AuditLog.Action.INVOICE_CREATED,
+                    invoice,
+                    f"Created invoice {invoice.invoice_number}.",
+                )
                 messages.success(request, "Invoice created.")
                 return redirect(invoice)
 
@@ -207,6 +215,12 @@ def invoice_mark_issued(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id, status=Invoice.Status.DRAFT)
     invoice.status = Invoice.Status.ISSUED
     invoice.save(update_fields=["status", "updated_at"])
+    write_audit_log(
+        request.user,
+        AuditLog.Action.INVOICE_MARKED_ISSUED,
+        invoice,
+        f"Marked invoice {invoice.invoice_number} as issued.",
+    )
     messages.success(request, "Invoice marked as issued.")
     return redirect(invoice)
 
@@ -217,6 +231,12 @@ def invoice_mark_paid(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id, status=Invoice.Status.ISSUED)
     invoice.status = Invoice.Status.PAID
     invoice.save(update_fields=["status", "updated_at"])
+    write_audit_log(
+        request.user,
+        AuditLog.Action.INVOICE_MARKED_PAID,
+        invoice,
+        f"Marked invoice {invoice.invoice_number} as paid.",
+    )
     messages.success(request, "Invoice marked as paid.")
     return redirect(invoice)
 
@@ -231,6 +251,12 @@ def invoice_cancel(request, invoice_id):
     )
     invoice.status = Invoice.Status.CANCELLED
     invoice.save(update_fields=["status", "updated_at"])
+    write_audit_log(
+        request.user,
+        AuditLog.Action.INVOICE_CANCELLED,
+        invoice,
+        f"Cancelled invoice {invoice.invoice_number}.",
+    )
     messages.success(request, "Invoice cancelled.")
     return redirect(invoice)
 
