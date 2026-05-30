@@ -13,6 +13,7 @@
     <dt>Kilometres</dt><dd>{{ service_log.kilometres }}</dd>
     <dt>Case notes</dt><dd>{{ service_log.case_notes }}</dd>
     <dt>Worker notes</dt><dd>{{ service_log.worker_notes|default:"-" }}</dd>
+    <dt>Rejection reason</dt><dd>{{ service_log.rejection_reason|default:"-" }}</dd>
   </dl>
 </section>
 {% endblock %}
