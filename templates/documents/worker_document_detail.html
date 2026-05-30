@@ -1,0 +1,15 @@
+{% extends "worker_base.html" %}
+
+{% block title %}Document - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<section class="worker-card">
+  <h1>{{ document.title }}</h1>
+  <dl class="detail-list">
+    <dt>Category</dt><dd>{{ document.get_category_display }}</dd>
+    <dt>File</dt><dd>{{ document.filename }}</dd>
+    <dt>Notes</dt><dd>{{ document.notes|default:"-" }}</dd>
+  </dl>
+  <a class="button" href="{% url 'worker_document_download' document.id %}">Download</a>
+</section>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Document - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ document.title }}</h1>
+    <p>{{ document.get_category_display }}</p>
+  </div>
+  <a class="button" href="{% url 'document_download' document.id %}">Download</a>
+</div>
+
+<section class="card">
+  <dl class="detail-list">
+    <dt>File</dt><dd>{{ document.filename }}</dd>
+    <dt>Participant</dt><dd>{{ document.participant|default:"-" }}</dd>
+    <dt>Worker</dt><dd>{{ document.worker|default:"-" }}</dd>
+    <dt>Invoice</dt><dd>{{ document.invoice|default:"-" }}</dd>
+    <dt>Service log</dt><dd>{{ document.service_log|default:"-" }}</dd>
+    <dt>Notes</dt><dd>{{ document.notes|default:"-" }}</dd>
+    <dt>Uploaded by</dt><dd>{{ document.uploaded_by }}</dd>
+  </dl>
+</section>
+{% endblock %}

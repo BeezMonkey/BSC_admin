@@ -1,0 +1,43 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Documents - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Documents</h1>
+    <p>Uploaded files linked to participants, workers, invoices, and service logs.</p>
+  </div>
+  <a class="button" href="{% url 'document_create' %}">Upload Document</a>
+</div>
+
+<section class="card">
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Linked record</th>
+        <th>Uploaded by</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for document in documents %}
+        <tr>
+          <td><a href="{% url 'document_detail' document.id %}">{{ document.title }}</a></td>
+          <td>{{ document.get_category_display }}</td>
+          <td>
+            {% if document.participant %}Participant: {{ document.participant.display_name }}{% endif %}
+            {% if document.worker %}Worker: {{ document.worker.display_name }}{% endif %}
+            {% if document.invoice %}Invoice: {{ document.invoice.invoice_number }}{% endif %}
+            {% if document.service_log %}Service log: {{ document.service_log.id }}{% endif %}
+          </td>
+          <td>{{ document.uploaded_by }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4">No documents yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
