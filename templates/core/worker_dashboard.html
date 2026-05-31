@@ -5,6 +5,28 @@
 {% block content %}
 <section class="worker-card">
   <h1>Worker Dashboard</h1>
-  <p>Your shifts and service logs will appear here as the worker workflow is built.</p>
+  <p>Review upcoming shifts, submit service logs, access shared documents, and keep your profile details current.</p>
+  <div class="card-grid">
+    <section class="card">
+      <h2>My Shifts</h2>
+      <p>View rostered shifts and confirm assigned work.</p>
+      <a href="{% url 'worker_shift_list' %}">Open shifts</a>
+    </section>
+    <section class="card">
+      <h2>My Logs</h2>
+      <p>Create and review service logs for completed support work.</p>
+      <a href="{% url 'worker_log_list' %}">Open logs</a>
+    </section>
+    <section class="card">
+      <h2>My Documents</h2>
+      <p>Access documents shared with your worker account.</p>
+      <a href="{% url 'worker_document_list' %}">Open documents</a>
+    </section>
+    <section class="card">
+      <h2>Profile</h2>
+      <p>Check your contact, employment, and status details.</p>
+      <a href="{% url 'worker_profile' %}">Open profile</a>
+    </section>
+  </div>
 </section>
 {% endblock %}
