@@ -1,21 +1,26 @@
 {% extends "base.html" %}
 
 {% block body %}
-<div class="worker-shell">
-  <header class="worker-header">
-    <strong>Brisbane Star Care</strong>
-    <form method="post" action="{% url 'logout' %}">
-      {% csrf_token %}
-      <button type="submit">Logout</button>
-    </form>
-  </header>
-  {% block content %}{% endblock %}
-  <nav class="bottom-nav" aria-label="Worker navigation">
-    <a href="{% url 'worker_dashboard' %}">Home</a>
-    <a href="{% url 'worker_shift_list' %}">My Shifts</a>
-    <a href="{% url 'worker_log_list' %}">My Logs</a>
-    <a href="{% url 'worker_document_list' %}">Docs</a>
-    <a href="{% url 'worker_profile' %}">Profile</a>
-  </nav>
+<div class="app-shell worker-app-shell">
+  <aside class="sidebar worker-sidebar">
+    <div class="brand">Brisbane Star Care</div>
+    <nav class="sidebar-nav worker-sidebar-nav" aria-label="Worker navigation">
+      <a href="{% url 'worker_dashboard' %}">Dashboard</a>
+      <a href="{% url 'worker_shift_list' %}">My Shifts</a>
+      <a href="{% url 'worker_log_list' %}">My Logs</a>
+      <a href="{% url 'worker_document_list' %}">Documents</a>
+      <a href="{% url 'worker_profile' %}">Profile</a>
+    </nav>
+  </aside>
+  <section class="content worker-main">
+    <header class="topbar">
+      <span class="user-label">{{ request.user.get_username }}</span>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit">Logout</button>
+      </form>
+    </header>
+    {% block content %}{% endblock %}
+  </section>
 </div>
 {% endblock %}
