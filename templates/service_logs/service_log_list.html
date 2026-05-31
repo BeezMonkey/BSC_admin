@@ -33,6 +33,7 @@
         <th>Status</th>
         <th>Hours</th>
         <th>Notes</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -44,9 +45,12 @@
           <td>{{ service_log.get_status_display }}</td>
           <td>{{ service_log.actual_hours }}</td>
           <td>{{ service_log.case_notes|truncatechars:80 }}</td>
+          <td class="actions">
+            <a href="{% url 'service_log_detail' service_log.id %}">View</a>
+          </td>
         </tr>
       {% empty %}
-        <tr><td colspan="6">No service logs yet.</td></tr>
+        <tr><td colspan="7">No service logs yet.</td></tr>
       {% endfor %}
     </tbody>
   </table>
