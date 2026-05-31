@@ -42,7 +42,7 @@
           <td><a href="{% url 'service_log_detail' service_log.id %}">{{ service_log.service_date }}</a></td>
           <td>{{ service_log.participant.display_name }}</td>
           <td>{{ service_log.worker.display_name }}</td>
-          <td>{{ service_log.get_status_display }}</td>
+          <td><span class="status-pill">{{ service_log.get_status_display }}</span></td>
           <td>{{ service_log.actual_hours }}</td>
           <td>{{ service_log.case_notes|truncatechars:80 }}</td>
           <td class="actions">

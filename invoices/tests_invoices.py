@@ -206,3 +206,37 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, "Actions")
         self.assertContains(response, reverse("invoice_detail", args=[invoice.id]))
         self.assertContains(response, "View")
+
+    def test_invoice_list_formats_total_to_two_decimal_places(self):
+        service_log = self.create_service_log(actual_hours=Decimal("2.00"))
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create_from_service_log(invoice=invoice, service_log=service_log)
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_placeholder"))
+
+        self.assertContains(response, "$130.94")
+        self.assertNotContains(response, "$130.940000000000")
+
+    def test_invoice_detail_formats_amounts_to_two_decimal_places(self):
+        service_log = self.create_service_log(actual_hours=Decimal("2.00"))
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create_from_service_log(invoice=invoice, service_log=service_log)
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_detail", args=[invoice.id]))
+
+        self.assertContains(response, "$130.94")
+        self.assertContains(response, "$65.47")
+        self.assertContains(response, "2.00")
+        self.assertNotContains(response, "$130.940000000000")

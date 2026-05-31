@@ -16,9 +16,9 @@
 
 <section class="card">
   <dl class="detail-list">
-    <dt>Status</dt><dd>{{ invoice.get_status_display }}</dd>
+    <dt>Status</dt><dd><span class="status-pill">{{ invoice.get_status_display }}</span></dd>
     <dt>Created by</dt><dd>{{ invoice.created_by }}</dd>
-    <dt>Total</dt><dd>${{ invoice.total_amount }}</dd>
+    <dt>Total</dt><dd>${{ invoice.total_amount|floatformat:2 }}</dd>
   </dl>
 </section>
 
@@ -41,9 +41,9 @@
           <td>{{ line.support_item_number }}</td>
           <td>{{ line.description }}</td>
           <td>{{ line.unit }}</td>
-          <td>{{ line.quantity }}</td>
-          <td>${{ line.unit_price }}</td>
-          <td>${{ line.line_total }}</td>
+          <td>{{ line.quantity|floatformat:2 }}</td>
+          <td>${{ line.unit_price|floatformat:2 }}</td>
+          <td>${{ line.line_total|floatformat:2 }}</td>
         </tr>
       {% endfor %}
     </tbody>
