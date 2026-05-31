@@ -10,7 +10,7 @@
     </form>
   </header>
   {% block content %}{% endblock %}
-  <nav class="bottom-nav">
+  <nav class="bottom-nav" aria-label="Worker navigation">
     <a href="{% url 'worker_dashboard' %}">Home</a>
     <a href="{% url 'worker_shift_list' %}">My Shifts</a>
     <a href="{% url 'worker_log_list' %}">My Logs</a>

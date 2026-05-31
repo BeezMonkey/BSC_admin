@@ -3,47 +3,52 @@
 {% block title %}Admin Dashboard - Brisbane Star Care{% endblock %}
 
 {% block content %}
-<h1>Admin Dashboard</h1>
+<header class="page-header">
+  <div>
+    <h1>Admin Dashboard</h1>
+    <p>Quick access to the main V1 operations modules.</p>
+  </div>
+</header>
 <div class="card-grid">
   <section class="card">
     <h2>Participants</h2>
     <p>Manage participant records, NDIS details, and worker assignments.</p>
-    <a href="{% url 'participant_list' %}">Open participants</a>
+    <a class="card-action" href="{% url 'participant_list' %}">Open participants</a>
   </section>
   <section class="card">
     <h2>Support Workers</h2>
     <p>Maintain worker profiles, contact details, and compliance information.</p>
-    <a href="{% url 'worker_list' %}">Open workers</a>
+    <a class="card-action" href="{% url 'worker_list' %}">Open workers</a>
   </section>
   <section class="card">
     <h2>Roster</h2>
     <p>Create, publish, and manage one-off or recurring support shifts.</p>
-    <a href="{% url 'roster_list' %}">Open roster</a>
+    <a class="card-action" href="{% url 'roster_list' %}">Open roster</a>
   </section>
   <section class="card">
     <h2>Service Logs</h2>
     <p>Review submitted worker notes, approve logs, or request corrections.</p>
-    <a href="{% url 'service_log_list' %}">Open service logs</a>
+    <a class="card-action" href="{% url 'service_log_list' %}">Open service logs</a>
   </section>
   <section class="card">
     <h2>Invoices</h2>
     <p>Generate invoices from approved service logs and export billing files.</p>
-    <a href="{% url 'invoice_placeholder' %}">Open invoices</a>
+    <a class="card-action" href="{% url 'invoice_placeholder' %}">Open invoices</a>
   </section>
   <section class="card">
     <h2>Documents</h2>
     <p>Upload and share participant, worker, and internal documents.</p>
-    <a href="{% url 'document_list' %}">Open documents</a>
+    <a class="card-action" href="{% url 'document_list' %}">Open documents</a>
   </section>
   <section class="card">
     <h2>Support Items</h2>
     <p>Maintain service item codes used when scheduling and invoicing.</p>
-    <a href="{% url 'support_item_list' %}">Open support items</a>
+    <a class="card-action" href="{% url 'support_item_list' %}">Open support items</a>
   </section>
   <section class="card">
     <h2>Audit Logs</h2>
     <p>Check the recorded history for key business actions.</p>
-    <a href="{% url 'audit_log_list' %}">Open audit logs</a>
+    <a class="card-action" href="{% url 'audit_log_list' %}">Open audit logs</a>
   </section>
 </div>
 {% endblock %}

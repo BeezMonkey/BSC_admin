@@ -4,7 +4,7 @@
 <div class="app-shell">
   <aside class="sidebar">
     <div class="brand">Brisbane Star Care</div>
-    <nav>
+    <nav class="sidebar-nav" aria-label="Admin navigation">
       <a href="{% url 'admin_dashboard' %}">Dashboard</a>
       <a href="{% url 'participant_list' %}">Participants</a>
       <a href="{% url 'worker_list' %}">Support Workers</a>
@@ -18,7 +18,7 @@
   </aside>
   <section class="content">
     <header class="topbar">
-      <span>{{ request.user.get_username }}</span>
+      <span class="user-label">{{ request.user.get_username }}</span>
       <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}
         <button type="submit">Logout</button>
