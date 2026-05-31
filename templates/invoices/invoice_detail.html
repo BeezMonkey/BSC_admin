@@ -9,6 +9,7 @@
     <p>{{ invoice.participant.display_name }} | {{ invoice.period_start }} - {{ invoice.period_end }}</p>
   </div>
   <div class="button-row">
+    <a class="button secondary" href="{% url 'invoice_placeholder' %}">Back to Invoices</a>
     <a class="button" href="{% url 'invoice_csv' invoice.id %}">Download CSV</a>
     <a class="button" href="{% url 'invoice_pdf' invoice.id %}">Download PDF</a>
   </div>

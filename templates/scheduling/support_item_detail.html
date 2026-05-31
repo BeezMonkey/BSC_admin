@@ -8,7 +8,10 @@
     <h1>{{ support_item.name }}</h1>
     <p>{{ support_item.item_number }}</p>
   </div>
-  <a class="button" href="{% url 'support_item_edit' support_item.id %}">Edit</a>
+  <div class="button-row">
+    <a class="button secondary" href="{% url 'support_item_list' %}">Back to Support Items</a>
+    <a class="button" href="{% url 'support_item_edit' support_item.id %}">Edit</a>
+  </div>
 </div>
 
 <section class="card">

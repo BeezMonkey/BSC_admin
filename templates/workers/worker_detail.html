@@ -8,7 +8,10 @@
     <h1>{{ worker.display_name }}</h1>
     <p>{{ worker.get_status_display }} | {{ worker.get_employment_type_display }}</p>
   </div>
-  <a class="button" href="{% url 'worker_edit' worker.id %}">Edit</a>
+  <div class="button-row">
+    <a class="button secondary" href="{% url 'worker_list' %}">Back to Support Workers</a>
+    <a class="button" href="{% url 'worker_edit' worker.id %}">Edit</a>
+  </div>
 </div>
 
 <div class="detail-grid">

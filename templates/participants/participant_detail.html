@@ -9,6 +9,7 @@
     <p>{{ participant.get_status_display }}{% if participant.ndis_number %} | NDIS {{ participant.ndis_number }}{% endif %}</p>
   </div>
   <div class="button-row">
+    <a class="button secondary" href="{% url 'participant_list' %}">Back to Participants</a>
     <a class="button" href="{% url 'participant_edit' participant.id %}">Edit</a>
     <a class="button" href="{% url 'participant_assign_worker' participant.id %}">Assign Worker</a>
     {% if participant.status != "archived" %}
