@@ -12,7 +12,10 @@
       <a href="{% url 'worker_shift_detail' shift.id %}">View</a>
     </div>
   {% empty %}
-    <p>No shifts found.</p>
+    <div class="empty-state">
+      <strong>No shifts found.</strong>
+      <p>Your assigned shifts will appear here after the office publishes them.</p>
+    </div>
   {% endfor %}
 </section>
 {% endblock %}

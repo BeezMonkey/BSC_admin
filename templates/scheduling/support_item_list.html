@@ -68,7 +68,13 @@
         </tr>
       {% empty %}
         <tr>
-          <td colspan="8">No support items found.</td>
+          <td colspan="8">
+            <div class="empty-state">
+              <strong>No support items found.</strong>
+              <p>Add support items before creating shifts, service logs, or invoices.</p>
+              <a class="button" href="{% url 'support_item_create' %}">Add Support Item</a>
+            </div>
+          </td>
         </tr>
       {% endfor %}
     </tbody>

@@ -50,7 +50,15 @@
           </td>
         </tr>
       {% empty %}
-        <tr><td colspan="7">No service logs yet.</td></tr>
+        <tr>
+          <td colspan="7">
+            <div class="empty-state">
+              <strong>No service logs yet.</strong>
+              <p>Service logs appear here after workers complete rostered shifts.</p>
+              <a class="button secondary" href="{% url 'roster_list' %}">View Roster</a>
+            </div>
+          </td>
+        </tr>
       {% endfor %}
     </tbody>
   </table>

@@ -12,7 +12,10 @@
       <span>{{ document.filename }}</span>
     </a>
   {% empty %}
-    <p>No documents yet.</p>
+    <div class="empty-state">
+      <strong>No documents yet.</strong>
+      <p>Documents shared with your worker account will appear here.</p>
+    </div>
   {% endfor %}
 </section>
 {% endblock %}

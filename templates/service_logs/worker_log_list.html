@@ -12,7 +12,10 @@
       <span>{{ service_log.case_notes|truncatechars:80 }}</span>
     </a>
   {% empty %}
-    <p>No service logs yet.</p>
+    <div class="empty-state">
+      <strong>No service logs yet.</strong>
+      <p>Completed service logs will appear here after you submit them from My Shifts.</p>
+    </div>
   {% endfor %}
 </section>
 {% endblock %}
