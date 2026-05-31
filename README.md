@@ -65,6 +65,7 @@ docs/deployment-checklist.md
 For V1 review and local browser testing, review:
 
 ```text
+docs/v1-trial-release-notes.md
 docs/local-demo-data.md
 docs/v1-qa-checklist.md
 docs/v1-completion-summary.md

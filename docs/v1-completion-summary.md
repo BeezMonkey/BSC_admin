@@ -32,4 +32,4 @@ This repository currently contains a local Django V1 foundation for the Brisbane
 
 ## Recommended next use
 
-Use `docs/v1-qa-checklist.md` for local browser testing. After the checklist is stable, the project can move into UI refinement, reporting, or deployment preparation depending on business priority.
+Use `docs/v1-trial-release-notes.md` and `docs/v1-qa-checklist.md` for local browser testing. After the checklist is stable, the project can move into UI refinement, reporting, or deployment preparation depending on business priority.
