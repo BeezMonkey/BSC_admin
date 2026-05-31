@@ -189,3 +189,20 @@ class InvoiceGenerationTests(TestCase):
         response = self.client.get(reverse("invoice_create"))
 
         self.assertEqual(response.status_code, 403)
+
+    def test_invoice_list_has_explicit_view_action(self):
+        service_log = self.create_service_log()
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create_from_service_log(invoice=invoice, service_log=service_log)
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_placeholder"))
+
+        self.assertContains(response, "Actions")
+        self.assertContains(response, reverse("invoice_detail", args=[invoice.id]))
+        self.assertContains(response, "View")

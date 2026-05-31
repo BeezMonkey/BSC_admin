@@ -198,3 +198,12 @@ class ServiceLogReviewTests(TestCase):
 
         self.assertContains(response, "Submitted for review.")
         self.assertNotContains(response, "Submitted log.")
+
+    def test_admin_service_log_list_has_explicit_view_action(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_list"))
+
+        self.assertContains(response, "Actions")
+        self.assertContains(response, reverse("service_log_detail", args=[self.service_log.id]))
+        self.assertContains(response, "View")
