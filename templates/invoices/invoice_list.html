@@ -29,8 +29,8 @@
           <td><a href="{% url 'invoice_detail' invoice.id %}">{{ invoice.invoice_number }}</a></td>
           <td>{{ invoice.participant.display_name }}</td>
           <td>{{ invoice.period_start }} - {{ invoice.period_end }}</td>
-          <td>{{ invoice.get_status_display }}</td>
-          <td>${{ invoice.total_amount }}</td>
+          <td><span class="status-pill">{{ invoice.get_status_display }}</span></td>
+          <td>${{ invoice.total_amount|floatformat:2 }}</td>
           <td class="actions">
             <a href="{% url 'invoice_detail' invoice.id %}">View</a>
           </td>
