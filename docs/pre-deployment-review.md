@@ -64,6 +64,12 @@ If the app is behind a trusted HTTPS proxy, `DJANGO_SECURE_PROXY_SSL_HEADER=True
 
 ## Suggested Staging Sequence
 
+For the detailed staging plan, review:
+
+```text
+docs/staging-deployment-plan.md
+```
+
 1. Create a staging environment separate from the local machine.
 2. Copy `.env.example` to a staging `.env` and fill staging values.
 3. Install dependencies and any required production database driver.

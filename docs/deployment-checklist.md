@@ -6,6 +6,7 @@ Read the broader readiness review first:
 
 ```text
 docs/pre-deployment-review.md
+docs/staging-deployment-plan.md
 ```
 
 ## Environment
