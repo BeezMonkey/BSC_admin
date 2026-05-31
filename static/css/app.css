@@ -448,27 +448,8 @@ tbody tr:hover {
   padding: 0.9rem 0;
 }
 
-.worker-shell {
-  display: grid;
-  min-height: 100vh;
-  grid-template-rows: auto 1fr auto;
-}
-
-.worker-header,
-.bottom-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem;
-  background: var(--panel);
-  border-bottom: 1px solid var(--line);
-}
-
 .worker-content {
   width: min(100%, 1040px);
-  margin: 0 auto;
-  padding: 1rem;
 }
 
 .worker-card {
@@ -479,27 +460,21 @@ tbody tr:hover {
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
 }
 
-.bottom-nav {
-  position: sticky;
-  bottom: 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 0;
-  justify-content: center;
-  padding: 0.65rem;
+.worker-app-shell {
+  grid-template-columns: 220px minmax(0, 1fr);
 }
 
-.bottom-nav a {
-  min-width: 6rem;
-  border-radius: 6px;
-  padding: 0.55rem 0.7rem;
-  color: var(--muted);
-  text-align: center;
-  font-weight: 700;
+.worker-sidebar {
+  background: #173f45;
 }
 
-.bottom-nav a:hover {
-  color: var(--ink);
-  background: #eef4f8;
+.worker-sidebar-nav a {
+  color: #e4f7f4;
+}
+
+.worker-main {
+  display: grid;
+  align-content: start;
 }
 
 @media (max-width: 760px) {
@@ -507,8 +482,41 @@ tbody tr:hover {
     grid-template-columns: 1fr;
   }
 
-  .sidebar {
+  .app-shell:not(.worker-app-shell) .sidebar {
     display: none;
+  }
+
+  .worker-app-shell {
+    display: block;
+  }
+
+  .worker-sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 0.8rem 1rem;
+  }
+
+  .worker-sidebar .brand {
+    margin: 0 0 0.65rem;
+    padding: 0;
+    border-bottom: 0;
+    font-size: 1rem;
+  }
+
+  .worker-sidebar-nav {
+    display: flex;
+    gap: 0.35rem;
+    overflow-x: auto;
+    padding-bottom: 0.1rem;
+  }
+
+  .worker-sidebar-nav a {
+    flex: 0 0 auto;
+    padding: 0.55rem 0.65rem;
+    white-space: nowrap;
   }
 
   .content {
@@ -525,20 +533,5 @@ tbody tr:hover {
 
   .detail-list {
     grid-template-columns: 1fr;
-  }
-
-  .worker-header {
-    padding: 0.85rem 1rem;
-  }
-
-  .bottom-nav {
-    gap: 0.25rem;
-    overflow-x: auto;
-    justify-content: flex-start;
-  }
-
-  .bottom-nav a {
-    min-width: 5.25rem;
-    white-space: nowrap;
   }
 }
