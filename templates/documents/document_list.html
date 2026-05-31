@@ -35,7 +35,15 @@
           <td>{{ document.uploaded_by }}</td>
         </tr>
       {% empty %}
-        <tr><td colspan="4">No documents yet.</td></tr>
+        <tr>
+          <td colspan="4">
+            <div class="empty-state">
+              <strong>No documents yet.</strong>
+              <p>Upload documents to share participant, worker, invoice, or service log files.</p>
+              <a class="button" href="{% url 'document_create' %}">Upload Document</a>
+            </div>
+          </td>
+        </tr>
       {% endfor %}
     </tbody>
   </table>

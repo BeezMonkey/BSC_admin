@@ -64,7 +64,13 @@
         </tr>
       {% empty %}
         <tr>
-          <td colspan="7">No participants found.</td>
+          <td colspan="7">
+            <div class="empty-state">
+              <strong>No participants found.</strong>
+              <p>Add a participant to start building records, assignments, shifts, and invoices.</p>
+              <a class="button" href="{% url 'participant_create' %}">Add Participant</a>
+            </div>
+          </td>
         </tr>
       {% endfor %}
     </tbody>

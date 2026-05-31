@@ -36,7 +36,15 @@
           </td>
         </tr>
       {% empty %}
-        <tr><td colspan="6">No invoices yet.</td></tr>
+        <tr>
+          <td colspan="6">
+            <div class="empty-state">
+              <strong>No invoices yet.</strong>
+              <p>Create an invoice after service logs have been approved for billing.</p>
+              <a class="button" href="{% url 'invoice_create' %}">Create Invoice</a>
+            </div>
+          </td>
+        </tr>
       {% endfor %}
     </tbody>
   </table>

@@ -70,7 +70,13 @@
         </tr>
       {% empty %}
         <tr>
-          <td colspan="7">No support workers found.</td>
+          <td colspan="7">
+            <div class="empty-state">
+              <strong>No support workers found.</strong>
+              <p>Add a worker so they can be assigned shifts and submit service logs.</p>
+              <a class="button" href="{% url 'worker_create' %}">Add Worker</a>
+            </div>
+          </td>
         </tr>
       {% endfor %}
     </tbody>
