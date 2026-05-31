@@ -26,13 +26,13 @@ Do not use these credentials in production.
 The command prepares:
 
 - Admin, worker, and accountant trial accounts.
-- One active participant: Ava Nguyen.
+- Two active participants: Ava Nguyen and Ben Taylor.
 - One active support worker: Wendy Worker.
-- One active participant-worker assignment.
+- Two active participant-worker assignments.
 - One active hourly support item.
-- One completed shift on June 1, 2026.
-- One invoiced service log linked to that shift.
-- One draft invoice: `DEMO-202606-0001`.
+- Two completed shifts on June 1 and June 2, 2026.
+- Two invoiced service logs linked to those shifts.
+- Two draft invoices: `DEMO-202606-0001` and `DEMO-202606-0002`.
 
 ## Suggested local pages
 

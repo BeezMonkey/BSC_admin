@@ -37,12 +37,26 @@ class Command(BaseCommand):
         )
 
         participant = self.upsert_participant()
+        second_participant = self.upsert_second_participant()
         worker = self.upsert_worker(worker_user)
         assignment = self.upsert_assignment(participant, worker)
+        second_assignment = self.upsert_second_assignment(second_participant, worker)
         support_item = self.upsert_support_item()
         shift = self.upsert_shift(admin, participant, worker, support_item)
+        second_shift = self.upsert_second_shift(
+            admin,
+            second_participant,
+            worker,
+            support_item,
+        )
         service_log = self.upsert_service_log(shift, admin)
+        second_service_log = self.upsert_second_service_log(second_shift, admin)
         invoice = self.upsert_invoice(accountant, participant, service_log)
+        second_invoice = self.upsert_second_invoice(
+            accountant,
+            second_participant,
+            second_service_log,
+        )
 
         if self.verbosity:
             self.stdout.write(
@@ -56,9 +70,12 @@ class Command(BaseCommand):
             self.stdout.write(f"Worker login: worker / {DEMO_PASSWORD}")
             self.stdout.write(f"Accountant login: accountant / {DEMO_PASSWORD}")
             self.stdout.write(f"Participant: {participant.display_name}")
+            self.stdout.write(f"Second participant: {second_participant.display_name}")
             self.stdout.write(f"Worker: {worker.display_name}")
             self.stdout.write(f"Assignment: {assignment}")
+            self.stdout.write(f"Second assignment: {second_assignment}")
             self.stdout.write(f"Invoice: {invoice.invoice_number}")
+            self.stdout.write(f"Second invoice: {second_invoice.invoice_number}")
 
     def upsert_user(self, username, email, role, is_active_worker=False):
         User = get_user_model()
@@ -112,6 +129,35 @@ class Command(BaseCommand):
         )
         return participant
 
+    def upsert_second_participant(self):
+        participant, _ = Participant.objects.update_or_create(
+            ndis_number="430000002",
+            defaults={
+                "first_name": "Ben",
+                "last_name": "Taylor",
+                "preferred_name": "Ben",
+                "date_of_birth": date(1987, 9, 3),
+                "status": Participant.Status.ACTIVE,
+                "phone": "0730000003",
+                "email": "ben.taylor@example.com",
+                "address_line_1": "22 Garden Road",
+                "suburb": "South Brisbane",
+                "state": "QLD",
+                "postcode": "4101",
+                "emergency_contact_name": "Mia Taylor",
+                "emergency_contact_relationship": "Partner",
+                "emergency_contact_phone": "0730000004",
+                "management_type": Participant.ManagementType.PLAN_MANAGED,
+                "plan_start_date": date(2026, 2, 1),
+                "plan_end_date": date(2027, 1, 31),
+                "worker_visible_notes": "Enjoys community access activities.",
+                "address_access_instructions": "Call on arrival.",
+                "risk_safety_notes": "No known safety alerts for demo data.",
+                "internal_notes": "Second local demo participant.",
+            },
+        )
+        return participant
+
     def upsert_worker(self, user):
         worker, _ = SupportWorker.objects.update_or_create(
             user=user,
@@ -141,6 +187,19 @@ class Command(BaseCommand):
                 "start_date": date(2026, 1, 1),
                 "end_date": None,
                 "notes": "Demo assignment for local trial.",
+            },
+        )
+        return assignment
+
+    def upsert_second_assignment(self, participant, worker):
+        assignment, _ = ParticipantWorkerAssignment.objects.update_or_create(
+            participant=participant,
+            worker=worker,
+            is_active=True,
+            defaults={
+                "start_date": date(2026, 2, 1),
+                "end_date": None,
+                "notes": "Second demo assignment for local trial.",
             },
         )
         return assignment
@@ -183,6 +242,29 @@ class Command(BaseCommand):
         )
         return shift
 
+    def upsert_second_shift(self, admin, participant, worker, support_item):
+        shift, _ = Shift.objects.update_or_create(
+            participant=participant,
+            worker=worker,
+            service_date=date(2026, 6, 2),
+            start_time=time(13, 0),
+            defaults={
+                "end_time": time(15, 0),
+                "break_minutes": 0,
+                "planned_hours": Decimal("2.00"),
+                "support_item": support_item,
+                "service_type": Shift.ServiceType.COMMUNITY_ACCESS,
+                "location": "Community centre",
+                "address": "50 Stanley Street, South Brisbane QLD 4101",
+                "instructions": "Meet participant at front reception.",
+                "admin_notes": "Second local demo shift.",
+                "status": Shift.Status.COMPLETED,
+                "completed_at": timezone.now(),
+                "created_by": admin,
+            },
+        )
+        return shift
+
     def upsert_service_log(self, shift, admin):
         service_log, _ = ServiceLog.objects.update_or_create(
             shift=shift,
@@ -206,9 +288,60 @@ class Command(BaseCommand):
         )
         return service_log
 
+    def upsert_second_service_log(self, shift, admin):
+        service_log, _ = ServiceLog.objects.update_or_create(
+            shift=shift,
+            defaults={
+                "participant": shift.participant,
+                "worker": shift.worker,
+                "support_item": shift.support_item,
+                "service_date": shift.service_date,
+                "actual_start_time": time(13, 0),
+                "actual_end_time": time(15, 0),
+                "break_minutes": 0,
+                "actual_hours": Decimal("2.00"),
+                "kilometres": Decimal("8.00"),
+                "case_notes": "Supported participant with community access activity.",
+                "worker_notes": "Second demo service log for local trial.",
+                "status": ServiceLog.Status.INVOICED,
+                "reviewed_by": admin,
+                "reviewed_at": timezone.now(),
+                "rejection_reason": "",
+            },
+        )
+        return service_log
+
     def upsert_invoice(self, accountant, participant, service_log):
         invoice, _ = Invoice.objects.update_or_create(
             invoice_number="DEMO-202606-0001",
+            defaults={
+                "participant": participant,
+                "period_start": date(2026, 6, 1),
+                "period_end": date(2026, 6, 30),
+                "status": Invoice.Status.DRAFT,
+                "created_by": accountant,
+            },
+        )
+        InvoiceLine.objects.update_or_create(
+            service_log=service_log,
+            defaults={
+                "invoice": invoice,
+                "support_item_number": service_log.support_item.item_number,
+                "description": service_log.support_item.name,
+                "unit": service_log.support_item.unit,
+                "unit_price": service_log.support_item.price_limit,
+                "quantity": service_log.actual_hours,
+                "gst_code": service_log.support_item.gst_code,
+                "line_total": (service_log.actual_hours * service_log.support_item.price_limit).quantize(
+                    Decimal("0.01"),
+                ),
+            },
+        )
+        return invoice
+
+    def upsert_second_invoice(self, accountant, participant, service_log):
+        invoice, _ = Invoice.objects.update_or_create(
+            invoice_number="DEMO-202606-0002",
             defaults={
                 "participant": participant,
                 "period_start": date(2026, 6, 1),
