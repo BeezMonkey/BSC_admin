@@ -2,6 +2,15 @@
 
 Use this checklist before treating the local V1 build as ready for extended user trial.
 
+For a repeatable local trial data set, run:
+
+```powershell
+python manage.py migrate
+python manage.py seed_demo_data
+```
+
+See `docs/local-demo-data.md` for demo credentials and suggested pages.
+
 ## Accounts and access
 
 - Admin can log in and reach the admin dashboard.
