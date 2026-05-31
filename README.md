@@ -71,6 +71,8 @@ docs/v1-trial-release-notes.md
 docs/local-demo-data.md
 docs/v1-qa-checklist.md
 docs/v1-completion-summary.md
+docs/ui-qa-pass.md
+docs/template-theme-evaluation.md
 ```
 
 Useful checks:
