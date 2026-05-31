@@ -8,7 +8,10 @@
     <h1>{{ document.title }}</h1>
     <p>{{ document.get_category_display }}</p>
   </div>
-  <a class="button" href="{% url 'document_download' document.id %}">Download</a>
+  <div class="button-row">
+    <a class="button secondary" href="{% url 'document_list' %}">Back to Documents</a>
+    <a class="button" href="{% url 'document_download' document.id %}">Download</a>
+  </div>
 </div>
 
 <section class="card">

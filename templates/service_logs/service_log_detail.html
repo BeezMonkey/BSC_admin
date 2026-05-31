@@ -8,6 +8,7 @@
     <h1>{{ service_log.participant.display_name }}</h1>
     <p>{{ service_log.service_date }} | {{ service_log.get_status_display }}</p>
   </div>
+  <a class="button secondary" href="{% url 'service_log_list' %}">Back to Service Logs</a>
 </div>
 
 <div class="detail-grid">

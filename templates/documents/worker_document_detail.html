@@ -4,7 +4,12 @@
 
 {% block content %}
 <section class="worker-card">
-  <h1>{{ document.title }}</h1>
+  <div class="page-header">
+    <div>
+      <h1>{{ document.title }}</h1>
+    </div>
+    <a class="button secondary" href="{% url 'worker_document_list' %}">Back to Documents</a>
+  </div>
   <dl class="detail-list">
     <dt>Category</dt><dd>{{ document.get_category_display }}</dd>
     <dt>File</dt><dd>{{ document.filename }}</dd>
