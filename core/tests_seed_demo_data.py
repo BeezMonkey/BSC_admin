@@ -30,24 +30,44 @@ class SeedDemoDataCommandTests(TestCase):
         self.assertEqual(accountant.userprofile.role, UserProfile.Role.ACCOUNTANT)
 
         participant = Participant.objects.get(ndis_number="430000001")
+        second_participant = Participant.objects.get(ndis_number="430000002")
         worker = SupportWorker.objects.get(user=worker_user)
         assignment = ParticipantWorkerAssignment.objects.get(
             participant=participant,
             worker=worker,
             is_active=True,
         )
+        second_assignment = ParticipantWorkerAssignment.objects.get(
+            participant=second_participant,
+            worker=worker,
+            is_active=True,
+        )
         support_item = SupportItem.objects.get(item_number="01_011_0107_1_1")
         shift = Shift.objects.get(participant=participant, worker=worker)
+        second_shift = Shift.objects.get(participant=second_participant, worker=worker)
         service_log = ServiceLog.objects.get(shift=shift)
-        invoice = Invoice.objects.get(participant=participant)
+        second_service_log = ServiceLog.objects.get(shift=second_shift)
+        invoice = Invoice.objects.get(participant=participant, invoice_number="DEMO-202606-0001")
+        second_invoice = Invoice.objects.get(
+            participant=second_participant,
+            invoice_number="DEMO-202606-0002",
+        )
         invoice_line = InvoiceLine.objects.get(invoice=invoice, service_log=service_log)
+        second_invoice_line = InvoiceLine.objects.get(
+            invoice=second_invoice,
+            service_log=second_service_log,
+        )
 
         self.assertEqual(worker.email, "worker@example.com")
         self.assertEqual(assignment.notes, "Demo assignment for local trial.")
+        self.assertEqual(second_assignment.notes, "Second demo assignment for local trial.")
         self.assertEqual(support_item.name, "Assistance with self-care activities")
         self.assertEqual(shift.status, Shift.Status.COMPLETED)
+        self.assertEqual(second_shift.service_type, Shift.ServiceType.COMMUNITY_ACCESS)
         self.assertEqual(service_log.status, ServiceLog.Status.INVOICED)
+        self.assertEqual(second_service_log.status, ServiceLog.Status.INVOICED)
         self.assertEqual(invoice_line.support_item_number, support_item.item_number)
+        self.assertEqual(second_invoice_line.support_item_number, support_item.item_number)
 
     def test_seed_demo_data_is_idempotent_for_stable_records(self):
         self.run_command()
@@ -58,9 +78,10 @@ class SeedDemoDataCommandTests(TestCase):
         self.assertEqual(User.objects.filter(username="worker").count(), 1)
         self.assertEqual(User.objects.filter(username="accountant").count(), 1)
         self.assertEqual(Participant.objects.filter(ndis_number="430000001").count(), 1)
+        self.assertEqual(Participant.objects.filter(ndis_number="430000002").count(), 1)
         self.assertEqual(SupportWorker.objects.filter(email="worker@example.com").count(), 1)
         self.assertEqual(SupportItem.objects.filter(item_number="01_011_0107_1_1").count(), 1)
-        self.assertEqual(Shift.objects.count(), 1)
-        self.assertEqual(ServiceLog.objects.count(), 1)
-        self.assertEqual(Invoice.objects.count(), 1)
-        self.assertEqual(InvoiceLine.objects.count(), 1)
+        self.assertEqual(Shift.objects.count(), 2)
+        self.assertEqual(ServiceLog.objects.count(), 2)
+        self.assertEqual(Invoice.objects.count(), 2)
+        self.assertEqual(InvoiceLine.objects.count(), 2)
