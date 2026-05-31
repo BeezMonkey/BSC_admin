@@ -2,11 +2,19 @@
 
 This project is still intended to run locally until a separate deployment phase is approved. Use this checklist before any future production deployment.
 
+Read the broader readiness review first:
+
+```text
+docs/pre-deployment-review.md
+```
+
 ## Environment
 
 - Set `DJANGO_SECRET_KEY` to a strong unique value.
 - Set `DJANGO_DEBUG=False`.
 - Set `DJANGO_ALLOWED_HOSTS` to the real domain names and server hostnames.
+- Set `DJANGO_CSRF_TRUSTED_ORIGINS` to the real HTTPS origins.
+- Enable HTTPS settings only after SSL and proxy behavior are confirmed.
 - Keep `.env` out of Git.
 - Rotate or remove local demo/test accounts before go-live.
 
@@ -14,6 +22,7 @@ This project is still intended to run locally until a separate deployment phase 
 
 - Leave `DATABASE_URL` blank for local SQLite.
 - Set `DATABASE_URL` for production database access.
+- Confirm the production database driver is installed and tested.
 - PostgreSQL example:
 
 ```text
@@ -26,6 +35,7 @@ DATABASE_URL=postgres://bsc_user:password@db-host:5432/bsc_admin
 ## Static And Media
 
 - Run `python manage.py collectstatic` for production static assets.
+- Confirm collected static files are served from `STATIC_ROOT`.
 - Back up `MEDIA_ROOT` because uploaded documents live there.
 - Confirm document downloads are protected by application permissions.
 
@@ -45,3 +55,4 @@ python manage.py check --deploy
 - Confirm worker accounts can only access `/sw/*` pages.
 - Confirm audit logs are being written for key actions.
 - Confirm invoice CSV/PDF export works in the target environment.
+- Complete `docs/v1-qa-checklist.md` in staging before go-live.

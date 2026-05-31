@@ -54,11 +54,12 @@ DATABASE_URL=postgres://bsc_user:password@db-host:5432/bsc_admin
 
 ## Deployment Preparation
 
-This repository is not deployed by Phase 12C. It remains a local development project with deployment-ready configuration entry points.
+This repository is not deployed yet. It remains a local development and V1 trial project with deployment-ready configuration entry points.
 
 Before any future production deployment, review:
 
 ```text
+docs/pre-deployment-review.md
 docs/deployment-checklist.md
 ```
 
