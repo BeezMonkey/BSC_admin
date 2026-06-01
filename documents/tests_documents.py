@@ -150,6 +150,25 @@ class DocumentManagementTests(TestCase):
         self.assertEqual(document.uploaded_by, self.admin_user)
         self.assertTrue(document.file.name.startswith("documents/"))
 
+    def test_document_create_prefills_linked_record_from_shortcut(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("document_create"),
+            {"participant": self.participant.id, "worker": self.worker.id},
+        )
+
+        self.assertContains(
+            response,
+            f'<option value="{self.participant.id}" selected>{self.participant.display_name}</option>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            f'<option value="{self.worker.id}" selected>{self.worker.display_name}</option>',
+            html=True,
+        )
+
     def test_admin_can_view_and_download_document(self):
         document = Document.objects.create(
             title="Worker compliance",

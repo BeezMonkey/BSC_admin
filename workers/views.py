@@ -67,7 +67,42 @@ def worker_detail(request, worker_id):
         ),
         id=worker_id,
     )
-    return render(request, "workers/worker_detail.html", {"worker": worker})
+    active_assignments = [
+        assignment
+        for assignment in worker.participant_assignments.all()
+        if assignment.is_active
+    ]
+    readiness_items = [
+        {
+            "label": "Worker active",
+            "missing_label": "Needs active worker status",
+            "is_ready": worker.status == SupportWorker.Status.ACTIVE,
+        },
+        {
+            "label": "Police check current",
+            "missing_label": "Needs police check current",
+            "is_ready": worker.police_check_status == SupportWorker.ComplianceStatus.CURRENT,
+        },
+        {
+            "label": "WWCC / Blue Card current",
+            "missing_label": "Needs WWCC / Blue Card current",
+            "is_ready": worker.wwcc_status == SupportWorker.ComplianceStatus.CURRENT,
+        },
+        {
+            "label": "Has active participant assignment",
+            "missing_label": "Needs active participant assignment",
+            "is_ready": bool(active_assignments),
+        },
+    ]
+    return render(
+        request,
+        "workers/worker_detail.html",
+        {
+            "worker": worker,
+            "readiness_items": readiness_items,
+            "active_assignments": active_assignments,
+        },
+    )
 
 
 @admin_required

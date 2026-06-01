@@ -23,6 +23,29 @@
 
 <div class="detail-grid">
   <section class="card">
+    <h2>Readiness</h2>
+    <ul class="readiness-list">
+      {% for item in readiness_items %}
+        <li class="{% if item.is_ready %}is-ready{% else %}needs-attention{% endif %}">
+          <span>{{ item.is_ready|yesno:"Ready,Needs attention" }}</span>
+          <strong>{% if item.is_ready %}{{ item.label }}{% else %}{{ item.missing_label }}{% endif %}</strong>
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Next steps</h2>
+    <div class="button-row">
+      <a class="button" href="{% url 'participant_assign_worker' participant.id %}">Assign Worker</a>
+      <a class="button secondary" href="{% url 'document_create' %}?participant={{ participant.id }}">Upload Document</a>
+      <a class="button secondary" href="{% url 'shift_create' %}?participant={{ participant.id }}">Create Shift</a>
+    </div>
+  </section>
+</div>
+
+<div class="detail-grid">
+  <section class="card">
     <h2>Overview</h2>
     <dl class="detail-list">
       <dt>Preferred name</dt>

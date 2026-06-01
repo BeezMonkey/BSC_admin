@@ -466,6 +466,49 @@ tbody tr:last-child td {
   background: #f8fafc;
 }
 
+.readiness-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.readiness-list li {
+  display: grid;
+  gap: 0.2rem;
+  border-left: 4px solid var(--line);
+  border-radius: 6px;
+  padding: 0.65rem 0.75rem;
+  background: #f8fafc;
+}
+
+.readiness-list li span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.readiness-list li.is-ready {
+  border-left-color: var(--brand);
+}
+
+.readiness-list li.needs-attention {
+  border-left-color: var(--accent);
+}
+
+.workflow-panel {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.workflow-panel p {
+  margin: 0.6rem 0 0;
+  color: var(--muted);
+}
+
 .inline-form {
   display: flex;
   align-items: center;
@@ -610,6 +653,10 @@ tbody tr:last-child td {
   }
 
   .detail-list {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-panel {
     grid-template-columns: 1fr;
   }
 }

@@ -41,7 +41,12 @@ def document_create(request):
             )
             return redirect(document)
     else:
-        form = DocumentForm()
+        initial = {
+            key: request.GET[key]
+            for key in ("participant", "worker", "invoice", "service_log")
+            if request.GET.get(key)
+        }
+        form = DocumentForm(initial=initial)
 
     return render(
         request,

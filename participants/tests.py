@@ -5,8 +5,9 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import UserProfile
+from workers.models import SupportWorker
 
-from .models import Participant
+from .models import Participant, ParticipantWorkerAssignment
 
 
 class ParticipantManagementTests(TestCase):
@@ -166,6 +167,41 @@ class ParticipantManagementTests(TestCase):
         self.assertContains(response, "111111111")
         self.assertContains(response, "Roster")
         self.assertContains(response, "Service Logs")
+
+    def test_participant_detail_shows_readiness_and_next_steps(self):
+        participant = Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            status=Participant.Status.ACTIVE,
+            plan_start_date=date(2026, 1, 1),
+            plan_end_date=date(2026, 12, 31),
+        )
+        user = get_user_model().objects.create_user(
+            username="assignedworker",
+            email="assignedworker@example.com",
+            password="test-password-123",
+        )
+        worker = SupportWorker.objects.create(
+            user=user,
+            first_name="Wendy",
+            last_name="Worker",
+            email="assignedworker@example.com",
+        )
+        ParticipantWorkerAssignment.objects.create(
+            participant=participant,
+            worker=worker,
+            start_date=date(2026, 1, 1),
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("participant_detail", args=[participant.id]))
+
+        self.assertContains(response, "Readiness")
+        self.assertContains(response, "Needs NDIS number")
+        self.assertContains(response, "Active worker assigned")
+        self.assertContains(response, "Next steps")
+        self.assertContains(response, "Upload Document")
+        self.assertContains(response, "Create Shift")
 
     def test_admin_can_edit_participant(self):
         participant = Participant.objects.create(
