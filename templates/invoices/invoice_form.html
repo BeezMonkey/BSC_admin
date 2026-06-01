@@ -10,8 +10,23 @@
   </div>
 </div>
 
-<form method="get" class="filter-bar">
-  {{ form.as_p }}
+<form method="get" class="filter-bar invoice-preview-filter">
+  {{ form.non_field_errors }}
+  <label>
+    Participant
+    {{ form.participant.errors }}
+    {{ form.participant }}
+  </label>
+  <label>
+    Period start
+    {{ form.period_start.errors }}
+    {{ form.period_start }}
+  </label>
+  <label>
+    Period end
+    {{ form.period_end.errors }}
+    {{ form.period_end }}
+  </label>
   <button type="submit">Preview Logs</button>
 </form>
 

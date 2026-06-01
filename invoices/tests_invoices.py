@@ -133,6 +133,14 @@ class InvoiceGenerationTests(TestCase):
         self.assertNotContains(response, "Log for Ben Taylor")
         self.assertContains(response, "Create Invoice")
 
+    def test_invoice_create_filter_uses_aligned_field_layout(self):
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_create"))
+
+        self.assertContains(response, 'class="filter-bar invoice-preview-filter"')
+        self.assertNotContains(response, "<p>\n    <label")
+
     def test_finance_user_can_create_invoice_from_approved_logs(self):
         first_log = self.create_service_log(actual_hours=Decimal("2.00"))
         second_log = self.create_service_log(
