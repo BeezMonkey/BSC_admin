@@ -106,6 +106,9 @@ class InvoiceGenerationTests(TestCase):
     def login_accountant(self):
         self.client.login(username="accountant", password="test-password-123")
 
+    def login_admin(self):
+        self.client.login(username="admin", password="test-password-123")
+
     def login_worker(self):
         self.client.login(username="worker", password="test-password-123")
 
@@ -206,6 +209,30 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, "Actions")
         self.assertContains(response, reverse("invoice_detail", args=[invoice.id]))
         self.assertContains(response, "View")
+
+    def test_approved_service_log_list_has_invoice_shortcut(self):
+        approved_log = self.create_service_log(service_date=date(2026, 6, 2))
+        submitted_log = self.create_service_log(
+            service_date=date(2026, 6, 3),
+            status=ServiceLog.Status.SUBMITTED,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_list"))
+
+        shortcut_url = (
+            f"{reverse('invoice_create')}?participant={self.participant.id}"
+            f"&period_start={approved_log.service_date:%Y-%m-%d}"
+            f"&period_end={approved_log.service_date:%Y-%m-%d}"
+        )
+        submitted_shortcut_url = (
+            f"{reverse('invoice_create')}?participant={self.participant.id}"
+            f"&period_start={submitted_log.service_date:%Y-%m-%d}"
+            f"&period_end={submitted_log.service_date:%Y-%m-%d}"
+        )
+        self.assertContains(response, shortcut_url)
+        self.assertContains(response, "Create Invoice")
+        self.assertNotContains(response, submitted_shortcut_url)
 
     def test_invoice_list_formats_total_to_two_decimal_places(self):
         service_log = self.create_service_log(actual_hours=Decimal("2.00"))

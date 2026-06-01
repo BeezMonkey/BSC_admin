@@ -47,6 +47,9 @@
           <td>{{ service_log.case_notes|truncatechars:80 }}</td>
           <td class="actions">
             <a href="{% url 'service_log_detail' service_log.id %}">View</a>
+            {% if service_log.status == "approved" %}
+              <a href="{% url 'invoice_create' %}?participant={{ service_log.participant_id }}&period_start={{ service_log.service_date|date:'Y-m-d' }}&period_end={{ service_log.service_date|date:'Y-m-d' }}">Create Invoice</a>
+            {% endif %}
           </td>
         </tr>
       {% empty %}
