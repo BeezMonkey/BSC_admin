@@ -64,11 +64,58 @@ def get_billable_logs(participant, period_start, period_end):
     ).select_related("participant", "worker", "support_item")
 
 
+def get_selected_billable_logs(service_log_ids):
+    try:
+        unique_ids = [
+            int(service_log_id) for service_log_id in dict.fromkeys(service_log_ids)
+        ]
+    except (TypeError, ValueError):
+        return [], "Selected service logs are no longer available for invoicing."
+    service_logs = ServiceLog.objects.filter(
+        id__in=unique_ids,
+        status=ServiceLog.Status.APPROVED,
+        invoice_line__isnull=True,
+    ).select_related("participant", "worker", "support_item")
+    service_logs = list(service_logs.order_by("service_date", "id"))
+    if len(service_logs) != len(unique_ids):
+        return [], "Selected service logs are no longer available for invoicing."
+    participant_ids = {service_log.participant_id for service_log in service_logs}
+    if len(participant_ids) > 1:
+        return [], "Selected service logs must belong to one participant."
+    return service_logs, ""
+
+
+def build_selected_invoice_form_data(service_logs):
+    return {
+        "participant": service_logs[0].participant_id,
+        "period_start": min(log.service_date for log in service_logs).isoformat(),
+        "period_end": max(log.service_date for log in service_logs).isoformat(),
+    }
+
+
 @finance_required
 def invoice_create(request):
-    form = InvoiceCreateForm(request.GET or None)
+    selected_ids = request.GET.getlist("service_log_ids")
+    if request.method == "POST":
+        selected_ids = request.POST.getlist("service_log_ids")
+    selected_service_logs = []
+    selected_error = ""
+
+    if selected_ids:
+        selected_service_logs, selected_error = get_selected_billable_logs(selected_ids)
+
+    if request.method == "GET" and selected_service_logs:
+        form = InvoiceCreateForm(build_selected_invoice_form_data(selected_service_logs))
+        form.is_valid()
+    else:
+        form = InvoiceCreateForm(request.GET or None)
+
     service_logs = ServiceLog.objects.none()
-    if form.is_valid():
+    if selected_error:
+        service_logs = ServiceLog.objects.none()
+    elif selected_service_logs:
+        service_logs = selected_service_logs
+    elif form.is_valid():
         service_logs = get_billable_logs(
             form.cleaned_data["participant"],
             form.cleaned_data["period_start"],
@@ -77,13 +124,29 @@ def invoice_create(request):
 
     if request.method == "POST":
         form = InvoiceCreateForm(request.POST)
-        if form.is_valid():
-            service_logs = get_billable_logs(
-                form.cleaned_data["participant"],
-                form.cleaned_data["period_start"],
-                form.cleaned_data["period_end"],
-            )
-            if not service_logs.exists():
+        if selected_error:
+            service_logs = ServiceLog.objects.none()
+        elif form.is_valid():
+            if selected_service_logs:
+                service_logs = selected_service_logs
+            else:
+                service_logs = get_billable_logs(
+                    form.cleaned_data["participant"],
+                    form.cleaned_data["period_start"],
+                    form.cleaned_data["period_end"],
+                )
+            service_logs = [
+                service_log
+                for service_log in service_logs
+                if service_log.participant_id == form.cleaned_data["participant"].id
+                and form.cleaned_data["period_start"]
+                <= service_log.service_date
+                <= form.cleaned_data["period_end"]
+            ]
+            if selected_service_logs and len(service_logs) != len(selected_service_logs):
+                selected_error = "Selected service logs do not match the invoice participant and period."
+                service_logs = ServiceLog.objects.none()
+            elif not service_logs:
                 messages.error(request, "No approved logs found for this invoice.")
             else:
                 invoice = Invoice.objects.create(
@@ -111,7 +174,12 @@ def invoice_create(request):
     return render(
         request,
         "invoices/invoice_form.html",
-        {"form": form, "service_logs": service_logs},
+        {
+            "form": form,
+            "service_logs": service_logs,
+            "selected_error": selected_error,
+            "selected_service_log_ids": selected_ids,
+        },
     )
 
 

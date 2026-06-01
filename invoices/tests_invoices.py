@@ -76,6 +76,7 @@ class InvoiceGenerationTests(TestCase):
         service_date = overrides.pop("service_date", date(2026, 6, 1))
         status = overrides.pop("status", ServiceLog.Status.APPROVED)
         actual_hours = overrides.pop("actual_hours", Decimal("2.00"))
+        case_notes = overrides.pop("case_notes", f"Log for {participant.display_name}")
         shift = Shift.objects.create(
             participant=participant,
             worker=self.worker,
@@ -96,7 +97,7 @@ class InvoiceGenerationTests(TestCase):
             break_minutes=0,
             actual_hours=actual_hours,
             kilometres=Decimal("0.0"),
-            case_notes=f"Log for {participant.display_name}",
+            case_notes=case_notes,
             worker_notes="",
         )
         service_log.status = status
@@ -242,6 +243,22 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, "Create Invoice")
         self.assertNotContains(response, submitted_shortcut_url)
 
+    def test_approved_service_log_list_has_bulk_invoice_selection(self):
+        approved_log = self.create_service_log(service_date=date(2026, 6, 2))
+        submitted_log = self.create_service_log(
+            service_date=date(2026, 6, 3),
+            status=ServiceLog.Status.SUBMITTED,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_list"))
+
+        self.assertContains(response, f'action="{reverse("invoice_create")}"')
+        self.assertContains(response, 'name="service_log_ids"')
+        self.assertContains(response, f'value="{approved_log.id}"')
+        self.assertNotContains(response, f'value="{submitted_log.id}"')
+        self.assertContains(response, "Create Invoice from Selected")
+
     def test_invoice_list_formats_total_to_two_decimal_places(self):
         service_log = self.create_service_log(actual_hours=Decimal("2.00"))
         invoice = Invoice.objects.create(
@@ -297,6 +314,78 @@ class InvoiceGenerationTests(TestCase):
         self.assertNotContains(response, ben_invoice.invoice_number)
         self.assertContains(response, "Ava")
         self.assertContains(response, "Draft")
+
+    def test_invoice_create_previews_only_selected_service_logs(self):
+        selected_log = self.create_service_log(
+            service_date=date(2026, 6, 1),
+            case_notes="Selected June service",
+        )
+        unselected_log = self.create_service_log(
+            service_date=date(2026, 6, 2),
+            case_notes="Unselected June service",
+        )
+        self.login_accountant()
+
+        response = self.client.get(
+            reverse("invoice_create"),
+            {"service_log_ids": [selected_log.id]},
+        )
+
+        self.assertContains(response, "Selected June service")
+        self.assertNotContains(response, "Unselected June service")
+        self.assertContains(response, f'name="service_log_ids" value="{selected_log.id}"')
+        self.assertContains(response, "2026-06-01")
+        self.assertNotContains(response, f'name="service_log_ids" value="{unselected_log.id}"')
+
+    def test_invoice_create_selected_logs_must_be_same_participant(self):
+        ava_log = self.create_service_log(case_notes="Ava selected service")
+        ben_log = self.create_service_log(
+            participant=self.other_participant,
+            case_notes="Ben selected service",
+        )
+        self.login_accountant()
+
+        response = self.client.get(
+            reverse("invoice_create"),
+            {"service_log_ids": [ava_log.id, ben_log.id]},
+        )
+
+        self.assertContains(
+            response,
+            "Selected service logs must belong to one participant.",
+        )
+        self.assertNotContains(response, "Ava selected service")
+        self.assertNotContains(response, "Ben selected service")
+
+    def test_invoice_create_creates_invoice_from_selected_logs_only(self):
+        selected_log = self.create_service_log(
+            service_date=date(2026, 6, 1),
+            case_notes="Selected billing service",
+        )
+        unselected_log = self.create_service_log(
+            service_date=date(2026, 6, 2),
+            case_notes="Unselected billing service",
+        )
+        self.login_accountant()
+
+        response = self.client.post(
+            reverse("invoice_create"),
+            {
+                "participant": self.participant.id,
+                "period_start": "2026-06-01",
+                "period_end": "2026-06-02",
+                "service_log_ids": [selected_log.id],
+            },
+        )
+
+        invoice = Invoice.objects.get()
+        self.assertRedirects(response, reverse("invoice_detail", args=[invoice.id]))
+        self.assertEqual(invoice.lines.count(), 1)
+        self.assertTrue(invoice.lines.filter(service_log=selected_log).exists())
+        selected_log.refresh_from_db()
+        unselected_log.refresh_from_db()
+        self.assertEqual(selected_log.status, ServiceLog.Status.INVOICED)
+        self.assertEqual(unselected_log.status, ServiceLog.Status.APPROVED)
 
     def test_draft_invoice_can_be_deleted_and_releases_service_logs(self):
         service_log = self.create_service_log()

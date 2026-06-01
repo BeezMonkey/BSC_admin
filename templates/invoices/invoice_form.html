@@ -12,6 +12,9 @@
 
 <form method="get" class="filter-bar invoice-preview-filter">
   {{ form.non_field_errors }}
+  {% for service_log_id in selected_service_log_ids %}
+    <input type="hidden" name="service_log_ids" value="{{ service_log_id }}">
+  {% endfor %}
   <label>
     Participant
     {{ form.participant.errors }}
@@ -29,6 +32,12 @@
   </label>
   <button type="submit">Preview Logs</button>
 </form>
+
+{% if selected_error %}
+  <section class="card">
+    <p>{{ selected_error }}</p>
+  </section>
+{% endif %}
 
 <section class="card">
   <h2>Approved Logs</h2>
@@ -63,6 +72,9 @@
       <input type="hidden" name="participant" value="{{ form.cleaned_data.participant.id }}">
       <input type="hidden" name="period_start" value="{{ form.cleaned_data.period_start|date:'Y-m-d' }}">
       <input type="hidden" name="period_end" value="{{ form.cleaned_data.period_end|date:'Y-m-d' }}">
+      {% for service_log_id in selected_service_log_ids %}
+        <input type="hidden" name="service_log_ids" value="{{ service_log_id }}">
+      {% endfor %}
       <button type="submit">Create Invoice</button>
     </form>
   {% endif %}

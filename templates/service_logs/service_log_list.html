@@ -23,10 +23,15 @@
   <a class="button secondary" href="{% url 'service_log_list' %}">Clear</a>
 </form>
 
-<section class="card">
+<form method="get" action="{% url 'invoice_create' %}">
+<section class="card table-card">
+  <div class="bulk-actions">
+    <button type="submit">Create Invoice from Selected</button>
+  </div>
   <table>
     <thead>
       <tr>
+        <th>Select</th>
         <th>Date</th>
         <th>Participant</th>
         <th>Worker</th>
@@ -39,6 +44,11 @@
     <tbody>
       {% for service_log in service_logs %}
         <tr>
+          <td>
+            {% if service_log.status == "approved" %}
+              <input type="checkbox" name="service_log_ids" value="{{ service_log.id }}">
+            {% endif %}
+          </td>
           <td><a href="{% url 'service_log_detail' service_log.id %}">{{ service_log.service_date }}</a></td>
           <td>{{ service_log.participant.display_name }}</td>
           <td>{{ service_log.worker.display_name }}</td>
@@ -54,7 +64,7 @@
         </tr>
       {% empty %}
         <tr>
-          <td colspan="7">
+          <td colspan="8">
             <div class="empty-state">
               <strong>No service logs yet.</strong>
               <p>Service logs appear here after workers complete rostered shifts.</p>
@@ -66,4 +76,5 @@
     </tbody>
   </table>
 </section>
+</form>
 {% endblock %}
