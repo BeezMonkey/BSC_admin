@@ -75,6 +75,7 @@ docs/ui-qa-pass.md
 docs/template-theme-evaluation.md
 docs/business-workflow-review.md
 docs/workflow-readiness-panels.md
+docs/invoice-management-rules.md
 ```
 
 Useful checks:

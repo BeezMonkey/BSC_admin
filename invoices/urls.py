@@ -5,6 +5,7 @@ from .views import (
     invoice_cancel,
     invoice_create,
     invoice_csv,
+    invoice_delete,
     invoice_detail,
     invoice_list,
     invoice_mark_issued,
@@ -18,6 +19,7 @@ urlpatterns = [
     path("invoices/<int:invoice_id>/", invoice_detail, name="invoice_detail"),
     path("invoices/<int:invoice_id>/csv/", invoice_csv, name="invoice_csv"),
     path("invoices/<int:invoice_id>/pdf/", invoice_pdf, name="invoice_pdf"),
+    path("invoices/<int:invoice_id>/delete/", invoice_delete, name="invoice_delete"),
     path(
         "invoices/<int:invoice_id>/mark-issued/",
         invoice_mark_issued,

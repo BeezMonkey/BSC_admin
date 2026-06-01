@@ -11,7 +11,37 @@
   <a class="button" href="{% url 'invoice_create' %}">Create Invoice</a>
 </div>
 
-<section class="card">
+<form class="filter-bar" method="get">
+  <label>
+    Invoice
+    <input type="search" name="q" value="{{ q }}" placeholder="Invoice number">
+  </label>
+  <label>
+    Participant
+    <input type="search" name="participant" value="{{ participant_query }}" placeholder="Participant name">
+  </label>
+  <label>
+    Status
+    <select name="status">
+      <option value="">All statuses</option>
+      {% for value, label in status_choices %}
+        <option value="{{ value }}"{% if status == value %} selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>
+    From
+    <input type="date" name="period_from" value="{{ period_from }}">
+  </label>
+  <label>
+    To
+    <input type="date" name="period_to" value="{{ period_to }}">
+  </label>
+  <button type="submit">Search</button>
+  <a class="button secondary" href="{% url 'invoice_placeholder' %}">Reset</a>
+</form>
+
+<section class="card table-card">
   <table>
     <thead>
       <tr>
@@ -33,14 +63,20 @@
           <td>${{ invoice.total_amount|floatformat:2 }}</td>
           <td class="actions">
             <a href="{% url 'invoice_detail' invoice.id %}">View</a>
+            {% if invoice.status == "draft" %}
+              <form method="post" action="{% url 'invoice_delete' invoice.id %}" class="inline-form">
+                {% csrf_token %}
+                <button class="danger" type="submit">Delete</button>
+              </form>
+            {% endif %}
           </td>
         </tr>
       {% empty %}
         <tr>
           <td colspan="6">
             <div class="empty-state">
-              <strong>No invoices yet.</strong>
-              <p>Create an invoice after service logs have been approved for billing.</p>
+              <strong>No invoices found.</strong>
+              <p>Create an invoice or adjust the filters to review billing records.</p>
               <a class="button" href="{% url 'invoice_create' %}">Create Invoice</a>
             </div>
           </td>

@@ -223,6 +223,85 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, "$130.94")
         self.assertNotContains(response, "$130.940000000000")
 
+    def test_invoice_list_can_filter_by_number_participant_status_and_period(self):
+        ava_log = self.create_service_log(service_date=date(2026, 6, 1))
+        ava_invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            status=Invoice.Status.DRAFT,
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create_from_service_log(ava_invoice, ava_log)
+        ben_log = self.create_service_log(
+            participant=self.other_participant,
+            service_date=date(2026, 7, 1),
+        )
+        ben_invoice = Invoice.objects.create(
+            participant=self.other_participant,
+            period_start=date(2026, 7, 1),
+            period_end=date(2026, 7, 31),
+            status=Invoice.Status.ISSUED,
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create_from_service_log(ben_invoice, ben_log)
+        self.login_accountant()
+
+        response = self.client.get(
+            reverse("invoice_placeholder"),
+            {
+                "q": ava_invoice.invoice_number[-4:],
+                "participant": "Ava",
+                "status": Invoice.Status.DRAFT,
+                "period_from": "2026-06-01",
+                "period_to": "2026-06-30",
+            },
+        )
+
+        self.assertContains(response, ava_invoice.invoice_number)
+        self.assertNotContains(response, ben_invoice.invoice_number)
+        self.assertContains(response, "Ava")
+        self.assertContains(response, "Draft")
+
+    def test_draft_invoice_can_be_deleted_and_releases_service_logs(self):
+        service_log = self.create_service_log()
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            status=Invoice.Status.DRAFT,
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create_from_service_log(invoice, service_log)
+        service_log.status = ServiceLog.Status.INVOICED
+        service_log.save(update_fields=["status", "updated_at"])
+        self.login_accountant()
+
+        response = self.client.post(reverse("invoice_delete", args=[invoice.id]))
+
+        service_log.refresh_from_db()
+        self.assertRedirects(response, reverse("invoice_placeholder"))
+        self.assertFalse(Invoice.objects.filter(id=invoice.id).exists())
+        self.assertEqual(service_log.status, ServiceLog.Status.APPROVED)
+        self.assertFalse(InvoiceLine.objects.filter(service_log=service_log).exists())
+
+    def test_issued_invoice_cannot_be_deleted(self):
+        service_log = self.create_service_log()
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            status=Invoice.Status.ISSUED,
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create_from_service_log(invoice, service_log)
+        self.login_accountant()
+
+        response = self.client.post(reverse("invoice_delete", args=[invoice.id]))
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(Invoice.objects.filter(id=invoice.id).exists())
+
     def test_invoice_detail_formats_amounts_to_two_decimal_places(self):
         service_log = self.create_service_log(actual_hours=Decimal("2.00"))
         invoice = Invoice.objects.create(

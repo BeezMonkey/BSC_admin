@@ -71,6 +71,12 @@
       {% csrf_token %}
       <button class="danger" type="submit">Cancel Invoice</button>
     </form>
+    {% if invoice.status == "draft" %}
+      <form method="post" action="{% url 'invoice_delete' invoice.id %}">
+        {% csrf_token %}
+        <button class="danger" type="submit">Delete Draft Invoice</button>
+      </form>
+    {% endif %}
   </div>
 </section>
 {% endif %}
