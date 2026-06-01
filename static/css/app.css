@@ -298,6 +298,17 @@ td.actions a {
   font-weight: 700;
 }
 
+td.actions form {
+  display: inline-flex;
+  margin: 0;
+}
+
+td.actions button {
+  min-height: 2rem;
+  padding: 0.32rem 0.58rem;
+  font-size: 0.92rem;
+}
+
 td.actions a:hover {
   border-color: var(--brand);
   color: #ffffff;

@@ -11,6 +11,7 @@ class AuditLog(models.Model):
         INVOICE_MARKED_ISSUED = "invoice_marked_issued", "Invoice marked issued"
         INVOICE_MARKED_PAID = "invoice_marked_paid", "Invoice marked paid"
         INVOICE_CANCELLED = "invoice_cancelled", "Invoice cancelled"
+        INVOICE_DELETED = "invoice_deleted", "Invoice deleted"
         DOCUMENT_UPLOADED = "document_uploaded", "Document uploaded"
         DOCUMENT_DOWNLOADED = "document_downloaded", "Document downloaded"
 

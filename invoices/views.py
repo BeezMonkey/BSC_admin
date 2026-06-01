@@ -2,6 +2,7 @@ import csv
 from io import StringIO
 
 from django.contrib import messages
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -18,7 +19,39 @@ from .models import Invoice, InvoiceLine
 @finance_required
 def invoice_list(request):
     invoices = Invoice.objects.select_related("participant", "created_by")
-    return render(request, "invoices/invoice_list.html", {"invoices": invoices})
+    q = request.GET.get("q", "").strip()
+    participant_query = request.GET.get("participant", "").strip()
+    status = request.GET.get("status", "").strip()
+    period_from = request.GET.get("period_from", "").strip()
+    period_to = request.GET.get("period_to", "").strip()
+
+    if q:
+        invoices = invoices.filter(invoice_number__icontains=q)
+    if participant_query:
+        invoices = invoices.filter(
+            Q(participant__first_name__icontains=participant_query)
+            | Q(participant__last_name__icontains=participant_query)
+        )
+    if status:
+        invoices = invoices.filter(status=status)
+    if period_from:
+        invoices = invoices.filter(period_end__gte=period_from)
+    if period_to:
+        invoices = invoices.filter(period_start__lte=period_to)
+
+    return render(
+        request,
+        "invoices/invoice_list.html",
+        {
+            "invoices": invoices,
+            "q": q,
+            "participant_query": participant_query,
+            "status": status,
+            "period_from": period_from,
+            "period_to": period_to,
+            "status_choices": Invoice.Status.choices,
+        },
+    )
 
 
 def get_billable_logs(participant, period_start, period_end):
@@ -100,6 +133,15 @@ def get_invoice(invoice_id):
         ),
         id=invoice_id,
     )
+
+
+def release_invoice_service_logs(invoice):
+    lines = list(invoice.lines.select_related("service_log"))
+    for line in lines:
+        service_log = line.service_log
+        service_log.status = ServiceLog.Status.APPROVED
+        service_log.save(update_fields=["status", "updated_at"])
+    invoice.lines.all().delete()
 
 
 @finance_required
@@ -245,10 +287,11 @@ def invoice_mark_paid(request, invoice_id):
 @require_POST
 def invoice_cancel(request, invoice_id):
     invoice = get_object_or_404(
-        Invoice,
+        Invoice.objects.prefetch_related("lines__service_log"),
         id=invoice_id,
         status__in=[Invoice.Status.DRAFT, Invoice.Status.ISSUED],
     )
+    release_invoice_service_logs(invoice)
     invoice.status = Invoice.Status.CANCELLED
     invoice.save(update_fields=["status", "updated_at"])
     write_audit_log(
@@ -259,6 +302,27 @@ def invoice_cancel(request, invoice_id):
     )
     messages.success(request, "Invoice cancelled.")
     return redirect(invoice)
+
+
+@finance_required
+@require_POST
+def invoice_delete(request, invoice_id):
+    invoice = get_object_or_404(
+        Invoice.objects.prefetch_related("lines__service_log"),
+        id=invoice_id,
+        status=Invoice.Status.DRAFT,
+    )
+    invoice_number = invoice.invoice_number
+    release_invoice_service_logs(invoice)
+    write_audit_log(
+        request.user,
+        AuditLog.Action.INVOICE_DELETED,
+        invoice,
+        f"Deleted draft invoice {invoice_number}.",
+    )
+    invoice.delete()
+    messages.success(request, "Draft invoice deleted.")
+    return redirect("invoice_placeholder")
 
 
 @finance_required

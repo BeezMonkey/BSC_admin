@@ -163,8 +163,25 @@ class InvoiceExportTests(TestCase):
         response = self.client.post(reverse("invoice_cancel", args=[self.invoice.id]))
 
         self.invoice.refresh_from_db()
+        self.service_log.refresh_from_db()
         self.assertRedirects(response, reverse("invoice_detail", args=[self.invoice.id]))
         self.assertEqual(self.invoice.status, Invoice.Status.CANCELLED)
+        self.assertEqual(self.service_log.status, ServiceLog.Status.APPROVED)
+        self.assertFalse(InvoiceLine.objects.filter(service_log=self.service_log).exists())
+
+    def test_finance_user_can_cancel_issued_invoice_and_release_logs(self):
+        self.invoice.status = Invoice.Status.ISSUED
+        self.invoice.save(update_fields=["status", "updated_at"])
+        self.login_accountant()
+
+        response = self.client.post(reverse("invoice_cancel", args=[self.invoice.id]))
+
+        self.invoice.refresh_from_db()
+        self.service_log.refresh_from_db()
+        self.assertRedirects(response, reverse("invoice_detail", args=[self.invoice.id]))
+        self.assertEqual(self.invoice.status, Invoice.Status.CANCELLED)
+        self.assertEqual(self.service_log.status, ServiceLog.Status.APPROVED)
+        self.assertFalse(InvoiceLine.objects.filter(service_log=self.service_log).exists())
 
     def test_worker_cannot_download_invoice_csv(self):
         self.login_worker()
