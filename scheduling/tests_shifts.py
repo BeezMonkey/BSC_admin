@@ -98,6 +98,48 @@ class ShiftSchedulingTests(TestCase):
         self.assertEqual(shift.planned_hours, Decimal("2.00"))
         self.assertEqual(shift.created_by, self.admin_user)
 
+    def test_shift_detail_shows_workflow_status_panel(self):
+        shift = Shift.objects.create(
+            participant=self.participant,
+            worker=self.worker,
+            service_date=date(2026, 6, 1),
+            start_time=time(9, 0),
+            end_time=time(11, 0),
+            planned_hours=Decimal("2.00"),
+            support_item=self.support_item,
+            service_type=Shift.ServiceType.PERSONAL_CARE,
+            status=Shift.Status.DRAFT,
+            created_by=self.admin_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("shift_detail", args=[shift.id]))
+
+        self.assertContains(response, "Workflow Status")
+        self.assertContains(response, "Draft shift")
+        self.assertContains(response, "Next step: publish this shift")
+        self.assertContains(response, "Publish")
+        self.assertContains(response, "Edit Shift")
+
+    def test_shift_create_prefills_participant_and_worker_from_shortcut(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("shift_create"),
+            {"participant": self.participant.id, "worker": self.worker.id},
+        )
+
+        self.assertContains(
+            response,
+            f'<option value="{self.participant.id}" selected>{self.participant.display_name}</option>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            f'<option value="{self.worker.id}" selected>{self.worker.display_name}</option>',
+            html=True,
+        )
+
     def test_admin_can_create_published_shift(self):
         self.login_admin()
 

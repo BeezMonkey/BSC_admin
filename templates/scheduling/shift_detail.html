@@ -17,6 +17,28 @@
   </div>
 </div>
 
+<section class="card">
+  <h2>Workflow Status</h2>
+  <div class="workflow-panel">
+    <div>
+      <span class="status-pill">{{ workflow_status.label }}</span>
+      <p>{{ workflow_status.next_step }}</p>
+    </div>
+    <div class="button-row">
+      {% if shift.status == "draft" %}
+        <form method="post" action="{% url 'shift_publish' shift.id %}">
+          {% csrf_token %}
+          <button type="submit">Publish</button>
+        </form>
+      {% endif %}
+      <a class="button secondary" href="{% url 'shift_edit' shift.id %}">Edit Shift</a>
+      {% if service_log %}
+        <a class="button secondary" href="{% url 'service_log_detail' service_log.id %}">View Submitted Log</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
 <div class="detail-grid">
   <section class="card">
     <h2>Shift Details</h2>

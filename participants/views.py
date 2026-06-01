@@ -61,10 +61,36 @@ def participant_detail(request, participant_id):
         Participant.objects.prefetch_related("worker_assignments__worker"),
         id=participant_id,
     )
+    active_assignments = [
+        assignment
+        for assignment in participant.worker_assignments.all()
+        if assignment.is_active
+    ]
+    readiness_items = [
+        {
+            "label": "NDIS number recorded",
+            "missing_label": "Needs NDIS number",
+            "is_ready": bool(participant.ndis_number),
+        },
+        {
+            "label": "Plan dates recorded",
+            "missing_label": "Needs plan dates",
+            "is_ready": bool(participant.plan_start_date and participant.plan_end_date),
+        },
+        {
+            "label": "Active worker assigned",
+            "missing_label": "Needs active worker assignment",
+            "is_ready": bool(active_assignments),
+        },
+    ]
     return render(
         request,
         "participants/participant_detail.html",
-        {"participant": participant},
+        {
+            "participant": participant,
+            "readiness_items": readiness_items,
+            "active_assignments": active_assignments,
+        },
     )
 
 

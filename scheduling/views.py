@@ -75,7 +75,12 @@ def shift_create(request):
             messages.success(request, "Shift created.")
             return redirect(shift)
     else:
-        form = ShiftForm(created_by=request.user)
+        initial = {
+            key: request.GET[key]
+            for key in ("participant", "worker")
+            if request.GET.get(key)
+        }
+        form = ShiftForm(created_by=request.user, initial=initial)
 
     return render(
         request,
@@ -165,10 +170,40 @@ def shift_detail(request, shift_id):
         id=shift_id,
     )
     service_log = getattr(shift, "service_log", None)
+    workflow_messages = {
+        Shift.Status.DRAFT: {
+            "label": "Draft shift",
+            "next_step": "Next step: publish this shift so the worker can see it.",
+        },
+        Shift.Status.PUBLISHED: {
+            "label": "Published shift",
+            "next_step": "Next step: wait for worker confirmation or follow up with the worker.",
+        },
+        Shift.Status.CONFIRMED: {
+            "label": "Confirmed shift",
+            "next_step": "Next step: worker completes the service log after the shift.",
+        },
+        Shift.Status.COMPLETED: {
+            "label": "Completed shift",
+            "next_step": "Next step: review the submitted service log.",
+        },
+        Shift.Status.CANCELLED: {
+            "label": "Cancelled shift",
+            "next_step": "No further shift action is required unless it needs to be recreated.",
+        },
+        Shift.Status.NO_SHOW: {
+            "label": "No-show shift",
+            "next_step": "Next step: review notes and decide any follow-up action.",
+        },
+    }
     return render(
         request,
         "scheduling/shift_detail.html",
-        {"shift": shift, "service_log": service_log},
+        {
+            "shift": shift,
+            "service_log": service_log,
+            "workflow_status": workflow_messages.get(shift.status),
+        },
     )
 
 

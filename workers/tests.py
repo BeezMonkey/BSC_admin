@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import UserProfile
+from participants.models import Participant, ParticipantWorkerAssignment
 
 from .models import SupportWorker
 
@@ -155,6 +156,44 @@ class SupportWorkerManagementTests(TestCase):
         self.assertContains(response, "Maya Singh")
         self.assertContains(response, "Police check")
         self.assertContains(response, "Current")
+
+    def test_worker_detail_shows_readiness_and_next_steps(self):
+        user = get_user_model().objects.create_user(
+            username="maya",
+            email="maya@example.com",
+            password="test-password-123",
+        )
+        worker = SupportWorker.objects.create(
+            user=user,
+            first_name="Maya",
+            last_name="Singh",
+            email="maya@example.com",
+            status=SupportWorker.Status.ACTIVE,
+            police_check_status=SupportWorker.ComplianceStatus.CURRENT,
+            wwcc_status=SupportWorker.ComplianceStatus.PENDING,
+        )
+        participant = Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            status=Participant.Status.ACTIVE,
+        )
+        ParticipantWorkerAssignment.objects.create(
+            participant=participant,
+            worker=worker,
+            start_date=date(2026, 1, 1),
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("worker_detail", args=[worker.id]))
+
+        self.assertContains(response, "Readiness")
+        self.assertContains(response, "Worker active")
+        self.assertContains(response, "Police check current")
+        self.assertContains(response, "Needs WWCC / Blue Card current")
+        self.assertContains(response, "Has active participant assignment")
+        self.assertContains(response, "Next steps")
+        self.assertContains(response, "Upload Document")
+        self.assertContains(response, "Create Shift")
 
     def test_admin_can_edit_worker(self):
         user = get_user_model().objects.create_user(
