@@ -10,7 +10,6 @@ from django.views.decorators.http import require_POST
 from accounts.decorators import admin_required, worker_required
 from core.audit import write_audit_log
 from core.models import AuditLog
-from workers.models import SupportWorker
 
 from .forms import RecurringShiftForm, ShiftForm, SupportItemForm
 from .models import Shift, SupportItem
@@ -23,16 +22,16 @@ def format_filter_date(value):
     return f"{parsed_date.strftime('%B')} {parsed_date.day}, {parsed_date.year}"
 
 
-def build_roster_filter_summary(status, worker_id, date_from, date_to):
+def build_roster_filter_summary(status, participant_query, worker_query, date_from, date_to):
     status_label = dict(Shift.Status.choices).get(status)
-    if not any([status_label, worker_id, date_from, date_to]):
+    if not any([status_label, participant_query, worker_query, date_from, date_to]):
         return ""
 
     summary = f"Showing {status_label.lower()} shifts" if status_label else "Showing shifts"
-    if worker_id:
-        worker = SupportWorker.objects.filter(id=worker_id).first()
-        worker_label = worker.display_name if worker else f"worker #{worker_id}"
-        summary += f" for {worker_label}"
+    if participant_query:
+        summary += f" for participant {participant_query}"
+    if worker_query:
+        summary += f" for worker {worker_query}"
     if date_from and date_to:
         summary += f" from {format_filter_date(date_from)} to {format_filter_date(date_to)}"
     elif date_from:
@@ -45,29 +44,32 @@ def build_roster_filter_summary(status, worker_id, date_from, date_to):
 @admin_required
 def roster_list(request):
     shifts = Shift.objects.select_related("participant", "worker", "support_item")
-    workers = SupportWorker.objects.filter(status=SupportWorker.Status.ACTIVE).order_by(
-        "first_name",
-        "last_name",
-    )
     date_from = request.GET.get("date_from", "").strip()
     date_to = request.GET.get("date_to", "").strip()
-    participant_id = request.GET.get("participant", "").strip()
-    worker_id = request.GET.get("worker", "").strip()
+    participant_query = request.GET.get("participant", "").strip()
+    worker_query = request.GET.get("worker", "").strip()
     status = request.GET.get("status", "").strip()
 
     if date_from:
         shifts = shifts.filter(service_date__gte=date_from)
     if date_to:
         shifts = shifts.filter(service_date__lte=date_to)
-    if participant_id:
-        shifts = shifts.filter(participant_id=participant_id)
-    if worker_id:
-        shifts = shifts.filter(worker_id=worker_id)
+    if participant_query:
+        shifts = shifts.filter(
+            Q(participant__first_name__icontains=participant_query)
+            | Q(participant__last_name__icontains=participant_query)
+        )
+    if worker_query:
+        shifts = shifts.filter(
+            Q(worker__first_name__icontains=worker_query)
+            | Q(worker__last_name__icontains=worker_query)
+        )
     if status:
         shifts = shifts.filter(status=status)
     filter_summary = build_roster_filter_summary(
         status,
-        worker_id,
+        participant_query,
+        worker_query,
         date_from,
         date_to,
     )
@@ -79,9 +81,8 @@ def roster_list(request):
             "shifts": shifts,
             "date_from": date_from,
             "date_to": date_to,
-            "participant_id": participant_id,
-            "worker_id": worker_id,
-            "workers": workers,
+            "participant_query": participant_query,
+            "worker_query": worker_query,
             "status": status,
             "status_choices": Shift.Status.choices,
             "filter_summary": filter_summary,
