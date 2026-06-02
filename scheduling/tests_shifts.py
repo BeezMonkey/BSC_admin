@@ -233,33 +233,73 @@ class ShiftSchedulingTests(TestCase):
 
         response = self.client.get(
             reverse("roster_list"),
-            {"worker": self.worker.id, "status": Shift.Status.PUBLISHED},
+            {"worker": "Wendy", "status": Shift.Status.PUBLISHED},
         )
 
         self.assertContains(response, "Wendy Worker")
         self.assertNotContains(response, "<td>Oscar Other</td>", html=True)
 
-    def test_roster_worker_filter_uses_worker_name_select(self):
+    def test_roster_worker_filter_uses_worker_name_search(self):
         self.create_shift(status=Shift.Status.PUBLISHED)
         self.login_admin()
 
         response = self.client.get(
             reverse("roster_list"),
-            {"worker": self.worker.id},
+            {"worker": "Wendy"},
         )
 
         self.assertContains(response, 'name="worker"')
-        self.assertContains(
-            response,
-            f'<option value="{self.worker.id}" selected>Wendy Worker</option>',
-            html=True,
-        )
-        self.assertContains(
-            response,
-            f'<option value="{self.other_worker.id}">Oscar Other</option>',
-            html=True,
-        )
+        self.assertContains(response, 'placeholder="Worker name"')
         self.assertNotContains(response, 'placeholder="Worker ID"')
+
+    def test_roster_can_filter_by_participant_and_worker_name(self):
+        ben = Participant.objects.create(
+            first_name="Ben",
+            last_name="Taylor",
+            status=Participant.Status.ACTIVE,
+            address_line_1="20 Creek Street",
+            suburb="Brisbane",
+            state="QLD",
+            postcode="4000",
+        )
+        Shift.objects.create(
+            participant=self.participant,
+            worker=self.worker,
+            service_date=date(2026, 6, 1),
+            start_time=time(9, 0),
+            end_time=time(11, 0),
+            planned_hours=Decimal("2.00"),
+            support_item=self.support_item,
+            service_type=Shift.ServiceType.PERSONAL_CARE,
+            status=Shift.Status.PUBLISHED,
+            created_by=self.admin_user,
+        )
+        Shift.objects.create(
+            participant=ben,
+            worker=self.other_worker,
+            service_date=date(2026, 6, 2),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            planned_hours=Decimal("1.00"),
+            support_item=self.support_item,
+            service_type=Shift.ServiceType.OTHER,
+            status=Shift.Status.PUBLISHED,
+            created_by=self.admin_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_list"),
+            {"participant": "Ava", "worker": "Wendy"},
+        )
+
+        self.assertContains(response, "Ava Nguyen")
+        self.assertContains(response, "Wendy Worker")
+        self.assertNotContains(response, "<td>Ben Taylor</td>", html=True)
+        self.assertNotContains(response, "<td>Oscar Other</td>", html=True)
+        self.assertContains(response, "Showing shifts for participant Ava for worker Wendy.")
+        self.assertContains(response, 'placeholder="Participant name"')
+        self.assertContains(response, 'placeholder="Worker name"')
 
     def test_roster_list_shows_status_filter_summary(self):
         self.create_shift(status=Shift.Status.DRAFT)
@@ -282,14 +322,14 @@ class ShiftSchedulingTests(TestCase):
             {
                 "date_from": "2026-06-01",
                 "date_to": "2026-06-30",
-                "worker": self.worker.id,
+                "worker": "Wendy",
                 "status": Shift.Status.PUBLISHED,
             },
         )
 
         self.assertContains(
             response,
-            "Showing published shifts for Wendy Worker from June 1, 2026 to June 30, 2026.",
+            "Showing published shifts for worker Wendy from June 1, 2026 to June 30, 2026.",
         )
 
     def test_worker_can_only_see_own_non_draft_shifts(self):
