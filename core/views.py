@@ -1,14 +1,32 @@
 from django.shortcuts import get_object_or_404, render
 
 from accounts.decorators import admin_required, worker_required
+from invoices.models import Invoice
 from scheduling.models import Shift
+from service_logs.models import ServiceLog
 
 from .models import AuditLog
 
 
 @admin_required
 def admin_dashboard(request):
-    return render(request, "core/admin_dashboard.html")
+    operations_summary = {
+        "draft_shift_count": Shift.objects.filter(status=Shift.Status.DRAFT).count(),
+        "submitted_log_count": ServiceLog.objects.filter(
+            status=ServiceLog.Status.SUBMITTED,
+        ).count(),
+        "approved_log_count": ServiceLog.objects.filter(
+            status=ServiceLog.Status.APPROVED,
+            invoice_line__isnull=True,
+        ).count(),
+        "draft_invoice_count": Invoice.objects.filter(status=Invoice.Status.DRAFT).count(),
+        "issued_invoice_count": Invoice.objects.filter(status=Invoice.Status.ISSUED).count(),
+    }
+    return render(
+        request,
+        "core/admin_dashboard.html",
+        {"operations_summary": operations_summary},
+    )
 
 
 @worker_required

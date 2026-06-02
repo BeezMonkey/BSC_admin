@@ -6,8 +6,10 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import UserProfile
+from invoices.models import Invoice
 from participants.models import Participant
 from scheduling.models import Shift, SupportItem
+from service_logs.models import ServiceLog
 from workers.models import SupportWorker
 
 
@@ -28,6 +30,109 @@ class DashboardPolishTests(TestCase):
         self.assertContains(response, "Documents")
         self.assertContains(response, "Audit Logs")
         self.assertNotContains(response, "will be added")
+
+    def test_admin_dashboard_shows_operations_summary(self):
+        admin_user = User.objects.create_user(username="admin", password="pass")
+        UserProfile.objects.create(user=admin_user, role=UserProfile.Role.ADMIN)
+        worker_user = User.objects.create_user(username="worker", password="pass")
+        UserProfile.objects.create(
+            user=worker_user,
+            role=UserProfile.Role.SUPPORT_WORKER,
+            is_active_worker=True,
+        )
+        worker = SupportWorker.objects.create(
+            user=worker_user,
+            first_name="Wendy",
+            last_name="Worker",
+            email="worker@example.com",
+        )
+        participant = Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            status=Participant.Status.ACTIVE,
+            address_line_1="10 Creek Street",
+            suburb="Brisbane",
+            state="QLD",
+            postcode="4000",
+        )
+        support_item = SupportItem.objects.create(
+            item_number="01_011_0107_1_1",
+            name="Assistance with self-care activities",
+            unit=SupportItem.Unit.HOUR,
+            price_limit=Decimal("65.47"),
+            gst_code=SupportItem.GSTCode.GST_FREE,
+            is_active=True,
+        )
+        base_shift = {
+            "participant": participant,
+            "worker": worker,
+            "start_time": time(9, 0),
+            "end_time": time(11, 0),
+            "planned_hours": Decimal("2.00"),
+            "support_item": support_item,
+            "service_type": Shift.ServiceType.PERSONAL_CARE,
+            "created_by": admin_user,
+        }
+        draft_shift = Shift.objects.create(
+            **base_shift,
+            service_date=date(2026, 6, 4),
+            status=Shift.Status.DRAFT,
+        )
+        submitted_shift = Shift.objects.create(
+            **base_shift,
+            service_date=date(2026, 6, 5),
+            status=Shift.Status.COMPLETED,
+        )
+        approved_shift = Shift.objects.create(
+            **base_shift,
+            service_date=date(2026, 6, 6),
+            status=Shift.Status.COMPLETED,
+        )
+        ServiceLog.objects.create_from_shift(
+            shift=submitted_shift,
+            actual_start_time=time(9, 0),
+            actual_end_time=time(11, 0),
+            actual_hours=Decimal("2.00"),
+            case_notes="Submitted log for review.",
+            status=ServiceLog.Status.SUBMITTED,
+        )
+        ServiceLog.objects.create_from_shift(
+            shift=approved_shift,
+            actual_start_time=time(9, 0),
+            actual_end_time=time(11, 0),
+            actual_hours=Decimal("2.00"),
+            case_notes="Approved log awaiting invoice.",
+            status=ServiceLog.Status.APPROVED,
+        )
+        Invoice.objects.create(
+            participant=participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            status=Invoice.Status.DRAFT,
+            created_by=admin_user,
+        )
+        Invoice.objects.create(
+            participant=participant,
+            period_start=date(2026, 5, 1),
+            period_end=date(2026, 5, 31),
+            status=Invoice.Status.ISSUED,
+            created_by=admin_user,
+        )
+
+        self.client.login(username="admin", password="pass")
+        response = self.client.get(reverse("admin_dashboard"))
+
+        self.assertContains(response, "Operations summary")
+        self.assertContains(response, "1 draft shift")
+        self.assertContains(response, "1 submitted log")
+        self.assertContains(response, "1 approved log")
+        self.assertContains(response, "1 draft invoice")
+        self.assertContains(response, "1 issued invoice")
+        self.assertContains(response, f'{reverse("roster_list")}?status={draft_shift.status}')
+        self.assertContains(response, f'{reverse("service_log_list")}?status={ServiceLog.Status.SUBMITTED}')
+        self.assertContains(response, f'{reverse("service_log_list")}?status={ServiceLog.Status.APPROVED}')
+        self.assertContains(response, f'{reverse("invoice_placeholder")}?status={Invoice.Status.DRAFT}')
+        self.assertContains(response, f'{reverse("invoice_placeholder")}?status={Invoice.Status.ISSUED}')
 
     def test_worker_dashboard_lists_current_worker_tools(self):
         user = User.objects.create_user(username="worker", password="pass")
