@@ -712,6 +712,58 @@ tbody tr:last-child td {
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
 }
 
+.worker-action-summary {
+  margin-bottom: 1rem;
+}
+
+.worker-action-summary h2 {
+  font-size: 1.1rem;
+}
+
+.action-summary-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.action-summary-item {
+  display: grid;
+  gap: 0.2rem;
+  min-height: 4.6rem;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--line);
+  border-radius: 8px;
+  padding: 0.8rem 0.9rem;
+  background: #ffffff;
+}
+
+.action-summary-item:hover {
+  border-color: var(--brand);
+  border-left-color: var(--brand);
+  background: #f8fffd;
+}
+
+.action-summary-item strong {
+  font-size: 1.05rem;
+}
+
+.action-summary-item span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.action-summary-item.needs-attention {
+  border-left-color: var(--accent);
+}
+
+.action-summary-item.ready-for-log {
+  border-left-color: var(--brand);
+}
+
+.action-summary-item.completed {
+  border-left-color: #64748b;
+}
+
 .worker-app-shell {
   grid-template-columns: 220px minmax(0, 1fr);
 }
