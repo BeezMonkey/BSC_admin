@@ -766,6 +766,20 @@ tbody tr:last-child td {
   border-left-color: #64748b;
 }
 
+.summary-empty-state {
+  display: grid;
+  gap: 0.25rem;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  color: var(--muted);
+  background: #f8fafc;
+}
+
+.summary-empty-state strong {
+  color: var(--ink);
+}
+
 .worker-action-summary {
   margin-bottom: 1rem;
 }

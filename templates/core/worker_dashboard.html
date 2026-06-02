@@ -15,6 +15,7 @@
       <h2>Shift action summary</h2>
       <p>Jump straight to the roster items that need your next step.</p>
     </div>
+    {% if has_shift_actions %}
     <div class="action-summary-grid">
       <a class="action-summary-item needs-attention" href="{% url 'worker_shift_list' %}?view=needs_attention">
         <strong>{{ needs_attention_count }} needs attention</strong>
@@ -29,6 +30,12 @@
         <span>Finished or closed shifts</span>
       </a>
     </div>
+    {% else %}
+    <div class="summary-empty-state">
+      <strong>No shift actions need attention.</strong>
+      <span>New or confirmed shifts are listed here when they need your next step.</span>
+    </div>
+    {% endif %}
   </section>
   <div class="card-grid worker-dashboard-grid">
     <section class="card">

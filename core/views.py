@@ -31,6 +31,15 @@ def admin_dashboard(request):
         "approved_log_label": count_label(approved_log_count, "approved log"),
         "draft_invoice_label": count_label(draft_invoice_count, "draft invoice"),
         "issued_invoice_label": count_label(issued_invoice_count, "issued invoice"),
+        "has_actions": any(
+            [
+                draft_shift_count,
+                submitted_log_count,
+                approved_log_count,
+                draft_invoice_count,
+                issued_invoice_count,
+            ]
+        ),
     }
     return render(
         request,
@@ -61,6 +70,13 @@ def worker_dashboard(request):
                 ]
             ).count(),
         }
+    shift_counts["has_shift_actions"] = any(
+        [
+            shift_counts["needs_attention_count"],
+            shift_counts["ready_for_log_count"],
+            shift_counts["completed_shift_count"],
+        ]
+    )
 
     return render(request, "core/worker_dashboard.html", shift_counts)
 

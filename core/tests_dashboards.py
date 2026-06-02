@@ -240,6 +240,21 @@ class DashboardPolishTests(TestCase):
         self.assertNotContains(response, "2 draft invoice</strong>")
         self.assertNotContains(response, "2 issued invoice</strong>")
 
+    def test_admin_dashboard_shows_zero_state_when_no_operations_need_action(self):
+        user = User.objects.create_user(username="admin", password="pass")
+        UserProfile.objects.create(user=user, role=UserProfile.Role.ADMIN)
+
+        self.client.login(username="admin", password="pass")
+        response = self.client.get(reverse("admin_dashboard"))
+
+        self.assertContains(response, "Operations summary")
+        self.assertContains(response, "No outstanding admin actions.")
+        self.assertNotContains(response, "0 draft shifts")
+        self.assertNotContains(response, "0 submitted logs")
+        self.assertNotContains(response, "0 approved logs")
+        self.assertNotContains(response, "0 draft invoices")
+        self.assertNotContains(response, "0 issued invoices")
+
     def test_worker_dashboard_lists_current_worker_tools(self):
         user = User.objects.create_user(username="worker", password="pass")
         UserProfile.objects.create(
@@ -332,3 +347,26 @@ class DashboardPolishTests(TestCase):
         self.assertContains(response, f'{reverse("worker_shift_list")}?view=needs_attention')
         self.assertContains(response, f'{reverse("worker_shift_list")}?view=upcoming')
         self.assertContains(response, f'{reverse("worker_shift_list")}?view=completed')
+
+    def test_worker_dashboard_shows_zero_state_when_no_shifts_need_action(self):
+        user = User.objects.create_user(username="worker", password="pass")
+        UserProfile.objects.create(
+            user=user,
+            role=UserProfile.Role.SUPPORT_WORKER,
+            is_active_worker=True,
+        )
+        SupportWorker.objects.create(
+            user=user,
+            first_name="Wendy",
+            last_name="Worker",
+            email="worker@example.com",
+        )
+
+        self.client.login(username="worker", password="pass")
+        response = self.client.get(reverse("worker_dashboard"))
+
+        self.assertContains(response, "Shift action summary")
+        self.assertContains(response, "No shift actions need attention.")
+        self.assertNotContains(response, "0 needs attention")
+        self.assertNotContains(response, "0 ready for log")
+        self.assertNotContains(response, "0 completed")
