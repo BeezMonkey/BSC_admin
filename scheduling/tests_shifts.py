@@ -251,6 +251,25 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, "Showing draft shifts.")
         self.assertContains(response, reverse("roster_list"))
 
+    def test_roster_list_shows_multi_filter_summary(self):
+        self.create_shift(status=Shift.Status.PUBLISHED)
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_list"),
+            {
+                "date_from": "2026-06-01",
+                "date_to": "2026-06-30",
+                "worker": self.worker.id,
+                "status": Shift.Status.PUBLISHED,
+            },
+        )
+
+        self.assertContains(
+            response,
+            "Showing published shifts for Wendy Worker from June 1, 2026 to June 30, 2026.",
+        )
+
     def test_worker_can_only_see_own_non_draft_shifts(self):
         own_shift = self.create_shift()
         self.create_shift(

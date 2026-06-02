@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
 
 from accounts.decorators import finance_required
@@ -14,6 +15,32 @@ from service_logs.models import ServiceLog
 
 from .forms import InvoiceCreateForm
 from .models import Invoice, InvoiceLine
+
+
+def format_filter_date(value):
+    parsed_date = parse_date(value)
+    if not parsed_date:
+        return value
+    return f"{parsed_date.strftime('%B')} {parsed_date.day}, {parsed_date.year}"
+
+
+def build_invoice_filter_summary(status, q, participant_query, period_from, period_to):
+    status_label = dict(Invoice.Status.choices).get(status)
+    if not any([status_label, q, participant_query, period_from, period_to]):
+        return ""
+
+    summary = f"Showing {status_label.lower()} invoices" if status_label else "Showing invoices"
+    if q:
+        summary += f' matching "{q}"'
+    if participant_query:
+        summary += f" for {participant_query}"
+    if period_from and period_to:
+        summary += f" from {format_filter_date(period_from)} to {format_filter_date(period_to)}"
+    elif period_from:
+        summary += f" from {format_filter_date(period_from)}"
+    elif period_to:
+        summary += f" to {format_filter_date(period_to)}"
+    return f"{summary}."
 
 
 @finance_required
@@ -38,8 +65,13 @@ def invoice_list(request):
         invoices = invoices.filter(period_end__gte=period_from)
     if period_to:
         invoices = invoices.filter(period_start__lte=period_to)
-    status_label = dict(Invoice.Status.choices).get(status)
-    filter_summary = f"Showing {status_label.lower()} invoices." if status_label else ""
+    filter_summary = build_invoice_filter_summary(
+        status,
+        q,
+        participant_query,
+        period_from,
+        period_to,
+    )
 
     return render(
         request,
