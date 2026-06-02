@@ -33,6 +33,8 @@ def roster_list(request):
         shifts = shifts.filter(worker_id=worker_id)
     if status:
         shifts = shifts.filter(status=status)
+    status_label = dict(Shift.Status.choices).get(status)
+    filter_summary = f"Showing {status_label.lower()} shifts." if status_label else ""
 
     return render(
         request,
@@ -45,6 +47,7 @@ def roster_list(request):
             "worker_id": worker_id,
             "status": status,
             "status_choices": Shift.Status.choices,
+            "filter_summary": filter_summary,
         },
     )
 

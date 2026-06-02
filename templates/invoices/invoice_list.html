@@ -41,6 +41,13 @@
   <a class="button secondary" href="{% url 'invoice_placeholder' %}">Reset</a>
 </form>
 
+{% if filter_summary %}
+<div class="filter-summary">
+  <span>{{ filter_summary }}</span>
+  <a href="{% url 'invoice_placeholder' %}">Clear filter</a>
+</div>
+{% endif %}
+
 <section class="card table-card">
   <table>
     <thead>

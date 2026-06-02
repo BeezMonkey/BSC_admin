@@ -23,6 +23,13 @@
   <a class="button secondary" href="{% url 'service_log_list' %}">Clear</a>
 </form>
 
+{% if filter_summary %}
+<div class="filter-summary">
+  <span>{{ filter_summary }}</span>
+  <a href="{% url 'service_log_list' %}">Clear filter</a>
+</div>
+{% endif %}
+
 <form method="get" action="{% url 'invoice_create' %}">
 <section class="card table-card">
   <div class="bulk-actions">

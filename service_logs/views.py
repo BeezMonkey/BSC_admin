@@ -24,6 +24,8 @@ def service_log_list(request):
     status = request.GET.get("status", "").strip()
     if status:
         service_logs = service_logs.filter(status=status)
+    status_label = dict(ServiceLog.Status.choices).get(status)
+    filter_summary = f"Showing {status_label.lower()} service logs." if status_label else ""
     return render(
         request,
         "service_logs/service_log_list.html",
@@ -31,6 +33,7 @@ def service_log_list(request):
             "service_logs": service_logs,
             "status": status,
             "status_choices": ServiceLog.Status.choices,
+            "filter_summary": filter_summary,
         },
     )
 

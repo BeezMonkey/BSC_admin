@@ -38,6 +38,8 @@ def invoice_list(request):
         invoices = invoices.filter(period_end__gte=period_from)
     if period_to:
         invoices = invoices.filter(period_start__lte=period_to)
+    status_label = dict(Invoice.Status.choices).get(status)
+    filter_summary = f"Showing {status_label.lower()} invoices." if status_label else ""
 
     return render(
         request,
@@ -50,6 +52,7 @@ def invoice_list(request):
             "period_from": period_from,
             "period_to": period_to,
             "status_choices": Invoice.Status.choices,
+            "filter_summary": filter_summary,
         },
     )
 
