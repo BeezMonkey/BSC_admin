@@ -17,7 +17,14 @@
 <form class="filter-bar" method="get">
   <label>Date from <input type="date" name="date_from" value="{{ date_from }}"></label>
   <label>Date to <input type="date" name="date_to" value="{{ date_to }}"></label>
-  <label>Worker <input type="text" name="worker" value="{{ worker_id }}" placeholder="Worker ID"></label>
+  <label>Worker
+    <select name="worker">
+      <option value="">All workers</option>
+      {% for worker in workers %}
+        <option value="{{ worker.id }}" {% if worker_id == worker.id|stringformat:"s" %}selected{% endif %}>{{ worker.display_name }}</option>
+      {% endfor %}
+    </select>
+  </label>
   <label>Status
     <select name="status">
       <option value="">All statuses</option>
