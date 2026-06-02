@@ -1,0 +1,10 @@
+<div class="list-item shift-list-item shift-list-item-{{ tone }}">
+  <div class="shift-list-main">
+    <strong>#{{ shift.id }} {{ shift.service_date }} {{ shift.start_time }} - {{ shift.end_time }}</strong>
+    <span>{{ shift.participant.display_name }}</span>
+  </div>
+  <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
+  <div class="list-item-actions">
+    <a href="{% url 'worker_shift_detail' shift.id %}">View</a>
+  </div>
+</div>
