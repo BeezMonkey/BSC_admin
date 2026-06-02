@@ -9,6 +9,34 @@
     <p>Quick access to the main V1 operations modules.</p>
   </div>
 </header>
+<section class="card operations-summary">
+  <div>
+    <h2>Operations summary</h2>
+    <p>Review the records that most commonly need admin follow-up.</p>
+  </div>
+  <div class="operations-summary-grid">
+    <a class="operations-summary-item roster" href="{% url 'roster_list' %}?status=draft">
+      <strong>{{ operations_summary.draft_shift_count }} draft shift</strong>
+      <span>Prepare or publish roster items</span>
+    </a>
+    <a class="operations-summary-item review" href="{% url 'service_log_list' %}?status=submitted">
+      <strong>{{ operations_summary.submitted_log_count }} submitted log</strong>
+      <span>Review worker service records</span>
+    </a>
+    <a class="operations-summary-item invoice-ready" href="{% url 'service_log_list' %}?status=approved">
+      <strong>{{ operations_summary.approved_log_count }} approved log</strong>
+      <span>Ready to convert to invoice</span>
+    </a>
+    <a class="operations-summary-item invoice-draft" href="{% url 'invoice_placeholder' %}?status=draft">
+      <strong>{{ operations_summary.draft_invoice_count }} draft invoice</strong>
+      <span>Check and issue billing</span>
+    </a>
+    <a class="operations-summary-item invoice-issued" href="{% url 'invoice_placeholder' %}?status=issued">
+      <strong>{{ operations_summary.issued_invoice_count }} issued invoice</strong>
+      <span>Track payment follow-up</span>
+    </a>
+  </div>
+</section>
 <div class="card-grid">
   <section class="card">
     <h2>Participants</h2>
