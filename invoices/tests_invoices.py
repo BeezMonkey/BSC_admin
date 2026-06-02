@@ -335,6 +335,37 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, "Showing draft invoices.")
         self.assertContains(response, reverse("invoice_placeholder"))
 
+    def test_invoice_list_shows_multi_filter_summary(self):
+        service_log = self.create_service_log(service_date=date(2026, 6, 1))
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            status=Invoice.Status.DRAFT,
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create_from_service_log(invoice, service_log)
+        self.login_accountant()
+
+        response = self.client.get(
+            reverse("invoice_placeholder"),
+            {
+                "q": invoice.invoice_number[-4:],
+                "participant": "Ava",
+                "status": Invoice.Status.DRAFT,
+                "period_from": "2026-06-01",
+                "period_to": "2026-06-30",
+            },
+        )
+
+        self.assertContains(
+            response,
+            (
+                f"Showing draft invoices matching &quot;{invoice.invoice_number[-4:]}&quot; "
+                "for Ava from June 1, 2026 to June 30, 2026."
+            ),
+        )
+
     def test_invoice_create_previews_only_selected_service_logs(self):
         selected_log = self.create_service_log(
             service_date=date(2026, 6, 1),
