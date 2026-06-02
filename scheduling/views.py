@@ -53,6 +53,10 @@ def roster_list(request):
 def worker_shift_list(request):
     worker = getattr(request.user, "supportworker", None)
     shifts = Shift.objects.none()
+    selected_view = request.GET.get("view", "all").strip()
+    valid_views = {"all", "needs_attention", "upcoming", "completed"}
+    if selected_view not in valid_views:
+        selected_view = "all"
     shift_groups = {
         "needs_attention": [],
         "upcoming": [],
@@ -70,6 +74,10 @@ def worker_shift_list(request):
                 shift_groups["upcoming"].append(shift)
             else:
                 shift_groups["completed"].append(shift)
+    visible_shift_groups = {
+        key: value if selected_view in ["all", key] else []
+        for key, value in shift_groups.items()
+    }
 
     return render(
         request,
@@ -77,6 +85,8 @@ def worker_shift_list(request):
         {
             "shifts": shifts,
             "shift_groups": shift_groups,
+            "visible_shift_groups": visible_shift_groups,
+            "selected_view": selected_view,
             "needs_attention_count": len(shift_groups["needs_attention"]),
             "upcoming_count": len(shift_groups["upcoming"]),
             "completed_count": len(shift_groups["completed"]),

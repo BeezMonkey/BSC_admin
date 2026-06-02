@@ -562,6 +562,29 @@ tbody tr:last-child td {
   font-weight: 700;
 }
 
+.shift-filter-nav {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.shift-filter-nav a {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.4rem 0.7rem;
+  color: var(--brand-dark);
+  background: #ffffff;
+  font-weight: 700;
+}
+
+.shift-filter-nav a:hover,
+.shift-filter-nav a.filter-active {
+  border-color: var(--brand);
+  color: #ffffff;
+  background: var(--brand);
+}
+
 .shift-section-title {
   margin: 1.3rem 0 0.35rem;
   color: var(--muted);
