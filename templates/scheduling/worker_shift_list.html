@@ -12,24 +12,31 @@
     <span>{{ completed_count }} completed</span>
   </div>
 
+  <nav class="shift-filter-nav" aria-label="Shift view filters">
+    <a class="{% if selected_view == 'all' %}filter-active{% endif %}" href="?view=all">All</a>
+    <a class="{% if selected_view == 'needs_attention' %}filter-active{% endif %}" href="?view=needs_attention">Needs attention</a>
+    <a class="{% if selected_view == 'upcoming' %}filter-active{% endif %}" href="?view=upcoming">Upcoming</a>
+    <a class="{% if selected_view == 'completed' %}filter-active{% endif %}" href="?view=completed">Completed</a>
+  </nav>
+
   {% if shifts %}
-    {% if shift_groups.needs_attention %}
+    {% if visible_shift_groups.needs_attention %}
       <h2 class="shift-section-title">Needs attention</h2>
-      {% for shift in shift_groups.needs_attention %}
+      {% for shift in visible_shift_groups.needs_attention %}
         {% include "scheduling/worker_shift_list_item.html" with shift=shift tone="attention" %}
       {% endfor %}
     {% endif %}
 
-    {% if shift_groups.upcoming %}
+    {% if visible_shift_groups.upcoming %}
       <h2 class="shift-section-title">Upcoming</h2>
-      {% for shift in shift_groups.upcoming %}
+      {% for shift in visible_shift_groups.upcoming %}
         {% include "scheduling/worker_shift_list_item.html" with shift=shift tone="upcoming" %}
       {% endfor %}
     {% endif %}
 
-    {% if shift_groups.completed %}
+    {% if visible_shift_groups.completed %}
       <h2 class="shift-section-title">Completed</h2>
-      {% for shift in shift_groups.completed %}
+      {% for shift in visible_shift_groups.completed %}
         {% include "scheduling/worker_shift_list_item.html" with shift=shift tone="past" %}
       {% endfor %}
     {% endif %}

@@ -332,6 +332,45 @@ class ShiftSchedulingTests(TestCase):
         self.assertNotIn("Confirm", completed_section)
         self.assertNotIn("Complete Log", completed_section)
 
+    def test_worker_shift_list_can_filter_by_shift_group(self):
+        published_shift = self.create_shift(
+            service_date=date(2026, 6, 4),
+            status=Shift.Status.PUBLISHED,
+        )
+        confirmed_shift = self.create_shift(
+            service_date=date(2026, 6, 5),
+            status=Shift.Status.CONFIRMED,
+        )
+        completed_shift = self.create_shift(
+            service_date=date(2026, 6, 6),
+            status=Shift.Status.COMPLETED,
+        )
+        self.client.login(username="worker", password="test-password-123")
+
+        response = self.client.get(
+            reverse("worker_shift_list"),
+            {"view": "needs_attention"},
+        )
+
+        self.assertContains(response, f"#{published_shift.id}")
+        self.assertNotContains(response, f"#{confirmed_shift.id}")
+        self.assertNotContains(response, f"#{completed_shift.id}")
+        self.assertContains(response, "filter-active")
+        self.assertContains(response, "Needs attention")
+        self.assertNotContains(response, "Upcoming</h2>")
+        self.assertNotContains(response, "Completed</h2>")
+
+    def test_worker_shift_list_shows_filter_navigation(self):
+        self.create_shift(status=Shift.Status.PUBLISHED)
+        self.client.login(username="worker", password="test-password-123")
+
+        response = self.client.get(reverse("worker_shift_list"))
+
+        self.assertContains(response, '?view=all')
+        self.assertContains(response, '?view=needs_attention')
+        self.assertContains(response, '?view=upcoming')
+        self.assertContains(response, '?view=completed')
+
     def test_worker_can_view_and_confirm_own_published_shift(self):
         shift = Shift.objects.create(
             participant=self.participant,
