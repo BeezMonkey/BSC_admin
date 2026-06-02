@@ -346,6 +346,16 @@ textarea {
   font: inherit;
 }
 
+input[type="checkbox"] {
+  width: auto;
+}
+
+.bulk-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.85rem;
+}
+
 .table-card {
   overflow-x: auto;
   border: 1px solid var(--line);
