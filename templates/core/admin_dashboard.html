@@ -14,6 +14,7 @@
     <h2>Operations summary</h2>
     <p>Review the records that most commonly need admin follow-up.</p>
   </div>
+  {% if operations_summary.has_actions %}
   <div class="operations-summary-grid">
     <a class="operations-summary-item roster" href="{% url 'roster_list' %}?status=draft">
       <strong>{{ operations_summary.draft_shift_label }}</strong>
@@ -36,6 +37,12 @@
       <span>Track payment follow-up</span>
     </a>
   </div>
+  {% else %}
+  <div class="summary-empty-state">
+    <strong>No outstanding admin actions.</strong>
+    <span>New roster, service log, and invoice tasks are listed here.</span>
+  </div>
+  {% endif %}
 </section>
 <div class="card-grid">
   <section class="card">
