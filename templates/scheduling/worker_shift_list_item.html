@@ -6,5 +6,14 @@
   <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
   <div class="list-item-actions">
     <a href="{% url 'worker_shift_detail' shift.id %}">View</a>
+    {% if shift.status == "published" %}
+      <form method="post" action="{% url 'worker_shift_confirm' shift.id %}">
+        {% csrf_token %}
+        <button type="submit">Confirm</button>
+      </form>
+    {% endif %}
+    {% if shift.status == "confirmed" %}
+      <a class="primary-action" href="{% url 'worker_service_log_create' shift.id %}">Complete Log</a>
+    {% endif %}
   </div>
 </div>

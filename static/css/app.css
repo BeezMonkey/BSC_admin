@@ -621,7 +621,12 @@ tbody tr:last-child td {
   flex-wrap: wrap;
 }
 
-.list-item-actions a {
+.list-item-actions form {
+  margin: 0;
+}
+
+.list-item-actions a,
+.list-item-actions button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -634,12 +639,26 @@ tbody tr:last-child td {
   background: #ffffff;
   font-size: 0.92rem;
   font-weight: 700;
+  line-height: 1.2;
 }
 
-.list-item-actions a:hover {
+.list-item-actions a:hover,
+.list-item-actions button:hover {
   border-color: var(--brand);
   color: #ffffff;
   background: var(--brand);
+}
+
+.list-item-actions .primary-action,
+.list-item-actions button {
+  border-color: var(--brand);
+  color: #ffffff;
+  background: var(--brand);
+}
+
+.list-item-actions .primary-action:hover,
+.list-item-actions button:hover {
+  background: var(--brand-dark);
 }
 
 .empty-state {
