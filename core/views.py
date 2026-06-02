@@ -8,19 +8,29 @@ from service_logs.models import ServiceLog
 from .models import AuditLog
 
 
+def count_label(count, singular, plural=None):
+    label = singular if count == 1 else (plural or f"{singular}s")
+    return f"{count} {label}"
+
+
 @admin_required
 def admin_dashboard(request):
+    draft_shift_count = Shift.objects.filter(status=Shift.Status.DRAFT).count()
+    submitted_log_count = ServiceLog.objects.filter(
+        status=ServiceLog.Status.SUBMITTED,
+    ).count()
+    approved_log_count = ServiceLog.objects.filter(
+        status=ServiceLog.Status.APPROVED,
+        invoice_line__isnull=True,
+    ).count()
+    draft_invoice_count = Invoice.objects.filter(status=Invoice.Status.DRAFT).count()
+    issued_invoice_count = Invoice.objects.filter(status=Invoice.Status.ISSUED).count()
     operations_summary = {
-        "draft_shift_count": Shift.objects.filter(status=Shift.Status.DRAFT).count(),
-        "submitted_log_count": ServiceLog.objects.filter(
-            status=ServiceLog.Status.SUBMITTED,
-        ).count(),
-        "approved_log_count": ServiceLog.objects.filter(
-            status=ServiceLog.Status.APPROVED,
-            invoice_line__isnull=True,
-        ).count(),
-        "draft_invoice_count": Invoice.objects.filter(status=Invoice.Status.DRAFT).count(),
-        "issued_invoice_count": Invoice.objects.filter(status=Invoice.Status.ISSUED).count(),
+        "draft_shift_label": count_label(draft_shift_count, "draft shift"),
+        "submitted_log_label": count_label(submitted_log_count, "submitted log"),
+        "approved_log_label": count_label(approved_log_count, "approved log"),
+        "draft_invoice_label": count_label(draft_invoice_count, "draft invoice"),
+        "issued_invoice_label": count_label(issued_invoice_count, "issued invoice"),
     }
     return render(
         request,
