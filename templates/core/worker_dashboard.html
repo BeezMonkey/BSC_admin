@@ -10,6 +10,26 @@
       <p>Review upcoming shifts, submit service logs, access shared documents, and keep your profile details current.</p>
     </div>
   </header>
+  <section class="card worker-action-summary">
+    <div>
+      <h2>Shift action summary</h2>
+      <p>Jump straight to the roster items that need your next step.</p>
+    </div>
+    <div class="action-summary-grid">
+      <a class="action-summary-item needs-attention" href="{% url 'worker_shift_list' %}?view=needs_attention">
+        <strong>{{ needs_attention_count }} needs attention</strong>
+        <span>New shifts to confirm</span>
+      </a>
+      <a class="action-summary-item ready-for-log" href="{% url 'worker_shift_list' %}?view=upcoming">
+        <strong>{{ ready_for_log_count }} ready for log</strong>
+        <span>Confirmed shifts to complete</span>
+      </a>
+      <a class="action-summary-item completed" href="{% url 'worker_shift_list' %}?view=completed">
+        <strong>{{ completed_shift_count }} completed</strong>
+        <span>Finished or closed shifts</span>
+      </a>
+    </div>
+  </section>
   <div class="card-grid worker-dashboard-grid">
     <section class="card">
       <h2>My Shifts</h2>

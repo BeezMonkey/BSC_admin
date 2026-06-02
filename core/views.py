@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404, render
 
 from accounts.decorators import admin_required, worker_required
+from scheduling.models import Shift
 
 from .models import AuditLog
 
@@ -12,7 +13,28 @@ def admin_dashboard(request):
 
 @worker_required
 def worker_dashboard(request):
-    return render(request, "core/worker_dashboard.html")
+    worker = getattr(request.user, "supportworker", None)
+    if worker is None:
+        shift_counts = {
+            "needs_attention_count": 0,
+            "ready_for_log_count": 0,
+            "completed_shift_count": 0,
+        }
+    else:
+        worker_shifts = Shift.objects.filter(worker=worker)
+        shift_counts = {
+            "needs_attention_count": worker_shifts.filter(status=Shift.Status.PUBLISHED).count(),
+            "ready_for_log_count": worker_shifts.filter(status=Shift.Status.CONFIRMED).count(),
+            "completed_shift_count": worker_shifts.filter(
+                status__in=[
+                    Shift.Status.COMPLETED,
+                    Shift.Status.CANCELLED,
+                    Shift.Status.NO_SHOW,
+                ]
+            ).count(),
+        }
+
+    return render(request, "core/worker_dashboard.html", shift_counts)
 
 
 @admin_required
