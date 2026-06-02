@@ -295,6 +295,10 @@ def build_simple_pdf(lines):
     return bytes(pdf)
 
 
+def format_money(value):
+    return f"{value:.2f}"
+
+
 @finance_required
 def invoice_pdf(request, invoice_id):
     invoice = get_invoice(invoice_id)
@@ -309,9 +313,10 @@ def invoice_pdf(request, invoice_id):
     for line in invoice.lines.all():
         pdf_lines.append(
             f"{line.support_item_number} {line.description} "
-            f"{line.quantity} x ${line.unit_price} = ${line.line_total}"
+            f"{line.quantity:.2f} x ${format_money(line.unit_price)} = "
+            f"${format_money(line.line_total)}"
         )
-    pdf_lines.append(f"Total: ${invoice.total_amount}")
+    pdf_lines.append(f"Total: ${format_money(invoice.total_amount)}")
     response = HttpResponse(build_simple_pdf(pdf_lines), content_type="application/pdf")
     response["Content-Disposition"] = (
         f'attachment; filename="{invoice.invoice_number}.pdf"'

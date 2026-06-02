@@ -137,6 +137,16 @@ class InvoiceExportTests(TestCase):
         self.assertTrue(response.content.startswith(b"%PDF"))
         self.assertIn(self.invoice.invoice_number.encode("latin-1"), response.content)
 
+    def test_invoice_pdf_formats_amounts_to_two_decimal_places(self):
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_pdf", args=[self.invoice.id]))
+
+        content = response.content.decode("latin-1")
+        self.assertIn("2.00 x $65.47 = $130.94", content)
+        self.assertIn("Total: $130.94", content)
+        self.assertNotIn("130.940000000000", content)
+
     def test_finance_user_can_mark_invoice_issued(self):
         self.login_accountant()
 
