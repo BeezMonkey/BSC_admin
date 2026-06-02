@@ -303,6 +303,35 @@ class ShiftSchedulingTests(TestCase):
             content.index(f"#{completed_shift.id}"),
         )
 
+    def test_worker_shift_list_shows_status_quick_actions(self):
+        published_shift = self.create_shift(
+            service_date=date(2026, 6, 4),
+            status=Shift.Status.PUBLISHED,
+        )
+        confirmed_shift = self.create_shift(
+            service_date=date(2026, 6, 5),
+            status=Shift.Status.CONFIRMED,
+        )
+        completed_shift = self.create_shift(
+            service_date=date(2026, 6, 6),
+            status=Shift.Status.COMPLETED,
+        )
+        self.client.login(username="worker", password="test-password-123")
+
+        response = self.client.get(reverse("worker_shift_list"))
+        content = response.content.decode()
+
+        self.assertContains(response, reverse("worker_shift_confirm", args=[published_shift.id]))
+        self.assertContains(response, "Confirm")
+        self.assertContains(
+            response,
+            reverse("worker_service_log_create", args=[confirmed_shift.id]),
+        )
+        self.assertContains(response, "Complete Log")
+        completed_section = content[content.index(f"#{completed_shift.id}") :]
+        self.assertNotIn("Confirm", completed_section)
+        self.assertNotIn("Complete Log", completed_section)
+
     def test_worker_can_view_and_confirm_own_published_shift(self):
         shift = Shift.objects.create(
             participant=self.participant,
