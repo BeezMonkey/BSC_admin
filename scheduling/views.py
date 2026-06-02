@@ -45,6 +45,10 @@ def build_roster_filter_summary(status, worker_id, date_from, date_to):
 @admin_required
 def roster_list(request):
     shifts = Shift.objects.select_related("participant", "worker", "support_item")
+    workers = SupportWorker.objects.filter(status=SupportWorker.Status.ACTIVE).order_by(
+        "first_name",
+        "last_name",
+    )
     date_from = request.GET.get("date_from", "").strip()
     date_to = request.GET.get("date_to", "").strip()
     participant_id = request.GET.get("participant", "").strip()
@@ -77,6 +81,7 @@ def roster_list(request):
             "date_to": date_to,
             "participant_id": participant_id,
             "worker_id": worker_id,
+            "workers": workers,
             "status": status,
             "status_choices": Shift.Status.choices,
             "filter_summary": filter_summary,

@@ -237,7 +237,29 @@ class ShiftSchedulingTests(TestCase):
         )
 
         self.assertContains(response, "Wendy Worker")
-        self.assertNotContains(response, "Oscar Other")
+        self.assertNotContains(response, "<td>Oscar Other</td>", html=True)
+
+    def test_roster_worker_filter_uses_worker_name_select(self):
+        self.create_shift(status=Shift.Status.PUBLISHED)
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_list"),
+            {"worker": self.worker.id},
+        )
+
+        self.assertContains(response, 'name="worker"')
+        self.assertContains(
+            response,
+            f'<option value="{self.worker.id}" selected>Wendy Worker</option>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            f'<option value="{self.other_worker.id}">Oscar Other</option>',
+            html=True,
+        )
+        self.assertNotContains(response, 'placeholder="Worker ID"')
 
     def test_roster_list_shows_status_filter_summary(self):
         self.create_shift(status=Shift.Status.DRAFT)
