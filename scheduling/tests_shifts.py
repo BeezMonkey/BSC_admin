@@ -239,6 +239,18 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, "Wendy Worker")
         self.assertNotContains(response, "Oscar Other")
 
+    def test_roster_list_shows_status_filter_summary(self):
+        self.create_shift(status=Shift.Status.DRAFT)
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_list"),
+            {"status": Shift.Status.DRAFT},
+        )
+
+        self.assertContains(response, "Showing draft shifts.")
+        self.assertContains(response, reverse("roster_list"))
+
     def test_worker_can_only_see_own_non_draft_shifts(self):
         own_shift = self.create_shift()
         self.create_shift(

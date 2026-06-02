@@ -30,6 +30,13 @@
   <a class="button secondary" href="{% url 'roster_list' %}">Reset</a>
 </form>
 
+{% if filter_summary %}
+<div class="filter-summary">
+  <span>{{ filter_summary }}</span>
+  <a href="{% url 'roster_list' %}">Clear filter</a>
+</div>
+{% endif %}
+
 <section class="card table-card">
   <table>
     <thead>

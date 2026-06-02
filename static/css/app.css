@@ -327,6 +327,30 @@ td.actions a:last-child {
   flex-wrap: wrap;
 }
 
+.filter-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: -0.25rem 0 1rem;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--brand);
+  border-radius: 8px;
+  padding: 0.65rem 0.8rem;
+  color: var(--muted);
+  background: #f8fafc;
+  font-weight: 700;
+}
+
+.filter-summary a {
+  color: var(--brand-dark);
+  white-space: nowrap;
+}
+
+.filter-summary a:hover {
+  text-decoration: underline;
+}
+
 .filter-bar label,
 .field {
   display: grid;
