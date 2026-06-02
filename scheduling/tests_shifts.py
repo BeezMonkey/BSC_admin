@@ -87,6 +87,22 @@ class ShiftSchedulingTests(TestCase):
         data.update(overrides)
         return data
 
+    def create_shift(self, **overrides):
+        data = {
+            "participant": self.participant,
+            "worker": self.worker,
+            "service_date": date(2026, 6, 1),
+            "start_time": time(9, 0),
+            "end_time": time(11, 0),
+            "planned_hours": Decimal("2.00"),
+            "support_item": self.support_item,
+            "service_type": Shift.ServiceType.PERSONAL_CARE,
+            "status": Shift.Status.PUBLISHED,
+            "created_by": self.admin_user,
+        }
+        data.update(overrides)
+        return Shift.objects.create(**data)
+
     def test_admin_can_create_draft_shift_and_planned_hours_are_calculated(self):
         self.login_admin()
 
@@ -224,41 +240,23 @@ class ShiftSchedulingTests(TestCase):
         self.assertNotContains(response, "Oscar Other")
 
     def test_worker_can_only_see_own_non_draft_shifts(self):
-        own_shift = Shift.objects.create(
-            participant=self.participant,
-            worker=self.worker,
-            service_date=date(2026, 6, 1),
-            start_time=time(9, 0),
-            end_time=time(11, 0),
-            planned_hours=Decimal("2.00"),
-            support_item=self.support_item,
-            service_type=Shift.ServiceType.PERSONAL_CARE,
-            status=Shift.Status.PUBLISHED,
-            created_by=self.admin_user,
-        )
-        Shift.objects.create(
-            participant=self.participant,
-            worker=self.worker,
+        own_shift = self.create_shift()
+        self.create_shift(
             service_date=date(2026, 6, 2),
             start_time=time(9, 0),
             end_time=time(10, 0),
             planned_hours=Decimal("1.00"),
-            support_item=self.support_item,
             service_type=Shift.ServiceType.OTHER,
             status=Shift.Status.DRAFT,
-            created_by=self.admin_user,
         )
-        Shift.objects.create(
-            participant=self.participant,
+        self.create_shift(
             worker=self.other_worker,
             service_date=date(2026, 6, 1),
             start_time=time(12, 0),
             end_time=time(13, 0),
             planned_hours=Decimal("1.00"),
-            support_item=self.support_item,
             service_type=Shift.ServiceType.OTHER,
             status=Shift.Status.PUBLISHED,
-            created_by=self.admin_user,
         )
 
         self.client.login(username="worker", password="test-password-123")
@@ -268,6 +266,42 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, str(own_shift.id))
         self.assertNotContains(response, "Draft")
         self.assertNotContains(response, "Oscar Other")
+
+    def test_worker_shift_list_groups_and_highlights_shift_statuses(self):
+        completed_shift = self.create_shift(
+            service_date=date(2026, 5, 21),
+            status=Shift.Status.COMPLETED,
+        )
+        published_shift = self.create_shift(
+            service_date=date(2026, 6, 4),
+            status=Shift.Status.PUBLISHED,
+        )
+        confirmed_shift = self.create_shift(
+            service_date=date(2026, 6, 5),
+            status=Shift.Status.CONFIRMED,
+        )
+        self.client.login(username="worker", password="test-password-123")
+
+        response = self.client.get(reverse("worker_shift_list"))
+        content = response.content.decode()
+
+        self.assertContains(response, "1 needs attention")
+        self.assertContains(response, "1 upcoming")
+        self.assertContains(response, "1 completed")
+        self.assertContains(response, "Needs attention")
+        self.assertContains(response, "Upcoming")
+        self.assertContains(response, "Completed")
+        self.assertContains(response, "status-pill status-published")
+        self.assertContains(response, "status-pill status-confirmed")
+        self.assertContains(response, "status-pill status-completed")
+        self.assertLess(
+            content.index(f"#{published_shift.id}"),
+            content.index(f"#{completed_shift.id}"),
+        )
+        self.assertLess(
+            content.index(f"#{confirmed_shift.id}"),
+            content.index(f"#{completed_shift.id}"),
+        )
 
     def test_worker_can_view_and_confirm_own_published_shift(self):
         shift = Shift.objects.create(

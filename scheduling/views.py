@@ -53,16 +53,34 @@ def roster_list(request):
 def worker_shift_list(request):
     worker = getattr(request.user, "supportworker", None)
     shifts = Shift.objects.none()
+    shift_groups = {
+        "needs_attention": [],
+        "upcoming": [],
+        "completed": [],
+    }
     if worker:
         shifts = Shift.objects.filter(
             worker=worker,
             status__in=Shift.WORKER_VISIBLE_STATUSES,
         ).select_related("participant", "support_item")
+        for shift in shifts:
+            if shift.status == Shift.Status.PUBLISHED:
+                shift_groups["needs_attention"].append(shift)
+            elif shift.status == Shift.Status.CONFIRMED:
+                shift_groups["upcoming"].append(shift)
+            else:
+                shift_groups["completed"].append(shift)
 
     return render(
         request,
         "scheduling/worker_shift_list.html",
-        {"shifts": shifts},
+        {
+            "shifts": shifts,
+            "shift_groups": shift_groups,
+            "needs_attention_count": len(shift_groups["needs_attention"]),
+            "upcoming_count": len(shift_groups["upcoming"]),
+            "completed_count": len(shift_groups["completed"]),
+        },
     )
 
 

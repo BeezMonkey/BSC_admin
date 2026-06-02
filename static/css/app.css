@@ -547,6 +547,74 @@ tbody tr:last-child td {
   padding: 0.9rem 0;
 }
 
+.shift-summary {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin: 0.7rem 0 1.1rem;
+}
+
+.shift-summary span {
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  color: var(--brand-dark);
+  background: #e7f5f3;
+  font-weight: 700;
+}
+
+.shift-section-title {
+  margin: 1.3rem 0 0.35rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  text-transform: uppercase;
+}
+
+.shift-list-item {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  border-left: 4px solid var(--line);
+  padding-left: 0.85rem;
+}
+
+.shift-list-main {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.shift-list-item-attention {
+  border-left-color: var(--accent);
+  background: #fffbeb;
+}
+
+.shift-list-item-upcoming {
+  border-left-color: var(--brand);
+}
+
+.shift-list-item-past {
+  color: var(--muted);
+}
+
+.status-pill.status-published {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.status-pill.status-confirmed {
+  color: var(--brand-dark);
+  background: #d1fae5;
+}
+
+.status-pill.status-completed {
+  color: #475467;
+  background: #eef2f6;
+}
+
+.status-pill.status-cancelled,
+.status-pill.status-no_show {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
 .list-item-actions {
   display: flex;
   gap: 0.45rem;

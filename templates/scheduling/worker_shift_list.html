@@ -5,19 +5,39 @@
 {% block content %}
 <section class="worker-card">
   <h1>My Shifts</h1>
-  {% for shift in shifts %}
-    <div class="list-item">
-      <strong>#{{ shift.id }} {{ shift.service_date }} {{ shift.start_time }} - {{ shift.end_time }}</strong>
-      <span>{{ shift.participant.display_name }} | {{ shift.get_status_display }}</span>
-      <div class="list-item-actions">
-        <a href="{% url 'worker_shift_detail' shift.id %}">View</a>
-      </div>
-    </div>
-  {% empty %}
+
+  <div class="shift-summary">
+    <span>{{ needs_attention_count }} needs attention</span>
+    <span>{{ upcoming_count }} upcoming</span>
+    <span>{{ completed_count }} completed</span>
+  </div>
+
+  {% if shifts %}
+    {% if shift_groups.needs_attention %}
+      <h2 class="shift-section-title">Needs attention</h2>
+      {% for shift in shift_groups.needs_attention %}
+        {% include "scheduling/worker_shift_list_item.html" with shift=shift tone="attention" %}
+      {% endfor %}
+    {% endif %}
+
+    {% if shift_groups.upcoming %}
+      <h2 class="shift-section-title">Upcoming</h2>
+      {% for shift in shift_groups.upcoming %}
+        {% include "scheduling/worker_shift_list_item.html" with shift=shift tone="upcoming" %}
+      {% endfor %}
+    {% endif %}
+
+    {% if shift_groups.completed %}
+      <h2 class="shift-section-title">Completed</h2>
+      {% for shift in shift_groups.completed %}
+        {% include "scheduling/worker_shift_list_item.html" with shift=shift tone="past" %}
+      {% endfor %}
+    {% endif %}
+  {% else %}
     <div class="empty-state">
       <strong>No shifts found.</strong>
       <p>Your assigned shifts will appear here after the office publishes them.</p>
     </div>
-  {% endfor %}
+  {% endif %}
 </section>
 {% endblock %}
