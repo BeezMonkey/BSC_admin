@@ -234,6 +234,28 @@ class ParticipantManagementTests(TestCase):
         self.assertContains(response, "Roster")
         self.assertContains(response, "Service Logs")
 
+    def test_participant_detail_back_link_preserves_list_state(self):
+        participant = Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            ndis_number="111111111",
+            status=Participant.Status.ACTIVE,
+        )
+        list_path = f"{reverse('participant_list')}?q=Ava&status=active&sort=name&direction=asc&page=2"
+        self.login_admin()
+
+        list_response = self.client.get(list_path)
+        detail_response = self.client.get(
+            reverse("participant_detail", args=[participant.id]),
+            {"next": list_path},
+        )
+
+        self.assertContains(
+            list_response,
+            f"{reverse('participant_detail', args=[participant.id])}?next=",
+        )
+        self.assertContains(detail_response, f'href="{list_path.replace("&", "&amp;")}"')
+
     def test_participant_detail_shows_readiness_and_next_steps(self):
         participant = Participant.objects.create(
             first_name="Ava",

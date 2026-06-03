@@ -9,7 +9,7 @@
     <p>{{ worker.get_status_display }} | {{ worker.get_employment_type_display }}</p>
   </div>
   <div class="button-row">
-    <a class="button secondary" href="{% url 'worker_list' %}">Back to Support Workers</a>
+    <a class="button secondary" href="{{ return_url }}">Back to Support Workers</a>
     <a class="button" href="{% url 'worker_edit' worker.id %}">Edit</a>
   </div>
 </div>
