@@ -28,10 +28,13 @@ def build_roster_filter_summary(status, participant_query, worker_query, date_fr
         return ""
 
     summary = f"Showing {status_label.lower()} shifts" if status_label else "Showing shifts"
+    match_parts = []
     if participant_query:
-        summary += f" for participant {participant_query}"
+        match_parts.append(f'participant "{participant_query}"')
     if worker_query:
-        summary += f" for worker {worker_query}"
+        match_parts.append(f'worker "{worker_query}"')
+    if match_parts:
+        summary += f" matching {' and '.join(match_parts)}"
     if date_from and date_to:
         summary += f" from {format_filter_date(date_from)} to {format_filter_date(date_to)}"
     elif date_from:
