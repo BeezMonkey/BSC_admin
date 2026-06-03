@@ -5,15 +5,15 @@
   <aside class="sidebar">
     <div class="brand">Brisbane Star Care</div>
     <nav class="sidebar-nav" aria-label="Admin navigation">
-      <a href="{% url 'admin_dashboard' %}">Dashboard</a>
-      <a href="{% url 'participant_list' %}">Participants</a>
-      <a href="{% url 'worker_list' %}">Support Workers</a>
-      <a href="{% url 'roster_list' %}">Roster</a>
-      <a href="{% url 'service_log_list' %}">Service Logs</a>
-      <a href="{% url 'invoice_placeholder' %}">Invoices</a>
-      <a href="{% url 'document_list' %}">Documents</a>
-      <a href="{% url 'support_item_list' %}">Support Items</a>
-      <a href="{% url 'audit_log_list' %}">Audit Logs</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'admin_dashboard' %} active{% endif %}" href="{% url 'admin_dashboard' %}">Dashboard</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'participant_list' or request.resolver_match.url_name == 'participant_create' or request.resolver_match.url_name == 'participant_detail' or request.resolver_match.url_name == 'participant_edit' or request.resolver_match.url_name == 'participant_assign_worker' %} active{% endif %}" href="{% url 'participant_list' %}">Participants</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'worker_list' or request.resolver_match.url_name == 'worker_create' or request.resolver_match.url_name == 'worker_detail' or request.resolver_match.url_name == 'worker_edit' %} active{% endif %}" href="{% url 'worker_list' %}">Support Workers</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'roster_list' or request.resolver_match.url_name == 'shift_create' or request.resolver_match.url_name == 'recurring_shift_create' or request.resolver_match.url_name == 'shift_detail' or request.resolver_match.url_name == 'shift_edit' %} active{% endif %}" href="{% url 'roster_list' %}">Roster</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'service_log_list' or request.resolver_match.url_name == 'service_log_detail' %} active{% endif %}" href="{% url 'service_log_list' %}">Service Logs</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'invoice_placeholder' or request.resolver_match.url_name == 'invoice_create' or request.resolver_match.url_name == 'invoice_detail' %} active{% endif %}" href="{% url 'invoice_placeholder' %}">Invoices</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'document_list' or request.resolver_match.url_name == 'document_upload' or request.resolver_match.url_name == 'document_detail' %} active{% endif %}" href="{% url 'document_list' %}">Documents</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'support_item_list' or request.resolver_match.url_name == 'support_item_create' or request.resolver_match.url_name == 'support_item_detail' or request.resolver_match.url_name == 'support_item_edit' %} active{% endif %}" href="{% url 'support_item_list' %}">Support Items</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'audit_log_list' or request.resolver_match.url_name == 'audit_log_detail' %} active{% endif %}" href="{% url 'audit_log_list' %}">Audit Logs</a>
     </nav>
   </aside>
   <section class="content">

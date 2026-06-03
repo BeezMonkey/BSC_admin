@@ -31,6 +31,18 @@ class DashboardPolishTests(TestCase):
         self.assertContains(response, "Audit Logs")
         self.assertNotContains(response, "will be added")
 
+    def test_admin_dashboard_marks_sidebar_link_active(self):
+        user = User.objects.create_user(username="admin", password="pass")
+        UserProfile.objects.create(user=user, role=UserProfile.Role.ADMIN)
+
+        self.client.login(username="admin", password="pass")
+        response = self.client.get(reverse("admin_dashboard"))
+
+        self.assertContains(
+            response,
+            f'class="sidebar-link active" href="{reverse("admin_dashboard")}"',
+        )
+
     def test_admin_dashboard_shows_operations_summary(self):
         admin_user = User.objects.create_user(username="admin", password="pass")
         UserProfile.objects.create(user=admin_user, role=UserProfile.Role.ADMIN)
