@@ -7,12 +7,14 @@ from django.db.models import DecimalField, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
 
 from accounts.decorators import finance_required
 from core.audit import write_audit_log
 from core.models import AuditLog
+from core.navigation import get_safe_return_url
 from core.pagination import paginate_queryset
 from core.sorting import apply_sorting
 from service_logs.models import ServiceLog
@@ -111,6 +113,7 @@ def invoice_list(request):
             "has_filters": has_filters,
             "status_choices": Invoice.Status.choices,
             "filter_summary": filter_summary,
+            "current_list_url": request.get_full_path(),
         },
     )
 
@@ -252,7 +255,14 @@ def invoice_detail(request, invoice_id):
         ),
         id=invoice_id,
     )
-    return render(request, "invoices/invoice_detail.html", {"invoice": invoice})
+    return render(
+        request,
+        "invoices/invoice_detail.html",
+        {
+            "invoice": invoice,
+            "return_url": get_safe_return_url(request, reverse("invoice_placeholder")),
+        },
+    )
 
 
 def get_invoice(invoice_id):

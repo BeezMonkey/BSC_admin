@@ -336,3 +336,21 @@ class ServiceLogReviewTests(TestCase):
         self.assertContains(response, "Actions")
         self.assertContains(response, reverse("service_log_detail", args=[self.service_log.id]))
         self.assertContains(response, "View")
+
+    def test_service_log_detail_back_link_preserves_list_state(self):
+        self.service_log.status = ServiceLog.Status.APPROVED
+        self.service_log.save(update_fields=["status", "updated_at"])
+        list_path = f"{reverse('service_log_list')}?status=approved&sort=date&direction=desc&page=2"
+        self.login_admin()
+
+        list_response = self.client.get(list_path)
+        detail_response = self.client.get(
+            reverse("service_log_detail", args=[self.service_log.id]),
+            {"next": list_path},
+        )
+
+        self.assertContains(
+            list_response,
+            f"{reverse('service_log_detail', args=[self.service_log.id])}?next=",
+        )
+        self.assertContains(detail_response, f'href="{list_path.replace("&", "&amp;")}"')

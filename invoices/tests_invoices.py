@@ -219,6 +219,29 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, reverse("invoice_detail", args=[invoice.id]))
         self.assertContains(response, "View")
 
+    def test_invoice_detail_back_link_preserves_list_state(self):
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            status=Invoice.Status.DRAFT,
+            created_by=self.accountant_user,
+        )
+        list_path = (
+            f"{reverse('invoice_placeholder')}?participant=Ava&status=draft"
+            "&sort=total&direction=desc&page=2"
+        )
+        self.login_accountant()
+
+        list_response = self.client.get(list_path)
+        detail_response = self.client.get(reverse("invoice_detail", args=[invoice.id]), {"next": list_path})
+
+        self.assertContains(
+            list_response,
+            f"{reverse('invoice_detail', args=[invoice.id])}?next=",
+        )
+        self.assertContains(detail_response, f'href="{list_path.replace("&", "&amp;")}"')
+
     def test_approved_service_log_list_has_invoice_shortcut(self):
         approved_log = self.create_service_log(service_date=date(2026, 6, 2))
         submitted_log = self.create_service_log(

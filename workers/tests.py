@@ -271,6 +271,35 @@ class SupportWorkerManagementTests(TestCase):
         self.assertContains(response, "Police check")
         self.assertContains(response, "Current")
 
+    def test_worker_detail_back_link_preserves_list_state(self):
+        user = get_user_model().objects.create_user(
+            username="maya",
+            email="maya@example.com",
+            password="test-password-123",
+        )
+        worker = SupportWorker.objects.create(
+            user=user,
+            first_name="Maya",
+            last_name="Singh",
+            email="maya@example.com",
+            employment_type=SupportWorker.EmploymentType.EMPLOYEE,
+            status=SupportWorker.Status.ACTIVE,
+        )
+        list_path = (
+            f"{reverse('worker_list')}?q=Maya&status=active&employment_type=employee"
+            "&sort=name&direction=asc&page=2"
+        )
+        self.login_admin()
+
+        list_response = self.client.get(list_path)
+        detail_response = self.client.get(reverse("worker_detail", args=[worker.id]), {"next": list_path})
+
+        self.assertContains(
+            list_response,
+            f"{reverse('worker_detail', args=[worker.id])}?next=",
+        )
+        self.assertContains(detail_response, f'href="{list_path.replace("&", "&amp;")}"')
+
     def test_worker_detail_shows_readiness_and_next_steps(self):
         user = get_user_model().objects.create_user(
             username="maya",

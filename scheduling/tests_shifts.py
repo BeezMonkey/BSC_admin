@@ -137,6 +137,23 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, "Publish")
         self.assertContains(response, "Edit Shift")
 
+    def test_shift_detail_back_link_preserves_roster_state(self):
+        shift = self.create_shift(status=Shift.Status.PUBLISHED)
+        list_path = (
+            f"{reverse('roster_list')}?worker=Wendy&status=published"
+            "&sort=date&direction=asc&page=2"
+        )
+        self.login_admin()
+
+        list_response = self.client.get(list_path)
+        detail_response = self.client.get(reverse("shift_detail", args=[shift.id]), {"next": list_path})
+
+        self.assertContains(
+            list_response,
+            f"{reverse('shift_detail', args=[shift.id])}?next=",
+        )
+        self.assertContains(detail_response, f'href="{list_path.replace("&", "&amp;")}"')
+
     def test_shift_create_prefills_participant_and_worker_from_shortcut(self):
         self.login_admin()
 

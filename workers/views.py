@@ -1,8 +1,10 @@
 from django.contrib import messages
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from accounts.decorators import admin_required, worker_required
+from core.navigation import get_safe_return_url
 from core.pagination import paginate_queryset
 from core.sorting import apply_sorting
 
@@ -53,6 +55,7 @@ def worker_list(request):
             "has_filters": has_filters,
             "status_choices": SupportWorker.Status.choices,
             "employment_type_choices": SupportWorker.EmploymentType.choices,
+            "current_list_url": request.get_full_path(),
         },
     )
 
@@ -117,6 +120,7 @@ def worker_detail(request, worker_id):
             "worker": worker,
             "readiness_items": readiness_items,
             "active_assignments": active_assignments,
+            "return_url": get_safe_return_url(request, reverse("worker_list")),
         },
     )
 

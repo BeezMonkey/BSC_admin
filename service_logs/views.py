@@ -1,12 +1,14 @@
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from accounts.decorators import admin_required, worker_required
 from core.audit import write_audit_log
 from core.models import AuditLog
+from core.navigation import get_safe_return_url
 from core.pagination import paginate_queryset
 from core.sorting import apply_sorting
 from scheduling.models import Shift
@@ -51,6 +53,7 @@ def service_log_list(request):
             "has_filters": has_filters,
             "status_choices": ServiceLog.Status.choices,
             "filter_summary": filter_summary,
+            "current_list_url": request.get_full_path(),
         },
     )
 
@@ -69,7 +72,10 @@ def service_log_detail(request, service_log_id):
     return render(
         request,
         "service_logs/service_log_detail.html",
-        {"service_log": service_log},
+        {
+            "service_log": service_log,
+            "return_url": get_safe_return_url(request, reverse("service_log_list")),
+        },
     )
 
 
