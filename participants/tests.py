@@ -314,6 +314,39 @@ class ParticipantManagementTests(TestCase):
         self.assertEqual(participant.first_name, "Avery")
         self.assertEqual(participant.email, "avery@example.com")
 
+    def test_participant_edit_preserves_list_return_state(self):
+        participant = Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            ndis_number="111111111",
+            status=Participant.Status.ACTIVE,
+        )
+        list_path = f"{reverse('participant_list')}?q=Ava&status=active&sort=name&direction=asc&page=2"
+        self.login_admin()
+
+        list_response = self.client.get(list_path)
+        edit_response = self.client.get(
+            reverse("participant_edit", args=[participant.id]),
+            {"next": list_path},
+        )
+        post_response = self.client.post(
+            reverse("participant_edit", args=[participant.id]),
+            self.participant_payload(
+                first_name="Avery",
+                ndis_number="111111111",
+                email="avery@example.com",
+                next=list_path,
+            ),
+        )
+
+        self.assertContains(
+            list_response,
+            f"{reverse('participant_edit', args=[participant.id])}?next=",
+        )
+        self.assertContains(edit_response, f'href="{list_path.replace("&", "&amp;")}"')
+        self.assertContains(edit_response, f'name="next" value="{list_path.replace("&", "&amp;")}"')
+        self.assertRedirects(post_response, list_path)
+
     def test_admin_can_archive_participant_without_deleting_it(self):
         participant = Participant.objects.create(
             first_name="Ava",

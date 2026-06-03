@@ -8,11 +8,14 @@
     <h1>{{ title }}</h1>
     <p>Create and maintain worker account, contact, employment, and compliance information.</p>
   </div>
-  <a class="button secondary" href="{% if worker %}{% url 'worker_detail' worker.id %}{% else %}{% url 'worker_list' %}{% endif %}">Cancel</a>
+  <a class="button secondary" href="{% if return_url %}{{ return_url }}{% elif worker %}{% url 'worker_detail' worker.id %}{% else %}{% url 'worker_list' %}{% endif %}">Cancel</a>
 </div>
 
 <form class="record-form" method="post" novalidate>
   {% csrf_token %}
+  {% if return_url %}
+    <input type="hidden" name="next" value="{{ return_url }}">
+  {% endif %}
   {% if form.non_field_errors %}
     <div class="error">{{ form.non_field_errors }}</div>
   {% endif %}
@@ -77,7 +80,7 @@
 
   <div class="form-actions">
     <button type="submit">Save</button>
-    <a class="button secondary" href="{% if worker %}{% url 'worker_detail' worker.id %}{% else %}{% url 'worker_list' %}{% endif %}">Cancel</a>
+    <a class="button secondary" href="{% if return_url %}{{ return_url }}{% elif worker %}{% url 'worker_detail' worker.id %}{% else %}{% url 'worker_list' %}{% endif %}">Cancel</a>
   </div>
 </form>
 {% endblock %}

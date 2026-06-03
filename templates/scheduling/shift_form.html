@@ -8,11 +8,14 @@
     <h1>{{ title }}</h1>
     <p>Create or update a scheduled service.</p>
   </div>
-  <a class="button secondary" href="{% if shift %}{% url 'shift_detail' shift.id %}{% else %}{% url 'roster_list' %}{% endif %}">Cancel</a>
+  <a class="button secondary" href="{% if return_url %}{{ return_url }}{% elif shift %}{% url 'shift_detail' shift.id %}{% else %}{% url 'roster_list' %}{% endif %}">Cancel</a>
 </div>
 
 <form class="record-form" method="post" novalidate>
   {% csrf_token %}
+  {% if return_url %}
+    <input type="hidden" name="next" value="{{ return_url }}">
+  {% endif %}
   <section class="card form-section">
     <h2>Participant and Worker</h2>
     <div class="form-grid">
@@ -46,7 +49,7 @@
 
   <div class="form-actions">
     <button type="submit">Save</button>
-    <a class="button secondary" href="{% if shift %}{% url 'shift_detail' shift.id %}{% else %}{% url 'roster_list' %}{% endif %}">Cancel</a>
+    <a class="button secondary" href="{% if return_url %}{{ return_url }}{% elif shift %}{% url 'shift_detail' shift.id %}{% else %}{% url 'roster_list' %}{% endif %}">Cancel</a>
   </div>
 </form>
 {% endblock %}
