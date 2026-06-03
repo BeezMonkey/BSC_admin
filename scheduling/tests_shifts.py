@@ -114,6 +114,25 @@ class ShiftSchedulingTests(TestCase):
         self.assertEqual(shift.planned_hours, Decimal("2.00"))
         self.assertEqual(shift.created_by, self.admin_user)
 
+    def test_shift_create_preserves_roster_return_state(self):
+        list_path = (
+            f"{reverse('roster_list')}?worker=Wendy&status=published"
+            "&sort=date&direction=asc&page=2"
+        )
+        self.login_admin()
+
+        list_response = self.client.get(list_path)
+        create_response = self.client.get(reverse("shift_create"), {"next": list_path})
+        post_response = self.client.post(
+            reverse("shift_create"),
+            self.shift_payload(status=Shift.Status.PUBLISHED, next=list_path),
+        )
+
+        self.assertContains(list_response, f"{reverse('shift_create')}?next=")
+        self.assertContains(create_response, f'href="{list_path.replace("&", "&amp;")}"')
+        self.assertContains(create_response, f'name="next" value="{list_path.replace("&", "&amp;")}"')
+        self.assertRedirects(post_response, list_path)
+
     def test_shift_detail_shows_workflow_status_panel(self):
         shift = Shift.objects.create(
             participant=self.participant,

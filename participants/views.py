@@ -57,11 +57,14 @@ def participant_list(request):
 
 @admin_required
 def participant_create(request):
+    return_url = get_safe_return_url(request, "")
     if request.method == "POST":
         form = ParticipantForm(request.POST)
         if form.is_valid():
             participant = form.save()
             messages.success(request, "Participant created.")
+            if return_url:
+                return redirect(return_url)
             return redirect(participant)
     else:
         form = ParticipantForm()
@@ -69,7 +72,7 @@ def participant_create(request):
     return render(
         request,
         "participants/participant_form.html",
-        {"form": form, "title": "Add Participant"},
+        {"form": form, "title": "Add Participant", "return_url": return_url},
     )
 
 

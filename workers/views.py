@@ -62,11 +62,14 @@ def worker_list(request):
 
 @admin_required
 def worker_create(request):
+    return_url = get_safe_return_url(request, "")
     if request.method == "POST":
         form = SupportWorkerCreateForm(request.POST)
         if form.is_valid():
             worker = form.save()
             messages.success(request, "Support worker created.")
+            if return_url:
+                return redirect(return_url)
             return redirect(worker)
     else:
         form = SupportWorkerCreateForm()
@@ -74,7 +77,7 @@ def worker_create(request):
     return render(
         request,
         "workers/worker_form.html",
-        {"form": form, "title": "Add Support Worker"},
+        {"form": form, "title": "Add Support Worker", "return_url": return_url},
     )
 
 

@@ -164,11 +164,14 @@ def worker_shift_list(request):
 
 @admin_required
 def shift_create(request):
+    return_url = get_safe_return_url(request, "")
     if request.method == "POST":
         form = ShiftForm(request.POST, created_by=request.user)
         if form.is_valid():
             shift = form.save()
             messages.success(request, "Shift created.")
+            if return_url:
+                return redirect(return_url)
             return redirect(shift)
     else:
         initial = {
@@ -181,7 +184,7 @@ def shift_create(request):
     return render(
         request,
         "scheduling/shift_form.html",
-        {"form": form, "title": "New Shift"},
+        {"form": form, "title": "New Shift", "return_url": return_url},
     )
 
 
