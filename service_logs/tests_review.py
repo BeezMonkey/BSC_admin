@@ -212,6 +212,71 @@ class ServiceLogReviewTests(TestCase):
         self.assertContains(response, "Showing approved service logs.")
         self.assertContains(response, reverse("service_log_list"))
 
+    def test_service_log_list_is_paginated_and_preserves_filters(self):
+        self.service_log.status = ServiceLog.Status.APPROVED
+        self.service_log.save(update_fields=["status", "updated_at"])
+        for index in range(2, 26):
+            shift = Shift.objects.create(
+                participant=self.participant,
+                worker=self.worker,
+                service_date=date(2026, 6, index),
+                start_time=time(9, 0),
+                end_time=time(10, 0),
+                break_minutes=0,
+                planned_hours=Decimal("1.00"),
+                support_item=self.support_item,
+                service_type=Shift.ServiceType.PERSONAL_CARE,
+                status=Shift.Status.COMPLETED,
+                created_by=self.admin_user,
+            )
+            service_log = ServiceLog.objects.create_from_shift(
+                shift=shift,
+                actual_start_time=time(9, 0),
+                actual_end_time=time(10, 0),
+                break_minutes=0,
+                actual_hours=Decimal("1.00"),
+                kilometres=Decimal("0.0"),
+                case_notes=f"Approved log {index}",
+                worker_notes="",
+            )
+            service_log.status = ServiceLog.Status.APPROVED
+            service_log.save(update_fields=["status", "updated_at"])
+        submitted_shift = Shift.objects.create(
+            participant=self.participant,
+            worker=self.worker,
+            service_date=date(2026, 6, 26),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            break_minutes=0,
+            planned_hours=Decimal("1.00"),
+            support_item=self.support_item,
+            service_type=Shift.ServiceType.PERSONAL_CARE,
+            status=Shift.Status.COMPLETED,
+            created_by=self.admin_user,
+        )
+        ServiceLog.objects.create_from_shift(
+            shift=submitted_shift,
+            actual_start_time=time(9, 0),
+            actual_end_time=time(10, 0),
+            break_minutes=0,
+            actual_hours=Decimal("1.00"),
+            kilometres=Decimal("0.0"),
+            case_notes="Submitted log outside filter.",
+            worker_notes="",
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("service_log_list"),
+            {"status": ServiceLog.Status.APPROVED},
+        )
+
+        self.assertEqual(response.context["service_logs"].paginator.count, 25)
+        self.assertEqual(len(response.context["service_logs"]), 20)
+        self.assertContains(response, "Showing 1-20 of 25 records")
+        self.assertContains(response, "?status=approved&amp;page=2")
+        self.assertNotContains(response, "Submitted log outside filter.")
+
     def test_admin_service_log_list_has_explicit_view_action(self):
         self.login_admin()
 

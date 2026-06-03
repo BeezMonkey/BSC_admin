@@ -7,6 +7,7 @@ from django.views.decorators.http import require_POST
 from accounts.decorators import admin_required, worker_required
 from core.audit import write_audit_log
 from core.models import AuditLog
+from core.pagination import paginate_queryset
 from scheduling.models import Shift
 
 from .forms import ServiceLogForm
@@ -26,11 +27,13 @@ def service_log_list(request):
         service_logs = service_logs.filter(status=status)
     status_label = dict(ServiceLog.Status.choices).get(status)
     filter_summary = f"Showing {status_label.lower()} service logs." if status_label else ""
+    service_logs, pagination = paginate_queryset(request, service_logs)
     return render(
         request,
         "service_logs/service_log_list.html",
         {
             "service_logs": service_logs,
+            "pagination": pagination,
             "status": status,
             "status_choices": ServiceLog.Status.choices,
             "filter_summary": filter_summary,

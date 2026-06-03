@@ -366,6 +366,44 @@ class InvoiceGenerationTests(TestCase):
             ),
         )
 
+    def test_invoice_list_is_paginated_and_preserves_filters(self):
+        for index in range(25):
+            Invoice.objects.create(
+                participant=self.participant,
+                period_start=date(2026, 6, 1),
+                period_end=date(2026, 6, 30),
+                status=Invoice.Status.DRAFT,
+                created_by=self.accountant_user,
+            )
+        Invoice.objects.create(
+            participant=self.other_participant,
+            period_start=date(2026, 7, 1),
+            period_end=date(2026, 7, 31),
+            status=Invoice.Status.ISSUED,
+            created_by=self.accountant_user,
+        )
+        self.login_accountant()
+
+        response = self.client.get(
+            reverse("invoice_placeholder"),
+            {
+                "q": "INV-",
+                "participant": "Ava",
+                "status": Invoice.Status.DRAFT,
+                "period_from": "2026-06-01",
+                "period_to": "2026-06-30",
+            },
+        )
+
+        self.assertEqual(response.context["invoices"].paginator.count, 25)
+        self.assertEqual(len(response.context["invoices"]), 20)
+        self.assertContains(response, "Showing 1-20 of 25 records")
+        self.assertContains(
+            response,
+            "?q=INV-&amp;participant=Ava&amp;status=draft&amp;period_from=2026-06-01&amp;period_to=2026-06-30&amp;page=2",
+        )
+        self.assertNotContains(response, "Ben Taylor")
+
     def test_invoice_create_previews_only_selected_service_logs(self):
         selected_log = self.create_service_log(
             service_date=date(2026, 6, 1),

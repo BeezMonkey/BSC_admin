@@ -11,6 +11,7 @@ from django.views.decorators.http import require_POST
 from accounts.decorators import finance_required
 from core.audit import write_audit_log
 from core.models import AuditLog
+from core.pagination import paginate_queryset
 from service_logs.models import ServiceLog
 
 from .forms import InvoiceCreateForm
@@ -72,12 +73,14 @@ def invoice_list(request):
         period_from,
         period_to,
     )
+    invoices, pagination = paginate_queryset(request, invoices)
 
     return render(
         request,
         "invoices/invoice_list.html",
         {
             "invoices": invoices,
+            "pagination": pagination,
             "q": q,
             "participant_query": participant_query,
             "status": status,
