@@ -398,6 +398,44 @@ class ShiftSchedulingTests(TestCase):
             'Showing published shifts matching worker &quot;Wendy&quot; from June 1, 2026 to June 30, 2026.',
         )
 
+    def test_roster_list_is_paginated_and_preserves_filters(self):
+        for index in range(25):
+            self.create_shift(
+                service_date=date(2026, 6, index + 1),
+                start_time=time(9, 0),
+                end_time=time(10, 0),
+                planned_hours=Decimal("1.00"),
+                status=Shift.Status.PUBLISHED,
+            )
+        self.create_shift(
+            worker=self.other_worker,
+            service_date=date(2026, 6, 26),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            planned_hours=Decimal("1.00"),
+            status=Shift.Status.DRAFT,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_list"),
+            {
+                "worker": "Wendy",
+                "status": Shift.Status.PUBLISHED,
+                "date_from": "2026-06-01",
+                "date_to": "2026-06-30",
+            },
+        )
+
+        self.assertEqual(response.context["shifts"].paginator.count, 25)
+        self.assertEqual(len(response.context["shifts"]), 20)
+        self.assertContains(response, "Showing 1-20 of 25 records")
+        self.assertContains(
+            response,
+            "?worker=Wendy&amp;status=published&amp;date_from=2026-06-01&amp;date_to=2026-06-30&amp;page=2",
+        )
+        self.assertNotContains(response, "<td>Oscar Other</td>", html=True)
+
     def test_worker_can_only_see_own_non_draft_shifts(self):
         own_shift = self.create_shift()
         self.create_shift(

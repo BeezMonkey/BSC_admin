@@ -10,6 +10,7 @@ from django.views.decorators.http import require_POST
 from accounts.decorators import admin_required, worker_required
 from core.audit import write_audit_log
 from core.models import AuditLog
+from core.pagination import paginate_queryset
 
 from .forms import RecurringShiftForm, ShiftForm, SupportItemForm
 from .models import Shift, SupportItem
@@ -80,12 +81,14 @@ def roster_list(request):
         date_from,
         date_to,
     )
+    shifts, pagination = paginate_queryset(request, shifts)
 
     return render(
         request,
         "scheduling/roster_list.html",
         {
             "shifts": shifts,
+            "pagination": pagination,
             "date_from": date_from,
             "date_to": date_to,
             "participant_query": participant_query,

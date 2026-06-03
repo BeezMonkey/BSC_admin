@@ -149,6 +149,33 @@ class ParticipantManagementTests(TestCase):
         self.assertContains(response, "Ava Nguyen")
         self.assertNotContains(response, "Ben Taylor")
 
+    def test_participant_list_is_paginated_and_preserves_filters(self):
+        for index in range(25):
+            Participant.objects.create(
+                first_name=f"Active{index:02d}",
+                last_name="Participant",
+                ndis_number=f"5000000{index:02d}",
+                status=Participant.Status.ACTIVE,
+            )
+        Participant.objects.create(
+            first_name="Archived",
+            last_name="Participant",
+            ndis_number="599999999",
+            status=Participant.Status.ARCHIVED,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("participant_list"),
+            {"q": "Active", "status": Participant.Status.ACTIVE},
+        )
+
+        self.assertEqual(response.context["participants"].paginator.count, 25)
+        self.assertEqual(len(response.context["participants"]), 20)
+        self.assertContains(response, "Showing 1-20 of 25 records")
+        self.assertContains(response, "?q=Active&amp;status=active&amp;page=2")
+        self.assertNotContains(response, "Archived Participant")
+
     def test_admin_can_view_participant_detail(self):
         participant = Participant.objects.create(
             first_name="Ava",
