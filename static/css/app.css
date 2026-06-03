@@ -371,9 +371,12 @@ textarea {
 }
 
 input[type="checkbox"] {
+  box-sizing: border-box;
   width: 20px;
   height: 20px;
+  min-width: 20px;
   margin: 0;
+  padding: 0;
   justify-self: start;
   align-self: center;
   accent-color: var(--brand);
