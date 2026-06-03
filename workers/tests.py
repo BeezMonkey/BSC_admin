@@ -68,6 +68,25 @@ class SupportWorkerManagementTests(TestCase):
         self.assertEqual(worker.first_name, "Maya")
         self.assertTrue(worker.user.is_active)
 
+    def test_worker_create_preserves_list_return_state(self):
+        list_path = (
+            f"{reverse('worker_list')}?q=Maya&status=active&employment_type=employee"
+            "&sort=name&direction=asc&page=2"
+        )
+        self.login_admin()
+
+        list_response = self.client.get(list_path)
+        create_response = self.client.get(reverse("worker_create"), {"next": list_path})
+        post_response = self.client.post(
+            reverse("worker_create"),
+            self.worker_payload(next=list_path),
+        )
+
+        self.assertContains(list_response, f"{reverse('worker_create')}?next=")
+        self.assertContains(create_response, f'href="{list_path.replace("&", "&amp;")}"')
+        self.assertContains(create_response, f'name="next" value="{list_path.replace("&", "&amp;")}"')
+        self.assertRedirects(post_response, list_path)
+
     def test_password_confirmation_must_match(self):
         self.login_admin()
 

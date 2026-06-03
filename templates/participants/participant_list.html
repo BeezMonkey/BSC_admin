@@ -8,7 +8,7 @@
     <h1>Participants</h1>
     <p>Find, filter, and manage participant records.</p>
   </div>
-  <a class="button" href="{% url 'participant_create' %}">Add Participant</a>
+  <a class="button" href="{% url 'participant_create' %}?next={{ current_list_url|urlencode }}">Add Participant</a>
 </div>
 
 <form class="filter-bar" method="get">
@@ -73,7 +73,7 @@
               {% else %}
                 <strong>No participants found.</strong>
                 <p>Add a participant to start building records, assignments, shifts, and invoices.</p>
-                <a class="button" href="{% url 'participant_create' %}">Add Participant</a>
+                <a class="button" href="{% url 'participant_create' %}?next={{ current_list_url|urlencode }}">Add Participant</a>
               {% endif %}
             </div>
           </td>

@@ -73,6 +73,22 @@ class ParticipantManagementTests(TestCase):
         self.assertEqual(participant.first_name, "Ava")
         self.assertEqual(participant.management_type, Participant.ManagementType.PLAN_MANAGED)
 
+    def test_participant_create_preserves_list_return_state(self):
+        list_path = f"{reverse('participant_list')}?q=Ava&status=active&sort=name&direction=asc&page=2"
+        self.login_admin()
+
+        list_response = self.client.get(list_path)
+        create_response = self.client.get(reverse("participant_create"), {"next": list_path})
+        post_response = self.client.post(
+            reverse("participant_create"),
+            self.participant_payload(next=list_path),
+        )
+
+        self.assertContains(list_response, f"{reverse('participant_create')}?next=")
+        self.assertContains(create_response, f'href="{list_path.replace("&", "&amp;")}"')
+        self.assertContains(create_response, f'name="next" value="{list_path.replace("&", "&amp;")}"')
+        self.assertRedirects(post_response, list_path)
+
     def test_first_and_last_name_are_required(self):
         self.login_admin()
 
