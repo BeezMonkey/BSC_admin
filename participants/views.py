@@ -116,19 +116,28 @@ def participant_detail(request, participant_id):
 @admin_required
 def participant_edit(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
+    return_url = get_safe_return_url(
+        request,
+        reverse("participant_detail", args=[participant.id]),
+    )
     if request.method == "POST":
         form = ParticipantForm(request.POST, instance=participant)
         if form.is_valid():
             participant = form.save()
             messages.success(request, "Participant updated.")
-            return redirect(participant)
+            return redirect(return_url)
     else:
         form = ParticipantForm(instance=participant)
 
     return render(
         request,
         "participants/participant_form.html",
-        {"form": form, "title": "Edit Participant", "participant": participant},
+        {
+            "form": form,
+            "title": "Edit Participant",
+            "participant": participant,
+            "return_url": return_url,
+        },
     )
 
 

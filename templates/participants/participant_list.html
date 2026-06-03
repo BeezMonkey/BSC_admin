@@ -59,7 +59,7 @@
           <td><span class="status-pill">{{ participant.get_status_display }}</span></td>
           <td class="actions">
             <a href="{% url 'participant_detail' participant.id %}?next={{ current_list_url|urlencode }}">View</a>
-            <a href="{% url 'participant_edit' participant.id %}">Edit</a>
+            <a href="{% url 'participant_edit' participant.id %}?next={{ current_list_url|urlencode }}">Edit</a>
           </td>
         </tr>
       {% empty %}

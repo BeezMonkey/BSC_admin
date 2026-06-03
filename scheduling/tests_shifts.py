@@ -185,6 +185,29 @@ class ShiftSchedulingTests(TestCase):
         self.assertRedirects(response, reverse("shift_detail", args=[shift.id]))
         self.assertEqual(shift.status, Shift.Status.PUBLISHED)
 
+    def test_shift_edit_preserves_roster_return_state(self):
+        shift = self.create_shift(status=Shift.Status.PUBLISHED)
+        list_path = (
+            f"{reverse('roster_list')}?worker=Wendy&status=published"
+            "&sort=date&direction=asc&page=2"
+        )
+        self.login_admin()
+
+        list_response = self.client.get(list_path)
+        edit_response = self.client.get(reverse("shift_edit", args=[shift.id]), {"next": list_path})
+        post_response = self.client.post(
+            reverse("shift_edit", args=[shift.id]),
+            self.shift_payload(status=Shift.Status.PUBLISHED, next=list_path),
+        )
+
+        self.assertContains(
+            list_response,
+            f"{reverse('shift_edit', args=[shift.id])}?next=",
+        )
+        self.assertContains(edit_response, f'href="{list_path.replace("&", "&amp;")}"')
+        self.assertContains(edit_response, f'name="next" value="{list_path.replace("&", "&amp;")}"')
+        self.assertRedirects(post_response, list_path)
+
     def test_end_time_must_be_after_start_time(self):
         self.login_admin()
 

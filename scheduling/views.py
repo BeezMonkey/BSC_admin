@@ -307,6 +307,10 @@ def shift_detail(request, shift_id):
 @admin_required
 def shift_edit(request, shift_id):
     shift = get_object_or_404(Shift, id=shift_id)
+    return_url = get_safe_return_url(
+        request,
+        reverse("shift_detail", args=[shift.id]),
+    )
     if shift.status in [Shift.Status.COMPLETED, Shift.Status.CANCELLED]:
         messages.error(request, "Completed or cancelled shifts cannot be edited.")
         return redirect(shift)
@@ -315,14 +319,19 @@ def shift_edit(request, shift_id):
         if form.is_valid():
             shift = form.save()
             messages.success(request, "Shift updated.")
-            return redirect(shift)
+            return redirect(return_url)
     else:
         form = ShiftForm(instance=shift, created_by=request.user)
 
     return render(
         request,
         "scheduling/shift_form.html",
-        {"form": form, "title": "Edit Shift", "shift": shift},
+        {
+            "form": form,
+            "title": "Edit Shift",
+            "shift": shift,
+            "return_url": return_url,
+        },
     )
 
 

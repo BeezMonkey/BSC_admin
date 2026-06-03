@@ -64,7 +64,7 @@
           <td><span class="status-pill">{{ shift.get_status_display }}</span></td>
           <td class="actions">
             <a href="{% url 'shift_detail' shift.id %}?next={{ current_list_url|urlencode }}">View</a>
-            <a href="{% url 'shift_edit' shift.id %}">Edit</a>
+            <a href="{% url 'shift_edit' shift.id %}?next={{ current_list_url|urlencode }}">Edit</a>
           </td>
         </tr>
       {% empty %}

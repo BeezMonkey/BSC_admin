@@ -128,19 +128,28 @@ def worker_detail(request, worker_id):
 @admin_required
 def worker_edit(request, worker_id):
     worker = get_object_or_404(SupportWorker.objects.select_related("user"), id=worker_id)
+    return_url = get_safe_return_url(
+        request,
+        reverse("worker_detail", args=[worker.id]),
+    )
     if request.method == "POST":
         form = SupportWorkerEditForm(request.POST, instance=worker)
         if form.is_valid():
             worker = form.save()
             messages.success(request, "Support worker updated.")
-            return redirect(worker)
+            return redirect(return_url)
     else:
         form = SupportWorkerEditForm(instance=worker)
 
     return render(
         request,
         "workers/worker_form.html",
-        {"form": form, "title": "Edit Support Worker", "worker": worker},
+        {
+            "form": form,
+            "title": "Edit Support Worker",
+            "worker": worker,
+            "return_url": return_url,
+        },
     )
 
 

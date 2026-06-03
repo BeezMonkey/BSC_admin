@@ -381,6 +381,58 @@ class SupportWorkerManagementTests(TestCase):
         self.assertEqual(worker.email, "maya.updated@example.com")
         self.assertEqual(worker.user.email, "maya.updated@example.com")
 
+    def test_worker_edit_preserves_list_return_state(self):
+        user = get_user_model().objects.create_user(
+            username="maya",
+            email="maya@example.com",
+            password="test-password-123",
+        )
+        worker = SupportWorker.objects.create(
+            user=user,
+            first_name="Maya",
+            last_name="Singh",
+            email="maya@example.com",
+            employment_type=SupportWorker.EmploymentType.EMPLOYEE,
+            status=SupportWorker.Status.ACTIVE,
+        )
+        list_path = (
+            f"{reverse('worker_list')}?q=Maya&status=active&employment_type=employee"
+            "&sort=name&direction=asc&page=2"
+        )
+        self.login_admin()
+
+        list_response = self.client.get(list_path)
+        edit_response = self.client.get(reverse("worker_edit", args=[worker.id]), {"next": list_path})
+        post_response = self.client.post(
+            reverse("worker_edit", args=[worker.id]),
+            {
+                "email": "maya.updated@example.com",
+                "account_active": "on",
+                "first_name": "Maya",
+                "last_name": "Singh-Patel",
+                "phone": "0499999999",
+                "address": "Updated address",
+                "employment_type": SupportWorker.EmploymentType.EMPLOYEE,
+                "abn": "",
+                "start_date": "2026-02-01",
+                "status": SupportWorker.Status.ACTIVE,
+                "police_check_status": SupportWorker.ComplianceStatus.CURRENT,
+                "police_check_expiry": "",
+                "wwcc_status": SupportWorker.ComplianceStatus.CURRENT,
+                "wwcc_expiry": "",
+                "notes": "Updated note.",
+                "next": list_path,
+            },
+        )
+
+        self.assertContains(
+            list_response,
+            f"{reverse('worker_edit', args=[worker.id])}?next=",
+        )
+        self.assertContains(edit_response, f'href="{list_path.replace("&", "&amp;")}"')
+        self.assertContains(edit_response, f'name="next" value="{list_path.replace("&", "&amp;")}"')
+        self.assertRedirects(post_response, list_path)
+
     def test_worker_can_view_own_profile(self):
         SupportWorker.objects.create(
             user=self.worker_user,
