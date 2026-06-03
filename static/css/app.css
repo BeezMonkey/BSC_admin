@@ -413,6 +413,16 @@ th {
   font-size: 0.85rem;
 }
 
+.sort-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.18rem;
+}
+
+.sort-link:hover {
+  color: var(--brand-dark);
+}
+
 tbody tr:hover {
   background: #fbfcfe;
 }

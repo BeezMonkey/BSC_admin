@@ -182,6 +182,51 @@ class SupportWorkerManagementTests(TestCase):
         )
         self.assertNotContains(response, "Inactive Worker")
 
+    def test_worker_list_can_sort_by_status_and_preserve_filters(self):
+        active_user = get_user_model().objects.create_user(
+            username="activeworker",
+            email="activeworker@example.com",
+            password="test-password-123",
+        )
+        inactive_user = get_user_model().objects.create_user(
+            username="inactiveworker",
+            email="inactiveworker@example.com",
+            password="test-password-123",
+        )
+        SupportWorker.objects.create(
+            user=active_user,
+            first_name="Active",
+            last_name="Worker",
+            email="activeworker@example.com",
+            employment_type=SupportWorker.EmploymentType.EMPLOYEE,
+            status=SupportWorker.Status.ACTIVE,
+        )
+        SupportWorker.objects.create(
+            user=inactive_user,
+            first_name="Inactive",
+            last_name="Worker",
+            email="inactiveworker@example.com",
+            employment_type=SupportWorker.EmploymentType.EMPLOYEE,
+            status=SupportWorker.Status.INACTIVE,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("worker_list"),
+            {
+                "employment_type": SupportWorker.EmploymentType.EMPLOYEE,
+                "sort": "status",
+                "direction": "desc",
+            },
+        )
+        content = response.content.decode()
+
+        self.assertLess(content.index("Inactive Worker"), content.index("Active Worker"))
+        self.assertContains(
+            response,
+            "?employment_type=employee&amp;sort=status&amp;direction=asc",
+        )
+
     def test_admin_can_view_worker_detail(self):
         user = get_user_model().objects.create_user(
             username="maya",

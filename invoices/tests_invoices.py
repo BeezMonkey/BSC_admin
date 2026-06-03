@@ -404,6 +404,47 @@ class InvoiceGenerationTests(TestCase):
         )
         self.assertNotContains(response, "Ben Taylor")
 
+    def test_invoice_list_can_sort_by_total_and_preserve_filters(self):
+        low_log = self.create_service_log(actual_hours=Decimal("1.00"))
+        low_invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            status=Invoice.Status.DRAFT,
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create_from_service_log(low_invoice, low_log)
+        high_log = self.create_service_log(
+            service_date=date(2026, 6, 2),
+            actual_hours=Decimal("3.00"),
+        )
+        high_invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            status=Invoice.Status.DRAFT,
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create_from_service_log(high_invoice, high_log)
+        self.login_accountant()
+
+        response = self.client.get(
+            reverse("invoice_placeholder"),
+            {
+                "status": Invoice.Status.DRAFT,
+                "participant": "Ava",
+                "sort": "total",
+                "direction": "desc",
+            },
+        )
+        content = response.content.decode()
+
+        self.assertLess(content.index("$196.41"), content.index("$65.47"))
+        self.assertContains(
+            response,
+            "?status=draft&amp;participant=Ava&amp;sort=total&amp;direction=asc",
+        )
+
     def test_invoice_create_previews_only_selected_service_logs(self):
         selected_log = self.create_service_log(
             service_date=date(2026, 6, 1),

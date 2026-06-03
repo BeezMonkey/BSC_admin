@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.decorators import admin_required, worker_required
 from core.pagination import paginate_queryset
+from core.sorting import apply_sorting
 
 from .forms import SupportWorkerCreateForm, SupportWorkerEditForm
 from .models import SupportWorker
@@ -27,6 +28,15 @@ def worker_list(request):
         workers = workers.filter(status=status)
     if employment_type:
         workers = workers.filter(employment_type=employment_type)
+    workers, sorting = apply_sorting(
+        request,
+        workers,
+        {
+            "name": ("last_name", "first_name"),
+            "status": ("status", "last_name", "first_name"),
+            "employment_type": ("employment_type", "last_name", "first_name"),
+        },
+    )
     workers, pagination = paginate_queryset(request, workers)
 
     return render(
@@ -35,6 +45,7 @@ def worker_list(request):
         {
             "workers": workers,
             "pagination": pagination,
+            "sorting": sorting,
             "query": query,
             "status": status,
             "employment_type": employment_type,
