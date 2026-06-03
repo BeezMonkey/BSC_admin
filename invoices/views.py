@@ -1,8 +1,10 @@
 import csv
+from decimal import Decimal
 from io import StringIO
 
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import DecimalField, Q, Sum, Value
+from django.db.models.functions import Coalesce
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.dateparse import parse_date
@@ -12,6 +14,7 @@ from accounts.decorators import finance_required
 from core.audit import write_audit_log
 from core.models import AuditLog
 from core.pagination import paginate_queryset
+from core.sorting import apply_sorting
 from service_logs.models import ServiceLog
 
 from .forms import InvoiceCreateForm
@@ -46,7 +49,13 @@ def build_invoice_filter_summary(status, q, participant_query, period_from, peri
 
 @finance_required
 def invoice_list(request):
-    invoices = Invoice.objects.select_related("participant", "created_by")
+    invoices = Invoice.objects.select_related("participant", "created_by").annotate(
+        total_amount_sort=Coalesce(
+            Sum("lines__line_total"),
+            Value(Decimal("0.00")),
+            output_field=DecimalField(max_digits=10, decimal_places=2),
+        ),
+    ).order_by("-created_at")
     q = request.GET.get("q", "").strip()
     participant_query = request.GET.get("participant", "").strip()
     status = request.GET.get("status", "").strip()
@@ -73,6 +82,17 @@ def invoice_list(request):
         period_from,
         period_to,
     )
+    invoices, sorting = apply_sorting(
+        request,
+        invoices,
+        {
+            "invoice": ("invoice_number",),
+            "participant": ("participant__last_name", "participant__first_name", "invoice_number"),
+            "period": ("period_start", "period_end", "invoice_number"),
+            "status": ("status", "invoice_number"),
+            "total": ("total_amount_sort", "invoice_number"),
+        },
+    )
     invoices, pagination = paginate_queryset(request, invoices)
 
     return render(
@@ -81,6 +101,7 @@ def invoice_list(request):
         {
             "invoices": invoices,
             "pagination": pagination,
+            "sorting": sorting,
             "q": q,
             "participant_query": participant_query,
             "status": status,

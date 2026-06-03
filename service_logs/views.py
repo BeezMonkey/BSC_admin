@@ -8,6 +8,7 @@ from accounts.decorators import admin_required, worker_required
 from core.audit import write_audit_log
 from core.models import AuditLog
 from core.pagination import paginate_queryset
+from core.sorting import apply_sorting
 from scheduling.models import Shift
 
 from .forms import ServiceLogForm
@@ -27,6 +28,16 @@ def service_log_list(request):
         service_logs = service_logs.filter(status=status)
     status_label = dict(ServiceLog.Status.choices).get(status)
     filter_summary = f"Showing {status_label.lower()} service logs." if status_label else ""
+    service_logs, sorting = apply_sorting(
+        request,
+        service_logs,
+        {
+            "date": ("service_date", "id"),
+            "participant": ("participant__last_name", "participant__first_name", "service_date"),
+            "worker": ("worker__last_name", "worker__first_name", "service_date"),
+            "status": ("status", "service_date"),
+        },
+    )
     service_logs, pagination = paginate_queryset(request, service_logs)
     return render(
         request,
@@ -34,6 +45,7 @@ def service_log_list(request):
         {
             "service_logs": service_logs,
             "pagination": pagination,
+            "sorting": sorting,
             "status": status,
             "status_choices": ServiceLog.Status.choices,
             "filter_summary": filter_summary,

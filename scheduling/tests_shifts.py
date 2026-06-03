@@ -436,6 +436,32 @@ class ShiftSchedulingTests(TestCase):
         )
         self.assertNotContains(response, "<td>Oscar Other</td>", html=True)
 
+    def test_roster_list_can_sort_by_date_and_preserve_filters(self):
+        self.create_shift(
+            service_date=date(2026, 6, 3),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            planned_hours=Decimal("1.00"),
+            status=Shift.Status.PUBLISHED,
+        )
+        self.create_shift(
+            service_date=date(2026, 6, 1),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            planned_hours=Decimal("1.00"),
+            status=Shift.Status.PUBLISHED,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_list"),
+            {"status": Shift.Status.PUBLISHED, "sort": "date", "direction": "asc"},
+        )
+        content = response.content.decode()
+
+        self.assertLess(content.index("June 1, 2026"), content.index("June 3, 2026"))
+        self.assertContains(response, "?status=published&amp;sort=date&amp;direction=desc")
+
     def test_worker_can_only_see_own_non_draft_shifts(self):
         own_shift = self.create_shift()
         self.create_shift(

@@ -5,6 +5,7 @@ from django.views.decorators.http import require_POST
 
 from accounts.decorators import admin_required
 from core.pagination import paginate_queryset
+from core.sorting import apply_sorting
 
 from .forms import ParticipantForm, ParticipantWorkerAssignmentForm
 from .models import Participant, ParticipantWorkerAssignment
@@ -25,6 +26,14 @@ def participant_list(request):
         )
     if status:
         participants = participants.filter(status=status)
+    participants, sorting = apply_sorting(
+        request,
+        participants,
+        {
+            "name": ("last_name", "first_name"),
+            "status": ("status", "last_name", "first_name"),
+        },
+    )
     participants, pagination = paginate_queryset(request, participants)
 
     return render(
@@ -33,6 +42,7 @@ def participant_list(request):
         {
             "participants": participants,
             "pagination": pagination,
+            "sorting": sorting,
             "query": query,
             "status": status,
             "status_choices": Participant.Status.choices,

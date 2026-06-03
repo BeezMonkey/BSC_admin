@@ -277,6 +277,45 @@ class ServiceLogReviewTests(TestCase):
         self.assertContains(response, "?status=approved&amp;page=2")
         self.assertNotContains(response, "Submitted log outside filter.")
 
+    def test_service_log_list_can_sort_by_date_and_preserve_filters(self):
+        self.service_log.status = ServiceLog.Status.APPROVED
+        self.service_log.save(update_fields=["status", "updated_at"])
+        later_shift = Shift.objects.create(
+            participant=self.participant,
+            worker=self.worker,
+            service_date=date(2026, 6, 3),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            break_minutes=0,
+            planned_hours=Decimal("1.00"),
+            support_item=self.support_item,
+            service_type=Shift.ServiceType.PERSONAL_CARE,
+            status=Shift.Status.COMPLETED,
+            created_by=self.admin_user,
+        )
+        later_log = ServiceLog.objects.create_from_shift(
+            shift=later_shift,
+            actual_start_time=time(9, 0),
+            actual_end_time=time(10, 0),
+            break_minutes=0,
+            actual_hours=Decimal("1.00"),
+            kilometres=Decimal("0.0"),
+            case_notes="Later approved log.",
+            worker_notes="",
+        )
+        later_log.status = ServiceLog.Status.APPROVED
+        later_log.save(update_fields=["status", "updated_at"])
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("service_log_list"),
+            {"status": ServiceLog.Status.APPROVED, "sort": "date", "direction": "asc"},
+        )
+        content = response.content.decode()
+
+        self.assertLess(content.index("June 1, 2026"), content.index("June 3, 2026"))
+        self.assertContains(response, "?status=approved&amp;sort=date&amp;direction=desc")
+
     def test_admin_service_log_list_has_explicit_view_action(self):
         self.login_admin()
 

@@ -11,6 +11,7 @@ from accounts.decorators import admin_required, worker_required
 from core.audit import write_audit_log
 from core.models import AuditLog
 from core.pagination import paginate_queryset
+from core.sorting import apply_sorting
 
 from .forms import RecurringShiftForm, ShiftForm, SupportItemForm
 from .models import Shift, SupportItem
@@ -81,6 +82,16 @@ def roster_list(request):
         date_from,
         date_to,
     )
+    shifts, sorting = apply_sorting(
+        request,
+        shifts,
+        {
+            "date": ("service_date", "start_time"),
+            "participant": ("participant__last_name", "participant__first_name", "service_date"),
+            "worker": ("worker__last_name", "worker__first_name", "service_date"),
+            "status": ("status", "service_date"),
+        },
+    )
     shifts, pagination = paginate_queryset(request, shifts)
 
     return render(
@@ -89,6 +100,7 @@ def roster_list(request):
         {
             "shifts": shifts,
             "pagination": pagination,
+            "sorting": sorting,
             "date_from": date_from,
             "date_to": date_to,
             "participant_query": participant_query,

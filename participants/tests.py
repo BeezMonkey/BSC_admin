@@ -176,6 +176,30 @@ class ParticipantManagementTests(TestCase):
         self.assertContains(response, "?q=Active&amp;status=active&amp;page=2")
         self.assertNotContains(response, "Archived Participant")
 
+    def test_participant_list_can_sort_by_name_and_preserve_filters(self):
+        Participant.objects.create(
+            first_name="Zoe",
+            last_name="Zephyr",
+            ndis_number="111111111",
+            status=Participant.Status.ACTIVE,
+        )
+        Participant.objects.create(
+            first_name="Ava",
+            last_name="Anderson",
+            ndis_number="222222222",
+            status=Participant.Status.ACTIVE,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("participant_list"),
+            {"status": Participant.Status.ACTIVE, "sort": "name", "direction": "asc"},
+        )
+        content = response.content.decode()
+
+        self.assertLess(content.index("Ava Anderson"), content.index("Zoe Zephyr"))
+        self.assertContains(response, "?status=active&amp;sort=name&amp;direction=desc")
+
     def test_admin_can_view_participant_detail(self):
         participant = Participant.objects.create(
             first_name="Ava",
