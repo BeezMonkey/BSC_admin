@@ -54,6 +54,7 @@ def roster_list(request):
     participant_query = request.GET.get("participant", "").strip()
     worker_query = request.GET.get("worker", "").strip()
     status = request.GET.get("status", "").strip()
+    has_filters = bool(date_from or date_to or participant_query or worker_query or status)
 
     if date_from:
         shifts = shifts.filter(service_date__gte=date_from)
@@ -106,6 +107,7 @@ def roster_list(request):
             "participant_query": participant_query,
             "worker_query": worker_query,
             "status": status,
+            "has_filters": has_filters,
             "status_choices": Shift.Status.choices,
             "filter_summary": filter_summary,
         },

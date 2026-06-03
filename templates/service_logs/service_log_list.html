@@ -73,9 +73,15 @@
         <tr>
           <td colspan="8">
             <div class="empty-state">
-              <strong>No service logs yet.</strong>
-              <p>Service logs appear here after workers complete rostered shifts.</p>
-              <a class="button secondary" href="{% url 'roster_list' %}">View Roster</a>
+              {% if has_filters %}
+                <strong>No service logs match the current filters.</strong>
+                <p>Clear the filters to review all submitted worker service records.</p>
+                <a class="button secondary" href="{% url 'service_log_list' %}">Clear filters</a>
+              {% else %}
+                <strong>No service logs yet.</strong>
+                <p>Service logs appear here after workers complete rostered shifts.</p>
+                <a class="button secondary" href="{% url 'roster_list' %}">View Roster</a>
+              {% endif %}
             </div>
           </td>
         </tr>

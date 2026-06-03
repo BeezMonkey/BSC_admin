@@ -24,6 +24,7 @@ def service_log_list(request):
         "support_item",
     )
     status = request.GET.get("status", "").strip()
+    has_filters = bool(status)
     if status:
         service_logs = service_logs.filter(status=status)
     status_label = dict(ServiceLog.Status.choices).get(status)
@@ -47,6 +48,7 @@ def service_log_list(request):
             "pagination": pagination,
             "sorting": sorting,
             "status": status,
+            "has_filters": has_filters,
             "status_choices": ServiceLog.Status.choices,
             "filter_summary": filter_summary,
         },

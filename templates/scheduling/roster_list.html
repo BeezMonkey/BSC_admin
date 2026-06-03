@@ -71,9 +71,15 @@
         <tr>
           <td colspan="7">
             <div class="empty-state">
-              <strong>No shifts found.</strong>
-              <p>Create a shift or adjust the filters to review scheduled work.</p>
-              <a class="button" href="{% url 'shift_create' %}">New Shift</a>
+              {% if has_filters %}
+                <strong>No shifts match the current filters.</strong>
+                <p>Clear the filters to review all scheduled work.</p>
+                <a class="button secondary" href="{% url 'roster_list' %}">Clear filters</a>
+              {% else %}
+                <strong>No shifts found.</strong>
+                <p>Create a shift or adjust the filters to review scheduled work.</p>
+                <a class="button" href="{% url 'shift_create' %}">New Shift</a>
+              {% endif %}
             </div>
           </td>
         </tr>

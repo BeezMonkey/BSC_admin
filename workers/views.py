@@ -16,6 +16,7 @@ def worker_list(request):
     query = request.GET.get("q", "").strip()
     status = request.GET.get("status", "").strip()
     employment_type = request.GET.get("employment_type", "").strip()
+    has_filters = bool(query or status or employment_type)
 
     if query:
         workers = workers.filter(
@@ -49,6 +50,7 @@ def worker_list(request):
             "query": query,
             "status": status,
             "employment_type": employment_type,
+            "has_filters": has_filters,
             "status_choices": SupportWorker.Status.choices,
             "employment_type_choices": SupportWorker.EmploymentType.choices,
         },

@@ -200,6 +200,21 @@ class ParticipantManagementTests(TestCase):
         self.assertLess(content.index("Ava Anderson"), content.index("Zoe Zephyr"))
         self.assertContains(response, "?status=active&amp;sort=name&amp;direction=desc")
 
+    def test_participant_list_distinguishes_empty_filter_results(self):
+        Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            ndis_number="111111111",
+            status=Participant.Status.ACTIVE,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("participant_list"), {"q": "Missing"})
+
+        self.assertContains(response, "No participants match the current filters.")
+        self.assertContains(response, "Clear filters")
+        self.assertNotContains(response, "Add a participant to start building records")
+
     def test_admin_can_view_participant_detail(self):
         participant = Participant.objects.create(
             first_name="Ava",
