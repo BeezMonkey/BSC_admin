@@ -66,9 +66,15 @@
         <tr>
           <td colspan="7">
             <div class="empty-state">
-              <strong>No participants found.</strong>
-              <p>Add a participant to start building records, assignments, shifts, and invoices.</p>
-              <a class="button" href="{% url 'participant_create' %}">Add Participant</a>
+              {% if has_filters %}
+                <strong>No participants match the current filters.</strong>
+                <p>Clear the filters to review all participant records.</p>
+                <a class="button secondary" href="{% url 'participant_list' %}">Clear filters</a>
+              {% else %}
+                <strong>No participants found.</strong>
+                <p>Add a participant to start building records, assignments, shifts, and invoices.</p>
+                <a class="button" href="{% url 'participant_create' %}">Add Participant</a>
+              {% endif %}
             </div>
           </td>
         </tr>

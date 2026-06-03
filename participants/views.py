@@ -16,6 +16,7 @@ def participant_list(request):
     participants = Participant.objects.all()
     query = request.GET.get("q", "").strip()
     status = request.GET.get("status", "").strip()
+    has_filters = bool(query or status)
 
     if query:
         participants = participants.filter(
@@ -45,6 +46,7 @@ def participant_list(request):
             "sorting": sorting,
             "query": query,
             "status": status,
+            "has_filters": has_filters,
             "status_choices": Participant.Status.choices,
         },
     )

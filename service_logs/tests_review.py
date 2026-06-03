@@ -316,6 +316,18 @@ class ServiceLogReviewTests(TestCase):
         self.assertLess(content.index("June 1, 2026"), content.index("June 3, 2026"))
         self.assertContains(response, "?status=approved&amp;sort=date&amp;direction=desc")
 
+    def test_service_log_list_distinguishes_empty_filter_results(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("service_log_list"),
+            {"status": ServiceLog.Status.APPROVED},
+        )
+
+        self.assertContains(response, "No service logs match the current filters.")
+        self.assertContains(response, "Clear filters")
+        self.assertNotContains(response, "Service logs appear here after workers complete")
+
     def test_admin_service_log_list_has_explicit_view_action(self):
         self.login_admin()
 

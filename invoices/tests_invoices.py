@@ -445,6 +445,22 @@ class InvoiceGenerationTests(TestCase):
             "?status=draft&amp;participant=Ava&amp;sort=total&amp;direction=asc",
         )
 
+    def test_invoice_list_distinguishes_empty_filter_results(self):
+        Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            status=Invoice.Status.DRAFT,
+            created_by=self.accountant_user,
+        )
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_placeholder"), {"participant": "Missing"})
+
+        self.assertContains(response, "No invoices match the current filters.")
+        self.assertContains(response, "Clear filters")
+        self.assertNotContains(response, "Create an invoice or adjust the filters")
+
     def test_invoice_create_previews_only_selected_service_logs(self):
         selected_log = self.create_service_log(
             service_date=date(2026, 6, 1),

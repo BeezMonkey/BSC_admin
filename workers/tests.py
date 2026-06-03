@@ -227,6 +227,27 @@ class SupportWorkerManagementTests(TestCase):
             "?employment_type=employee&amp;sort=status&amp;direction=asc",
         )
 
+    def test_worker_list_distinguishes_empty_filter_results(self):
+        user = get_user_model().objects.create_user(
+            username="maya",
+            email="maya@example.com",
+            password="test-password-123",
+        )
+        SupportWorker.objects.create(
+            user=user,
+            first_name="Maya",
+            last_name="Singh",
+            email="maya@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("worker_list"), {"q": "Missing"})
+
+        self.assertContains(response, "No support workers match the current filters.")
+        self.assertContains(response, "Clear filters")
+        self.assertNotContains(response, "Add a worker so they can be assigned shifts")
+
     def test_admin_can_view_worker_detail(self):
         user = get_user_model().objects.create_user(
             username="maya",

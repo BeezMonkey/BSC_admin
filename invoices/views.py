@@ -61,6 +61,7 @@ def invoice_list(request):
     status = request.GET.get("status", "").strip()
     period_from = request.GET.get("period_from", "").strip()
     period_to = request.GET.get("period_to", "").strip()
+    has_filters = bool(q or participant_query or status or period_from or period_to)
 
     if q:
         invoices = invoices.filter(invoice_number__icontains=q)
@@ -107,6 +108,7 @@ def invoice_list(request):
             "status": status,
             "period_from": period_from,
             "period_to": period_to,
+            "has_filters": has_filters,
             "status_choices": Invoice.Status.choices,
             "filter_summary": filter_summary,
         },

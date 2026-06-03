@@ -462,6 +462,16 @@ class ShiftSchedulingTests(TestCase):
         self.assertLess(content.index("June 1, 2026"), content.index("June 3, 2026"))
         self.assertContains(response, "?status=published&amp;sort=date&amp;direction=desc")
 
+    def test_roster_list_distinguishes_empty_filter_results(self):
+        self.create_shift(status=Shift.Status.PUBLISHED)
+        self.login_admin()
+
+        response = self.client.get(reverse("roster_list"), {"worker": "Missing"})
+
+        self.assertContains(response, "No shifts match the current filters.")
+        self.assertContains(response, "Clear filters")
+        self.assertNotContains(response, "Create a shift or adjust the filters")
+
     def test_worker_can_only_see_own_non_draft_shifts(self):
         own_shift = self.create_shift()
         self.create_shift(
