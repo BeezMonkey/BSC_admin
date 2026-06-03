@@ -421,6 +421,50 @@ tbody tr:last-child td {
   border-bottom: 0;
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.85rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.pagination-links {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.pagination-links a,
+.pagination-links .disabled {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.15rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.35rem 0.65rem;
+  background: #ffffff;
+}
+
+.pagination-links a {
+  color: var(--brand-dark);
+}
+
+.pagination-links a:hover {
+  border-color: var(--brand);
+  color: #ffffff;
+  background: var(--brand);
+}
+
+.pagination-links .disabled {
+  color: #98a2b3;
+  background: #f8fafc;
+}
+
 .status-pill {
   display: inline-block;
   border-radius: 999px;

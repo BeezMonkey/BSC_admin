@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from accounts.decorators import admin_required
+from core.pagination import paginate_queryset
 
 from .forms import ParticipantForm, ParticipantWorkerAssignmentForm
 from .models import Participant, ParticipantWorkerAssignment
@@ -24,12 +25,14 @@ def participant_list(request):
         )
     if status:
         participants = participants.filter(status=status)
+    participants, pagination = paginate_queryset(request, participants)
 
     return render(
         request,
         "participants/participant_list.html",
         {
             "participants": participants,
+            "pagination": pagination,
             "query": query,
             "status": status,
             "status_choices": Participant.Status.choices,

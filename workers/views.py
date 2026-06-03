@@ -3,6 +3,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.decorators import admin_required, worker_required
+from core.pagination import paginate_queryset
 
 from .forms import SupportWorkerCreateForm, SupportWorkerEditForm
 from .models import SupportWorker
@@ -26,12 +27,14 @@ def worker_list(request):
         workers = workers.filter(status=status)
     if employment_type:
         workers = workers.filter(employment_type=employment_type)
+    workers, pagination = paginate_queryset(request, workers)
 
     return render(
         request,
         "workers/worker_list.html",
         {
             "workers": workers,
+            "pagination": pagination,
             "query": query,
             "status": status,
             "employment_type": employment_type,

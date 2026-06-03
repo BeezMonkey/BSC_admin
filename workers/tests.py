@@ -134,6 +134,54 @@ class SupportWorkerManagementTests(TestCase):
         self.assertContains(response, "Maya Singh")
         self.assertNotContains(response, "Liam Brown")
 
+    def test_worker_list_is_paginated_and_preserves_filters(self):
+        for index in range(25):
+            user = get_user_model().objects.create_user(
+                username=f"activeworker{index:02d}",
+                email=f"activeworker{index:02d}@example.com",
+                password="test-password-123",
+            )
+            SupportWorker.objects.create(
+                user=user,
+                first_name=f"Active{index:02d}",
+                last_name="Worker",
+                email=f"activeworker{index:02d}@example.com",
+                employment_type=SupportWorker.EmploymentType.EMPLOYEE,
+                status=SupportWorker.Status.ACTIVE,
+            )
+        inactive_user = get_user_model().objects.create_user(
+            username="inactiveworker",
+            email="inactiveworker@example.com",
+            password="test-password-123",
+        )
+        SupportWorker.objects.create(
+            user=inactive_user,
+            first_name="Inactive",
+            last_name="Worker",
+            email="inactiveworker@example.com",
+            employment_type=SupportWorker.EmploymentType.SUBCONTRACTOR,
+            status=SupportWorker.Status.INACTIVE,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("worker_list"),
+            {
+                "q": "Active",
+                "status": SupportWorker.Status.ACTIVE,
+                "employment_type": SupportWorker.EmploymentType.EMPLOYEE,
+            },
+        )
+
+        self.assertEqual(response.context["workers"].paginator.count, 25)
+        self.assertEqual(len(response.context["workers"]), 20)
+        self.assertContains(response, "Showing 1-20 of 25 records")
+        self.assertContains(
+            response,
+            "?q=Active&amp;status=active&amp;employment_type=employee&amp;page=2",
+        )
+        self.assertNotContains(response, "Inactive Worker")
+
     def test_admin_can_view_worker_detail(self):
         user = get_user_model().objects.create_user(
             username="maya",
