@@ -165,6 +165,19 @@ class ParticipantManagementTests(TestCase):
         self.assertContains(response, "Ava Nguyen")
         self.assertNotContains(response, "Ben Taylor")
 
+    def test_participant_list_renders_status_specific_class(self):
+        Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            ndis_number="111111111",
+            status=Participant.Status.ACTIVE,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("participant_list"))
+
+        self.assertContains(response, 'class="status-pill status-active"')
+
     def test_participant_list_is_paginated_and_preserves_filters(self):
         for index in range(25):
             Participant.objects.create(

@@ -298,6 +298,14 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, "Wendy Worker")
         self.assertNotContains(response, "<td>Oscar Other</td>", html=True)
 
+    def test_roster_list_renders_status_specific_class(self):
+        self.create_shift(status=Shift.Status.PUBLISHED)
+        self.login_admin()
+
+        response = self.client.get(reverse("roster_list"))
+
+        self.assertContains(response, 'class="status-pill status-published"')
+
     def test_roster_worker_filter_uses_worker_name_search(self):
         self.create_shift(status=Shift.Status.PUBLISHED)
         self.login_admin()

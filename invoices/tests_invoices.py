@@ -338,6 +338,22 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, "Ava")
         self.assertContains(response, "Draft")
 
+    def test_invoice_list_renders_status_specific_class(self):
+        service_log = self.create_service_log()
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            status=Invoice.Status.DRAFT,
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create_from_service_log(invoice, service_log)
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_placeholder"))
+
+        self.assertContains(response, 'class="status-pill status-draft"')
+
     def test_invoice_list_shows_status_filter_summary(self):
         service_log = self.create_service_log()
         invoice = Invoice.objects.create(

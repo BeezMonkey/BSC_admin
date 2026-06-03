@@ -61,7 +61,7 @@
           <td>{{ shift.participant.display_name }}</td>
           <td>{{ shift.worker.display_name }}</td>
           <td>{{ shift.get_service_type_display }}</td>
-          <td><span class="status-pill">{{ shift.get_status_display }}</span></td>
+          <td><span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span></td>
           <td class="actions">
             <a href="{% url 'shift_detail' shift.id %}?next={{ current_list_url|urlencode }}">View</a>
             <a href="{% url 'shift_edit' shift.id %}?next={{ current_list_url|urlencode }}">Edit</a>
