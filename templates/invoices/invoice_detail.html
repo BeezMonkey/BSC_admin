@@ -17,7 +17,7 @@
 
 <section class="card">
   <dl class="detail-list">
-    <dt>Status</dt><dd><span class="status-pill">{{ invoice.get_status_display }}</span></dd>
+    <dt>Status</dt><dd><span class="status-pill status-{{ invoice.status }}">{{ invoice.get_status_display }}</span></dd>
     <dt>Created by</dt><dd>{{ invoice.created_by }}</dd>
     <dt>Total</dt><dd>${{ invoice.total_amount|floatformat:2 }}</dd>
   </dl>

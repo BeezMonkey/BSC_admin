@@ -493,6 +493,45 @@ tbody tr:last-child td {
   font-weight: 700;
 }
 
+.status-pill.status-active,
+.status-pill.status-approved,
+.status-pill.status-confirmed,
+.status-pill.status-issued,
+.status-pill.status-paid,
+.status-pill.status-current {
+  color: #065f46;
+  background: #d1fae5;
+}
+
+.status-pill.status-draft,
+.status-pill.status-archived,
+.status-pill.status-inactive,
+.status-pill.status-not_provided,
+.status-pill.status-completed {
+  color: #475467;
+  background: #eef2f6;
+}
+
+.status-pill.status-published,
+.status-pill.status-submitted,
+.status-pill.status-pending {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.status-pill.status-rejected,
+.status-pill.status-cancelled,
+.status-pill.status-no_show,
+.status-pill.status-expired {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.status-pill.status-invoiced {
+  color: var(--brand-dark);
+  background: #ccfbf1;
+}
+
 .record-form {
   display: grid;
   gap: 1rem;
@@ -701,27 +740,6 @@ tbody tr:last-child td {
 
 .shift-list-item-past {
   color: var(--muted);
-}
-
-.status-pill.status-published {
-  color: #92400e;
-  background: #fef3c7;
-}
-
-.status-pill.status-confirmed {
-  color: var(--brand-dark);
-  background: #d1fae5;
-}
-
-.status-pill.status-completed {
-  color: #475467;
-  background: #eef2f6;
-}
-
-.status-pill.status-cancelled,
-.status-pill.status-no_show {
-  color: #991b1b;
-  background: #fee2e2;
 }
 
 .list-item-actions {

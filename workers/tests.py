@@ -153,6 +153,25 @@ class SupportWorkerManagementTests(TestCase):
         self.assertContains(response, "Maya Singh")
         self.assertNotContains(response, "Liam Brown")
 
+    def test_worker_list_renders_status_specific_class(self):
+        user = get_user_model().objects.create_user(
+            username="maya",
+            email="maya@example.com",
+            password="test-password-123",
+        )
+        SupportWorker.objects.create(
+            user=user,
+            first_name="Maya",
+            last_name="Singh",
+            email="maya@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("worker_list"))
+
+        self.assertContains(response, 'class="status-pill status-active"')
+
     def test_worker_list_is_paginated_and_preserves_filters(self):
         for index in range(25):
             user = get_user_model().objects.create_user(

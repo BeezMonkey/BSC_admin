@@ -21,7 +21,7 @@
   <h2>Workflow Status</h2>
   <div class="workflow-panel">
     <div>
-      <span class="status-pill">{{ workflow_status.label }}</span>
+      <span class="status-pill status-{{ shift.status }}">{{ workflow_status.label }}</span>
       <p>{{ workflow_status.next_step }}</p>
     </div>
     <div class="button-row">

@@ -60,7 +60,7 @@
           <td>{{ item.get_unit_display }}</td>
           <td>${{ item.price_limit }}</td>
           <td>{{ item.get_gst_code_display }}</td>
-          <td><span class="status-pill">{{ item.is_active|yesno:"Active,Inactive" }}</span></td>
+          <td><span class="status-pill status-{% if item.is_active %}active{% else %}inactive{% endif %}">{{ item.is_active|yesno:"Active,Inactive" }}</span></td>
           <td class="actions">
             <a href="{% url 'support_item_detail' item.id %}">View</a>
             <a href="{% url 'support_item_edit' item.id %}">Edit</a>

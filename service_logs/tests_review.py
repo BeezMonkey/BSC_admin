@@ -199,6 +199,15 @@ class ServiceLogReviewTests(TestCase):
         self.assertContains(response, "Submitted for review.")
         self.assertNotContains(response, "Submitted log.")
 
+    def test_service_log_list_renders_status_specific_class(self):
+        self.service_log.status = ServiceLog.Status.APPROVED
+        self.service_log.save(update_fields=["status", "updated_at"])
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_list"))
+
+        self.assertContains(response, 'class="status-pill status-approved"')
+
     def test_service_log_list_shows_status_filter_summary(self):
         self.service_log.status = ServiceLog.Status.APPROVED
         self.service_log.save(update_fields=["status", "updated_at"])
