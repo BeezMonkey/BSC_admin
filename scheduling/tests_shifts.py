@@ -249,7 +249,7 @@ class ShiftSchedulingTests(TestCase):
         )
 
         self.assertContains(response, 'name="worker"')
-        self.assertContains(response, 'placeholder="Worker name"')
+        self.assertContains(response, 'placeholder="Worker name keyword"')
         self.assertNotContains(response, 'placeholder="Worker ID"')
 
     def test_roster_can_filter_by_participant_and_worker_name(self):
@@ -297,9 +297,12 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, "Wendy Worker")
         self.assertNotContains(response, "<td>Ben Taylor</td>", html=True)
         self.assertNotContains(response, "<td>Oscar Other</td>", html=True)
-        self.assertContains(response, "Showing shifts for participant Ava for worker Wendy.")
-        self.assertContains(response, 'placeholder="Participant name"')
-        self.assertContains(response, 'placeholder="Worker name"')
+        self.assertContains(
+            response,
+            'Showing shifts matching participant &quot;Ava&quot; and worker &quot;Wendy&quot;.',
+        )
+        self.assertContains(response, 'placeholder="Participant name keyword"')
+        self.assertContains(response, 'placeholder="Worker name keyword"')
 
     def test_roster_list_shows_status_filter_summary(self):
         self.create_shift(status=Shift.Status.DRAFT)
@@ -329,7 +332,7 @@ class ShiftSchedulingTests(TestCase):
 
         self.assertContains(
             response,
-            "Showing published shifts for worker Wendy from June 1, 2026 to June 30, 2026.",
+            'Showing published shifts matching worker &quot;Wendy&quot; from June 1, 2026 to June 30, 2026.',
         )
 
     def test_worker_can_only_see_own_non_draft_shifts(self):
