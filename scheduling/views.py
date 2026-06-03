@@ -61,11 +61,15 @@ def roster_list(request):
         shifts = shifts.filter(
             Q(participant__first_name__icontains=participant_query)
             | Q(participant__last_name__icontains=participant_query)
+            | Q(participant__ndis_number__icontains=participant_query)
+            | Q(participant__phone__icontains=participant_query)
         )
     if worker_query:
         shifts = shifts.filter(
             Q(worker__first_name__icontains=worker_query)
             | Q(worker__last_name__icontains=worker_query)
+            | Q(worker__email__icontains=worker_query)
+            | Q(worker__phone__icontains=worker_query)
         )
     if status:
         shifts = shifts.filter(status=status)

@@ -249,7 +249,7 @@ class ShiftSchedulingTests(TestCase):
         )
 
         self.assertContains(response, 'name="worker"')
-        self.assertContains(response, 'placeholder="Worker name keyword"')
+        self.assertContains(response, 'placeholder="Name, email, or phone"')
         self.assertNotContains(response, 'placeholder="Worker ID"')
 
     def test_roster_can_filter_by_participant_and_worker_name(self):
@@ -301,8 +301,71 @@ class ShiftSchedulingTests(TestCase):
             response,
             'Showing shifts matching participant &quot;Ava&quot; and worker &quot;Wendy&quot;.',
         )
-        self.assertContains(response, 'placeholder="Participant name keyword"')
-        self.assertContains(response, 'placeholder="Worker name keyword"')
+        self.assertContains(response, 'placeholder="Name, NDIS, or phone"')
+        self.assertContains(response, 'placeholder="Name, email, or phone"')
+
+    def test_roster_can_filter_participant_by_ndis_or_phone(self):
+        self.participant.ndis_number = "430000001"
+        self.participant.phone = "0400000001"
+        self.participant.save()
+        ben = Participant.objects.create(
+            first_name="Ben",
+            last_name="Taylor",
+            ndis_number="430000002",
+            phone="0400000002",
+            status=Participant.Status.ACTIVE,
+            address_line_1="20 Creek Street",
+            suburb="Brisbane",
+            state="QLD",
+            postcode="4000",
+        )
+        self.create_shift(participant=self.participant)
+        self.create_shift(
+            participant=ben,
+            worker=self.other_worker,
+            service_date=date(2026, 6, 2),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            planned_hours=Decimal("1.00"),
+            service_type=Shift.ServiceType.OTHER,
+            status=Shift.Status.PUBLISHED,
+        )
+        self.login_admin()
+
+        ndis_response = self.client.get(reverse("roster_list"), {"participant": "430000001"})
+        phone_response = self.client.get(reverse("roster_list"), {"participant": "0400000001"})
+
+        self.assertContains(ndis_response, "Ava Nguyen")
+        self.assertNotContains(ndis_response, "<td>Ben Taylor</td>", html=True)
+        self.assertContains(phone_response, "Ava Nguyen")
+        self.assertNotContains(phone_response, "<td>Ben Taylor</td>", html=True)
+        self.assertContains(ndis_response, 'placeholder="Name, NDIS, or phone"')
+
+    def test_roster_can_filter_worker_by_email_or_phone(self):
+        self.worker.phone = "0411111111"
+        self.worker.save()
+        self.other_worker.phone = "0422222222"
+        self.other_worker.save()
+        self.create_shift(worker=self.worker)
+        self.create_shift(
+            worker=self.other_worker,
+            service_date=date(2026, 6, 2),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            planned_hours=Decimal("1.00"),
+            service_type=Shift.ServiceType.OTHER,
+            status=Shift.Status.PUBLISHED,
+        )
+        self.login_admin()
+
+        email_response = self.client.get(reverse("roster_list"), {"worker": "worker@example.com"})
+        phone_response = self.client.get(reverse("roster_list"), {"worker": "0411111111"})
+
+        self.assertContains(email_response, "Wendy Worker")
+        self.assertNotContains(email_response, "<td>Oscar Other</td>", html=True)
+        self.assertContains(phone_response, "Wendy Worker")
+        self.assertNotContains(phone_response, "<td>Oscar Other</td>", html=True)
+        self.assertContains(email_response, 'placeholder="Name, email, or phone"')
 
     def test_roster_list_shows_status_filter_summary(self):
         self.create_shift(status=Shift.Status.DRAFT)
