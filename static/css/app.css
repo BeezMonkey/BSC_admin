@@ -371,7 +371,12 @@ textarea {
 }
 
 input[type="checkbox"] {
-  width: auto;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  justify-self: start;
+  align-self: center;
+  accent-color: var(--brand);
 }
 
 .bulk-actions {
