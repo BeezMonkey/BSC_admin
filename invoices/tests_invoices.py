@@ -142,6 +142,13 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, 'class="filter-bar invoice-preview-filter"')
         self.assertNotContains(response, "<p>\n    <label")
 
+    def test_invoice_create_wraps_approved_logs_table_for_small_screens(self):
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_create"))
+
+        self.assertContains(response, 'class="card table-card invoice-preview-table"')
+
     def test_finance_user_can_create_invoice_from_approved_logs(self):
         first_log = self.create_service_log(actual_hours=Decimal("2.00"))
         second_log = self.create_service_log(
