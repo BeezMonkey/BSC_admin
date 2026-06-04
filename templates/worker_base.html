@@ -20,6 +20,13 @@
         <button type="submit">Logout</button>
       </form>
     </header>
+    {% if messages %}
+      <div class="messages" role="status" aria-live="polite">
+        {% for message in messages %}
+          <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
     {% block content %}{% endblock %}
   </section>
 </div>

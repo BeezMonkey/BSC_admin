@@ -158,6 +158,51 @@ button.danger:hover {
   color: #991b1b;
 }
 
+.messages {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0 0 1rem;
+}
+
+.message {
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--brand);
+  border-radius: 7px;
+  padding: 0.72rem 0.85rem;
+  color: var(--ink);
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(24, 36, 51, 0.04);
+  font-weight: 700;
+}
+
+.message.success {
+  border-color: #bbf7d0;
+  border-left-color: #16a34a;
+  color: #166534;
+  background: #f0fdf4;
+}
+
+.message.error {
+  border-color: #fecaca;
+  border-left-color: #dc2626;
+  color: #991b1b;
+  background: #fef2f2;
+}
+
+.message.warning {
+  border-color: #fde68a;
+  border-left-color: #ca8a04;
+  color: #854d0e;
+  background: #fffbeb;
+}
+
+.message.info {
+  border-color: #bfdbfe;
+  border-left-color: #2563eb;
+  color: #1e40af;
+  background: #eff6ff;
+}
+
 .app-shell {
   display: grid;
   min-height: 100vh;
@@ -381,6 +426,8 @@ td.actions a:last-child {
 .filter-bar label,
 .field {
   display: grid;
+  align-self: start;
+  align-content: start;
   gap: 0.4rem;
   font-weight: 700;
 }
