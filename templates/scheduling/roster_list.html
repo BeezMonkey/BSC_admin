@@ -40,8 +40,8 @@
 </div>
 {% endif %}
 
-<section class="card table-card">
-  <table>
+<section class="card table-card roster-table-card">
+  <table class="roster-table">
     <thead>
       <tr>
         <th><a class="sort-link" href="?{{ sorting.links.date }}">Date</a></th>
@@ -56,11 +56,11 @@
     <tbody>
       {% for shift in shifts %}
         <tr>
-          <td>{{ shift.service_date }}</td>
-          <td>{{ shift.start_time }} - {{ shift.end_time }}</td>
-          <td>{{ shift.participant.display_name }}</td>
-          <td>{{ shift.worker.display_name }}</td>
-          <td>{{ shift.get_service_type_display }}</td>
+          <td class="roster-date-cell">{{ shift.service_date }}</td>
+          <td class="roster-time-cell">{{ shift.start_time }} - {{ shift.end_time }}</td>
+          <td class="roster-person-cell">{{ shift.participant.display_name }}</td>
+          <td class="roster-person-cell">{{ shift.worker.display_name }}</td>
+          <td class="roster-service-cell">{{ shift.get_service_type_display }}</td>
           <td><span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span></td>
           <td class="actions">
             <a href="{% url 'shift_detail' shift.id %}?next={{ current_list_url|urlencode }}">View</a>
