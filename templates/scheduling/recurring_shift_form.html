@@ -10,6 +10,10 @@
   </div>
 </div>
 
+<section class="info-notice recurring-helper-notice">
+  <p>Preview proposed dates before creating anything. Confirming creates non-conflicting shifts as drafts.</p>
+</section>
+
 <form method="get" class="record-form" novalidate>
   {% if form.non_field_errors %}
     <div class="error">{{ form.non_field_errors }}</div>
@@ -27,6 +31,7 @@
 
   <section class="card form-section">
     <h2>Pattern</h2>
+    <p>Start date and end date define the recurring schedule window.</p>
     <div class="form-grid">
       {% include "participants/partials/field.html" with field=form.frequency %}
       {% include "participants/partials/field.html" with field=form.start_date %}
@@ -55,6 +60,7 @@
 {% if preview %}
 <section class="card table-card recurring-preview-table">
   <h2>Preview</h2>
+  <p>Conflicting dates will be skipped when draft shifts are created.</p>
   <table>
     <thead>
       <tr>

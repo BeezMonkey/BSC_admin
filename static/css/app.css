@@ -678,6 +678,24 @@ tbody tr:last-child td {
   max-width: 1160px;
 }
 
+.info-notice {
+  border: 1px solid #cde7e3;
+  border-left: 4px solid var(--brand);
+  border-radius: 7px;
+  padding: 0.72rem 0.9rem;
+  color: #35505d;
+  background: #f3fbf9;
+}
+
+.info-notice p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.recurring-helper-notice {
+  margin-bottom: 0.65rem;
+}
+
 .form-section {
   border: 1px solid var(--line);
   border-radius: 7px;
