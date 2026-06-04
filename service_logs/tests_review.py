@@ -208,6 +208,16 @@ class ServiceLogReviewTests(TestCase):
 
         self.assertContains(response, 'class="status-pill status-approved"')
 
+    def test_service_log_list_displays_australian_date_format(self):
+        self.service_log.status = ServiceLog.Status.APPROVED
+        self.service_log.save(update_fields=["status", "updated_at"])
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_list"))
+
+        self.assertContains(response, ">01/06/2026</a>")
+        self.assertNotContains(response, ">June 1, 2026</a>")
+
     def test_service_log_list_shows_status_filter_summary(self):
         self.service_log.status = ServiceLog.Status.APPROVED
         self.service_log.save(update_fields=["status", "updated_at"])
@@ -322,7 +332,7 @@ class ServiceLogReviewTests(TestCase):
         )
         content = response.content.decode()
 
-        self.assertLess(content.index("June 1, 2026"), content.index("June 3, 2026"))
+        self.assertLess(content.index("01/06/2026"), content.index("03/06/2026"))
         self.assertContains(response, "?status=approved&amp;sort=date&amp;direction=desc")
 
     def test_service_log_list_distinguishes_empty_filter_results(self):

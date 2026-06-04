@@ -56,7 +56,7 @@
               <input type="checkbox" name="service_log_ids" value="{{ service_log.id }}">
             {% endif %}
           </td>
-          <td class="service-log-date-cell"><a href="{% url 'service_log_detail' service_log.id %}?next={{ current_list_url|urlencode }}">{{ service_log.service_date }}</a></td>
+          <td class="service-log-date-cell"><a href="{% url 'service_log_detail' service_log.id %}?next={{ current_list_url|urlencode }}">{{ service_log.service_date|date:"d/m/Y" }}</a></td>
           <td class="service-log-person-cell">{{ service_log.participant.display_name }}</td>
           <td class="service-log-person-cell">{{ service_log.worker.display_name }}</td>
           <td class="service-log-status-cell"><span class="status-pill status-{{ service_log.status }}">{{ service_log.get_status_display }}</span></td>
