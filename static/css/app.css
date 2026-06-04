@@ -492,6 +492,41 @@ table {
   min-width: 680px;
 }
 
+.service-log-table {
+  min-width: 920px;
+}
+
+.service-log-table th:first-child,
+.service-log-table td:first-child,
+.service-log-table th:nth-child(6),
+.service-log-table td:nth-child(6) {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.service-log-table th:nth-child(2),
+.service-log-table td:nth-child(2),
+.service-log-table th:nth-child(5),
+.service-log-table td:nth-child(5) {
+  white-space: nowrap;
+}
+
+.service-log-table td.actions {
+  min-width: 8.5rem;
+  white-space: normal;
+}
+
+.service-log-table td.actions a {
+  margin-bottom: 0.35rem;
+}
+
+.service-log-table .notes-cell {
+  max-width: 20rem;
+  min-width: 14rem;
+  overflow-wrap: anywhere;
+  color: #314052;
+}
+
 th,
 td {
   border-bottom: 1px solid var(--line);

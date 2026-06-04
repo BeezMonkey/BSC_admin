@@ -346,6 +346,18 @@ class ServiceLogReviewTests(TestCase):
         self.assertContains(response, reverse("service_log_detail", args=[self.service_log.id]))
         self.assertContains(response, "View")
 
+    def test_service_log_list_uses_dense_table_structure(self):
+        self.service_log.status = ServiceLog.Status.APPROVED
+        self.service_log.save(update_fields=["status", "updated_at"])
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_list"))
+
+        self.assertContains(response, 'class="service-log-table"')
+        self.assertContains(response, 'class="notes-cell"')
+        self.assertContains(response, 'name="service_log_ids"')
+        self.assertContains(response, "Create Invoice")
+
     def test_service_log_detail_back_link_preserves_list_state(self):
         self.service_log.status = ServiceLog.Status.APPROVED
         self.service_log.save(update_fields=["status", "updated_at"])
