@@ -13,7 +13,7 @@
     </nav>
   </aside>
   <section class="content worker-main">
-    <header class="topbar">
+    <header class="topbar worker-topbar">
       <span class="user-label">{{ request.user.get_username }}</span>
       <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}
