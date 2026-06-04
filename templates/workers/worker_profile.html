@@ -19,29 +19,31 @@
 
 <section class="worker-card">
   <h2>Assigned Participants</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Participant</th>
-        <th>Start</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for assignment in worker.participant_assignments.all %}
-        {% if assignment.is_active %}
-          <tr>
-            <td>{{ assignment.participant.display_name }}</td>
-            <td>{{ assignment.start_date }}</td>
-            <td>Active</td>
-          </tr>
-        {% endif %}
-      {% empty %}
+  <div class="worker-table-scroll">
+    <table>
+      <thead>
         <tr>
-          <td colspan="3">No active participants assigned.</td>
+          <th>Participant</th>
+          <th>Start</th>
+          <th>Status</th>
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {% for assignment in worker.participant_assignments.all %}
+          {% if assignment.is_active %}
+            <tr>
+              <td>{{ assignment.participant.display_name }}</td>
+              <td>{{ assignment.start_date }}</td>
+              <td>Active</td>
+            </tr>
+          {% endif %}
+        {% empty %}
+          <tr>
+            <td colspan="3">No active participants assigned.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </section>
 {% endblock %}

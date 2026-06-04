@@ -486,6 +486,20 @@ class SupportWorkerManagementTests(TestCase):
         self.assertContains(response, "Wendy Worker")
         self.assertContains(response, "worker@example.com")
 
+    def test_worker_profile_wraps_assignment_table_for_small_screens(self):
+        SupportWorker.objects.create(
+            user=self.worker_user,
+            first_name="Wendy",
+            last_name="Worker",
+            email="worker@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+
+        self.client.login(username="worker", password="test-password-123")
+        response = self.client.get(reverse("worker_profile"))
+
+        self.assertContains(response, 'class="worker-table-scroll"')
+
     def test_worker_without_profile_sees_profile_setup_message(self):
         self.client.login(username="worker", password="test-password-123")
 
