@@ -26,6 +26,7 @@ These items must be decided and completed before any real online use:
 - Set a unique production `DJANGO_SECRET_KEY`.
 - Set real `DJANGO_ALLOWED_HOSTS`.
 - Set `DJANGO_CSRF_TRUSTED_ORIGINS` for the HTTPS domain.
+- Keep the business timezone as `Australia/Brisbane` unless the operating location changes.
 - Enable HTTPS cookie and redirect settings only after SSL/proxy behavior is confirmed.
 - Run migrations and `collectstatic` during deployment.
 - Run full browser testing in a staging environment before production.

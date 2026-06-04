@@ -15,6 +15,7 @@ docs/staging-deployment-plan.md
 - Set `DJANGO_DEBUG=False`.
 - Set `DJANGO_ALLOWED_HOSTS` to the real domain names and server hostnames.
 - Set `DJANGO_CSRF_TRUSTED_ORIGINS` to the real HTTPS origins.
+- Confirm the business timezone remains `Australia/Brisbane`.
 - Enable HTTPS settings only after SSL and proxy behavior are confirmed.
 - Keep `.env` out of Git.
 - Rotate or remove local demo/test accounts before go-live.
