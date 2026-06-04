@@ -27,7 +27,7 @@ def format_filter_date(value):
     parsed_date = parse_date(value)
     if not parsed_date:
         return value
-    return f"{parsed_date.strftime('%B')} {parsed_date.day}, {parsed_date.year}"
+    return parsed_date.strftime("%d/%m/%Y")
 
 
 def build_invoice_filter_summary(status, q, participant_query, period_from, period_to):

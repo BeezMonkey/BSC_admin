@@ -56,7 +56,7 @@
     <tbody>
       {% for shift in shifts %}
         <tr>
-          <td class="roster-date-cell">{{ shift.service_date }}</td>
+          <td class="roster-date-cell">{{ shift.service_date|date:"d/m/Y" }}</td>
           <td class="roster-time-cell">{{ shift.start_time }} - {{ shift.end_time }}</td>
           <td class="roster-person-cell">{{ shift.participant.display_name }}</td>
           <td class="roster-person-cell">{{ shift.worker.display_name }}</td>

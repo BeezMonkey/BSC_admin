@@ -23,7 +23,7 @@ def format_filter_date(value):
     parsed_date = parse_date(value)
     if not parsed_date:
         return value
-    return f"{parsed_date.strftime('%B')} {parsed_date.day}, {parsed_date.year}"
+    return parsed_date.strftime("%d/%m/%Y")
 
 
 def build_roster_filter_summary(status, participant_query, worker_query, date_from, date_to):

@@ -199,6 +199,22 @@ class ParticipantManagementTests(TestCase):
 
         self.assertContains(response, 'class="status-pill status-active"')
 
+    def test_participant_list_displays_australian_plan_period_dates(self):
+        Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            ndis_number="111111111",
+            status=Participant.Status.ACTIVE,
+            plan_start_date=date(2026, 1, 1),
+            plan_end_date=date(2026, 12, 31),
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("participant_list"))
+
+        self.assertContains(response, "01/01/2026 to 31/12/2026")
+        self.assertNotContains(response, "Jan. 1, 2026 to Dec. 31, 2026")
+
     def test_participant_list_is_paginated_and_preserves_filters(self):
         for index in range(25):
             Participant.objects.create(
