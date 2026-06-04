@@ -358,6 +358,20 @@ class ServiceLogReviewTests(TestCase):
         self.assertContains(response, 'name="service_log_ids"')
         self.assertContains(response, "Create Invoice")
 
+    def test_service_log_list_uses_readability_table_classes(self):
+        self.service_log.status = ServiceLog.Status.APPROVED
+        self.service_log.save(update_fields=["status", "updated_at"])
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_list"))
+
+        self.assertContains(response, 'class="card table-card service-log-table-card"')
+        self.assertContains(response, 'class="service-log-date-cell"')
+        self.assertContains(response, 'class="service-log-person-cell"')
+        self.assertContains(response, 'class="service-log-status-cell"')
+        self.assertContains(response, 'class="service-log-hours-cell"')
+        self.assertContains(response, 'class="actions service-log-actions-cell"')
+
     def test_service_log_detail_back_link_preserves_list_state(self):
         self.service_log.status = ServiceLog.Status.APPROVED
         self.service_log.save(update_fields=["status", "updated_at"])

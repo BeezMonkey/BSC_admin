@@ -31,7 +31,7 @@
 {% endif %}
 
 <form method="get" action="{% url 'invoice_create' %}">
-<section class="card table-card">
+<section class="card table-card service-log-table-card">
   <div class="bulk-actions">
     <button type="submit">Create Invoice from Selected</button>
   </div>
@@ -51,18 +51,18 @@
     <tbody>
       {% for service_log in service_logs %}
         <tr>
-          <td>
+          <td class="service-log-select-cell">
             {% if service_log.status == "approved" %}
               <input type="checkbox" name="service_log_ids" value="{{ service_log.id }}">
             {% endif %}
           </td>
-          <td><a href="{% url 'service_log_detail' service_log.id %}?next={{ current_list_url|urlencode }}">{{ service_log.service_date }}</a></td>
-          <td>{{ service_log.participant.display_name }}</td>
-          <td>{{ service_log.worker.display_name }}</td>
-          <td><span class="status-pill status-{{ service_log.status }}">{{ service_log.get_status_display }}</span></td>
-          <td>{{ service_log.actual_hours }}</td>
+          <td class="service-log-date-cell"><a href="{% url 'service_log_detail' service_log.id %}?next={{ current_list_url|urlencode }}">{{ service_log.service_date }}</a></td>
+          <td class="service-log-person-cell">{{ service_log.participant.display_name }}</td>
+          <td class="service-log-person-cell">{{ service_log.worker.display_name }}</td>
+          <td class="service-log-status-cell"><span class="status-pill status-{{ service_log.status }}">{{ service_log.get_status_display }}</span></td>
+          <td class="service-log-hours-cell">{{ service_log.actual_hours }}</td>
           <td class="notes-cell">{{ service_log.case_notes|truncatechars:80 }}</td>
-          <td class="actions">
+          <td class="actions service-log-actions-cell">
             <a href="{% url 'service_log_detail' service_log.id %}?next={{ current_list_url|urlencode }}">View</a>
             {% if service_log.status == "approved" %}
               <a href="{% url 'invoice_create' %}?participant={{ service_log.participant_id }}&period_start={{ service_log.service_date|date:'Y-m-d' }}&period_end={{ service_log.service_date|date:'Y-m-d' }}">Create Invoice</a>
