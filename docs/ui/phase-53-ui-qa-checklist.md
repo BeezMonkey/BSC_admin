@@ -2,6 +2,8 @@
 
 This checklist is for manually reviewing the V1 interface after the Phase 52A-52F visual polish work.
 
+Latest findings log: `docs/ui/phase-54b-ui-qa-findings.md`
+
 ## Purpose
 Use this checklist before starting the next UI polish phase. The goal is to find visible usability issues, group them by priority, and avoid making scattered style changes without a clear reason.
 
