@@ -10,13 +10,50 @@
   </div>
 </div>
 
-<form method="get" class="card">
-  {{ form.as_p }}
-  <button type="submit">Preview</button>
+<form method="get" class="record-form" novalidate>
+  {% if form.non_field_errors %}
+    <div class="error">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <section class="card form-section">
+    <h2>Assignment</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.participant %}
+      {% include "participants/partials/field.html" with field=form.worker %}
+      {% include "participants/partials/field.html" with field=form.support_item %}
+      {% include "participants/partials/field.html" with field=form.service_type %}
+    </div>
+  </section>
+
+  <section class="card form-section">
+    <h2>Pattern</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.frequency %}
+      {% include "participants/partials/field.html" with field=form.start_date %}
+      {% include "participants/partials/field.html" with field=form.end_date %}
+      {% include "participants/partials/field.html" with field=form.start_time %}
+      {% include "participants/partials/field.html" with field=form.end_time %}
+      {% include "participants/partials/field.html" with field=form.break_minutes %}
+    </div>
+  </section>
+
+  <section class="card form-section">
+    <h2>Service Details</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.location %}
+      {% include "participants/partials/field.html" with field=form.address %}
+      {% include "participants/partials/field.html" with field=form.instructions %}
+      {% include "participants/partials/field.html" with field=form.admin_notes %}
+    </div>
+  </section>
+
+  <div class="form-actions">
+    <button type="submit">Preview</button>
+  </div>
 </form>
 
 {% if preview %}
-<section class="card">
+<section class="card table-card recurring-preview-table">
   <h2>Preview</h2>
   <table>
     <thead>

@@ -87,6 +87,26 @@ class ShiftSchedulingTests(TestCase):
         data.update(overrides)
         return data
 
+    def recurring_shift_payload(self, **overrides):
+        data = {
+            "participant": self.participant.id,
+            "worker": self.worker.id,
+            "frequency": "weekly",
+            "start_date": "2026-06-01",
+            "end_date": "2026-06-15",
+            "start_time": "09:00",
+            "end_time": "11:00",
+            "break_minutes": "0",
+            "support_item": self.support_item.id,
+            "service_type": Shift.ServiceType.PERSONAL_CARE,
+            "location": "Participant home",
+            "address": "10 Creek Street, Brisbane QLD 4000",
+            "instructions": "Use side entrance.",
+            "admin_notes": "Recurring note.",
+        }
+        data.update(overrides)
+        return data
+
     def create_shift(self, **overrides):
         data = {
             "participant": self.participant,
@@ -723,6 +743,45 @@ class ShiftSchedulingTests(TestCase):
         response = self.client.get(reverse("worker_shift_detail", args=[shift.id]))
 
         self.assertEqual(response.status_code, 404)
+
+    def test_recurring_shift_create_uses_record_form_layout(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("recurring_shift_create"))
+
+        self.assertContains(response, 'class="record-form"')
+        self.assertContains(response, 'class="card form-section"')
+        self.assertNotContains(response, "<p>\n    <label")
+
+    def test_recurring_shift_preview_uses_table_card_layout(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("recurring_shift_create"),
+            self.recurring_shift_payload(),
+        )
+
+        self.assertContains(response, "Preview")
+        self.assertContains(response, 'class="card table-card recurring-preview-table"')
+        self.assertContains(response, "Create Non-conflicting Draft Shifts")
+
+    def test_recurring_shift_create_keeps_creation_flow(self):
+        self.login_admin()
+
+        response = self.client.post(
+            reverse("recurring_shift_create"),
+            {**self.recurring_shift_payload(), "confirm": "1"},
+        )
+
+        self.assertRedirects(response, reverse("roster_list"))
+        self.assertEqual(
+            Shift.objects.filter(
+                participant=self.participant,
+                worker=self.worker,
+                status=Shift.Status.DRAFT,
+            ).count(),
+            3,
+        )
 
     def test_admin_can_cancel_shift_with_reason(self):
         shift = Shift.objects.create(
