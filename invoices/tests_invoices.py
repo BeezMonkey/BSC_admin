@@ -226,6 +226,22 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, reverse("invoice_detail", args=[invoice.id]))
         self.assertContains(response, "View")
 
+    def test_invoice_list_displays_australian_period_dates(self):
+        service_log = self.create_service_log()
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create_from_service_log(invoice=invoice, service_log=service_log)
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_placeholder"))
+
+        self.assertContains(response, "01/06/2026 - 30/06/2026")
+        self.assertNotContains(response, "June 1, 2026 - June 30, 2026")
+
     def test_invoice_list_delete_action_keeps_inline_form_structure(self):
         invoice = Invoice.objects.create(
             participant=self.participant,
@@ -425,7 +441,7 @@ class InvoiceGenerationTests(TestCase):
             response,
             (
                 f"Showing draft invoices matching &quot;{invoice.invoice_number[-4:]}&quot; "
-                "for Ava from June 1, 2026 to June 30, 2026."
+                "for Ava from 01/06/2026 to 30/06/2026."
             ),
         )
 

@@ -50,7 +50,7 @@
           <td>{{ participant.get_management_type_display|default:"-" }}</td>
           <td>
             {% if participant.plan_start_date or participant.plan_end_date %}
-              {{ participant.plan_start_date|default:"-" }} to {{ participant.plan_end_date|default:"-" }}
+              {% if participant.plan_start_date %}{{ participant.plan_start_date|date:"d/m/Y" }}{% else %}-{% endif %} to {% if participant.plan_end_date %}{{ participant.plan_end_date|date:"d/m/Y" }}{% else %}-{% endif %}
             {% else %}
               -
             {% endif %}

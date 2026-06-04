@@ -379,6 +379,15 @@ class ShiftSchedulingTests(TestCase):
 
         self.assertContains(response, 'class="status-pill status-published"')
 
+    def test_roster_list_displays_australian_date_format(self):
+        self.create_shift(status=Shift.Status.PUBLISHED)
+        self.login_admin()
+
+        response = self.client.get(reverse("roster_list"))
+
+        self.assertContains(response, 'class="roster-date-cell">01/06/2026</td>')
+        self.assertNotContains(response, "June 1, 2026")
+
     def test_roster_list_uses_readability_table_classes(self):
         self.create_shift(status=Shift.Status.PUBLISHED)
         self.login_admin()
@@ -548,7 +557,7 @@ class ShiftSchedulingTests(TestCase):
 
         self.assertContains(
             response,
-            'Showing published shifts matching worker &quot;Wendy&quot; from June 1, 2026 to June 30, 2026.',
+            'Showing published shifts matching worker &quot;Wendy&quot; from 01/06/2026 to 30/06/2026.',
         )
 
     def test_roster_list_is_paginated_and_preserves_filters(self):
@@ -612,7 +621,7 @@ class ShiftSchedulingTests(TestCase):
         )
         content = response.content.decode()
 
-        self.assertLess(content.index("June 1, 2026"), content.index("June 3, 2026"))
+        self.assertLess(content.index("01/06/2026"), content.index("03/06/2026"))
         self.assertContains(response, "?status=published&amp;sort=date&amp;direction=desc")
 
     def test_roster_list_distinguishes_empty_filter_results(self):
