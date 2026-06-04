@@ -1,10 +1,9 @@
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timezone as datetime_timezone
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
-from django.utils import timezone
 
 from accounts.models import UserProfile
 from participants.models import Participant
@@ -229,8 +228,8 @@ class ServiceLogReviewTests(TestCase):
 
     def test_service_log_detail_displays_australian_datetime_format(self):
         self.service_log.reviewed_by = self.admin_user
-        self.service_log.reviewed_at = timezone.make_aware(datetime(2026, 6, 4, 9, 30))
-        self.service_log.submitted_at = timezone.make_aware(datetime(2026, 6, 4, 8, 15))
+        self.service_log.reviewed_at = datetime(2026, 6, 3, 23, 30, tzinfo=datetime_timezone.utc)
+        self.service_log.submitted_at = datetime(2026, 6, 3, 22, 15, tzinfo=datetime_timezone.utc)
         self.service_log.save(update_fields=["reviewed_by", "reviewed_at", "submitted_at", "updated_at"])
         self.login_admin()
 
