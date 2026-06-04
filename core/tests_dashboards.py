@@ -29,6 +29,7 @@ class DashboardPolishTests(TestCase):
         self.assertContains(response, "Invoices")
         self.assertContains(response, "Documents")
         self.assertContains(response, "Audit Logs")
+        self.assertContains(response, "NDIS Admin")
         self.assertNotContains(response, "will be added")
 
     def test_admin_dashboard_marks_sidebar_link_active(self):
