@@ -68,9 +68,10 @@
 </div>
 
 {% if shift.status != "cancelled" %}
-<section class="card">
+<section class="card shift-cancel-card">
   <h2>Cancel Shift</h2>
-  <form method="post" action="{% url 'shift_cancel' shift.id %}" class="filter-bar">
+  <p>Use this only when the scheduled shift should not go ahead.</p>
+  <form method="post" action="{% url 'shift_cancel' shift.id %}" class="shift-cancel-form">
     {% csrf_token %}
     <label>Reason <input type="text" name="cancellation_reason"></label>
     <button class="danger" type="submit">Cancel Shift</button>
