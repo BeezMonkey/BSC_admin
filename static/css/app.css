@@ -576,26 +576,30 @@ tbody tr:last-child td {
 
 .record-form {
   display: grid;
-  gap: 1rem;
+  gap: 1.05rem;
+  max-width: 1160px;
 }
 
 .form-section {
   border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 1.1rem;
+  border-radius: 7px;
+  padding: 1.2rem;
   background: var(--panel);
-  box-shadow: var(--shadow);
+  box-shadow: 0 10px 28px rgba(24, 36, 51, 0.045);
 }
 
 .form-section h2 {
-  margin: 0 0 1rem;
-  font-size: 1.1rem;
+  margin: 0 0 1.05rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 1.05rem;
+  line-height: 1.25;
 }
 
 .form-grid {
   display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.95rem 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
 .form-grid.single {
@@ -604,6 +608,7 @@ tbody tr:last-child td {
 
 .field-error {
   color: #b91c1c;
+  font-size: 0.88rem;
   font-weight: 400;
 }
 
@@ -611,14 +616,16 @@ tbody tr:last-child td {
   display: flex;
   gap: 0.75rem;
   align-items: center;
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
   margin-bottom: 2rem;
 }
 
 .detail-grid {
   display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  margin-bottom: 1rem;
+  gap: 1.05rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  margin-bottom: 1.05rem;
 }
 
 .detail-grid .card {
@@ -627,17 +634,21 @@ tbody tr:last-child td {
 
 .detail-list {
   display: grid;
-  gap: 0.65rem;
+  gap: 0;
   grid-template-columns: 160px 1fr;
 }
 
 .detail-list dt {
+  border-top: 1px solid #edf1f6;
+  padding: 0.62rem 0.75rem 0.62rem 0;
   color: var(--muted);
   font-weight: 700;
 }
 
 .detail-list dd {
+  border-top: 1px solid #edf1f6;
   margin: 0;
+  padding: 0.62rem 0 0.62rem 0.75rem;
 }
 
 .tabs-placeholder {
@@ -690,6 +701,10 @@ tbody tr:last-child td {
   gap: 1rem;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 1rem;
+  background: #f8fafc;
 }
 
 .workflow-panel p {
@@ -701,6 +716,7 @@ tbody tr:last-child td {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .inline-form input {

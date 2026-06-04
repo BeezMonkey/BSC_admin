@@ -101,6 +101,15 @@ class ParticipantManagementTests(TestCase):
         self.assertContains(response, "This field is required")
         self.assertEqual(Participant.objects.count(), 0)
 
+    def test_participant_create_form_keeps_section_structure(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("participant_create"))
+
+        self.assertContains(response, 'class="card form-section"')
+        self.assertContains(response, "Basic Information")
+        self.assertContains(response, "NDIS Plan")
+
     def test_ndis_number_must_be_unique_when_supplied(self):
         Participant.objects.create(
             first_name="Existing",
