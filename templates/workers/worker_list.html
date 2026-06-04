@@ -75,11 +75,15 @@
               {% if has_filters %}
                 <strong>No support workers match the current filters.</strong>
                 <p>Clear the filters to review all support worker records.</p>
-                <a class="button secondary" href="{% url 'worker_list' %}">Clear filters</a>
+                <div class="empty-state-actions">
+                  <a class="button secondary" href="{% url 'worker_list' %}">Clear filters</a>
+                </div>
               {% else %}
                 <strong>No support workers found.</strong>
                 <p>Add a worker so they can be assigned shifts and submit service logs.</p>
-                <a class="button" href="{% url 'worker_create' %}?next={{ current_list_url|urlencode }}">Add Worker</a>
+                <div class="empty-state-actions">
+                  <a class="button" href="{% url 'worker_create' %}?next={{ current_list_url|urlencode }}">Add Worker</a>
+                </div>
               {% endif %}
             </div>
           </td>

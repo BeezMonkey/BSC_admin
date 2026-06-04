@@ -85,11 +85,15 @@
               {% if has_filters %}
                 <strong>No invoices match the current filters.</strong>
                 <p>Clear the filters to review all billing records.</p>
-                <a class="button secondary" href="{% url 'invoice_placeholder' %}">Clear filters</a>
+                <div class="empty-state-actions">
+                  <a class="button secondary" href="{% url 'invoice_placeholder' %}">Clear filters</a>
+                </div>
               {% else %}
                 <strong>No invoices found.</strong>
                 <p>Create an invoice or adjust the filters to review billing records.</p>
-                <a class="button" href="{% url 'invoice_create' %}">Create Invoice</a>
+                <div class="empty-state-actions">
+                  <a class="button" href="{% url 'invoice_create' %}">Create Invoice</a>
+                </div>
               {% endif %}
             </div>
           </td>

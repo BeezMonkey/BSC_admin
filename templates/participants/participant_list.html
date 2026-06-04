@@ -69,11 +69,15 @@
               {% if has_filters %}
                 <strong>No participants match the current filters.</strong>
                 <p>Clear the filters to review all participant records.</p>
-                <a class="button secondary" href="{% url 'participant_list' %}">Clear filters</a>
+                <div class="empty-state-actions">
+                  <a class="button secondary" href="{% url 'participant_list' %}">Clear filters</a>
+                </div>
               {% else %}
                 <strong>No participants found.</strong>
                 <p>Add a participant to start building records, assignments, shifts, and invoices.</p>
-                <a class="button" href="{% url 'participant_create' %}?next={{ current_list_url|urlencode }}">Add Participant</a>
+                <div class="empty-state-actions">
+                  <a class="button" href="{% url 'participant_create' %}?next={{ current_list_url|urlencode }}">Add Participant</a>
+                </div>
               {% endif %}
             </div>
           </td>

@@ -254,6 +254,15 @@ class ParticipantManagementTests(TestCase):
         self.assertContains(response, "Clear filters")
         self.assertNotContains(response, "Add a participant to start building records")
 
+    def test_participant_empty_state_wraps_action_links(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("participant_list"))
+
+        self.assertContains(response, 'class="empty-state"')
+        self.assertContains(response, 'class="empty-state-actions"')
+        self.assertContains(response, "Add Participant")
+
     def test_admin_can_view_participant_detail(self):
         participant = Participant.objects.create(
             first_name="Ava",

@@ -482,20 +482,27 @@ tbody tr:last-child td {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-top: 0.9rem;
+  margin-top: 0.95rem;
   border: 1px solid var(--line);
   border-radius: 7px;
-  padding: 0.65rem 0.75rem;
+  padding: 0.72rem 0.85rem;
   color: var(--muted);
   background: #ffffff;
+  box-shadow: 0 8px 22px rgba(24, 36, 51, 0.04);
+}
+
+.pagination-summary {
+  font-size: 0.9rem;
   font-weight: 700;
 }
 
 .pagination-links {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .pagination-links a,
@@ -506,8 +513,9 @@ tbody tr:last-child td {
   min-height: 2rem;
   border: 1px solid var(--line);
   border-radius: 6px;
-  padding: 0.3rem 0.62rem;
+  padding: 0.32rem 0.68rem;
   background: #ffffff;
+  line-height: 1.2;
 }
 
 .pagination-links a {
@@ -523,6 +531,11 @@ tbody tr:last-child td {
 .pagination-links .disabled {
   color: #98a2b3;
   background: #f8fafc;
+}
+
+.pagination-links > span:not(.disabled) {
+  color: var(--muted);
+  font-size: 0.88rem;
 }
 
 .status-pill {
@@ -848,18 +861,32 @@ tbody tr:last-child td {
 
 .empty-state {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.72rem;
   justify-items: start;
-  padding: 1.25rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 7px;
+  padding: 1.15rem 1.2rem;
   color: var(--muted);
+  background: #f8fafc;
 }
 
 .empty-state strong {
   color: var(--ink);
+  font-size: 1rem;
+  line-height: 1.35;
 }
 
 .empty-state p {
   margin: 0;
+  max-width: 48rem;
+  line-height: 1.45;
+}
+
+.empty-state-actions {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  padding-top: 0.1rem;
 }
 
 .worker-content {
@@ -930,10 +957,10 @@ tbody tr:last-child td {
 
 .summary-empty-state {
   display: grid;
-  gap: 0.25rem;
-  border: 1px dashed var(--line);
-  border-radius: 8px;
-  padding: 0.9rem 1rem;
+  gap: 0.32rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 7px;
+  padding: 1rem;
   color: var(--muted);
   background: #f8fafc;
 }
@@ -1071,5 +1098,14 @@ tbody tr:last-child td {
 
   .workflow-panel {
     grid-template-columns: 1fr;
+  }
+
+  .pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pagination-links {
+    justify-content: space-between;
   }
 }
