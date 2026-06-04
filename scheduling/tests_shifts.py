@@ -759,8 +759,11 @@ class ShiftSchedulingTests(TestCase):
         response = self.client.get(reverse("recurring_shift_create"))
 
         self.assertContains(response, "Start date and end date define the recurring schedule window.")
-        self.assertContains(response, "Preview shows the proposed dates before anything is created.")
-        self.assertContains(response, "Created shifts are saved as draft shifts.")
+        self.assertContains(response, 'class="info-notice recurring-helper-notice"')
+        self.assertContains(
+            response,
+            "Preview proposed dates before creating anything. Confirming creates non-conflicting shifts as drafts.",
+        )
 
     def test_recurring_shift_preview_uses_table_card_layout(self):
         self.login_admin()
