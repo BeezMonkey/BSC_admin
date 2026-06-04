@@ -645,3 +645,13 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, "$65.47")
         self.assertContains(response, "2.00")
         self.assertNotContains(response, "$130.940000000000")
+
+    def test_exports_page_marks_invoices_sidebar_link_as_active(self):
+        self.login_accountant()
+
+        response = self.client.get(reverse("exports_placeholder"))
+
+        self.assertContains(
+            response,
+            f'class="sidebar-link active" href="{reverse("invoice_placeholder")}"',
+        )

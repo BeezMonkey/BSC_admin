@@ -169,6 +169,16 @@ class DocumentManagementTests(TestCase):
             html=True,
         )
 
+    def test_document_create_marks_documents_sidebar_link_as_active(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("document_create"))
+
+        self.assertContains(
+            response,
+            f'class="sidebar-link active" href="{reverse("document_list")}"',
+        )
+
     def test_admin_can_view_and_download_document(self):
         document = Document.objects.create(
             title="Worker compliance",
