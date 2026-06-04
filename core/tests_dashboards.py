@@ -292,6 +292,27 @@ class DashboardPolishTests(TestCase):
         self.assertContains(response, "Profile")
         self.assertNotContains(response, "will appear here")
 
+    def test_worker_dashboard_uses_worker_responsive_layout_hooks(self):
+        user = User.objects.create_user(username="worker", password="pass")
+        UserProfile.objects.create(
+            user=user,
+            role=UserProfile.Role.SUPPORT_WORKER,
+            is_active_worker=True,
+        )
+        SupportWorker.objects.create(
+            user=user,
+            first_name="Wendy",
+            last_name="Worker",
+            email="worker@example.com",
+        )
+
+        self.client.login(username="worker", password="pass")
+        response = self.client.get(reverse("worker_dashboard"))
+
+        self.assertContains(response, 'class="app-shell worker-app-shell"')
+        self.assertContains(response, 'class="sidebar worker-sidebar"')
+        self.assertContains(response, 'class="topbar worker-topbar"')
+
     def test_worker_dashboard_shows_shift_action_summary(self):
         admin_user = User.objects.create_user(username="admin", password="pass")
         UserProfile.objects.create(user=admin_user, role=UserProfile.Role.ADMIN)

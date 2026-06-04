@@ -1165,6 +1165,47 @@ tbody tr:last-child td {
     white-space: nowrap;
   }
 
+  .worker-topbar {
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 -1rem 1rem;
+    min-height: 3.4rem;
+    padding: 0 1rem;
+  }
+
+  .worker-main {
+    display: block;
+  }
+
+  .worker-card {
+    margin: 0 0 1rem;
+    padding: 1rem;
+  }
+
+  .worker-content {
+    width: 100%;
+  }
+
+  .worker-dashboard-grid,
+  .action-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .shift-list-item {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 0.65rem;
+  }
+
+  .shift-list-item .status-pill {
+    justify-self: start;
+  }
+
+  .shift-filter-nav a,
+  .shift-summary span {
+    font-size: 0.92rem;
+  }
+
   .content {
     padding: 1rem;
   }
