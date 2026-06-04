@@ -51,7 +51,7 @@
       <dt>Preferred name</dt>
       <dd>{{ participant.preferred_name|default:"-" }}</dd>
       <dt>Date of birth</dt>
-      <dd>{{ participant.date_of_birth|default:"-" }}</dd>
+      <dd>{% if participant.date_of_birth %}{{ participant.date_of_birth|date:"d/m/Y" }}{% else %}-{% endif %}</dd>
       <dt>Phone</dt>
       <dd>{{ participant.phone|default:"-" }}</dd>
       <dt>Email</dt>
@@ -70,7 +70,7 @@
       <dt>Management type</dt>
       <dd>{{ participant.get_management_type_display|default:"-" }}</dd>
       <dt>Plan period</dt>
-      <dd>{{ participant.plan_start_date|default:"-" }} to {{ participant.plan_end_date|default:"-" }}</dd>
+      <dd>{% if participant.plan_start_date %}{{ participant.plan_start_date|date:"d/m/Y" }}{% else %}-{% endif %} to {% if participant.plan_end_date %}{{ participant.plan_end_date|date:"d/m/Y" }}{% else %}-{% endif %}</dd>
       <dt>Plan manager</dt>
       <dd>{{ participant.plan_manager_name|default:"-" }}</dd>
       <dt>Support coordinator</dt>
@@ -110,8 +110,8 @@
       {% for assignment in participant.worker_assignments.all %}
         <tr>
           <td>{{ assignment.worker.display_name }}</td>
-          <td>{{ assignment.start_date }}</td>
-          <td>{{ assignment.end_date|default:"-" }}</td>
+          <td>{{ assignment.start_date|date:"d/m/Y" }}</td>
+          <td>{% if assignment.end_date %}{{ assignment.end_date|date:"d/m/Y" }}{% else %}-{% endif %}</td>
           <td>{{ assignment.is_active|yesno:"Active,Ended" }}</td>
           <td>{{ assignment.notes|default:"-" }}</td>
           <td>

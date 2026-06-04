@@ -136,6 +136,15 @@ class ServiceLogCompletionTests(TestCase):
         self.assertContains(response, "09:00")
         self.assertContains(response, "11:30")
 
+    def test_worker_complete_form_displays_australian_shift_date(self):
+        shift = self.create_shift(status=Shift.Status.CONFIRMED)
+        self.login_worker()
+
+        response = self.client.get(reverse("worker_service_log_create", args=[shift.id]))
+
+        self.assertContains(response, "Ava Nguyen | 01/06/2026 |")
+        self.assertNotContains(response, "Ava Nguyen | June 1, 2026 |")
+
     def test_shift_can_only_have_one_service_log(self):
         shift = self.create_shift()
         ServiceLog.objects.create_from_shift(
@@ -212,6 +221,28 @@ class ServiceLogCompletionTests(TestCase):
 
         self.assertContains(response, "Own log")
         self.assertNotContains(response, "Other worker log")
+
+    def test_worker_log_surfaces_display_australian_dates(self):
+        shift = self.create_shift()
+        service_log = ServiceLog.objects.create_from_shift(
+            shift=shift,
+            actual_start_time=time(9, 0),
+            actual_end_time=time(11, 30),
+            break_minutes=30,
+            actual_hours=Decimal("2.00"),
+            kilometres=Decimal("1.0"),
+            case_notes="Own log.",
+            worker_notes="",
+        )
+        self.login_worker()
+
+        list_response = self.client.get(reverse("worker_log_list"))
+        detail_response = self.client.get(reverse("worker_service_log_detail", args=[service_log.id]))
+
+        self.assertContains(list_response, "01/06/2026")
+        self.assertNotContains(list_response, "June 1, 2026")
+        self.assertContains(detail_response, "<dt>Date</dt><dd>01/06/2026</dd>", html=True)
+        self.assertNotContains(detail_response, "<dt>Date</dt><dd>June 1, 2026</dd>", html=True)
 
     def test_admin_can_view_submitted_service_log_detail(self):
         shift = self.create_shift()

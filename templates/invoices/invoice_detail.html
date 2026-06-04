@@ -6,7 +6,7 @@
 <div class="page-header">
   <div>
     <h1>{{ invoice.invoice_number }}</h1>
-    <p>{{ invoice.participant.display_name }} | {{ invoice.period_start }} - {{ invoice.period_end }}</p>
+    <p>{{ invoice.participant.display_name }} | {{ invoice.period_start|date:"d/m/Y" }} - {{ invoice.period_end|date:"d/m/Y" }}</p>
   </div>
   <div class="button-row">
     <a class="button secondary" href="{{ return_url }}">Back to Invoices</a>

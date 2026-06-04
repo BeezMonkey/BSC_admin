@@ -71,7 +71,7 @@
     <tbody>
       {% for item in preview %}
         <tr>
-          <td>{{ item.service_date }}</td>
+          <td>{{ item.service_date|date:"d/m/Y" }}</td>
           <td>{{ item.status }}</td>
         </tr>
       {% endfor %}

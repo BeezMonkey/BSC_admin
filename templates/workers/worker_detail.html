@@ -60,7 +60,7 @@
       <dt>ABN</dt>
       <dd>{{ worker.abn|default:"-" }}</dd>
       <dt>Start date</dt>
-      <dd>{{ worker.start_date|default:"-" }}</dd>
+      <dd>{% if worker.start_date %}{{ worker.start_date|date:"d/m/Y" }}{% else %}-{% endif %}</dd>
       <dt>Status</dt>
       <dd>{{ worker.get_status_display }}</dd>
     </dl>
@@ -71,9 +71,9 @@
   <h2>Compliance</h2>
   <dl class="detail-list">
     <dt>Police check</dt>
-    <dd>{{ worker.get_police_check_status_display }}{% if worker.police_check_expiry %} | expires {{ worker.police_check_expiry }}{% endif %}</dd>
+    <dd>{{ worker.get_police_check_status_display }}{% if worker.police_check_expiry %} | expires {{ worker.police_check_expiry|date:"d/m/Y" }}{% endif %}</dd>
     <dt>WWCC / Blue Card</dt>
-    <dd>{{ worker.get_wwcc_status_display }}{% if worker.wwcc_expiry %} | expires {{ worker.wwcc_expiry }}{% endif %}</dd>
+    <dd>{{ worker.get_wwcc_status_display }}{% if worker.wwcc_expiry %} | expires {{ worker.wwcc_expiry|date:"d/m/Y" }}{% endif %}</dd>
   </dl>
 </section>
 
@@ -93,8 +93,8 @@
       {% for assignment in worker.participant_assignments.all %}
         <tr>
           <td>{{ assignment.participant.display_name }}</td>
-          <td>{{ assignment.start_date }}</td>
-          <td>{{ assignment.end_date|default:"-" }}</td>
+          <td>{{ assignment.start_date|date:"d/m/Y" }}</td>
+          <td>{% if assignment.end_date %}{{ assignment.end_date|date:"d/m/Y" }}{% else %}-{% endif %}</td>
           <td>{{ assignment.is_active|yesno:"Active,Ended" }}</td>
         </tr>
       {% empty %}
