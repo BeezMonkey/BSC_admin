@@ -202,6 +202,7 @@ class ParticipantManagementTests(TestCase):
         self.assertEqual(response.context["participants"].paginator.count, 25)
         self.assertEqual(len(response.context["participants"]), 20)
         self.assertContains(response, "Showing 1-20 of 25 records")
+        self.assertContains(response, 'class="pagination"')
         self.assertContains(response, "?q=Active&amp;status=active&amp;page=2")
         self.assertNotContains(response, "Archived Participant")
 
