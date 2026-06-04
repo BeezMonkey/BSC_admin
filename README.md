@@ -64,6 +64,7 @@ Before any future production deployment, review:
 ```text
 docs/pre-deployment-review.md
 docs/staging-deployment-plan.md
+docs/staging-runbook.md
 docs/deployment-checklist.md
 ```
 

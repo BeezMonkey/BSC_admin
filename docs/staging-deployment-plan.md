@@ -2,6 +2,12 @@
 
 This plan describes how to prepare a future staging deployment for the Brisbane Star Care NDIS admin system. Staging means a private test server used before production. It is not the live production system.
 
+For an executable deployment checklist, use:
+
+```text
+docs/staging-runbook.md
+```
+
 ## Goal
 
 - Test the application outside the local laptop.
