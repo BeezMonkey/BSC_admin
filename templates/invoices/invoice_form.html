@@ -54,7 +54,7 @@
     <tbody>
       {% for service_log in service_logs %}
         <tr>
-          <td>{{ service_log.service_date }}</td>
+          <td>{{ service_log.service_date|date:"d/m/Y" }}</td>
           <td>{{ service_log.worker.display_name }}</td>
           <td>{{ service_log.support_item }}</td>
           <td>{{ service_log.actual_hours }}</td>

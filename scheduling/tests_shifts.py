@@ -388,6 +388,15 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, 'class="roster-date-cell">01/06/2026</td>')
         self.assertNotContains(response, "June 1, 2026")
 
+    def test_shift_detail_displays_australian_date_format(self):
+        shift = self.create_shift(status=Shift.Status.PUBLISHED)
+        self.login_admin()
+
+        response = self.client.get(reverse("shift_detail", args=[shift.id]))
+
+        self.assertContains(response, "01/06/2026 |")
+        self.assertNotContains(response, "June 1, 2026 |")
+
     def test_roster_list_uses_readability_table_classes(self):
         self.create_shift(status=Shift.Status.PUBLISHED)
         self.login_admin()
@@ -661,6 +670,18 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, str(own_shift.id))
         self.assertNotContains(response, "Draft")
         self.assertNotContains(response, "Oscar Other")
+
+    def test_worker_shift_surfaces_display_australian_dates(self):
+        shift = self.create_shift(status=Shift.Status.PUBLISHED)
+        self.client.login(username="worker", password="test-password-123")
+
+        list_response = self.client.get(reverse("worker_shift_list"))
+        detail_response = self.client.get(reverse("worker_shift_detail", args=[shift.id]))
+
+        self.assertContains(list_response, "01/06/2026")
+        self.assertNotContains(list_response, "June 1, 2026")
+        self.assertContains(detail_response, "<dt>Date</dt><dd>01/06/2026</dd>", html=True)
+        self.assertNotContains(detail_response, "<dt>Date</dt><dd>June 1, 2026</dd>", html=True)
 
     def test_worker_shift_list_groups_and_highlights_shift_statuses(self):
         completed_shift = self.create_shift(

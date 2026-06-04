@@ -87,10 +87,10 @@ class RecurringShiftTests(TestCase):
 
         response = self.client.get(reverse("recurring_shift_create"), self.recurring_payload())
 
-        self.assertContains(response, "June 1, 2026")
-        self.assertContains(response, "June 8, 2026")
-        self.assertContains(response, "June 15, 2026")
-        self.assertContains(response, "June 22, 2026")
+        self.assertContains(response, "01/06/2026")
+        self.assertContains(response, "08/06/2026")
+        self.assertContains(response, "15/06/2026")
+        self.assertContains(response, "22/06/2026")
         self.assertContains(response, "Will create", count=4)
 
     def test_fortnightly_preview_skips_alternate_weeks(self):
@@ -101,10 +101,10 @@ class RecurringShiftTests(TestCase):
             self.recurring_payload(frequency="fortnightly"),
         )
 
-        self.assertContains(response, "June 1, 2026")
-        self.assertContains(response, "June 15, 2026")
-        self.assertNotContains(response, "June 8, 2026")
-        self.assertNotContains(response, "June 22, 2026")
+        self.assertContains(response, "01/06/2026")
+        self.assertContains(response, "15/06/2026")
+        self.assertNotContains(response, "08/06/2026")
+        self.assertNotContains(response, "22/06/2026")
 
     def test_preview_marks_worker_conflicts_as_skipped(self):
         Shift.objects.create(
@@ -124,7 +124,7 @@ class RecurringShiftTests(TestCase):
 
         response = self.client.get(reverse("recurring_shift_create"), self.recurring_payload())
 
-        self.assertContains(response, "June 8, 2026")
+        self.assertContains(response, "08/06/2026")
         self.assertContains(response, "Skipped - worker conflict")
 
     def test_confirm_creates_only_non_conflicting_draft_shifts(self):

@@ -7,7 +7,7 @@
   <h1>My Logs</h1>
   {% for service_log in service_logs %}
     <a class="list-item" href="{% url 'worker_service_log_detail' service_log.id %}">
-      <strong>{{ service_log.service_date }}</strong>
+      <strong>{{ service_log.service_date|date:"d/m/Y" }}</strong>
       <span>{{ service_log.participant.display_name }} | {{ service_log.get_status_display }}</span>
       <span>{{ service_log.case_notes|truncatechars:80 }}</span>
     </a>

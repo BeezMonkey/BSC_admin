@@ -242,6 +242,22 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, "01/06/2026 - 30/06/2026")
         self.assertNotContains(response, "June 1, 2026 - June 30, 2026")
 
+    def test_invoice_detail_displays_australian_period_dates(self):
+        service_log = self.create_service_log()
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create_from_service_log(invoice=invoice, service_log=service_log)
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_detail", args=[invoice.id]))
+
+        self.assertContains(response, "Ava Nguyen | 01/06/2026 - 30/06/2026")
+        self.assertNotContains(response, "Ava Nguyen | June 1, 2026 - June 30, 2026")
+
     def test_invoice_list_delete_action_keeps_inline_form_structure(self):
         invoice = Invoice.objects.create(
             participant=self.participant,
@@ -561,6 +577,16 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, f'name="service_log_ids" value="{selected_log.id}"')
         self.assertContains(response, "2026-06-01")
         self.assertNotContains(response, f'name="service_log_ids" value="{unselected_log.id}"')
+
+    def test_invoice_create_preview_displays_australian_service_log_dates(self):
+        service_log = self.create_service_log(service_date=date(2026, 6, 1))
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_create"), self.create_payload())
+
+        self.assertContains(response, "<td>01/06/2026</td>", html=True)
+        self.assertNotContains(response, "<td>June 1, 2026</td>", html=True)
+        self.assertContains(response, 'name="period_start" value="2026-06-01"')
 
     def test_invoice_create_selected_logs_must_be_same_participant(self):
         ava_log = self.create_service_log(case_notes="Ava selected service")

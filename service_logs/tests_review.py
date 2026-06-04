@@ -218,6 +218,14 @@ class ServiceLogReviewTests(TestCase):
         self.assertContains(response, ">01/06/2026</a>")
         self.assertNotContains(response, ">June 1, 2026</a>")
 
+    def test_service_log_detail_displays_australian_date_format(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_detail", args=[self.service_log.id]))
+
+        self.assertContains(response, "01/06/2026 |")
+        self.assertNotContains(response, "June 1, 2026 |")
+
     def test_service_log_list_shows_status_filter_summary(self):
         self.service_log.status = ServiceLog.Status.APPROVED
         self.service_log.save(update_fields=["status", "updated_at"])
