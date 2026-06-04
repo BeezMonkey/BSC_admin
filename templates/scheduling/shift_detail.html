@@ -37,12 +37,12 @@
 </section>
 
 <div class="detail-grid shift-detail-grid">
-  <section class="card">
+  <section class="card shift-info-card">
     <h2>Shift Details</h2>
     <dl class="detail-list">
       <dt>Participant</dt><dd>{{ shift.participant.display_name }}</dd>
       <dt>Worker</dt><dd>{{ shift.worker.display_name }}</dd>
-      <dt>Support item</dt><dd>{{ shift.support_item }}</dd>
+      <dt>Support item</dt><dd><span class="detail-value detail-value-long">{{ shift.support_item }}</span></dd>
       <dt>Service type</dt><dd>{{ shift.get_service_type_display }}</dd>
       <dt>Planned hours</dt><dd>{{ shift.planned_hours }}</dd>
       <dt>Status</dt><dd>{{ shift.get_status_display }}</dd>
@@ -51,18 +51,18 @@
         {% if service_log %}
           <a href="{% url 'service_log_detail' service_log.id %}">View submitted log</a>
         {% else %}
-          -
+          <span class="detail-empty">-</span>
         {% endif %}
       </dd>
     </dl>
   </section>
-  <section class="card">
+  <section class="card shift-info-card">
     <h2>Location and Notes</h2>
     <dl class="detail-list">
-      <dt>Location</dt><dd>{{ shift.location|default:"-" }}</dd>
-      <dt>Address</dt><dd>{{ shift.address|default:"-" }}</dd>
-      <dt>Instructions</dt><dd>{{ shift.instructions|default:"-" }}</dd>
-      <dt>Admin notes</dt><dd>{{ shift.admin_notes|default:"-" }}</dd>
+      <dt>Location</dt><dd>{% if shift.location %}{{ shift.location }}{% else %}<span class="detail-empty">-</span>{% endif %}</dd>
+      <dt>Address</dt><dd>{% if shift.address %}<span class="detail-value detail-value-long">{{ shift.address }}</span>{% else %}<span class="detail-empty">-</span>{% endif %}</dd>
+      <dt>Instructions</dt><dd>{% if shift.instructions %}<span class="detail-value detail-value-long">{{ shift.instructions }}</span>{% else %}<span class="detail-empty">-</span>{% endif %}</dd>
+      <dt>Admin notes</dt><dd>{% if shift.admin_notes %}<span class="detail-value detail-value-long">{{ shift.admin_notes }}</span>{% else %}<span class="detail-empty">-</span>{% endif %}</dd>
     </dl>
   </section>
 </div>

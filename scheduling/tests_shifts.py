@@ -213,6 +213,22 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, 'class="shift-cancel-form"')
         self.assertContains(response, "Use this only when the scheduled shift should not go ahead.")
 
+    def test_shift_detail_formats_read_only_information(self):
+        shift = self.create_shift(
+            status=Shift.Status.PUBLISHED,
+            location="",
+            address="",
+            instructions="",
+            admin_notes="",
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("shift_detail", args=[shift.id]))
+
+        self.assertContains(response, 'class="card shift-info-card"')
+        self.assertContains(response, 'class="detail-value detail-value-long"')
+        self.assertContains(response, 'class="detail-empty">-</span>')
+
     def test_shift_detail_back_link_preserves_roster_state(self):
         shift = self.create_shift(status=Shift.Status.PUBLISHED)
         list_path = (
