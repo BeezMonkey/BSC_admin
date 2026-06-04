@@ -493,30 +493,33 @@ table {
 }
 
 .service-log-table {
-  min-width: 920px;
+  min-width: 960px;
 }
 
-.service-log-table th:first-child,
-.service-log-table td:first-child,
-.service-log-table th:nth-child(6),
-.service-log-table td:nth-child(6) {
+.service-log-table .service-log-select-cell,
+.service-log-table .service-log-hours-cell {
   width: 1%;
   white-space: nowrap;
 }
 
 .service-log-table th:nth-child(2),
-.service-log-table td:nth-child(2),
-.service-log-table th:nth-child(5),
-.service-log-table td:nth-child(5) {
+.service-log-table .service-log-date-cell,
+.service-log-table .service-log-status-cell {
   white-space: nowrap;
 }
 
-.service-log-table td.actions {
+.service-log-table .service-log-person-cell {
   min-width: 8.5rem;
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
+
+.service-log-table td.service-log-actions-cell {
+  min-width: 10.5rem;
   white-space: normal;
 }
 
-.service-log-table td.actions a {
+.service-log-table td.service-log-actions-cell a {
   margin-bottom: 0.35rem;
 }
 
