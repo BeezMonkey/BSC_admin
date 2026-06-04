@@ -219,6 +219,23 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, reverse("invoice_detail", args=[invoice.id]))
         self.assertContains(response, "View")
 
+    def test_invoice_list_delete_action_keeps_inline_form_structure(self):
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            status=Invoice.Status.DRAFT,
+            created_by=self.accountant_user,
+        )
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_placeholder"))
+
+        self.assertContains(response, 'td class="actions"')
+        self.assertContains(response, f'action="{reverse("invoice_delete", args=[invoice.id])}"')
+        self.assertContains(response, 'class="inline-form"')
+        self.assertContains(response, '<button class="danger" type="submit">Delete</button>')
+
     def test_invoice_detail_back_link_preserves_list_state(self):
         invoice = Invoice.objects.create(
             participant=self.participant,
