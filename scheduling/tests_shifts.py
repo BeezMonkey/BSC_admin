@@ -379,6 +379,19 @@ class ShiftSchedulingTests(TestCase):
 
         self.assertContains(response, 'class="status-pill status-published"')
 
+    def test_roster_list_uses_readability_table_classes(self):
+        self.create_shift(status=Shift.Status.PUBLISHED)
+        self.login_admin()
+
+        response = self.client.get(reverse("roster_list"))
+
+        self.assertContains(response, 'class="card table-card roster-table-card"')
+        self.assertContains(response, 'class="roster-table"')
+        self.assertContains(response, 'class="roster-date-cell"')
+        self.assertContains(response, 'class="roster-time-cell"')
+        self.assertContains(response, 'class="roster-person-cell"')
+        self.assertContains(response, 'class="roster-service-cell"')
+
     def test_roster_worker_filter_uses_worker_name_search(self):
         self.create_shift(status=Shift.Status.PUBLISHED)
         self.login_admin()

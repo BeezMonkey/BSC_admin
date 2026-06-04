@@ -527,6 +527,34 @@ table {
   color: #314052;
 }
 
+.roster-table {
+  min-width: 860px;
+}
+
+.roster-table th:first-child,
+.roster-table td.roster-date-cell,
+.roster-table th:nth-child(2),
+.roster-table td.roster-time-cell {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.roster-table .roster-person-cell {
+  min-width: 8.5rem;
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
+
+.roster-table .roster-service-cell {
+  min-width: 8rem;
+  color: #314052;
+  overflow-wrap: anywhere;
+}
+
+.roster-table td.actions {
+  min-width: 8.25rem;
+}
+
 th,
 td {
   border-bottom: 1px solid var(--line);
