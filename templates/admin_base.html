@@ -3,7 +3,10 @@
 {% block body %}
 <div class="app-shell">
   <aside class="sidebar">
-    <div class="brand">Brisbane Star Care</div>
+    <div class="brand">
+      <span>Brisbane Star Care</span>
+      <small>NDIS Admin</small>
+    </div>
     <nav class="sidebar-nav" aria-label="Admin navigation">
       <a class="sidebar-link{% if request.resolver_match.url_name == 'admin_dashboard' %} active{% endif %}" href="{% url 'admin_dashboard' %}">Dashboard</a>
       <a class="sidebar-link{% if request.resolver_match.url_name == 'participant_list' or request.resolver_match.url_name == 'participant_create' or request.resolver_match.url_name == 'participant_detail' or request.resolver_match.url_name == 'participant_edit' or request.resolver_match.url_name == 'participant_assign_worker' %} active{% endif %}" href="{% url 'participant_list' %}">Participants</a>
