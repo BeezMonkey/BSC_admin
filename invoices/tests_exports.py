@@ -121,6 +121,8 @@ class InvoiceExportTests(TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["invoice_number"], self.invoice.invoice_number)
         self.assertEqual(rows[0]["participant"], "Ava Nguyen")
+        self.assertEqual(rows[0]["period_start"], "01/06/2026")
+        self.assertEqual(rows[0]["period_end"], "30/06/2026")
         self.assertEqual(rows[0]["support_item_number"], "01_011_0107_1_1")
         self.assertEqual(rows[0]["quantity"], "2.00")
         self.assertEqual(rows[0]["unit_price"], "65.47")
@@ -143,6 +145,8 @@ class InvoiceExportTests(TestCase):
         response = self.client.get(reverse("invoice_pdf", args=[self.invoice.id]))
 
         content = response.content.decode("latin-1")
+        self.assertIn("Period: 01/06/2026 to 30/06/2026", content)
+        self.assertNotIn("Period: 2026-06-01 to 2026-06-30", content)
         self.assertIn("2.00 x $65.47 = $130.94", content)
         self.assertIn("Total: $130.94", content)
         self.assertNotIn("130.940000000000", content)

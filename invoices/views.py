@@ -30,6 +30,10 @@ def format_filter_date(value):
     return parsed_date.strftime("%d/%m/%Y")
 
 
+def format_au_date(value):
+    return value.strftime("%d/%m/%Y")
+
+
 def build_invoice_filter_summary(status, q, participant_query, period_from, period_to):
     status_label = dict(Invoice.Status.choices).get(status)
     if not any([status_label, q, participant_query, period_from, period_to]):
@@ -309,8 +313,8 @@ def invoice_csv(request, invoice_id):
             [
                 invoice.invoice_number,
                 invoice.participant.display_name,
-                invoice.period_start.isoformat(),
-                invoice.period_end.isoformat(),
+                format_au_date(invoice.period_start),
+                format_au_date(invoice.period_end),
                 invoice.status,
                 line.support_item_number,
                 line.description,
@@ -377,7 +381,7 @@ def invoice_pdf(request, invoice_id):
         "Brisbane Star Care NDIS Invoice",
         f"Invoice: {invoice.invoice_number}",
         f"Participant: {invoice.participant.display_name}",
-        f"Period: {invoice.period_start} to {invoice.period_end}",
+        f"Period: {format_au_date(invoice.period_start)} to {format_au_date(invoice.period_end)}",
         f"Status: {invoice.get_status_display()}",
         "",
     ]

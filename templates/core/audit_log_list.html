@@ -24,7 +24,7 @@
     <tbody>
       {% for audit_log in audit_logs %}
         <tr>
-          <td><a href="{% url 'audit_log_detail' audit_log.id %}">{{ audit_log.created_at }}</a></td>
+          <td><a href="{% url 'audit_log_detail' audit_log.id %}">{{ audit_log.created_at|date:"d/m/Y H:i" }}</a></td>
           <td>{{ audit_log.actor|default:"System" }}</td>
           <td>{{ audit_log.get_action_display }}</td>
           <td>{{ audit_log.object_type }} {{ audit_log.object_id }}</td>

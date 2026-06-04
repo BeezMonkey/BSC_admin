@@ -23,7 +23,7 @@
       <dt>Actual hours</dt><dd>{{ service_log.actual_hours }}</dd>
       <dt>Kilometres</dt><dd>{{ service_log.kilometres }}</dd>
       <dt>Reviewed by</dt><dd>{{ service_log.reviewed_by|default:"-" }}</dd>
-      <dt>Reviewed at</dt><dd>{{ service_log.reviewed_at|default:"-" }}</dd>
+      <dt>Reviewed at</dt><dd>{% if service_log.reviewed_at %}{{ service_log.reviewed_at|date:"d/m/Y H:i" }}{% else %}-{% endif %}</dd>
     </dl>
   </section>
   <section class="card">
@@ -32,7 +32,7 @@
       <dt>Case notes</dt><dd>{{ service_log.case_notes }}</dd>
       <dt>Worker notes</dt><dd>{{ service_log.worker_notes|default:"-" }}</dd>
       <dt>Rejection reason</dt><dd>{{ service_log.rejection_reason|default:"-" }}</dd>
-      <dt>Submitted</dt><dd>{{ service_log.submitted_at }}</dd>
+      <dt>Submitted</dt><dd>{{ service_log.submitted_at|date:"d/m/Y H:i" }}</dd>
     </dl>
   </section>
 </div>

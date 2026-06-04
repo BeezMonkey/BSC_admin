@@ -1,9 +1,10 @@
-from datetime import date, time
+from datetime import date, datetime, time
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from accounts.models import UserProfile
 from participants.models import Participant
@@ -225,6 +226,19 @@ class ServiceLogReviewTests(TestCase):
 
         self.assertContains(response, "01/06/2026 |")
         self.assertNotContains(response, "June 1, 2026 |")
+
+    def test_service_log_detail_displays_australian_datetime_format(self):
+        self.service_log.reviewed_by = self.admin_user
+        self.service_log.reviewed_at = timezone.make_aware(datetime(2026, 6, 4, 9, 30))
+        self.service_log.submitted_at = timezone.make_aware(datetime(2026, 6, 4, 8, 15))
+        self.service_log.save(update_fields=["reviewed_by", "reviewed_at", "submitted_at", "updated_at"])
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_detail", args=[self.service_log.id]))
+
+        self.assertContains(response, "<dt>Reviewed at</dt><dd>04/06/2026 09:30</dd>", html=True)
+        self.assertContains(response, "<dt>Submitted</dt><dd>04/06/2026 08:15</dd>", html=True)
+        self.assertNotContains(response, "June 4, 2026")
 
     def test_service_log_list_shows_status_filter_summary(self):
         self.service_log.status = ServiceLog.Status.APPROVED
