@@ -203,6 +203,16 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, 'class="card roster-workflow-card"')
         self.assertContains(response, 'class="detail-grid shift-detail-grid"')
 
+    def test_shift_detail_uses_scoped_cancel_section(self):
+        shift = self.create_shift(status=Shift.Status.PUBLISHED)
+        self.login_admin()
+
+        response = self.client.get(reverse("shift_detail", args=[shift.id]))
+
+        self.assertContains(response, 'class="card shift-cancel-card"')
+        self.assertContains(response, 'class="shift-cancel-form"')
+        self.assertContains(response, "Use this only when the scheduled shift should not go ahead.")
+
     def test_shift_detail_back_link_preserves_roster_state(self):
         shift = self.create_shift(status=Shift.Status.PUBLISHED)
         list_path = (
