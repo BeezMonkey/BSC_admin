@@ -176,6 +176,33 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, "Publish")
         self.assertContains(response, "Edit Shift")
 
+    def test_shift_detail_only_shows_one_publish_action(self):
+        shift = self.create_shift(status=Shift.Status.DRAFT)
+        self.login_admin()
+
+        response = self.client.get(reverse("shift_detail", args=[shift.id]))
+
+        self.assertContains(response, ">Publish</button>", count=1)
+
+    def test_shift_detail_keeps_edit_action_in_workflow_panel(self):
+        shift = self.create_shift(status=Shift.Status.PUBLISHED)
+        self.login_admin()
+
+        response = self.client.get(reverse("shift_detail", args=[shift.id]))
+
+        self.assertNotContains(response, ">Edit</a>")
+        self.assertContains(response, ">Edit Shift</a>", count=1)
+
+    def test_shift_detail_uses_scoped_layout_classes(self):
+        shift = self.create_shift(status=Shift.Status.COMPLETED)
+        self.login_admin()
+
+        response = self.client.get(reverse("shift_detail", args=[shift.id]))
+
+        self.assertContains(response, 'class="shift-detail-page"')
+        self.assertContains(response, 'class="card roster-workflow-card"')
+        self.assertContains(response, 'class="detail-grid shift-detail-grid"')
+
     def test_shift_detail_back_link_preserves_roster_state(self):
         shift = self.create_shift(status=Shift.Status.PUBLISHED)
         list_path = (
