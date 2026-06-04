@@ -1,4 +1,4 @@
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timezone as datetime_timezone
 from decimal import Decimal
 from tempfile import TemporaryDirectory
 
@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
-from django.utils import timezone
+from django.conf import settings
 
 from accounts.models import UserProfile
 from core.models import AuditLog
@@ -281,7 +281,7 @@ class AuditLogTests(TestCase):
             summary="Cancelled shift 123.",
         )
         AuditLog.objects.filter(id=audit_log.id).update(
-            created_at=timezone.make_aware(datetime(2026, 6, 4, 9, 30)),
+            created_at=datetime(2026, 6, 3, 23, 30, tzinfo=datetime_timezone.utc),
         )
         self.login_admin()
 
@@ -295,6 +295,9 @@ class AuditLogTests(TestCase):
         self.assertContains(list_response, "Cancelled shift 123.")
         self.assertContains(detail_response, "Shift")
         self.assertContains(detail_response, "123")
+
+    def test_project_uses_brisbane_business_timezone(self):
+        self.assertEqual(settings.TIME_ZONE, "Australia/Brisbane")
 
     def test_worker_cannot_view_audit_logs(self):
         self.login_worker()
