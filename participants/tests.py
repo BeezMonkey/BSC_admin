@@ -73,6 +73,18 @@ class ParticipantManagementTests(TestCase):
         self.assertEqual(participant.first_name, "Ava")
         self.assertEqual(participant.management_type, Participant.ManagementType.PLAN_MANAGED)
 
+    def test_participant_create_success_message_is_rendered(self):
+        self.login_admin()
+
+        response = self.client.post(
+            reverse("participant_create"),
+            self.participant_payload(),
+            follow=True,
+        )
+
+        self.assertContains(response, 'class="message success"')
+        self.assertContains(response, "Participant created.")
+
     def test_participant_create_preserves_list_return_state(self):
         list_path = f"{reverse('participant_list')}?q=Ava&status=active&sort=name&direction=asc&page=2"
         self.login_admin()
