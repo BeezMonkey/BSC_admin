@@ -72,7 +72,9 @@
             <div class="empty-state">
               <strong>No support items found.</strong>
               <p>Add support items before creating shifts, service logs, or invoices.</p>
-              <a class="button" href="{% url 'support_item_create' %}">Add Support Item</a>
+              <div class="empty-state-actions">
+                <a class="button" href="{% url 'support_item_create' %}">Add Support Item</a>
+              </div>
             </div>
           </td>
         </tr>

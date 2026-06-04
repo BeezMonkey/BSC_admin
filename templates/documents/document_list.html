@@ -40,7 +40,9 @@
             <div class="empty-state">
               <strong>No documents yet.</strong>
               <p>Upload documents to share participant, worker, invoice, or service log files.</p>
-              <a class="button" href="{% url 'document_create' %}">Upload Document</a>
+              <div class="empty-state-actions">
+                <a class="button" href="{% url 'document_create' %}">Upload Document</a>
+              </div>
             </div>
           </td>
         </tr>
