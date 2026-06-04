@@ -671,6 +671,16 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, '?view=upcoming')
         self.assertContains(response, '?view=completed')
 
+    def test_worker_shift_list_marks_sidebar_link_as_active(self):
+        self.client.login(username="worker", password="test-password-123")
+
+        response = self.client.get(reverse("worker_shift_list"))
+
+        self.assertContains(
+            response,
+            f'class="sidebar-link active" href="{reverse("worker_shift_list")}"',
+        )
+
     def test_worker_can_view_and_confirm_own_published_shift(self):
         shift = Shift.objects.create(
             participant=self.participant,
