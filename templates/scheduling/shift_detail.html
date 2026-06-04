@@ -10,10 +10,6 @@
   </div>
   <div class="button-row">
     <a class="button secondary" href="{{ return_url }}">Back to Roster</a>
-    <a class="button" href="{% url 'shift_edit' shift.id %}">Edit</a>
-    {% if shift.status == "draft" %}
-      <form method="post" action="{% url 'shift_publish' shift.id %}">{% csrf_token %}<button type="submit">Publish</button></form>
-    {% endif %}
   </div>
 </div>
 
