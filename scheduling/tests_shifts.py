@@ -193,6 +193,16 @@ class ShiftSchedulingTests(TestCase):
         self.assertNotContains(response, ">Edit</a>")
         self.assertContains(response, ">Edit Shift</a>", count=1)
 
+    def test_shift_detail_uses_scoped_layout_classes(self):
+        shift = self.create_shift(status=Shift.Status.COMPLETED)
+        self.login_admin()
+
+        response = self.client.get(reverse("shift_detail", args=[shift.id]))
+
+        self.assertContains(response, 'class="shift-detail-page"')
+        self.assertContains(response, 'class="card roster-workflow-card"')
+        self.assertContains(response, 'class="detail-grid shift-detail-grid"')
+
     def test_shift_detail_back_link_preserves_roster_state(self):
         shift = self.create_shift(status=Shift.Status.PUBLISHED)
         list_path = (

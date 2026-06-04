@@ -3,6 +3,7 @@
 {% block title %}Shift - Brisbane Star Care{% endblock %}
 
 {% block content %}
+<div class="shift-detail-page">
 <div class="page-header">
   <div>
     <h1>{{ shift.participant.display_name }}</h1>
@@ -13,7 +14,7 @@
   </div>
 </div>
 
-<section class="card">
+<section class="card roster-workflow-card">
   <h2>Workflow Status</h2>
   <div class="workflow-panel">
     <div>
@@ -35,7 +36,7 @@
   </div>
 </section>
 
-<div class="detail-grid">
+<div class="detail-grid shift-detail-grid">
   <section class="card">
     <h2>Shift Details</h2>
     <dl class="detail-list">
@@ -76,4 +77,5 @@
   </form>
 </section>
 {% endif %}
+</div>
 {% endblock %}
