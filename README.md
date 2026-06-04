@@ -30,8 +30,11 @@ Common `.env` values:
 DJANGO_SECRET_KEY=change-me
 DJANGO_DEBUG=True
 DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost
+DJANGO_CSRF_TRUSTED_ORIGINS=
 DATABASE_URL=
 ```
+
+The system uses `Australia/Brisbane` as the fixed business timezone while keeping timezone-aware datetime storage enabled.
 
 For future PostgreSQL deployment:
 
