@@ -753,6 +753,15 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, 'class="card form-section"')
         self.assertNotContains(response, "<p>\n    <label")
 
+    def test_recurring_shift_create_explains_preview_and_cycle_dates(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("recurring_shift_create"))
+
+        self.assertContains(response, "Start date and end date define the recurring schedule window.")
+        self.assertContains(response, "Preview shows the proposed dates before anything is created.")
+        self.assertContains(response, "Created shifts are saved as draft shifts.")
+
     def test_recurring_shift_preview_uses_table_card_layout(self):
         self.login_admin()
 
@@ -764,6 +773,7 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, "Preview")
         self.assertContains(response, 'class="card table-card recurring-preview-table"')
         self.assertContains(response, "Create Non-conflicting Draft Shifts")
+        self.assertContains(response, "Conflicting dates will be skipped when draft shifts are created.")
 
     def test_recurring_shift_create_keeps_creation_flow(self):
         self.login_admin()
