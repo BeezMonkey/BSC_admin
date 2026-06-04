@@ -179,6 +179,15 @@ class DocumentManagementTests(TestCase):
             f'class="sidebar-link active" href="{reverse("document_list")}"',
         )
 
+    def test_document_create_uses_record_form_layout(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("document_create"))
+
+        self.assertContains(response, 'class="record-form"')
+        self.assertContains(response, 'class="card form-section"')
+        self.assertNotContains(response, "<p>\n    <label")
+
     def test_admin_can_view_and_download_document(self):
         document = Document.objects.create(
             title="Worker compliance",
