@@ -426,6 +426,8 @@ td.actions a:last-child {
 .filter-bar label,
 .field {
   display: grid;
+  align-self: start;
+  align-content: start;
   gap: 0.4rem;
   font-weight: 700;
 }
