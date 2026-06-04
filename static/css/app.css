@@ -306,7 +306,7 @@ button.danger:hover {
 
 td.actions {
   display: table-cell;
-  min-width: 128px;
+  min-width: 142px;
   white-space: nowrap;
 }
 
@@ -314,14 +314,14 @@ td.actions a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2rem;
-  margin-right: 0.45rem;
-  border: 1px solid #c8d4e3;
+  min-height: 1.95rem;
+  margin-right: 0.38rem;
+  border: 1px solid #d4dde8;
   border-radius: 6px;
-  padding: 0.32rem 0.58rem;
+  padding: 0.28rem 0.56rem;
   color: var(--brand-dark);
-  background: #ffffff;
-  font-size: 0.92rem;
+  background: #f8fafc;
+  font-size: 0.9rem;
   font-weight: 700;
 }
 
@@ -419,7 +419,7 @@ input[type="checkbox"] {
 .bulk-actions {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.75rem;
 }
 
 .table-card {
@@ -427,33 +427,35 @@ input[type="checkbox"] {
   border: 1px solid var(--line);
   border-radius: 7px;
   background: var(--panel);
-  box-shadow: var(--shadow);
+  box-shadow: 0 10px 28px rgba(24, 36, 51, 0.045);
 }
 
 .table-card.card {
   display: block;
-  padding: 1rem;
+  padding: 0.95rem;
 }
 
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   min-width: 680px;
 }
 
 th,
 td {
   border-bottom: 1px solid var(--line);
-  padding: 0.78rem 0.95rem;
+  padding: 0.82rem 0.95rem;
   text-align: left;
   vertical-align: top;
 }
 
 th {
-  background: #f7f9fc;
+  background: #f8fafc;
   color: var(--muted);
   font-size: 0.85rem;
   font-weight: 800;
+  text-transform: none;
 }
 
 .sort-link {
@@ -468,6 +470,7 @@ th {
 
 tbody tr:hover {
   background: #f8fbfd;
+  box-shadow: inset 3px 0 0 rgba(15, 118, 110, 0.18);
 }
 
 tbody tr:last-child td {
@@ -479,8 +482,12 @@ tbody tr:last-child td {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-top: 0.85rem;
+  margin-top: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 0.65rem 0.75rem;
   color: var(--muted);
+  background: #ffffff;
   font-weight: 700;
 }
 
@@ -496,10 +503,10 @@ tbody tr:last-child td {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.15rem;
+  min-height: 2rem;
   border: 1px solid var(--line);
   border-radius: 6px;
-  padding: 0.35rem 0.65rem;
+  padding: 0.3rem 0.62rem;
   background: #ffffff;
 }
 
