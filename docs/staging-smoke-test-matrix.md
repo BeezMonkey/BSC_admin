@@ -4,6 +4,8 @@ Use this matrix for local V1 review, staging deployment smoke testing, and teste
 
 For local seeded data and demo credentials, see `docs/local-demo-data.md`.
 
+For issue reporting, ask testers to use `docs/trial-feedback-template.md`.
+
 ## Test Accounts
 
 | Role | Local demo username | Purpose |

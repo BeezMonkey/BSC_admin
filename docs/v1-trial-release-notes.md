@@ -106,6 +106,8 @@ http://127.0.0.1:8000/exports/
 
 Use `docs/v1-qa-checklist.md` for a more detailed checklist. At minimum:
 
+For structured feedback, use `docs/trial-feedback-template.md`.
+
 - Log in as admin, worker, and accountant.
 - Confirm each role lands on the correct dashboard.
 - Confirm worker cannot open admin-only pages.
