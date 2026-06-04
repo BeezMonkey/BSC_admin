@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date, datetime, time
 from decimal import Decimal
 from tempfile import TemporaryDirectory
 
@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from accounts.models import UserProfile
 from core.models import AuditLog
@@ -279,11 +280,18 @@ class AuditLogTests(TestCase):
             object_id="123",
             summary="Cancelled shift 123.",
         )
+        AuditLog.objects.filter(id=audit_log.id).update(
+            created_at=timezone.make_aware(datetime(2026, 6, 4, 9, 30)),
+        )
         self.login_admin()
 
         list_response = self.client.get(reverse("audit_log_list"))
         detail_response = self.client.get(reverse("audit_log_detail", args=[audit_log.id]))
 
+        self.assertContains(list_response, ">04/06/2026 09:30</a>")
+        self.assertNotContains(list_response, "June 4, 2026")
+        self.assertContains(detail_response, "04/06/2026 09:30")
+        self.assertNotContains(detail_response, "June 4, 2026")
         self.assertContains(list_response, "Cancelled shift 123.")
         self.assertContains(detail_response, "Shift")
         self.assertContains(detail_response, "123")

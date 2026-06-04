@@ -6,7 +6,7 @@
 <div class="page-header">
   <div>
     <h1>{{ audit_log.get_action_display }}</h1>
-    <p>{{ audit_log.created_at }}</p>
+    <p>{{ audit_log.created_at|date:"d/m/Y H:i" }}</p>
   </div>
   <a class="button secondary" href="{% url 'audit_log_list' %}">Back to Audit Logs</a>
 </div>
