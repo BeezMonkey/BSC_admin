@@ -2,6 +2,8 @@
 
 Use this checklist before treating the local V1 build as ready for extended user trial. For a high-level release summary, see `docs/v1-trial-release-notes.md`.
 
+For a role-by-role browser testing table, see `docs/staging-smoke-test-matrix.md`.
+
 For a repeatable local trial data set, run:
 
 ```powershell

@@ -65,6 +65,7 @@ Before any future production deployment, review:
 docs/pre-deployment-review.md
 docs/staging-deployment-plan.md
 docs/staging-runbook.md
+docs/staging-smoke-test-matrix.md
 docs/deployment-checklist.md
 ```
 
@@ -74,6 +75,7 @@ For V1 review and local browser testing, review:
 docs/v1-trial-release-notes.md
 docs/local-demo-data.md
 docs/v1-qa-checklist.md
+docs/staging-smoke-test-matrix.md
 docs/v1-completion-summary.md
 docs/ui-qa-pass.md
 docs/template-theme-evaluation.md

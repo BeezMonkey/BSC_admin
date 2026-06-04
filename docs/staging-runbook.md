@@ -2,6 +2,8 @@
 
 Use this runbook when preparing a private staging deployment for user trial. Staging should use test or anonymized data only.
 
+For the browser smoke test table, use `docs/staging-smoke-test-matrix.md`.
+
 ## 1. Prepare The Target
 
 - Choose the staging host or managed platform.
