@@ -986,6 +986,15 @@ tbody tr:last-child td {
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
 }
 
+.worker-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.worker-table-scroll table {
+  min-width: 30rem;
+}
+
 .operations-summary {
   margin-bottom: 1rem;
 }

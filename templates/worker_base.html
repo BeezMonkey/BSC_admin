@@ -5,11 +5,11 @@
   <aside class="sidebar worker-sidebar">
     <div class="brand">Brisbane Star Care</div>
     <nav class="sidebar-nav worker-sidebar-nav" aria-label="Worker navigation">
-      <a href="{% url 'worker_dashboard' %}">Dashboard</a>
-      <a href="{% url 'worker_shift_list' %}">My Shifts</a>
-      <a href="{% url 'worker_log_list' %}">My Logs</a>
-      <a href="{% url 'worker_document_list' %}">Documents</a>
-      <a href="{% url 'worker_profile' %}">Profile</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'worker_dashboard' %} active{% endif %}" href="{% url 'worker_dashboard' %}">Dashboard</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'worker_shift_list' or request.resolver_match.url_name == 'worker_shift_detail' %} active{% endif %}" href="{% url 'worker_shift_list' %}">My Shifts</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'worker_log_list' or request.resolver_match.url_name == 'worker_service_log_create' or request.resolver_match.url_name == 'worker_service_log_detail' %} active{% endif %}" href="{% url 'worker_log_list' %}">My Logs</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'worker_document_list' or request.resolver_match.url_name == 'worker_document_detail' %} active{% endif %}" href="{% url 'worker_document_list' %}">Documents</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'worker_profile' %} active{% endif %}" href="{% url 'worker_profile' %}">Profile</a>
     </nav>
   </aside>
   <section class="content worker-main">
