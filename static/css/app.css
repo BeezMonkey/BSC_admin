@@ -770,6 +770,32 @@ tbody tr:last-child td {
   margin-top: 0.15rem;
 }
 
+.shift-info-card .detail-list {
+  row-gap: 0;
+}
+
+.shift-info-card .detail-list dt,
+.shift-info-card .detail-list dd {
+  min-width: 0;
+  padding-top: 0.68rem;
+  padding-bottom: 0.68rem;
+}
+
+.detail-value {
+  display: inline-block;
+  max-width: 100%;
+}
+
+.detail-value-long {
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+.detail-empty {
+  color: #94a3b8;
+  font-weight: 700;
+}
+
 .shift-cancel-card {
   border-left: 4px solid #dc2626;
   background: #fffafa;
