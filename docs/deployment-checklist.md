@@ -6,6 +6,7 @@ Read the broader readiness review first:
 
 ```text
 docs/pre-deployment-review.md
+docs/render-beta-deployment.md
 docs/staging-deployment-plan.md
 docs/staging-runbook.md
 ```
@@ -16,6 +17,7 @@ docs/staging-runbook.md
 - Set `DJANGO_DEBUG=False`.
 - Set `DJANGO_ALLOWED_HOSTS` to the real domain names and server hostnames.
 - Set `DJANGO_CSRF_TRUSTED_ORIGINS` to the real HTTPS origins.
+- On Render, confirm `RENDER_EXTERNAL_HOSTNAME` is present or include the `.onrender.com` hostname in `DJANGO_ALLOWED_HOSTS`.
 - Confirm the business timezone remains `Australia/Brisbane`.
 - Enable HTTPS settings only after SSL and proxy behavior are confirmed.
 - Keep `.env` out of Git.
@@ -39,6 +41,7 @@ DATABASE_URL=postgres://bsc_user:password@db-host:5432/bsc_admin
 
 - Run `python manage.py collectstatic` for production static assets.
 - Confirm collected static files are served from `STATIC_ROOT`.
+- Confirm WhiteNoise serves static assets in the target environment.
 - Back up `MEDIA_ROOT` because uploaded documents live there.
 - Confirm document downloads are protected by application permissions.
 
