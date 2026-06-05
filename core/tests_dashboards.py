@@ -298,6 +298,23 @@ class DashboardPolishTests(TestCase):
         self.assertContains(response, f'{reverse("service_log_list")}?status=submitted')
         self.assertContains(response, reverse("invoice_create"))
 
+    def test_admin_dashboard_workflow_checklist_uses_stable_row_structure(self):
+        user = User.objects.create_user(username="admin", password="pass")
+        UserProfile.objects.create(user=user, role=UserProfile.Role.ADMIN)
+
+        self.client.login(username="admin", password="pass")
+        response = self.client.get(reverse("admin_dashboard"))
+
+        self.assertContains(response, 'class="workflow-checklist-number"', count=6)
+        self.assertContains(response, 'class="workflow-checklist-copy"', count=6)
+        self.assertContains(response, 'class="workflow-checklist-action"', count=6)
+        self.assertContains(response, '<a href="/participants/new/">Open</a>', html=True)
+        self.assertContains(response, '<a href="/participants/">Open</a>', html=True)
+        self.assertContains(response, '<a href="/roster/new/">Open</a>', html=True)
+        self.assertContains(response, '<a href="/roster/?status=confirmed">Open</a>', html=True)
+        self.assertContains(response, '<a href="/service-logs/?status=submitted">Open</a>', html=True)
+        self.assertContains(response, '<a href="/invoices/new/">Open</a>', html=True)
+
     def test_admin_dashboard_uses_overview_layout(self):
         user = User.objects.create_user(username="admin", password="pass")
         UserProfile.objects.create(user=user, role=UserProfile.Role.ADMIN)

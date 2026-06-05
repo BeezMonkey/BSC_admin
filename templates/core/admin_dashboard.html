@@ -56,12 +56,10 @@
     <ol class="workflow-checklist-list">
       {% for item in workflow_checklist %}
       <li>
-        <div class="workflow-checklist-step">
-          <span class="workflow-checklist-number">{{ forloop.counter }}</span>
-          <div>
-            <strong>{{ item.label }}</strong>
-            <span>{{ item.description }}</span>
-          </div>
+        <span class="workflow-checklist-number">{{ forloop.counter }}</span>
+        <div class="workflow-checklist-copy">
+          <strong>{{ item.label }}</strong>
+          <span>{{ item.description }}</span>
         </div>
         <div class="workflow-checklist-action">
           <span>{{ item.detail }}</span>
