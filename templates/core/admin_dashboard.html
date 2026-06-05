@@ -9,67 +9,69 @@
     <p>Quick access to the main V1 operations modules.</p>
   </div>
 </header>
-<section class="card operations-summary">
-  <div>
-    <h2>Operations summary</h2>
-    <p>Review the records that most commonly need admin follow-up.</p>
-  </div>
-  {% if operations_summary.has_actions %}
-  <div class="operations-summary-grid">
-    <a class="operations-summary-item roster" href="{% url 'roster_list' %}?status=draft">
-      <strong>{{ operations_summary.draft_shift_label }}</strong>
-      <span>Prepare or publish roster items</span>
-    </a>
-    <a class="operations-summary-item review" href="{% url 'service_log_list' %}?status=submitted">
-      <strong>{{ operations_summary.submitted_log_label }}</strong>
-      <span>Review worker service records</span>
-    </a>
-    <a class="operations-summary-item invoice-ready" href="{% url 'service_log_list' %}?status=approved">
-      <strong>{{ operations_summary.approved_log_label }}</strong>
-      <span>Ready to convert to invoice</span>
-    </a>
-    <a class="operations-summary-item invoice-draft" href="{% url 'invoice_placeholder' %}?status=draft">
-      <strong>{{ operations_summary.draft_invoice_label }}</strong>
-      <span>Check and issue billing</span>
-    </a>
-    <a class="operations-summary-item invoice-issued" href="{% url 'invoice_placeholder' %}?status=issued">
-      <strong>{{ operations_summary.issued_invoice_label }}</strong>
-      <span>Track payment follow-up</span>
-    </a>
-  </div>
-  {% else %}
-  <div class="summary-empty-state">
-    <strong>No outstanding admin actions.</strong>
-    <span>New roster, service log, and invoice tasks are listed here.</span>
-  </div>
-  {% endif %}
-</section>
-<section class="card workflow-checklist">
-  <div class="workflow-checklist-header">
+<div class="dashboard-overview">
+  <section class="card dashboard-card operations-summary">
     <div>
-      <h2>Workflow checklist</h2>
-      <p>Follow the usual path from participant setup through invoicing.</p>
+      <h2>Operations summary</h2>
+      <p>Review the records that most commonly need admin follow-up.</p>
     </div>
-    <span class="workflow-checklist-badge">V1 guide</span>
-  </div>
-  <ol class="workflow-checklist-list">
-    {% for item in workflow_checklist %}
-    <li>
-      <div class="workflow-checklist-step">
-        <span class="workflow-checklist-number">{{ forloop.counter }}</span>
-        <div>
-          <strong>{{ item.label }}</strong>
-          <span>{{ item.description }}</span>
+    {% if operations_summary.has_actions %}
+    <div class="operations-summary-grid">
+      <a class="operations-summary-item roster" href="{% url 'roster_list' %}?status=draft">
+        <strong>{{ operations_summary.draft_shift_label }}</strong>
+        <span>Prepare or publish roster items</span>
+      </a>
+      <a class="operations-summary-item review" href="{% url 'service_log_list' %}?status=submitted">
+        <strong>{{ operations_summary.submitted_log_label }}</strong>
+        <span>Review worker service records</span>
+      </a>
+      <a class="operations-summary-item invoice-ready" href="{% url 'service_log_list' %}?status=approved">
+        <strong>{{ operations_summary.approved_log_label }}</strong>
+        <span>Ready to convert to invoice</span>
+      </a>
+      <a class="operations-summary-item invoice-draft" href="{% url 'invoice_placeholder' %}?status=draft">
+        <strong>{{ operations_summary.draft_invoice_label }}</strong>
+        <span>Check and issue billing</span>
+      </a>
+      <a class="operations-summary-item invoice-issued" href="{% url 'invoice_placeholder' %}?status=issued">
+        <strong>{{ operations_summary.issued_invoice_label }}</strong>
+        <span>Track payment follow-up</span>
+      </a>
+    </div>
+    {% else %}
+    <div class="summary-empty-state">
+      <strong>No outstanding admin actions.</strong>
+      <span>New roster, service log, and invoice tasks are listed here.</span>
+    </div>
+    {% endif %}
+  </section>
+  <section class="card dashboard-card workflow-checklist">
+    <div class="workflow-checklist-header">
+      <div>
+        <h2>Workflow checklist</h2>
+        <p>Follow the usual path from participant setup through invoicing.</p>
+      </div>
+      <span class="workflow-checklist-badge">V1 guide</span>
+    </div>
+    <ol class="workflow-checklist-list">
+      {% for item in workflow_checklist %}
+      <li>
+        <div class="workflow-checklist-step">
+          <span class="workflow-checklist-number">{{ forloop.counter }}</span>
+          <div>
+            <strong>{{ item.label }}</strong>
+            <span>{{ item.description }}</span>
+          </div>
         </div>
-      </div>
-      <div class="workflow-checklist-action">
-        <span>{{ item.detail }}</span>
-        <a href="{% url item.url_name %}{% if item.query %}?{{ item.query }}{% endif %}">Open</a>
-      </div>
-    </li>
-    {% endfor %}
-  </ol>
-</section>
+        <div class="workflow-checklist-action">
+          <span>{{ item.detail }}</span>
+          <a href="{% url item.url_name %}{% if item.query %}?{{ item.query }}{% endif %}">Open</a>
+        </div>
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+</div>
 <div class="card-grid">
   <section class="card">
     <h2>Participants</h2>

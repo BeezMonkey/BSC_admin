@@ -289,6 +289,17 @@ class DashboardPolishTests(TestCase):
         self.assertContains(response, f'{reverse("service_log_list")}?status=submitted')
         self.assertContains(response, reverse("invoice_create"))
 
+    def test_admin_dashboard_uses_overview_layout(self):
+        user = User.objects.create_user(username="admin", password="pass")
+        UserProfile.objects.create(user=user, role=UserProfile.Role.ADMIN)
+
+        self.client.login(username="admin", password="pass")
+        response = self.client.get(reverse("admin_dashboard"))
+
+        self.assertContains(response, 'class="dashboard-overview"')
+        self.assertContains(response, 'class="card dashboard-card operations-summary"')
+        self.assertContains(response, 'class="card dashboard-card workflow-checklist"')
+
     def test_worker_dashboard_lists_current_worker_tools(self):
         user = User.objects.create_user(username="worker", password="pass")
         UserProfile.objects.create(
