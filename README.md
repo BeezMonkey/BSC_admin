@@ -63,6 +63,7 @@ Before any future production deployment, review:
 
 ```text
 docs/pre-deployment-review.md
+docs/render-beta-deployment.md
 docs/staging-deployment-plan.md
 docs/staging-runbook.md
 docs/staging-smoke-test-matrix.md

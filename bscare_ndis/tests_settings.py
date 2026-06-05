@@ -3,7 +3,7 @@ from unittest.mock import patch
 from django.conf import settings
 from django.test import SimpleTestCase
 
-from bscare_ndis.settings import env_bool, env_list
+from bscare_ndis.settings import env_bool, env_list, render_external_hostname
 
 
 class EnvironmentSettingsTests(SimpleTestCase):
@@ -45,3 +45,19 @@ class EnvironmentSettingsTests(SimpleTestCase):
                 env_list("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost"),
                 ["127.0.0.1", "localhost"],
             )
+
+    def test_render_external_hostname_can_extend_allowed_hosts(self):
+        with patch.dict("os.environ", {"RENDER_EXTERNAL_HOSTNAME": "bsc-beta.onrender.com"}):
+            self.assertEqual(render_external_hostname(), "bsc-beta.onrender.com")
+
+    def test_whitenoise_middleware_is_enabled_after_security_middleware(self):
+        security_index = settings.MIDDLEWARE.index("django.middleware.security.SecurityMiddleware")
+        whitenoise_index = settings.MIDDLEWARE.index("whitenoise.middleware.WhiteNoiseMiddleware")
+
+        self.assertEqual(whitenoise_index, security_index + 1)
+
+    def test_staticfiles_storage_uses_whitenoise_manifest_backend(self):
+        self.assertEqual(
+            settings.STORAGES["staticfiles"]["BACKEND"],
+            "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        )
