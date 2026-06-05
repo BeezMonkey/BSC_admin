@@ -44,6 +44,32 @@
   </div>
   {% endif %}
 </section>
+<section class="card workflow-checklist">
+  <div class="workflow-checklist-header">
+    <div>
+      <h2>Workflow checklist</h2>
+      <p>Follow the usual path from participant setup through invoicing.</p>
+    </div>
+    <span class="workflow-checklist-badge">V1 guide</span>
+  </div>
+  <ol class="workflow-checklist-list">
+    {% for item in workflow_checklist %}
+    <li>
+      <div class="workflow-checklist-step">
+        <span class="workflow-checklist-number">{{ forloop.counter }}</span>
+        <div>
+          <strong>{{ item.label }}</strong>
+          <span>{{ item.description }}</span>
+        </div>
+      </div>
+      <div class="workflow-checklist-action">
+        <span>{{ item.detail }}</span>
+        <a href="{% url item.url_name %}{% if item.query %}?{{ item.query }}{% endif %}">Open</a>
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
+</section>
 <div class="card-grid">
   <section class="card">
     <h2>Participants</h2>

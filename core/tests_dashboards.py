@@ -268,6 +268,27 @@ class DashboardPolishTests(TestCase):
         self.assertNotContains(response, "0 draft invoices")
         self.assertNotContains(response, "0 issued invoices")
 
+    def test_admin_dashboard_shows_workflow_checklist(self):
+        user = User.objects.create_user(username="admin", password="pass")
+        UserProfile.objects.create(user=user, role=UserProfile.Role.ADMIN)
+
+        self.client.login(username="admin", password="pass")
+        response = self.client.get(reverse("admin_dashboard"))
+
+        self.assertContains(response, "Workflow checklist")
+        self.assertContains(response, "Add participant")
+        self.assertContains(response, "Assign worker")
+        self.assertContains(response, "Create roster shift")
+        self.assertContains(response, "Worker submits service log")
+        self.assertContains(response, "Approve service log")
+        self.assertContains(response, "Create invoice")
+        self.assertContains(response, reverse("participant_create"))
+        self.assertContains(response, reverse("participant_list"))
+        self.assertContains(response, reverse("shift_create"))
+        self.assertContains(response, f'{reverse("roster_list")}?status=confirmed')
+        self.assertContains(response, f'{reverse("service_log_list")}?status=submitted')
+        self.assertContains(response, reverse("invoice_create"))
+
     def test_worker_dashboard_lists_current_worker_tools(self):
         user = User.objects.create_user(username="worker", password="pass")
         UserProfile.objects.create(
