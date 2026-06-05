@@ -62,6 +62,7 @@ button:hover {
   background: var(--brand);
   line-height: 1.2;
   font-weight: 650;
+  white-space: nowrap;
 }
 
 .card-action {
@@ -75,6 +76,7 @@ button:hover {
   color: #ffffff;
   background: var(--brand);
   font-weight: 650;
+  white-space: nowrap;
 }
 
 .card-action:hover {
@@ -1374,6 +1376,12 @@ tbody tr:last-child td {
 .worker-main {
   display: grid;
   align-content: start;
+  overflow-x: hidden;
+}
+
+.worker-topbar {
+  margin: 0 0 1rem;
+  padding: 0;
 }
 
 @media (max-width: 1050px) {

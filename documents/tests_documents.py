@@ -179,6 +179,13 @@ class DocumentManagementTests(TestCase):
             f'class="sidebar-link active" href="{reverse("document_list")}"',
         )
 
+    def test_document_list_wraps_table_for_small_screens(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("document_list"))
+
+        self.assertContains(response, 'class="card table-card"')
+
     def test_document_create_uses_record_form_layout(self):
         self.login_admin()
 
