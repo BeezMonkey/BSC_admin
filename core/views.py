@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404, render
 
 from accounts.decorators import admin_required, worker_required
 from invoices.models import Invoice
+from participants.models import Participant, ParticipantWorkerAssignment
 from scheduling.models import Shift
 from service_logs.models import ServiceLog
 
@@ -11,6 +12,12 @@ from .models import AuditLog
 def count_label(count, singular, plural=None):
     label = singular if count == 1 else (plural or f"{singular}s")
     return f"{count} {label}"
+
+
+def checklist_count_label(count, singular, plural=None):
+    if count == 0:
+        return f"No {plural or f'{singular}s'} yet"
+    return count_label(count, singular, plural)
 
 
 @admin_required
@@ -41,10 +48,59 @@ def admin_dashboard(request):
             ]
         ),
     }
+    workflow_checklist = [
+        {
+            "label": "Add participant",
+            "detail": checklist_count_label(Participant.objects.count(), "participant"),
+            "description": "Create the client record before scheduling support.",
+            "url_name": "participant_create",
+        },
+        {
+            "label": "Assign worker",
+            "detail": checklist_count_label(
+                ParticipantWorkerAssignment.objects.filter(is_active=True).count(),
+                "active assignment",
+            ),
+            "description": "Connect participants with the workers who can support them.",
+            "url_name": "participant_list",
+        },
+        {
+            "label": "Create roster shift",
+            "detail": checklist_count_label(Shift.objects.count(), "shift"),
+            "description": "Add one-off or recurring shifts for confirmed services.",
+            "url_name": "shift_create",
+        },
+        {
+            "label": "Worker submits service log",
+            "detail": checklist_count_label(
+                Shift.objects.filter(status=Shift.Status.CONFIRMED).count(),
+                "confirmed shift",
+            ),
+            "description": "Track shifts that are ready for worker notes.",
+            "url_name": "roster_list",
+            "query": f"status={Shift.Status.CONFIRMED}",
+        },
+        {
+            "label": "Approve service log",
+            "detail": checklist_count_label(submitted_log_count, "submitted log"),
+            "description": "Review notes, hours, and support details before billing.",
+            "url_name": "service_log_list",
+            "query": f"status={ServiceLog.Status.SUBMITTED}",
+        },
+        {
+            "label": "Create invoice",
+            "detail": checklist_count_label(approved_log_count, "approved log"),
+            "description": "Convert approved, uninvoiced logs into participant invoices.",
+            "url_name": "invoice_create",
+        },
+    ]
     return render(
         request,
         "core/admin_dashboard.html",
-        {"operations_summary": operations_summary},
+        {
+            "operations_summary": operations_summary,
+            "workflow_checklist": workflow_checklist,
+        },
     )
 
 
