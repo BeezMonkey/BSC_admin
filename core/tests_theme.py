@@ -14,3 +14,13 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn("--sidebar-text: #e8f3f1;", css)
         self.assertIn("--sidebar-active: #dff3ef;", css)
         self.assertIn("--sidebar-active-text: #0f5f58;", css)
+
+    def test_theme_uses_lighter_typography_and_spacing_tokens(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+
+        self.assertIn("--shadow: 0 6px 18px rgba(16, 32, 51, 0.035);", css)
+        self.assertIn("--weight-action: 600;", css)
+        self.assertIn("--weight-heading: 700;", css)
+        self.assertIn("--weight-label: 650;", css)
+        self.assertIn("font-weight: var(--weight-action);", css)
+        self.assertIn("font-weight: var(--weight-heading);", css)

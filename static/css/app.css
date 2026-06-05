@@ -15,7 +15,10 @@
   --sidebar-active: #dff3ef;
   --sidebar-active-text: #0f5f58;
   --sidebar-active-border: #5fb9ac;
-  --shadow: 0 8px 22px rgba(16, 32, 51, 0.045);
+  --shadow: 0 6px 18px rgba(16, 32, 51, 0.035);
+  --weight-action: 600;
+  --weight-heading: 700;
+  --weight-label: 650;
 }
 
 * {
@@ -47,7 +50,7 @@ button {
   cursor: pointer;
   font: inherit;
   line-height: 1.2;
-  font-weight: 650;
+  font-weight: var(--weight-action);
 }
 
 button:hover {
@@ -64,7 +67,7 @@ button:hover {
   color: #ffffff;
   background: var(--brand);
   line-height: 1.2;
-  font-weight: 650;
+  font-weight: var(--weight-action);
   white-space: nowrap;
 }
 
@@ -78,7 +81,7 @@ button:hover {
   padding: 0.48rem 0.72rem;
   color: #ffffff;
   background: var(--brand);
-  font-weight: 650;
+  font-weight: var(--weight-action);
   white-space: nowrap;
 }
 
@@ -180,7 +183,7 @@ button.danger:hover {
   color: var(--ink);
   background: #ffffff;
   box-shadow: var(--shadow);
-  font-weight: 650;
+  font-weight: var(--weight-label);
 }
 
 .message.success {
@@ -231,13 +234,13 @@ button.danger:hover {
   padding: 0.12rem 0.55rem 0.9rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.13);
   font-size: 1.05rem;
-  font-weight: 750;
+  font-weight: var(--weight-heading);
 }
 
 .brand small {
   color: var(--sidebar-muted);
   font-size: 0.74rem;
-  font-weight: 650;
+  font-weight: var(--weight-action);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -252,7 +255,7 @@ button.danger:hover {
   border-radius: 7px;
   padding: 0.6rem 0.72rem;
   color: var(--sidebar-text);
-  font-weight: 650;
+  font-weight: var(--weight-action);
   transition: background 0.15s ease, color 0.15s ease;
 }
 
@@ -285,7 +288,7 @@ button.danger:hover {
 
 .user-label {
   color: var(--muted);
-  font-weight: 650;
+  font-weight: var(--weight-label);
 }
 
 .card-grid {
@@ -312,7 +315,7 @@ button.danger:hover {
 .card h2 {
   margin: 0;
   font-size: 1rem;
-  font-weight: 650;
+  font-weight: var(--weight-label);
 }
 
 .card p {
@@ -343,7 +346,7 @@ button.danger:hover {
   font-size: 1.68rem;
   line-height: 1.15;
   letter-spacing: 0;
-  font-weight: 750;
+  font-weight: var(--weight-heading);
 }
 
 .page-header p {
@@ -376,7 +379,7 @@ td.actions button {
   padding: 0.24rem 0.5rem;
   font-size: 0.86rem;
   line-height: 1.2;
-  font-weight: 650;
+  font-weight: var(--weight-action);
 }
 
 td.actions a {
@@ -424,7 +427,7 @@ td.actions a:last-child {
   padding: 0.56rem 0.72rem;
   color: var(--muted);
   background: #f8fafc;
-  font-weight: 650;
+  font-weight: var(--weight-label);
 }
 
 .filter-summary a {
@@ -442,7 +445,7 @@ td.actions a:last-child {
   align-self: start;
   align-content: start;
   gap: 0.4rem;
-  font-weight: 650;
+  font-weight: var(--weight-label);
 }
 
 input,
@@ -580,7 +583,7 @@ th {
   background: #f8fafc;
   color: var(--muted);
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: var(--weight-label);
   text-transform: none;
 }
 
@@ -619,7 +622,7 @@ tbody tr:last-child td {
 
 .pagination-summary {
   font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: var(--weight-label);
 }
 
 .pagination-links {
@@ -628,7 +631,7 @@ tbody tr:last-child td {
   gap: 0.5rem;
   flex-wrap: wrap;
   font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: var(--weight-label);
 }
 
 .pagination-links a,
@@ -671,7 +674,7 @@ tbody tr:last-child td {
   background: #e0f2fe;
   color: #075985;
   font-size: 0.8rem;
-  font-weight: 650;
+  font-weight: var(--weight-action);
 }
 
 .status-pill.status-active,
@@ -751,7 +754,7 @@ tbody tr:last-child td {
   border-bottom: 1px solid var(--line);
   font-size: 1rem;
   line-height: 1.25;
-  font-weight: 700;
+  font-weight: var(--weight-heading);
 }
 
 .form-grid {
@@ -862,7 +865,7 @@ tbody tr:last-child td {
 .shift-cancel-form label {
   display: grid;
   gap: 0.4rem;
-  font-weight: 700;
+  font-weight: var(--weight-label);
 }
 
 .detail-list {
@@ -875,7 +878,7 @@ tbody tr:last-child td {
   border-top: 1px solid #edf1f6;
   padding: 0.62rem 0.75rem 0.62rem 0;
   color: var(--muted);
-  font-weight: 700;
+  font-weight: var(--weight-label);
 }
 
 .detail-list dd {
@@ -918,7 +921,7 @@ tbody tr:last-child td {
 .readiness-list li span {
   color: var(--muted);
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: var(--weight-label);
 }
 
 .readiness-list li.is-ready {
@@ -975,7 +978,7 @@ tbody tr:last-child td {
   padding: 0.35rem 0.65rem;
   color: var(--brand-dark);
   background: #e7f5f3;
-  font-weight: 700;
+  font-weight: var(--weight-label);
 }
 
 .shift-filter-nav {
@@ -991,7 +994,7 @@ tbody tr:last-child td {
   padding: 0.4rem 0.7rem;
   color: var(--brand-dark);
   background: #ffffff;
-  font-weight: 700;
+  font-weight: var(--weight-label);
 }
 
 .shift-filter-nav a:hover,
@@ -1056,7 +1059,7 @@ tbody tr:last-child td {
   color: var(--brand-dark);
   background: #ffffff;
   font-size: 0.92rem;
-  font-weight: 700;
+  font-weight: var(--weight-action);
   line-height: 1.2;
 }
 
@@ -1225,7 +1228,7 @@ tbody tr:last-child td {
   color: var(--brand-dark);
   background: #dff6f2;
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: var(--weight-label);
 }
 
 .workflow-checklist-list {
@@ -1260,7 +1263,7 @@ tbody tr:last-child td {
   color: #ffffff;
   background: var(--brand);
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: var(--weight-heading);
   line-height: 1;
 }
 
@@ -1292,7 +1295,7 @@ tbody tr:last-child td {
 .workflow-checklist-action span {
   color: var(--muted);
   font-size: 0.86rem;
-  font-weight: 700;
+  font-weight: var(--weight-label);
   text-align: right;
 }
 
@@ -1304,7 +1307,7 @@ tbody tr:last-child td {
   color: var(--brand-dark);
   background: #ffffff;
   text-align: center;
-  font-weight: 700;
+  font-weight: var(--weight-label);
 }
 
 .workflow-checklist-action a:hover {
