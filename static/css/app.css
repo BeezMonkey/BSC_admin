@@ -1,18 +1,21 @@
 :root {
   color-scheme: light;
-  --ink: #1f2937;
-  --muted: #697586;
-  --line: #e2e8f0;
+  --ink: #102033;
+  --muted: #60708a;
+  --line: #d9e2ec;
   --panel: #ffffff;
-  --surface: #f7f8fb;
-  --brand: #0f766e;
-  --brand-dark: #115e59;
-  --brand-soft: #e5f5f2;
-  --accent: #ca8a04;
-  --sidebar: #153a40;
-  --sidebar-soft: rgba(255, 255, 255, 0.07);
-  --sidebar-active: rgba(45, 212, 191, 0.13);
-  --shadow: 0 6px 18px rgba(24, 36, 51, 0.035);
+  --surface: #f6f8fb;
+  --brand: #16877d;
+  --brand-dark: #126f67;
+  --brand-soft: #e4f4f0;
+  --accent: #b7791f;
+  --sidebar: #1f4f4a;
+  --sidebar-text: #e8f3f1;
+  --sidebar-muted: #b8d6d1;
+  --sidebar-active: #dff3ef;
+  --sidebar-active-text: #0f5f58;
+  --sidebar-active-border: #5fb9ac;
+  --shadow: 0 8px 22px rgba(16, 32, 51, 0.045);
 }
 
 * {
@@ -90,12 +93,12 @@ button:hover {
 .button.secondary {
   border: 1px solid var(--line);
   color: #344054;
-  background: #f3f6fa;
+  background: #eef3f7;
 }
 
 .button.secondary:hover {
   color: var(--ink);
-  background: #e7edf5;
+  background: #e3ebf2;
 }
 
 button.danger {
@@ -215,9 +218,9 @@ button.danger:hover {
 }
 
 .sidebar {
-  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
   background: var(--sidebar);
-  color: #ffffff;
+  color: var(--sidebar-text);
   padding: 0.9rem 0.78rem;
 }
 
@@ -226,13 +229,13 @@ button.danger:hover {
   gap: 0.15rem;
   margin: 0 0 1rem;
   padding: 0.12rem 0.55rem 0.9rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.11);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.13);
   font-size: 1.05rem;
   font-weight: 750;
 }
 
 .brand small {
-  color: #a8d8d2;
+  color: var(--sidebar-muted);
   font-size: 0.74rem;
   font-weight: 650;
   letter-spacing: 0.04em;
@@ -248,19 +251,19 @@ button.danger:hover {
   display: block;
   border-radius: 7px;
   padding: 0.6rem 0.72rem;
-  color: #d0e5e2;
+  color: var(--sidebar-text);
   font-weight: 650;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .sidebar-link:hover,
 .sidebar-link.active {
-  color: #ffffff;
+  color: var(--sidebar-active-text);
   background: var(--sidebar-active);
 }
 
 .sidebar-link.active {
-  box-shadow: inset 3px 0 0 #5eead4;
+  box-shadow: inset 3px 0 0 var(--sidebar-active-border);
 }
 
 .content {
@@ -458,7 +461,7 @@ input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--brand);
-  outline: 3px solid rgba(15, 118, 110, 0.12);
+  outline: 3px solid rgba(22, 135, 125, 0.14);
 }
 
 input[type="checkbox"] {
@@ -593,7 +596,7 @@ th {
 
 tbody tr:hover {
   background: #fbfcfe;
-  box-shadow: inset 2px 0 0 rgba(15, 118, 110, 0.14);
+  box-shadow: inset 2px 0 0 rgba(22, 135, 125, 0.14);
 }
 
 tbody tr:last-child td {
@@ -1366,11 +1369,11 @@ tbody tr:last-child td {
 }
 
 .worker-sidebar {
-  background: #173f45;
+  background: var(--sidebar);
 }
 
 .worker-sidebar-nav a {
-  color: #e4f7f4;
+  color: var(--sidebar-text);
 }
 
 .worker-main {
