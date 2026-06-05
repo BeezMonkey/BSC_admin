@@ -17,7 +17,7 @@
       <span class="user-label">{{ request.user.get_username }}</span>
       <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}
-        <button type="submit">Logout</button>
+        <button class="button secondary topbar-logout" type="submit">Logout</button>
       </form>
     </header>
     {% if messages %}
