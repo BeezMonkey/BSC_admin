@@ -44,6 +44,15 @@ class DashboardPolishTests(TestCase):
             f'class="sidebar-link active" href="{reverse("admin_dashboard")}"',
         )
 
+    def test_admin_shell_uses_secondary_logout_button(self):
+        user = User.objects.create_user(username="admin", password="pass")
+        UserProfile.objects.create(user=user, role=UserProfile.Role.ADMIN)
+
+        self.client.login(username="admin", password="pass")
+        response = self.client.get(reverse("admin_dashboard"))
+
+        self.assertContains(response, 'class="button secondary topbar-logout"')
+
     def test_admin_dashboard_shows_operations_summary(self):
         admin_user = User.objects.create_user(username="admin", password="pass")
         UserProfile.objects.create(user=admin_user, role=UserProfile.Role.ADMIN)
@@ -344,6 +353,7 @@ class DashboardPolishTests(TestCase):
         self.assertContains(response, 'class="app-shell worker-app-shell"')
         self.assertContains(response, 'class="sidebar worker-sidebar"')
         self.assertContains(response, 'class="topbar worker-topbar"')
+        self.assertContains(response, 'class="button secondary topbar-logout"')
 
     def test_worker_dashboard_shows_shift_action_summary(self):
         admin_user = User.objects.create_user(username="admin", password="pass")
