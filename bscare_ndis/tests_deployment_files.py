@@ -24,3 +24,16 @@ class DeploymentFileTests(SimpleTestCase):
         self.assertIn("python manage.py migrate", runbook)
         self.assertIn("python -m gunicorn bscare_ndis.wsgi:application", runbook)
         self.assertIn("DATABASE_URL", runbook)
+
+    def test_render_beta_handoff_checklist_covers_manual_setup(self):
+        checklist = Path("docs/render-beta-handoff-checklist.md").read_text(encoding="utf-8")
+
+        self.assertIn("Create PostgreSQL", checklist)
+        self.assertIn("Create Web Service", checklist)
+        self.assertIn("Build Command", checklist)
+        self.assertIn("Pre-Deploy Command", checklist)
+        self.assertIn("Start Command", checklist)
+        self.assertIn("Environment variables", checklist)
+        self.assertIn("First admin account", checklist)
+        self.assertIn("Smoke test", checklist)
+        self.assertIn("Do not upload real NDIS documents", checklist)
