@@ -18,8 +18,13 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import RedirectView
+
+from .views import health_check
 
 urlpatterns = [
+    path("", RedirectView.as_view(pattern_name="login", permanent=False), name="home"),
+    path("health/", health_check, name="health_check"),
     path('', include('accounts.urls')),
     path('', include('core.urls')),
     path('', include('participants.urls')),
