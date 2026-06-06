@@ -110,10 +110,16 @@ Recommended options:
 
 ```text
 Render Shell:
-python manage.py createsuperuser
+python manage.py createsuperuser --username admin --email <owner-email>
 ```
 
 Then:
+- Add the app role for the account:
+
+```text
+python manage.py shell -c 'from django.contrib.auth import get_user_model; from accounts.models import UserProfile; User=get_user_model(); user=User.objects.get(username="admin"); user.is_staff=True; user.is_superuser=True; user.save(); UserProfile.objects.update_or_create(user=user, defaults={"role":UserProfile.Role.ADMIN, "is_active_worker":False}); print("Admin role ready:", user.username)'
+```
+
 - Log in through the beta URL.
 - Confirm the user has an admin role in the app profile data.
 - Use a strong temporary password.
@@ -135,6 +141,8 @@ Use fake names, fake NDIS numbers, fake addresses, and fake phone numbers until 
 ## 9. Smoke test
 Run this Smoke test before inviting staff:
 
+- Root URL redirects to the login page.
+- Health check opens at `/health/`.
 - Login page opens over HTTPS.
 - Admin login works.
 - Worker login works.
