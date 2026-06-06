@@ -138,6 +138,14 @@ Create only test accounts for beta:
 
 Use fake names, fake NDIS numbers, fake addresses, and fake phone numbers until backup and privacy handling are confirmed.
 
+Optional beta seed command after the first admin account is ready:
+
+```text
+python manage.py seed_beta_test_data --password <temporary-test-password>
+```
+
+This command creates safe fake trial data and does not change the owner `admin` account.
+
 ## 9. Smoke test
 Run this Smoke test before inviting staff:
 
