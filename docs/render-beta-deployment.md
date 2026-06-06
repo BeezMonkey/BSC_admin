@@ -2,6 +2,8 @@
 
 Use this guide for the first private Render beta deployment. This is not a production go-live plan. Use test or anonymized data only.
 
+For the click-by-click setup checklist, use `docs/render-beta-handoff-checklist.md`.
+
 ## Purpose
 - Prove the Django app can run online from GitHub.
 - Let a small trusted group test the workflow.
