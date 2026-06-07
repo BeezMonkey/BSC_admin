@@ -257,6 +257,7 @@ def roster_planner(request):
             planner_days.append(
                 {
                     "date": current_date,
+                    "is_weekend": current_date.weekday() >= 5,
                     "shifts": [shift for shift in shifts if shift.service_date == current_date],
                     "add_shift_url": (
                         f"{reverse('shift_create')}?"

@@ -515,12 +515,28 @@ class ShiftSchedulingTests(TestCase):
             },
         )
 
-        self.assertContains(response, 'class="planner-date-grid"')
+        self.assertContains(response, "planner-date-grid")
         self.assertContains(response, "Mon")
         self.assertContains(response, "08/06/2026")
         self.assertContains(response, "09/06/2026")
         self.assertContains(response, "10/06/2026")
         self.assertContains(response, "No shifts")
+
+    def test_roster_planner_marks_weekly_grid_and_weekends(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_planner"),
+            {
+                "date_from": "2026-06-08",
+                "date_to": "2026-06-14",
+            },
+        )
+
+        self.assertContains(response, 'class="planner-date-grid planner-week-grid"')
+        self.assertContains(response, 'class="planner-day-card planner-weekend"')
+        self.assertContains(response, "Sat")
+        self.assertContains(response, "Sun")
 
     def test_roster_planner_day_links_prefill_new_shift(self):
         self.login_admin()

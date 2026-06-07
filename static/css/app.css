@@ -503,9 +503,8 @@ td.actions a:last-child {
 
 .planner-date-grid {
   display: grid;
-  grid-template-columns: repeat(var(--planner-day-count), minmax(190px, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.75rem;
-  overflow-x: auto;
   padding-bottom: 0.25rem;
 }
 
@@ -514,6 +513,10 @@ td.actions a:last-child {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
+}
+
+.planner-weekend {
+  background: #f8fafc;
 }
 
 .planner-day-card header {
@@ -1643,6 +1646,11 @@ tbody tr:last-child td {
 
   .planner-summary {
     grid-template-columns: 1fr;
+  }
+
+  .planner-date-grid {
+    grid-template-columns: repeat(7, minmax(180px, 1fr));
+    overflow-x: auto;
   }
 
   .shift-list-item {
