@@ -24,3 +24,10 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn("--weight-label: 650;", css)
         self.assertIn("font-weight: var(--weight-action);", css)
         self.assertIn("font-weight: var(--weight-heading);", css)
+
+    def test_roster_operational_polish_classes_are_styled(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+
+        self.assertIn(".quick-filter-row", css)
+        self.assertIn(".quick-filter-row .button.active", css)
+        self.assertIn(".roster-table .roster-next-action-cell", css)
