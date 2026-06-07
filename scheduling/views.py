@@ -15,6 +15,8 @@ from core.models import AuditLog
 from core.navigation import get_safe_return_url
 from core.pagination import paginate_queryset
 from core.sorting import apply_sorting
+from participants.models import Participant
+from workers.models import SupportWorker
 
 from .forms import RecurringShiftForm, ShiftForm, SupportItemForm
 from .models import Shift, SupportItem
@@ -201,6 +203,54 @@ def roster_list(request):
             "quick_filters": quick_filters,
             "show_bulk_publish": status == Shift.Status.DRAFT,
             "draft_publish_count": draft_publish_count,
+        },
+    )
+
+
+@admin_required
+def roster_planner(request):
+    today = timezone.localdate()
+    default_date_from = today - timedelta(days=today.weekday())
+    default_date_to = default_date_from + timedelta(days=6)
+    date_from = request.GET.get("date_from", "").strip() or default_date_from.isoformat()
+    date_to = request.GET.get("date_to", "").strip() or default_date_to.isoformat()
+    display_date_from = parse_date(date_from)
+    display_date_to = parse_date(date_to)
+    participant_id = request.GET.get("participant", "").strip()
+    worker_id = request.GET.get("worker", "").strip()
+    selected_participant = None
+    selected_worker = None
+
+    shifts = Shift.objects.select_related("participant", "worker", "support_item")
+    shifts = filter_roster_queryset(shifts, date_from, date_to, "", "", "")
+    if participant_id:
+        selected_participant = get_object_or_404(Participant, id=participant_id)
+        shifts = shifts.filter(participant=selected_participant)
+    if worker_id:
+        selected_worker = get_object_or_404(SupportWorker, id=worker_id)
+        shifts = shifts.filter(worker=selected_worker)
+    shifts = shifts.order_by("service_date", "start_time", "participant__last_name")
+
+    return render(
+        request,
+        "scheduling/roster_planner.html",
+        {
+            "date_from": date_from,
+            "date_to": date_to,
+            "display_date_from": display_date_from,
+            "display_date_to": display_date_to,
+            "participants": Participant.objects.filter(status=Participant.Status.ACTIVE).order_by(
+                "last_name",
+                "first_name",
+            ),
+            "workers": SupportWorker.objects.filter(status=SupportWorker.Status.ACTIVE).order_by(
+                "last_name",
+                "first_name",
+            ),
+            "selected_participant": selected_participant,
+            "selected_worker": selected_worker,
+            "shifts": shifts,
+            "current_planner_url": request.get_full_path(),
         },
     )
 

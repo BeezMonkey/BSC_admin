@@ -1,0 +1,92 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Quick Roster Planner - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Quick Roster Planner</h1>
+    <p>Plan shifts by participant, worker, and period.</p>
+  </div>
+  <div class="button-row">
+    <a class="button secondary" href="{% url 'roster_list' %}">Back to Roster</a>
+    <a class="button" href="{% url 'shift_create' %}?next={{ current_planner_url|urlencode }}">New Shift</a>
+  </div>
+</div>
+
+<section class="card planner-filter-card">
+  <form class="filter-bar planner-filter-bar" method="get">
+    <label>Participant
+      <select name="participant">
+        <option value="">All participants</option>
+        {% for participant in participants %}
+          <option value="{{ participant.id }}" {% if selected_participant.id == participant.id %}selected{% endif %}>
+            {{ participant.display_name }}
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Worker
+      <select name="worker">
+        <option value="">All workers</option>
+        {% for worker in workers %}
+          <option value="{{ worker.id }}" {% if selected_worker.id == worker.id %}selected{% endif %}>
+            {{ worker.display_name }}
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Date from <input type="date" name="date_from" value="{{ date_from }}"></label>
+    <label>Date to <input type="date" name="date_to" value="{{ date_to }}"></label>
+    <button type="submit">Apply</button>
+    <a class="button secondary" href="{% url 'roster_planner' %}">Reset</a>
+  </form>
+</section>
+
+<section class="planner-summary">
+  <article class="card">
+    <h2>Participant</h2>
+    <p>{% if selected_participant %}{{ selected_participant.display_name }}{% else %}All participants{% endif %}</p>
+  </article>
+  <article class="card">
+    <h2>Worker</h2>
+    <p>{% if selected_worker %}{{ selected_worker.display_name }}{% else %}All workers{% endif %}</p>
+  </article>
+  <article class="card">
+    <h2>Period</h2>
+    <p>{{ display_date_from|date:"d/m/Y" }} to {{ display_date_to|date:"d/m/Y" }}</p>
+  </article>
+</section>
+
+<section class="card planner-shift-card">
+  <div class="section-heading">
+    <h2>Scheduled shifts</h2>
+    <p>Review shifts for the selected planner view.</p>
+  </div>
+  <div class="planner-shift-list">
+    {% for shift in shifts %}
+      <article class="planner-shift-item">
+        <div>
+          <strong>{{ shift.service_date|date:"d/m/Y" }}</strong>
+          <p>{{ shift.start_time }} - {{ shift.end_time }}</p>
+        </div>
+        <div>
+          <strong>{{ shift.participant.display_name }}</strong>
+          <p>{{ shift.worker.display_name }}</p>
+        </div>
+        <div>
+          <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
+        </div>
+        <div class="actions">
+          <a href="{% url 'shift_detail' shift.id %}">View</a>
+        </div>
+      </article>
+    {% empty %}
+      <div class="empty-state">
+        <strong>No shifts found for this planner view.</strong>
+        <p>Adjust the participant, worker, or date range to review scheduled work.</p>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

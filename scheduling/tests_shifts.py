@@ -460,6 +460,44 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, "Awaiting worker confirmation")
         self.assertContains(response, 'class="roster-next-action-cell"')
 
+    def test_roster_list_links_to_quick_planner(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("roster_list"))
+
+        self.assertContains(response, "Quick Planner")
+        self.assertContains(response, reverse("roster_planner"))
+
+    def test_roster_planner_filters_existing_shifts(self):
+        matching_shift = self.create_shift(
+            service_date=date(2026, 6, 8),
+            status=Shift.Status.DRAFT,
+        )
+        self.create_shift(
+            worker=self.other_worker,
+            service_date=date(2026, 6, 9),
+            status=Shift.Status.PUBLISHED,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_planner"),
+            {
+                "participant": self.participant.id,
+                "worker": self.worker.id,
+                "date_from": "2026-06-08",
+                "date_to": "2026-06-14",
+            },
+        )
+
+        self.assertContains(response, "Quick Roster Planner")
+        self.assertContains(response, "Ava Nguyen")
+        self.assertContains(response, "Wendy Worker")
+        self.assertContains(response, "08/06/2026")
+        self.assertContains(response, "Draft")
+        self.assertContains(response, reverse("shift_detail", args=[matching_shift.id]))
+        self.assertNotContains(response, "<p>Oscar Other</p>", html=True)
+
     def test_roster_draft_filter_shows_bulk_publish_action(self):
         self.create_shift(status=Shift.Status.DRAFT)
         self.create_shift(status=Shift.Status.DRAFT, service_date=date(2026, 6, 2))
