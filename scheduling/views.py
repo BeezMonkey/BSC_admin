@@ -76,25 +76,7 @@ def roster_next_action(shift):
     return messages.get(shift.status, "")
 
 
-@admin_required
-def roster_list(request):
-    shifts = Shift.objects.select_related("participant", "worker", "support_item")
-    date_from = request.GET.get("date_from", "").strip()
-    date_to = request.GET.get("date_to", "").strip()
-    participant_query = request.GET.get("participant", "").strip()
-    worker_query = request.GET.get("worker", "").strip()
-    status = request.GET.get("status", "").strip()
-    quick_filter = request.GET.get("quick", "").strip()
-    today = parse_date(request.GET.get("today", "")) or timezone.localdate()
-    quick_date_from, quick_date_to = roster_quick_range(quick_filter, today)
-    if quick_date_from and not date_from:
-        date_from = quick_date_from.isoformat()
-    if quick_date_to and not date_to:
-        date_to = quick_date_to.isoformat()
-    has_filters = bool(
-        date_from or date_to or participant_query or worker_query or status or quick_filter
-    )
-
+def filter_roster_queryset(shifts, date_from, date_to, participant_query, worker_query, status):
     if date_from:
         shifts = shifts.filter(service_date__gte=date_from)
     if date_to:
@@ -115,6 +97,36 @@ def roster_list(request):
         )
     if status:
         shifts = shifts.filter(status=status)
+    return shifts
+
+
+@admin_required
+def roster_list(request):
+    shifts = Shift.objects.select_related("participant", "worker", "support_item")
+    date_from = request.GET.get("date_from", "").strip()
+    date_to = request.GET.get("date_to", "").strip()
+    participant_query = request.GET.get("participant", "").strip()
+    worker_query = request.GET.get("worker", "").strip()
+    status = request.GET.get("status", "").strip()
+    quick_filter = request.GET.get("quick", "").strip()
+    today = parse_date(request.GET.get("today", "")) or timezone.localdate()
+    quick_date_from, quick_date_to = roster_quick_range(quick_filter, today)
+    if quick_date_from and not date_from:
+        date_from = quick_date_from.isoformat()
+    if quick_date_to and not date_to:
+        date_to = quick_date_to.isoformat()
+    has_filters = bool(
+        date_from or date_to or participant_query or worker_query or status or quick_filter
+    )
+
+    shifts = filter_roster_queryset(
+        shifts,
+        date_from,
+        date_to,
+        participant_query,
+        worker_query,
+        status,
+    )
     filter_summary = build_roster_filter_summary(
         status,
         participant_query,
@@ -185,6 +197,7 @@ def roster_list(request):
             "current_list_url": request.get_full_path(),
             "quick_filter": quick_filter,
             "quick_filters": quick_filters,
+            "show_bulk_publish": status == Shift.Status.DRAFT,
         },
     )
 
@@ -322,7 +335,7 @@ def recurring_shift_create(request):
                 request,
                 f"Recurring shifts created: {created_count}; skipped: {skipped_count}.",
             )
-            return redirect("roster_list")
+            return redirect(f"{reverse('roster_list')}?status={Shift.Status.DRAFT}")
     else:
         form = RecurringShiftForm(request.GET or None)
         preview = recurring_shift_preview(form)
@@ -419,6 +432,29 @@ def shift_publish(request, shift_id):
         shift.save(update_fields=["status", "updated_at"])
         messages.success(request, "Shift published.")
     return redirect(shift)
+
+
+@admin_required
+@require_POST
+def shift_bulk_publish(request):
+    date_from = request.POST.get("date_from", "").strip()
+    date_to = request.POST.get("date_to", "").strip()
+    participant_query = request.POST.get("participant", "").strip()
+    worker_query = request.POST.get("worker", "").strip()
+    shifts = filter_roster_queryset(
+        Shift.objects.all(),
+        date_from,
+        date_to,
+        participant_query,
+        worker_query,
+        Shift.Status.DRAFT,
+    )
+    published_count = shifts.update(status=Shift.Status.PUBLISHED, updated_at=timezone.now())
+    if published_count:
+        messages.success(request, f"Published {published_count} draft shift(s).")
+    else:
+        messages.info(request, "No draft shifts matched the current filters.")
+    return redirect(f"{reverse('roster_list')}?status={Shift.Status.PUBLISHED}")
 
 
 @admin_required

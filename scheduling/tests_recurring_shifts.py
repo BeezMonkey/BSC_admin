@@ -148,7 +148,7 @@ class RecurringShiftTests(TestCase):
             self.recurring_payload(confirm="1"),
         )
 
-        self.assertRedirects(response, reverse("roster_list"))
+        self.assertRedirects(response, f"{reverse('roster_list')}?status={Shift.Status.DRAFT}")
         created_dates = list(
             Shift.objects.filter(status=Shift.Status.DRAFT)
             .order_by("service_date")
