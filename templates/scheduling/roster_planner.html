@@ -67,8 +67,11 @@
     {% for day in planner_days %}
       <article class="planner-day-card">
         <header>
-          <strong>{{ day.date|date:"D" }}</strong>
-          <span>{{ day.date|date:"d/m/Y" }}</span>
+          <div>
+            <strong>{{ day.date|date:"D" }}</strong>
+            <span>{{ day.date|date:"d/m/Y" }}</span>
+          </div>
+          <a href="{{ day.add_shift_url }}">Add Shift</a>
         </header>
         <div class="planner-day-shifts">
           {% for shift in day.shifts %}

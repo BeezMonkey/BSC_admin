@@ -517,15 +517,29 @@ td.actions a:last-child {
 }
 
 .planner-day-card header {
-  display: grid;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 0.2rem;
   padding: 0.75rem;
   border-bottom: 1px solid var(--line);
 }
 
+.planner-day-card header div {
+  display: grid;
+  gap: 0.2rem;
+}
+
 .planner-day-card header span {
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.planner-day-card header a {
+  color: var(--brand-dark);
+  font-size: 0.9rem;
+  font-weight: var(--weight-link);
+  white-space: nowrap;
 }
 
 .planner-day-shifts {

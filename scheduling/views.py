@@ -234,10 +234,20 @@ def roster_planner(request):
     if display_date_from and display_date_to and display_date_from <= display_date_to:
         current_date = display_date_from
         while current_date <= display_date_to:
+            add_shift_params = {
+                "participant": selected_participant.id if selected_participant else "",
+                "worker": selected_worker.id if selected_worker else "",
+                "service_date": current_date.isoformat(),
+                "next": request.get_full_path(),
+            }
             planner_days.append(
                 {
                     "date": current_date,
                     "shifts": [shift for shift in shifts if shift.service_date == current_date],
+                    "add_shift_url": (
+                        f"{reverse('shift_create')}?"
+                        f"{urlencode({key: value for key, value in add_shift_params.items() if value})}"
+                    ),
                 }
             )
             current_date += timedelta(days=1)
@@ -326,7 +336,7 @@ def shift_create(request):
     else:
         initial = {
             key: request.GET[key]
-            for key in ("participant", "worker")
+            for key in ("participant", "worker", "service_date")
             if request.GET.get(key)
         }
         form = ShiftForm(created_by=request.user, initial=initial)

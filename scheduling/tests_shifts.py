@@ -522,6 +522,49 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, "10/06/2026")
         self.assertContains(response, "No shifts")
 
+    def test_roster_planner_day_links_prefill_new_shift(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_planner"),
+            {
+                "participant": self.participant.id,
+                "worker": self.worker.id,
+                "date_from": "2026-06-08",
+                "date_to": "2026-06-08",
+            },
+        )
+
+        self.assertContains(response, "Add Shift")
+        self.assertContains(response, "participant=1")
+        self.assertContains(response, "worker=1")
+        self.assertContains(response, "service_date=2026-06-08")
+        self.assertContains(response, "next=")
+
+    def test_shift_create_prefills_service_date_from_planner(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("shift_create"),
+            {
+                "participant": self.participant.id,
+                "worker": self.worker.id,
+                "service_date": "2026-06-08",
+            },
+        )
+
+        self.assertContains(
+            response,
+            '<option value="1" selected>Ava Nguyen</option>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<option value="1" selected>Wendy Worker</option>',
+            html=True,
+        )
+        self.assertContains(response, 'value="2026-06-08"')
+
     def test_roster_draft_filter_shows_bulk_publish_action(self):
         self.create_shift(status=Shift.Status.DRAFT)
         self.create_shift(status=Shift.Status.DRAFT, service_date=date(2026, 6, 2))
