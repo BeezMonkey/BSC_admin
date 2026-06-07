@@ -30,4 +30,5 @@ class ThemeTokenTests(SimpleTestCase):
 
         self.assertIn(".quick-filter-row", css)
         self.assertIn(".quick-filter-row .button.active", css)
+        self.assertIn(".roster-bulk-action-card", css)
         self.assertIn(".roster-table .roster-next-action-cell", css)

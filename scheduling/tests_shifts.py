@@ -460,6 +460,55 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, "Awaiting worker confirmation")
         self.assertContains(response, 'class="roster-next-action-cell"')
 
+    def test_roster_draft_filter_shows_bulk_publish_action(self):
+        self.create_shift(status=Shift.Status.DRAFT)
+        self.login_admin()
+
+        response = self.client.get(reverse("roster_list"), {"status": Shift.Status.DRAFT})
+
+        self.assertContains(response, "Publish shown draft shifts")
+        self.assertContains(response, reverse("shift_bulk_publish"))
+        self.assertContains(
+            response,
+            '<input type="hidden" name="status" value="draft">',
+            html=True,
+        )
+
+    def test_roster_bulk_publish_publishes_filtered_draft_shifts_only(self):
+        matching_shift = self.create_shift(
+            service_date=date(2026, 6, 8),
+            status=Shift.Status.DRAFT,
+        )
+        outside_filter = self.create_shift(
+            service_date=date(2026, 6, 20),
+            status=Shift.Status.DRAFT,
+        )
+        already_published = self.create_shift(
+            service_date=date(2026, 6, 8),
+            status=Shift.Status.PUBLISHED,
+        )
+        self.login_admin()
+
+        response = self.client.post(
+            reverse("shift_bulk_publish"),
+            {
+                "status": Shift.Status.DRAFT,
+                "date_from": "2026-06-08",
+                "date_to": "2026-06-08",
+            },
+        )
+
+        matching_shift.refresh_from_db()
+        outside_filter.refresh_from_db()
+        already_published.refresh_from_db()
+        self.assertRedirects(
+            response,
+            f"{reverse('roster_list')}?status={Shift.Status.PUBLISHED}",
+        )
+        self.assertEqual(matching_shift.status, Shift.Status.PUBLISHED)
+        self.assertEqual(outside_filter.status, Shift.Status.DRAFT)
+        self.assertEqual(already_published.status, Shift.Status.PUBLISHED)
+
     def test_roster_worker_filter_uses_worker_name_search(self):
         self.create_shift(status=Shift.Status.PUBLISHED)
         self.login_admin()
@@ -932,7 +981,7 @@ class ShiftSchedulingTests(TestCase):
             {**self.recurring_shift_payload(), "confirm": "1"},
         )
 
-        self.assertRedirects(response, reverse("roster_list"))
+        self.assertRedirects(response, f"{reverse('roster_list')}?status={Shift.Status.DRAFT}")
         self.assertEqual(
             Shift.objects.filter(
                 participant=self.participant,
