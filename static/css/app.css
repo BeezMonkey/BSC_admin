@@ -501,31 +501,41 @@ td.actions a:last-child {
   color: var(--muted);
 }
 
-.planner-date-grid {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 0.75rem;
+.planner-scroll-frame {
+  overflow-x: auto;
   padding-bottom: 0.25rem;
 }
 
+.planner-date-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(150px, 1fr));
+  gap: 0.55rem;
+  min-width: 1080px;
+}
+
 .planner-day-card {
-  min-height: 12rem;
+  min-height: 9.8rem;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
 }
 
 .planner-weekend {
-  background: #f8fafc;
+  border-color: #bfd8e0;
+  background: #eaf6f8;
 }
 
 .planner-day-card header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.2rem;
-  padding: 0.75rem;
+  gap: 0.45rem;
+  padding: 0.58rem 0.62rem;
   border-bottom: 1px solid var(--line);
+}
+
+.planner-weekend header {
+  background: #dff1f4;
 }
 
 .planner-day-card header div {
@@ -538,23 +548,38 @@ td.actions a:last-child {
   font-size: 0.9rem;
 }
 
-.planner-day-card header a {
+.planner-add-shift {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.45rem;
+  height: 1.45rem;
+  border: 1px solid #9fcfc7;
+  border-radius: 999px;
   color: var(--brand-dark);
-  font-size: 0.9rem;
+  background: #ffffff;
+  font-size: 1rem;
   font-weight: var(--weight-link);
+  line-height: 1;
   white-space: nowrap;
+}
+
+.planner-add-shift:hover {
+  border-color: var(--brand);
+  color: #ffffff;
+  background: var(--brand);
 }
 
 .planner-day-shifts {
   display: grid;
-  gap: 0.6rem;
-  padding: 0.75rem;
+  gap: 0.5rem;
+  padding: 0.58rem;
 }
 
 .planner-shift-tile {
   display: grid;
-  gap: 0.65rem;
-  padding: 0.75rem;
+  gap: 0.5rem;
+  padding: 0.58rem;
   border: 1px solid var(--line);
   border-left: 3px solid var(--brand);
   border-radius: 8px;
@@ -581,6 +606,7 @@ td.actions a:last-child {
 .planner-empty-day {
   margin: 0;
   color: var(--muted);
+  font-size: 0.9rem;
   font-weight: var(--weight-label);
 }
 
@@ -1649,8 +1675,7 @@ tbody tr:last-child td {
   }
 
   .planner-date-grid {
-    grid-template-columns: repeat(7, minmax(180px, 1fr));
-    overflow-x: auto;
+    grid-template-columns: repeat(7, minmax(150px, 1fr));
   }
 
   .shift-list-item {

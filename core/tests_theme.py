@@ -32,3 +32,6 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn(".quick-filter-row .button.active", css)
         self.assertIn(".roster-bulk-action-card", css)
         self.assertIn(".roster-table .roster-next-action-cell", css)
+        self.assertIn(".planner-scroll-frame", css)
+        self.assertIn(".planner-add-shift", css)
+        self.assertIn("minmax(150px, 1fr)", css)
