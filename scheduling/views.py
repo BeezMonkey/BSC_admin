@@ -229,7 +229,18 @@ def roster_planner(request):
     if worker_id:
         selected_worker = get_object_or_404(SupportWorker, id=worker_id)
         shifts = shifts.filter(worker=selected_worker)
-    shifts = shifts.order_by("service_date", "start_time", "participant__last_name")
+    shifts = list(shifts.order_by("service_date", "start_time", "participant__last_name"))
+    planner_days = []
+    if display_date_from and display_date_to and display_date_from <= display_date_to:
+        current_date = display_date_from
+        while current_date <= display_date_to:
+            planner_days.append(
+                {
+                    "date": current_date,
+                    "shifts": [shift for shift in shifts if shift.service_date == current_date],
+                }
+            )
+            current_date += timedelta(days=1)
 
     return render(
         request,
@@ -250,6 +261,7 @@ def roster_planner(request):
             "selected_participant": selected_participant,
             "selected_worker": selected_worker,
             "shifts": shifts,
+            "planner_days": planner_days,
             "current_planner_url": request.get_full_path(),
         },
     )
