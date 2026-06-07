@@ -551,7 +551,10 @@ class ShiftSchedulingTests(TestCase):
             },
         )
 
-        self.assertContains(response, "Add Shift")
+        self.assertContains(response, 'class="planner-add-shift"')
+        self.assertContains(response, 'title="Add Shift"')
+        self.assertContains(response, ">+</a>")
+        self.assertNotContains(response, ">Add Shift</a>")
         self.assertContains(response, "participant=1")
         self.assertContains(response, "worker=1")
         self.assertContains(response, "service_date=2026-06-08")

@@ -63,40 +63,42 @@
     <h2>Scheduled shifts</h2>
     <p>Review shifts across each day in the selected period.</p>
   </div>
-  <div class="planner-date-grid planner-week-grid">
-    {% for day in planner_days %}
-      <article class="planner-day-card{% if day.is_weekend %} planner-weekend{% endif %}">
-        <header>
-          <div>
-            <strong>{{ day.date|date:"D" }}</strong>
-            <span>{{ day.date|date:"d/m/Y" }}</span>
+  <div class="planner-scroll-frame">
+    <div class="planner-date-grid planner-week-grid">
+      {% for day in planner_days %}
+        <article class="planner-day-card{% if day.is_weekend %} planner-weekend{% endif %}">
+          <header>
+            <div>
+              <strong>{{ day.date|date:"D" }}</strong>
+              <span>{{ day.date|date:"d/m/Y" }}</span>
+            </div>
+            <a class="planner-add-shift" href="{{ day.add_shift_url }}" title="Add Shift" aria-label="Add shift for {{ day.date|date:'d/m/Y' }}">+</a>
+          </header>
+          <div class="planner-day-shifts">
+            {% for shift in day.shifts %}
+              <article class="planner-shift-tile">
+                <div>
+                  <strong>{{ shift.start_time }} - {{ shift.end_time }}</strong>
+                  <p>{{ shift.participant.display_name }}</p>
+                  <p>{{ shift.worker.display_name }}</p>
+                </div>
+                <div class="planner-shift-tile-footer">
+                  <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
+                  <a href="{% url 'shift_detail' shift.id %}">View</a>
+                </div>
+              </article>
+            {% empty %}
+              <p class="planner-empty-day">No shifts</p>
+            {% endfor %}
           </div>
-          <a href="{{ day.add_shift_url }}">Add Shift</a>
-        </header>
-        <div class="planner-day-shifts">
-          {% for shift in day.shifts %}
-            <article class="planner-shift-tile">
-              <div>
-                <strong>{{ shift.start_time }} - {{ shift.end_time }}</strong>
-                <p>{{ shift.participant.display_name }}</p>
-                <p>{{ shift.worker.display_name }}</p>
-              </div>
-              <div class="planner-shift-tile-footer">
-                <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
-                <a href="{% url 'shift_detail' shift.id %}">View</a>
-              </div>
-            </article>
-          {% empty %}
-            <p class="planner-empty-day">No shifts</p>
-          {% endfor %}
+        </article>
+      {% empty %}
+        <div class="empty-state">
+          <strong>No date range selected.</strong>
+          <p>Choose a valid date range to review scheduled work.</p>
         </div>
-      </article>
-    {% empty %}
-      <div class="empty-state">
-        <strong>No date range selected.</strong>
-        <p>Choose a valid date range to review scheduled work.</p>
-      </div>
-    {% endfor %}
+      {% endfor %}
+    </div>
   </div>
 </section>
 {% endblock %}
