@@ -498,6 +498,30 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, reverse("shift_detail", args=[matching_shift.id]))
         self.assertNotContains(response, "<p>Oscar Other</p>", html=True)
 
+    def test_roster_planner_renders_date_grid_with_empty_days(self):
+        self.create_shift(
+            service_date=date(2026, 6, 8),
+            status=Shift.Status.DRAFT,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_planner"),
+            {
+                "participant": self.participant.id,
+                "worker": self.worker.id,
+                "date_from": "2026-06-08",
+                "date_to": "2026-06-10",
+            },
+        )
+
+        self.assertContains(response, 'class="planner-date-grid"')
+        self.assertContains(response, "Mon")
+        self.assertContains(response, "08/06/2026")
+        self.assertContains(response, "09/06/2026")
+        self.assertContains(response, "10/06/2026")
+        self.assertContains(response, "No shifts")
+
     def test_roster_draft_filter_shows_bulk_publish_action(self):
         self.create_shift(status=Shift.Status.DRAFT)
         self.create_shift(status=Shift.Status.DRAFT, service_date=date(2026, 6, 2))
