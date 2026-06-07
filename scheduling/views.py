@@ -79,6 +79,19 @@ def roster_next_action(shift):
     return messages.get(shift.status, "")
 
 
+def participant_address(participant):
+    address_lines = [
+        participant.address_line_1,
+        participant.address_line_2,
+        " ".join(
+            part
+            for part in [participant.suburb, participant.state, participant.postcode]
+            if part
+        ),
+    ]
+    return "\n".join(line for line in address_lines if line)
+
+
 def filter_roster_queryset(shifts, date_from, date_to, participant_query, worker_query, status):
     if date_from:
         shifts = shifts.filter(service_date__gte=date_from)
@@ -238,6 +251,7 @@ def roster_planner(request):
                 "participant": selected_participant.id if selected_participant else "",
                 "worker": selected_worker.id if selected_worker else "",
                 "service_date": current_date.isoformat(),
+                "from_planner": "1",
                 "next": request.get_full_path(),
             }
             planner_days.append(
@@ -339,6 +353,11 @@ def shift_create(request):
             for key in ("participant", "worker", "service_date")
             if request.GET.get(key)
         }
+        if request.GET.get("from_planner") and request.GET.get("participant"):
+            participant = get_object_or_404(Participant, id=request.GET["participant"])
+            initial.setdefault("status", Shift.Status.DRAFT)
+            initial.setdefault("location", "Participant home")
+            initial.setdefault("address", participant_address(participant))
         form = ShiftForm(created_by=request.user, initial=initial)
 
     return render(

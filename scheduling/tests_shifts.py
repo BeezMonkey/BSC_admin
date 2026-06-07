@@ -565,6 +565,27 @@ class ShiftSchedulingTests(TestCase):
         )
         self.assertContains(response, 'value="2026-06-08"')
 
+    def test_shift_create_prefills_planner_default_location_and_address(self):
+        self.participant.address_line_2 = "Unit 4"
+        self.participant.save()
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("shift_create"),
+            {
+                "participant": self.participant.id,
+                "worker": self.worker.id,
+                "service_date": "2026-06-08",
+                "from_planner": "1",
+            },
+        )
+
+        self.assertContains(response, '<option value="draft" selected>Draft</option>', html=True)
+        self.assertContains(response, 'value="Participant home"')
+        self.assertContains(response, "10 Creek Street")
+        self.assertContains(response, "Unit 4")
+        self.assertContains(response, "Brisbane QLD 4000")
+
     def test_roster_draft_filter_shows_bulk_publish_action(self):
         self.create_shift(status=Shift.Status.DRAFT)
         self.create_shift(status=Shift.Status.DRAFT, service_date=date(2026, 6, 2))
