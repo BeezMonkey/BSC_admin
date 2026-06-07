@@ -29,6 +29,9 @@
         </form>
       {% endif %}
       <a class="button secondary" href="{% url 'shift_edit' shift.id %}">Edit Shift</a>
+      {% if shift.status == "published" or shift.status == "confirmed" or shift.status == "completed" %}
+        <a class="button secondary" href="{% url 'worker_detail' shift.worker.id %}">View Worker</a>
+      {% endif %}
       {% if service_log %}
         <a class="button secondary" href="{% url 'service_log_detail' service_log.id %}">View Submitted Log</a>
       {% endif %}

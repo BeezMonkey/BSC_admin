@@ -193,6 +193,15 @@ class ShiftSchedulingTests(TestCase):
         self.assertNotContains(response, ">Edit</a>")
         self.assertContains(response, ">Edit Shift</a>", count=1)
 
+    def test_shift_detail_shows_worker_record_link_for_published_shift(self):
+        shift = self.create_shift(status=Shift.Status.PUBLISHED)
+        self.login_admin()
+
+        response = self.client.get(reverse("shift_detail", args=[shift.id]))
+
+        self.assertContains(response, "View Worker")
+        self.assertContains(response, reverse("worker_detail", args=[self.worker.id]))
+
     def test_shift_detail_uses_scoped_layout_classes(self):
         shift = self.create_shift(status=Shift.Status.COMPLETED)
         self.login_admin()
@@ -409,6 +418,47 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, 'class="roster-time-cell"')
         self.assertContains(response, 'class="roster-person-cell"')
         self.assertContains(response, 'class="roster-service-cell"')
+
+    def test_roster_list_shows_quick_date_filters(self):
+        self.create_shift(status=Shift.Status.PUBLISHED)
+        self.login_admin()
+
+        response = self.client.get(reverse("roster_list"))
+
+        self.assertContains(response, "Today")
+        self.assertContains(response, "This week")
+        self.assertContains(response, "Next week")
+        self.assertContains(response, "All upcoming")
+        self.assertContains(response, 'class="quick-filter-row"')
+
+    def test_roster_quick_range_filters_dates(self):
+        self.create_shift(
+            service_date=date(2026, 6, 8),
+            status=Shift.Status.PUBLISHED,
+        )
+        self.create_shift(
+            service_date=date(2026, 6, 20),
+            status=Shift.Status.PUBLISHED,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_list"),
+            {"quick": "this_week", "today": "2026-06-08"},
+        )
+
+        self.assertContains(response, "08/06/2026")
+        self.assertNotContains(response, "20/06/2026")
+        self.assertContains(response, "Showing shifts from 08/06/2026 to 14/06/2026.")
+
+    def test_roster_list_shows_next_action_for_shift_status(self):
+        self.create_shift(status=Shift.Status.PUBLISHED)
+        self.login_admin()
+
+        response = self.client.get(reverse("roster_list"))
+
+        self.assertContains(response, "Awaiting worker confirmation")
+        self.assertContains(response, 'class="roster-next-action-cell"')
 
     def test_roster_worker_filter_uses_worker_name_search(self):
         self.create_shift(status=Shift.Status.PUBLISHED)

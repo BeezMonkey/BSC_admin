@@ -439,6 +439,24 @@ td.actions a:last-child {
   text-decoration: underline;
 }
 
+.quick-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: -0.25rem 0 1rem;
+}
+
+.quick-filter-row .button {
+  min-height: 2.15rem;
+  padding: 0.42rem 0.72rem;
+}
+
+.quick-filter-row .button.active {
+  border-color: var(--brand);
+  color: #ffffff;
+  background: var(--brand);
+}
+
 .filter-bar label,
 .field {
   display: grid;
@@ -565,6 +583,12 @@ table {
   min-width: 8rem;
   color: #314052;
   overflow-wrap: anywhere;
+}
+
+.roster-table .roster-next-action-cell {
+  min-width: 10rem;
+  color: var(--muted);
+  font-weight: var(--weight-label);
 }
 
 .roster-table td.actions {

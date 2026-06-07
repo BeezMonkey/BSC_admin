@@ -14,6 +14,15 @@
   </div>
 </div>
 
+<div class="quick-filter-row" aria-label="Roster quick filters">
+  {% for item in quick_filters %}
+    <a class="button secondary {% if quick_filter == item.value %}active{% endif %}"
+       href="{% url 'roster_list' %}?quick={{ item.value }}{% if status %}&status={{ status|urlencode }}{% endif %}">
+      {{ item.label }}
+    </a>
+  {% endfor %}
+</div>
+
 <form class="filter-bar" method="get">
   <label>Date from <input type="date" name="date_from" value="{{ date_from }}"></label>
   <label>Date to <input type="date" name="date_to" value="{{ date_to }}"></label>
@@ -50,6 +59,7 @@
         <th><a class="sort-link" href="?{{ sorting.links.worker }}">Worker</a></th>
         <th>Service</th>
         <th><a class="sort-link" href="?{{ sorting.links.status }}">Status</a></th>
+        <th>Next action</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -62,6 +72,7 @@
           <td class="roster-person-cell">{{ shift.worker.display_name }}</td>
           <td class="roster-service-cell">{{ shift.get_service_type_display }}</td>
           <td><span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span></td>
+          <td class="roster-next-action-cell">{{ shift.next_action }}</td>
           <td class="actions">
             <a href="{% url 'shift_detail' shift.id %}?next={{ current_list_url|urlencode }}">View</a>
             <a href="{% url 'shift_edit' shift.id %}?next={{ current_list_url|urlencode }}">Edit</a>
@@ -69,7 +80,7 @@
         </tr>
       {% empty %}
         <tr>
-          <td colspan="7">
+          <td colspan="8">
             <div class="empty-state">
               {% if has_filters %}
                 <strong>No shifts match the current filters.</strong>

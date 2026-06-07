@@ -48,6 +48,34 @@ def build_roster_filter_summary(status, participant_query, worker_query, date_fr
     return f"{summary}."
 
 
+def roster_quick_range(quick_filter, today=None):
+    if today is None:
+        today = timezone.localdate()
+    if quick_filter == "today":
+        return today, today
+    if quick_filter == "this_week":
+        week_start = today - timedelta(days=today.weekday())
+        return week_start, week_start + timedelta(days=6)
+    if quick_filter == "next_week":
+        week_start = today - timedelta(days=today.weekday()) + timedelta(days=7)
+        return week_start, week_start + timedelta(days=6)
+    if quick_filter == "upcoming":
+        return today, None
+    return None, None
+
+
+def roster_next_action(shift):
+    messages = {
+        Shift.Status.DRAFT: "Ready to publish",
+        Shift.Status.PUBLISHED: "Awaiting worker confirmation",
+        Shift.Status.CONFIRMED: "Ready for worker log",
+        Shift.Status.COMPLETED: "Review service log",
+        Shift.Status.CANCELLED: "No action required",
+        Shift.Status.NO_SHOW: "Review follow-up",
+    }
+    return messages.get(shift.status, "")
+
+
 @admin_required
 def roster_list(request):
     shifts = Shift.objects.select_related("participant", "worker", "support_item")
@@ -56,7 +84,16 @@ def roster_list(request):
     participant_query = request.GET.get("participant", "").strip()
     worker_query = request.GET.get("worker", "").strip()
     status = request.GET.get("status", "").strip()
-    has_filters = bool(date_from or date_to or participant_query or worker_query or status)
+    quick_filter = request.GET.get("quick", "").strip()
+    today = parse_date(request.GET.get("today", "")) or timezone.localdate()
+    quick_date_from, quick_date_to = roster_quick_range(quick_filter, today)
+    if quick_date_from and not date_from:
+        date_from = quick_date_from.isoformat()
+    if quick_date_to and not date_to:
+        date_to = quick_date_to.isoformat()
+    has_filters = bool(
+        date_from or date_to or participant_query or worker_query or status or quick_filter
+    )
 
     if date_from:
         shifts = shifts.filter(service_date__gte=date_from)
@@ -96,6 +133,39 @@ def roster_list(request):
         },
     )
     shifts, pagination = paginate_queryset(request, shifts)
+    for shift in shifts:
+        shift.next_action = roster_next_action(shift)
+
+    quick_filters = [
+        {
+            "label": "Today",
+            "value": "today",
+            "date_from": today.isoformat(),
+            "date_to": today.isoformat(),
+        },
+        {
+            "label": "This week",
+            "value": "this_week",
+            "date_from": (today - timedelta(days=today.weekday())).isoformat(),
+            "date_to": (today - timedelta(days=today.weekday()) + timedelta(days=6)).isoformat(),
+        },
+        {
+            "label": "Next week",
+            "value": "next_week",
+            "date_from": (
+                today - timedelta(days=today.weekday()) + timedelta(days=7)
+            ).isoformat(),
+            "date_to": (
+                today - timedelta(days=today.weekday()) + timedelta(days=13)
+            ).isoformat(),
+        },
+        {
+            "label": "All upcoming",
+            "value": "upcoming",
+            "date_from": today.isoformat(),
+            "date_to": "",
+        },
+    ]
 
     return render(
         request,
@@ -113,6 +183,8 @@ def roster_list(request):
             "status_choices": Shift.Status.choices,
             "filter_summary": filter_summary,
             "current_list_url": request.get_full_path(),
+            "quick_filter": quick_filter,
+            "quick_filters": quick_filters,
         },
     )
 
