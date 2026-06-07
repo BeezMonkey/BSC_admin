@@ -52,8 +52,8 @@
 {% if show_bulk_publish %}
 <section class="card roster-bulk-action-card">
   <div>
-    <h2>Draft shift actions</h2>
-    <p>Publish the draft shifts currently shown by these filters.</p>
+    <h2>{{ draft_publish_count }} draft shift{{ draft_publish_count|pluralize }} ready to publish</h2>
+    <p>Only draft shifts matching the current filters will be published.</p>
   </div>
   <form method="post" action="{% url 'shift_bulk_publish' %}" class="button-row">
     {% csrf_token %}
@@ -62,7 +62,9 @@
     <input type="hidden" name="date_to" value="{{ date_to }}">
     <input type="hidden" name="participant" value="{{ participant_query }}">
     <input type="hidden" name="worker" value="{{ worker_query }}">
-    <button type="submit">Publish shown draft shifts</button>
+    {% if draft_publish_count %}
+      <button type="submit">Publish {{ draft_publish_count }} draft shift{{ draft_publish_count|pluralize }}</button>
+    {% endif %}
   </form>
 </section>
 {% endif %}
