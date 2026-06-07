@@ -475,6 +475,55 @@ td.actions a:last-child {
   color: var(--muted);
 }
 
+.planner-filter-card {
+  margin-bottom: 1rem;
+}
+
+.planner-filter-bar {
+  margin-bottom: 0;
+}
+
+.planner-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.planner-summary h2,
+.planner-shift-card h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.planner-summary p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.planner-shift-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.planner-shift-item {
+  display: grid;
+  grid-template-columns: 1.1fr 1.4fr auto auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.planner-shift-item:first-child {
+  border-top: 0;
+}
+
+.planner-shift-item p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+}
+
 .filter-bar label,
 .field {
   display: grid;
@@ -1533,6 +1582,11 @@ tbody tr:last-child td {
 
   .workflow-checklist-action {
     justify-items: start;
+  }
+
+  .planner-summary,
+  .planner-shift-item {
+    grid-template-columns: 1fr;
   }
 
   .shift-list-item {
