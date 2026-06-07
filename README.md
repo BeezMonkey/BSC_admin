@@ -55,13 +55,16 @@ DATABASE_URL=postgres://bsc_user:password@db-host:5432/bsc_admin
 - Document upload/download with basic permissions.
 - Audit logs for key business actions.
 
-## Deployment Preparation
+## Beta Deployment
 
-This repository is not deployed yet. It remains a local development and V1 trial project with deployment-ready configuration entry points.
+The project has a private Render beta environment for workflow testing with fake or anonymized data only.
 
-Before any future production deployment, review:
+Beta trial and deployment documents:
 
 ```text
+docs/beta-trial-pack.md
+docs/beta-tester-guide.md
+docs/beta-feedback-log.md
 docs/pre-deployment-review.md
 docs/render-beta-deployment.md
 docs/render-beta-handoff-checklist.md
