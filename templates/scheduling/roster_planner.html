@@ -63,9 +63,9 @@
     <h2>Scheduled shifts</h2>
     <p>Review shifts across each day in the selected period.</p>
   </div>
-  <div class="planner-date-grid" style="--planner-day-count: {{ planner_days|length }};">
+  <div class="planner-date-grid planner-week-grid">
     {% for day in planner_days %}
-      <article class="planner-day-card">
+      <article class="planner-day-card{% if day.is_weekend %} planner-weekend{% endif %}">
         <header>
           <div>
             <strong>{{ day.date|date:"D" }}</strong>
