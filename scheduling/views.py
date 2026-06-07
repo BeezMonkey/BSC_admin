@@ -1,4 +1,5 @@
 from datetime import timedelta
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.db.models import Q
@@ -127,6 +128,7 @@ def roster_list(request):
         worker_query,
         status,
     )
+    draft_publish_count = shifts.count() if status == Shift.Status.DRAFT else 0
     filter_summary = build_roster_filter_summary(
         status,
         participant_query,
@@ -198,6 +200,7 @@ def roster_list(request):
             "quick_filter": quick_filter,
             "quick_filters": quick_filters,
             "show_bulk_publish": status == Shift.Status.DRAFT,
+            "draft_publish_count": draft_publish_count,
         },
     )
 
@@ -454,7 +457,15 @@ def shift_bulk_publish(request):
         messages.success(request, f"Published {published_count} draft shift(s).")
     else:
         messages.info(request, "No draft shifts matched the current filters.")
-    return redirect(f"{reverse('roster_list')}?status={Shift.Status.PUBLISHED}")
+    redirect_params = {
+        "date_from": date_from,
+        "date_to": date_to,
+        "participant": participant_query,
+        "worker": worker_query,
+        "status": Shift.Status.PUBLISHED,
+    }
+    redirect_query = urlencode({key: value for key, value in redirect_params.items() if value})
+    return redirect(f"{reverse('roster_list')}?{redirect_query}")
 
 
 @admin_required

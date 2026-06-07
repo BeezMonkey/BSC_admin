@@ -462,11 +462,13 @@ class ShiftSchedulingTests(TestCase):
 
     def test_roster_draft_filter_shows_bulk_publish_action(self):
         self.create_shift(status=Shift.Status.DRAFT)
+        self.create_shift(status=Shift.Status.DRAFT, service_date=date(2026, 6, 2))
         self.login_admin()
 
         response = self.client.get(reverse("roster_list"), {"status": Shift.Status.DRAFT})
 
-        self.assertContains(response, "Publish shown draft shifts")
+        self.assertContains(response, "2 draft shifts ready to publish")
+        self.assertContains(response, "Publish 2 draft shifts")
         self.assertContains(response, reverse("shift_bulk_publish"))
         self.assertContains(
             response,
@@ -503,7 +505,10 @@ class ShiftSchedulingTests(TestCase):
         already_published.refresh_from_db()
         self.assertRedirects(
             response,
-            f"{reverse('roster_list')}?status={Shift.Status.PUBLISHED}",
+            (
+                f"{reverse('roster_list')}?status={Shift.Status.PUBLISHED}"
+                "&date_from=2026-06-08&date_to=2026-06-08"
+            ),
         )
         self.assertEqual(matching_shift.status, Shift.Status.PUBLISHED)
         self.assertEqual(outside_filter.status, Shift.Status.DRAFT)
