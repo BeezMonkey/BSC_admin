@@ -521,6 +521,8 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, "09/06/2026")
         self.assertContains(response, "10/06/2026")
         self.assertContains(response, "No shifts")
+        self.assertContains(response, "9:00 am - 11:00 am")
+        self.assertNotContains(response, "a.m.")
 
     def test_roster_planner_marks_weekly_grid_and_weekends(self):
         self.login_admin()

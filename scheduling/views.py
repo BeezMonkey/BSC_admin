@@ -29,6 +29,10 @@ def format_filter_date(value):
     return parsed_date.strftime("%d/%m/%Y")
 
 
+def format_roster_time(value):
+    return value.strftime("%I:%M %p").lstrip("0").lower()
+
+
 def build_roster_filter_summary(status, participant_query, worker_query, date_from, date_to):
     status_label = dict(Shift.Status.choices).get(status)
     if not any([status_label, participant_query, worker_query, date_from, date_to]):
@@ -243,6 +247,10 @@ def roster_planner(request):
         selected_worker = get_object_or_404(SupportWorker, id=worker_id)
         shifts = shifts.filter(worker=selected_worker)
     shifts = list(shifts.order_by("service_date", "start_time", "participant__last_name"))
+    for shift in shifts:
+        shift.display_time = (
+            f"{format_roster_time(shift.start_time)} - {format_roster_time(shift.end_time)}"
+        )
     planner_days = []
     if display_date_from and display_date_to and display_date_from <= display_date_to:
         current_date = display_date_from
