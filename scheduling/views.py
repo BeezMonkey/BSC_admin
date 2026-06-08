@@ -229,6 +229,10 @@ def roster_planner(request):
     today = timezone.localdate()
     default_date_from = today - timedelta(days=today.weekday())
     default_date_to = default_date_from + timedelta(days=6)
+    view_mode = request.GET.get("view", "participant").strip()
+    if view_mode not in {"participant", "worker"}:
+        view_mode = "participant"
+    is_worker_view = view_mode == "worker"
     date_from = request.GET.get("date_from", "").strip() or default_date_from.isoformat()
     date_to = request.GET.get("date_to", "").strip() or default_date_to.isoformat()
     display_date_from = parse_date(date_from)
@@ -256,6 +260,7 @@ def roster_planner(request):
         current_date = display_date_from
         while current_date <= display_date_to:
             add_shift_params = {
+                "view": view_mode,
                 "participant": selected_participant.id if selected_participant else "",
                 "worker": selected_worker.id if selected_worker else "",
                 "service_date": current_date.isoformat(),
@@ -293,6 +298,10 @@ def roster_planner(request):
             ),
             "selected_participant": selected_participant,
             "selected_worker": selected_worker,
+            "view_mode": view_mode,
+            "is_worker_view": is_worker_view,
+            "primary_filter_label": "Worker focus" if is_worker_view else "Participant focus",
+            "secondary_filter_label": "Participant filter" if is_worker_view else "Worker filter",
             "shifts": shifts,
             "planner_days": planner_days,
             "current_planner_url": request.get_full_path(),
