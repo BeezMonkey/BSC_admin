@@ -498,6 +498,51 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, reverse("shift_detail", args=[matching_shift.id]))
         self.assertNotContains(response, "<p>Oscar Other</p>", html=True)
 
+    def test_roster_planner_defaults_to_participant_view(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("roster_planner"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Participant view")
+        self.assertContains(response, "Participant focus")
+        self.assertContains(response, "Worker filter")
+
+    def test_roster_planner_worker_view_labels_and_filters(self):
+        self.login_admin()
+        self.create_shift(
+            worker=self.other_worker,
+            service_date=date(2026, 6, 2),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            status=Shift.Status.DRAFT,
+        )
+        self.create_shift(
+            service_date=date(2026, 6, 1),
+            status=Shift.Status.DRAFT,
+        )
+
+        response = self.client.get(
+            reverse("roster_planner"),
+            {
+                "view": "worker",
+                "worker": self.worker.id,
+                "date_from": "2026-06-01",
+                "date_to": "2026-06-07",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Worker view")
+        self.assertContains(response, "Worker focus")
+        self.assertContains(response, "Participant filter")
+        self.assertContains(response, self.worker.display_name)
+        self.assertNotContains(
+            response,
+            f'<p class="planner-shift-meta">{self.other_worker.display_name}</p>',
+            html=True,
+        )
+
     def test_roster_planner_renders_date_grid_with_empty_days(self):
         self.create_shift(
             service_date=date(2026, 6, 8),

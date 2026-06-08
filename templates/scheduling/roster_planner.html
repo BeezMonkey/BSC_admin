@@ -16,26 +16,55 @@
 
 <section class="card planner-filter-card">
   <form class="filter-bar planner-filter-bar" method="get">
-    <label>Participant
-      <select name="participant">
-        <option value="">All participants</option>
-        {% for participant in participants %}
-          <option value="{{ participant.id }}" {% if selected_participant.id == participant.id %}selected{% endif %}>
-            {{ participant.display_name }}
-          </option>
-        {% endfor %}
+    <label>View
+      <select name="view">
+        <option value="participant" {% if view_mode == "participant" %}selected{% endif %}>Participant view</option>
+        <option value="worker" {% if view_mode == "worker" %}selected{% endif %}>Worker view</option>
       </select>
     </label>
-    <label>Worker
-      <select name="worker">
-        <option value="">All workers</option>
-        {% for worker in workers %}
-          <option value="{{ worker.id }}" {% if selected_worker.id == worker.id %}selected{% endif %}>
-            {{ worker.display_name }}
-          </option>
-        {% endfor %}
-      </select>
-    </label>
+    {% if is_worker_view %}
+      <label>{{ primary_filter_label }}
+        <select name="worker">
+          <option value="">All workers</option>
+          {% for worker in workers %}
+            <option value="{{ worker.id }}" {% if selected_worker.id == worker.id %}selected{% endif %}>
+              {{ worker.display_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>{{ secondary_filter_label }}
+        <select name="participant">
+          <option value="">All participants</option>
+          {% for participant in participants %}
+            <option value="{{ participant.id }}" {% if selected_participant.id == participant.id %}selected{% endif %}>
+              {{ participant.display_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </label>
+    {% else %}
+      <label>{{ primary_filter_label }}
+        <select name="participant">
+          <option value="">All participants</option>
+          {% for participant in participants %}
+            <option value="{{ participant.id }}" {% if selected_participant.id == participant.id %}selected{% endif %}>
+              {{ participant.display_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>{{ secondary_filter_label }}
+        <select name="worker">
+          <option value="">All workers</option>
+          {% for worker in workers %}
+            <option value="{{ worker.id }}" {% if selected_worker.id == worker.id %}selected{% endif %}>
+              {{ worker.display_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </label>
+    {% endif %}
     <label>Date from <input type="date" name="date_from" value="{{ date_from }}"></label>
     <label>Date to <input type="date" name="date_to" value="{{ date_to }}"></label>
     <button type="submit">Apply</button>
@@ -45,6 +74,20 @@
 
 <section class="planner-summary">
   <article class="card">
+    <h2>View</h2>
+    <p>{% if is_worker_view %}Worker view{% else %}Participant view{% endif %}</p>
+  </article>
+  {% if is_worker_view %}
+  <article class="card">
+    <h2>Worker</h2>
+    <p>{% if selected_worker %}{{ selected_worker.display_name }}{% else %}All workers{% endif %}</p>
+  </article>
+  <article class="card">
+    <h2>Participant</h2>
+    <p>{% if selected_participant %}{{ selected_participant.display_name }}{% else %}All participants{% endif %}</p>
+  </article>
+  {% else %}
+  <article class="card">
     <h2>Participant</h2>
     <p>{% if selected_participant %}{{ selected_participant.display_name }}{% else %}All participants{% endif %}</p>
   </article>
@@ -52,6 +95,7 @@
     <h2>Worker</h2>
     <p>{% if selected_worker %}{{ selected_worker.display_name }}{% else %}All workers{% endif %}</p>
   </article>
+  {% endif %}
   <article class="card">
     <h2>Period</h2>
     <p>{{ display_date_from|date:"d/m/Y" }} to {{ display_date_to|date:"d/m/Y" }}</p>
