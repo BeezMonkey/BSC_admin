@@ -34,4 +34,6 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn(".roster-table .roster-next-action-cell", css)
         self.assertIn(".planner-scroll-frame", css)
         self.assertIn(".planner-add-shift", css)
+        self.assertIn(".planner-shift-time", css)
+        self.assertIn(".planner-shift-meta", css)
         self.assertIn("minmax(150px, 1fr)", css)
