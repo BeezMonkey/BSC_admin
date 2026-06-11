@@ -1,24 +1,25 @@
 :root {
   color-scheme: light;
-  --ink: #102033;
-  --muted: #60708a;
-  --line: #d9e2ec;
+  --ink: #1f2937;
+  --muted: #64748b;
+  --line: #d8e1ea;
   --panel: #ffffff;
-  --surface: #f6f8fb;
-  --brand: #16877d;
-  --brand-dark: #126f67;
-  --brand-soft: #e4f4f0;
+  --surface: #f7f9fb;
+  --brand: #128b7e;
+  --brand-dark: #0f766e;
+  --brand-soft: #e7f5f3;
   --accent: #b7791f;
-  --sidebar: #1f4f4a;
-  --sidebar-text: #e8f3f1;
-  --sidebar-muted: #b8d6d1;
-  --sidebar-active: #dff3ef;
-  --sidebar-active-text: #0f5f58;
-  --sidebar-active-border: #5fb9ac;
-  --shadow: 0 6px 18px rgba(16, 32, 51, 0.035);
+  --sidebar: #ffffff;
+  --sidebar-text: #263445;
+  --sidebar-muted: #94a3b8;
+  --sidebar-active: #e7f5f3;
+  --sidebar-active-text: #0f766e;
+  --sidebar-active-border: #128b7e;
+  --shadow: 0 1px 2px rgba(15, 23, 42, 0.035);
   --weight-action: 600;
-  --weight-heading: 700;
+  --weight-heading: 650;
   --weight-label: 650;
+  --weight-link: 650;
 }
 
 * {
@@ -43,8 +44,8 @@ a {
 button {
   border: 0;
   border-radius: 6px;
-  min-height: 2.35rem;
-  padding: 0.5rem 0.78rem;
+  min-height: 2.25rem;
+  padding: 0.48rem 0.78rem;
   color: #ffffff;
   background: var(--brand);
   cursor: pointer;
@@ -62,8 +63,8 @@ button:hover {
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  min-height: 2.35rem;
-  padding: 0.5rem 0.78rem;
+  min-height: 2.25rem;
+  padding: 0.48rem 0.78rem;
   color: #ffffff;
   background: var(--brand);
   line-height: 1.2;
@@ -96,12 +97,12 @@ button:hover {
 .button.secondary {
   border: 1px solid var(--line);
   color: #344054;
-  background: #eef3f7;
+  background: #ffffff;
 }
 
 .button.secondary:hover {
   color: var(--ink);
-  background: #e3ebf2;
+  background: #f8fafc;
 }
 
 button.danger {
@@ -178,7 +179,7 @@ button.danger:hover {
 .message {
   border: 1px solid var(--line);
   border-left: 3px solid var(--brand);
-  border-radius: 7px;
+  border-radius: 6px;
   padding: 0.64rem 0.78rem;
   color: var(--ink);
   background: #ffffff;
@@ -217,22 +218,22 @@ button.danger:hover {
 .app-shell {
   display: grid;
   min-height: 100vh;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: 248px minmax(0, 1fr);
 }
 
 .sidebar {
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid var(--line);
   background: var(--sidebar);
   color: var(--sidebar-text);
-  padding: 0.9rem 0.78rem;
+  padding: 1.15rem 0.85rem;
 }
 
 .brand {
   display: grid;
   gap: 0.15rem;
-  margin: 0 0 1rem;
-  padding: 0.12rem 0.55rem 0.9rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.13);
+  margin: 0 0 1.25rem;
+  padding: 0.12rem 0.55rem 1rem;
+  border-bottom: 1px solid var(--line);
   font-size: 1.05rem;
   font-weight: var(--weight-heading);
 }
@@ -247,13 +248,27 @@ button.danger:hover {
 
 .sidebar-nav {
   display: grid;
-  gap: 0.18rem;
+  gap: 0.15rem;
+}
+
+.sidebar-section-label {
+  display: block;
+  margin: 1rem 0 0.35rem;
+  padding: 0 0.55rem;
+  color: var(--sidebar-muted);
+  font-size: 0.68rem;
+  font-weight: var(--weight-label);
+  letter-spacing: 0;
+}
+
+.sidebar-section-label:first-child {
+  margin-top: 0;
 }
 
 .sidebar-link {
   display: block;
-  border-radius: 7px;
-  padding: 0.6rem 0.72rem;
+  border-radius: 5px;
+  padding: 0.58rem 0.72rem;
   color: var(--sidebar-text);
   font-weight: var(--weight-action);
   transition: background 0.15s ease, color 0.15s ease;
@@ -279,11 +294,11 @@ button.danger:hover {
   align-items: center;
   justify-content: flex-end;
   gap: 1rem;
-  min-height: 3.75rem;
+  min-height: 3.5rem;
   margin: 0 -1.75rem 1.45rem;
   border-bottom: 1px solid var(--line);
   padding: 0 1.75rem;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.92);
 }
 
 .user-label {
@@ -300,7 +315,7 @@ button.danger:hover {
 .card,
 .worker-card {
   border: 1px solid var(--line);
-  border-radius: 7px;
+  border-radius: 6px;
   padding: 1.08rem;
   background: var(--panel);
   box-shadow: var(--shadow);
@@ -332,8 +347,8 @@ button.danger:hover {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1.25rem;
-  margin-bottom: 1.15rem;
-  padding-bottom: 0.65rem;
+  margin-bottom: 1.1rem;
+  padding-bottom: 0.75rem;
   border-bottom: 1px solid rgba(220, 227, 236, 0.75);
 }
 
@@ -343,7 +358,7 @@ button.danger:hover {
 
 .page-header h1 {
   margin: 0;
-  font-size: 1.68rem;
+  font-size: 1.62rem;
   line-height: 1.15;
   letter-spacing: 0;
   font-weight: var(--weight-heading);
@@ -486,7 +501,7 @@ td.actions a:last-child {
 .planner-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
@@ -503,26 +518,33 @@ td.actions a:last-child {
 
 .planner-scroll-frame {
   overflow-x: auto;
-  padding-bottom: 0.25rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #ffffff;
+  padding-bottom: 0;
 }
 
 .planner-date-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(150px, 1fr));
-  gap: 0.55rem;
+  gap: 0;
   min-width: 1080px;
 }
 
 .planner-day-card {
-  min-height: 9.8rem;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface);
+  min-height: 13rem;
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  background: #ffffff;
+}
+
+.planner-day-card:last-child {
+  border-right: 0;
 }
 
 .planner-weekend {
-  border-color: #bfd8e0;
-  background: #eaf6f8;
+  background: #f3faf9;
 }
 
 .planner-day-card header {
@@ -530,12 +552,14 @@ td.actions a:last-child {
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.45rem;
-  padding: 0.58rem 0.62rem;
+  min-height: 3.45rem;
+  padding: 0.62rem 0.68rem;
   border-bottom: 1px solid var(--line);
+  background: #fbfcfd;
 }
 
 .planner-weekend header {
-  background: #dff1f4;
+  background: #eef8f7;
 }
 
 .planner-day-card header div {
@@ -552,8 +576,8 @@ td.actions a:last-child {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.45rem;
-  height: 1.45rem;
+  width: 1.55rem;
+  height: 1.55rem;
   border: 1px solid #9fcfc7;
   border-radius: 999px;
   color: var(--brand-dark);
@@ -572,19 +596,19 @@ td.actions a:last-child {
 
 .planner-day-shifts {
   display: grid;
-  gap: 0.5rem;
-  padding: 0.58rem;
+  gap: 0.48rem;
+  padding: 0.6rem;
 }
 
 .planner-shift-tile {
   display: grid;
   gap: 0.42rem;
   overflow: hidden;
-  padding: 0.48rem;
-  border: 1px solid var(--line);
+  padding: 0.52rem;
+  border: 0;
   border-left: 3px solid var(--brand);
-  border-radius: 8px;
-  background: #ffffff;
+  border-radius: 6px;
+  background: var(--brand-soft);
 }
 
 .planner-shift-copy {
@@ -593,6 +617,7 @@ td.actions a:last-child {
 
 .planner-shift-time {
   display: block;
+  color: var(--brand-dark);
   font-size: 0.86rem;
   line-height: 1.25;
   overflow-wrap: anywhere;
@@ -681,7 +706,7 @@ input[type="checkbox"] {
 .table-card {
   overflow-x: auto;
   border: 1px solid var(--line);
-  border-radius: 7px;
+  border-radius: 6px;
   background: var(--panel);
   box-shadow: var(--shadow);
 }
@@ -693,8 +718,7 @@ input[type="checkbox"] {
 
 table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
   min-width: 680px;
 }
 
@@ -773,13 +797,13 @@ table {
 th,
 td {
   border-bottom: 1px solid var(--line);
-  padding: 0.68rem 0.82rem;
+  padding: 0.7rem 0.86rem;
   text-align: left;
   vertical-align: top;
 }
 
 th {
-  background: #f8fafc;
+  background: #fbfcfd;
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: var(--weight-label);
@@ -797,8 +821,7 @@ th {
 }
 
 tbody tr:hover {
-  background: #fbfcfe;
-  box-shadow: inset 2px 0 0 rgba(22, 135, 125, 0.14);
+  background: #fbfcfd;
 }
 
 tbody tr:last-child td {
@@ -812,11 +835,11 @@ tbody tr:last-child td {
   gap: 1rem;
   margin-top: 0.95rem;
   border: 1px solid var(--line);
-  border-radius: 7px;
+  border-radius: 6px;
   padding: 0.72rem 0.85rem;
   color: var(--muted);
   background: #ffffff;
-  box-shadow: 0 8px 22px rgba(24, 36, 51, 0.04);
+  box-shadow: var(--shadow);
 }
 
 .pagination-summary {
