@@ -6,16 +6,35 @@
 <div class="page-header">
   <div>
     <h1>Quick Roster Planner</h1>
-    <p>Plan shifts by participant, worker, and period.</p>
+    <p>Default one-week view with faster week navigation and quieter empty days.</p>
   </div>
   <div class="button-row">
     <a class="button secondary" href="{% url 'roster_list' %}">Back to Roster</a>
+    <a class="button secondary" href="{% url 'recurring_shift_create' %}?next={{ current_planner_url|urlencode }}">Recurring Shift</a>
     <a class="button" href="{% url 'shift_create' %}?next={{ current_planner_url|urlencode }}">New Shift</a>
   </div>
 </div>
 
-<section class="card planner-filter-card">
-  <form class="filter-bar planner-filter-bar" method="get">
+<section class="card planner-week-toolbar" aria-label="Planner week controls">
+  <div class="planner-week-controls">
+    <a class="button secondary" href="{{ today_url }}">Today</a>
+    <a class="button secondary planner-week-step" href="{{ previous_week_url }}" aria-label="Previous week">Previous week</a>
+    <a class="button secondary planner-week-step" href="{{ next_week_url }}" aria-label="Next week">Next week</a>
+    <strong class="planner-week-range">{{ planner_range_label }}</strong>
+  </div>
+  <div class="planner-scope-chips planner-scope-{{ planner_scope_modifier }}">
+    <span class="planner-scope-chip">{{ planner_span_label }}</span>
+    {% if planner_scope_modifier == "multi-week" %}
+      <span class="planner-scope-chip">multi-week</span>
+    {% endif %}
+    <span class="planner-scope-chip">{% if is_worker_view %}Worker view{% else %}Participant view{% endif %}</span>
+    <span class="planner-scope-chip">{% if selected_participant %}{{ selected_participant.display_name }}{% else %}All participants{% endif %}</span>
+    <span class="planner-scope-chip">{% if selected_worker %}{{ selected_worker.display_name }}{% else %}All workers{% endif %}</span>
+  </div>
+</section>
+
+<section class="card planner-filter-card planner-filter-card-compact">
+  <form class="filter-bar planner-filter-bar planner-filter-bar-compact" method="get">
     <label>View
       <select name="view">
         <option value="participant" {% if view_mode == "participant" %}selected{% endif %}>Participant view</option>
@@ -72,40 +91,10 @@
   </form>
 </section>
 
-<section class="planner-summary">
-  <article class="card">
-    <h2>View</h2>
-    <p>{% if is_worker_view %}Worker view{% else %}Participant view{% endif %}</p>
-  </article>
-  {% if is_worker_view %}
-  <article class="card">
-    <h2>Worker</h2>
-    <p>{% if selected_worker %}{{ selected_worker.display_name }}{% else %}All workers{% endif %}</p>
-  </article>
-  <article class="card">
-    <h2>Participant</h2>
-    <p>{% if selected_participant %}{{ selected_participant.display_name }}{% else %}All participants{% endif %}</p>
-  </article>
-  {% else %}
-  <article class="card">
-    <h2>Participant</h2>
-    <p>{% if selected_participant %}{{ selected_participant.display_name }}{% else %}All participants{% endif %}</p>
-  </article>
-  <article class="card">
-    <h2>Worker</h2>
-    <p>{% if selected_worker %}{{ selected_worker.display_name }}{% else %}All workers{% endif %}</p>
-  </article>
-  {% endif %}
-  <article class="card">
-    <h2>Period</h2>
-    <p>{{ display_date_from|date:"d/m/Y" }} to {{ display_date_to|date:"d/m/Y" }}</p>
-  </article>
-</section>
-
 <section class="card planner-shift-card">
   <div class="section-heading">
     <h2>Scheduled shifts</h2>
-    <p>Review shifts across each day in the selected period.</p>
+    <p>One week is the default. Empty days stay quiet until you add a shift.</p>
   </div>
   <div class="planner-scroll-frame">
     <div class="planner-date-grid planner-week-grid">
@@ -114,9 +103,9 @@
           <header>
             <div>
               <strong>{{ day.date|date:"D" }}</strong>
-              <span>{{ day.date|date:"d/m/Y" }}</span>
+              <span>{{ day.date|date:"d/m" }}</span>
             </div>
-            <a class="planner-add-shift" href="{{ day.add_shift_url }}" title="Add Shift" aria-label="Add shift for {{ day.date|date:'d/m/Y' }}">+</a>
+            <a class="planner-add-shift planner-add-shift-square" href="{{ day.add_shift_url }}" title="Add Shift" aria-label="Add shift for {{ day.date|date:'d/m/Y' }}">+</a>
           </header>
           <div class="planner-day-shifts">
             {% for shift in day.shifts %}
@@ -132,7 +121,7 @@
                 </div>
               </article>
             {% empty %}
-              <p class="planner-empty-day">No shifts</p>
+              <p class="planner-empty-day" aria-label="No shifts for {{ day.date|date:'d/m/Y' }}"></p>
             {% endfor %}
           </div>
         </article>

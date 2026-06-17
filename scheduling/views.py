@@ -241,6 +241,10 @@ def roster_planner(request):
     worker_id = request.GET.get("worker", "").strip()
     selected_participant = None
     selected_worker = None
+    planner_day_count = 0
+    planner_span_label = "Custom range"
+    planner_range_label = ""
+    planner_scope_modifier = "custom"
 
     shifts = Shift.objects.select_related("participant", "worker", "support_item")
     shifts = filter_roster_queryset(shifts, date_from, date_to, "", "", "")
@@ -257,6 +261,47 @@ def roster_planner(request):
         )
     planner_days = []
     if display_date_from and display_date_to and display_date_from <= display_date_to:
+        planner_day_count = (display_date_to - display_date_from).days + 1
+        planner_range_label = (
+            f"{display_date_from.strftime('%d/%m/%Y')} - {display_date_to.strftime('%d/%m/%Y')}"
+        )
+        if planner_day_count == 7:
+            planner_span_label = "1 week"
+            planner_scope_modifier = "one-week"
+        elif planner_day_count > 7:
+            planner_span_label = (
+                f"{planner_day_count // 7} weeks"
+                if planner_day_count % 7 == 0
+                else f"{planner_day_count} days"
+            )
+            planner_scope_modifier = "multi-week"
+        else:
+            planner_span_label = f"{planner_day_count} days"
+            planner_scope_modifier = "short-range"
+
+        def planner_url_for(start_date, end_date):
+            params = {
+                "view": view_mode,
+                "participant": selected_participant.id if selected_participant else "",
+                "worker": selected_worker.id if selected_worker else "",
+                "date_from": start_date.isoformat(),
+                "date_to": end_date.isoformat(),
+            }
+            return (
+                f"{reverse('roster_planner')}?"
+                f"{urlencode({key: value for key, value in params.items() if value})}"
+            )
+
+        previous_week_url = planner_url_for(
+            display_date_from - timedelta(days=7),
+            display_date_to - timedelta(days=7),
+        )
+        next_week_url = planner_url_for(
+            display_date_from + timedelta(days=7),
+            display_date_to + timedelta(days=7),
+        )
+        today_url = planner_url_for(default_date_from, default_date_to)
+
         current_date = display_date_from
         while current_date <= display_date_to:
             add_shift_params = {
@@ -304,6 +349,13 @@ def roster_planner(request):
             "secondary_filter_label": "Participant filter" if is_worker_view else "Worker filter",
             "shifts": shifts,
             "planner_days": planner_days,
+            "planner_day_count": planner_day_count,
+            "planner_span_label": planner_span_label,
+            "planner_range_label": planner_range_label,
+            "planner_scope_modifier": planner_scope_modifier,
+            "previous_week_url": previous_week_url if planner_days else "",
+            "next_week_url": next_week_url if planner_days else "",
+            "today_url": today_url if planner_days else "",
             "current_planner_url": request.get_full_path(),
         },
     )
