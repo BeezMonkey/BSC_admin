@@ -153,6 +153,62 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(create_response, f'name="next" value="{list_path.replace("&", "&amp;")}"')
         self.assertRedirects(post_response, list_path)
 
+    def test_shift_create_plain_get_keeps_full_page_fallback(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("shift_create"), {"service_date": "2026-06-10"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="app-shell"')
+        self.assertContains(response, 'class="record-form"')
+        self.assertContains(response, "New Shift")
+        self.assertNotContains(response, 'class="shift-modal-dialog"')
+
+    def test_shift_create_modal_get_returns_partial_form(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("shift_create"),
+            {
+                "participant": self.participant.id,
+                "worker": self.worker.id,
+                "service_date": "2026-06-10",
+                "modal": "1",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="shift-modal-dialog"')
+        self.assertContains(response, "New Shift on 10/06/2026")
+        self.assertContains(response, 'name="modal" value="1"')
+        self.assertContains(response, 'value="2026-06-10"')
+        self.assertNotContains(response, 'class="app-shell"')
+
+    def test_shift_create_modal_post_valid_returns_json_success(self):
+        self.login_admin()
+
+        response = self.client.post(
+            f"{reverse('shift_create')}?modal=1",
+            self.shift_payload(service_date="2026-06-10", modal="1"),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"ok": True})
+        self.assertTrue(Shift.objects.filter(service_date=date(2026, 6, 10)).exists())
+
+    def test_shift_create_modal_post_invalid_returns_partial_with_errors(self):
+        self.login_admin()
+
+        response = self.client.post(
+            f"{reverse('shift_create')}?modal=1",
+            self.shift_payload(end_time="08:00", modal="1"),
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertContains(response, 'class="shift-modal-dialog"', status_code=400)
+        self.assertContains(response, "End time must be after start time", status_code=400)
+        self.assertEqual(Shift.objects.count(), 0)
+
     def test_shift_detail_shows_workflow_status_panel(self):
         shift = Shift.objects.create(
             participant=self.participant,
@@ -619,7 +675,12 @@ class ShiftSchedulingTests(TestCase):
             },
         )
 
-        self.assertContains(response, 'class="planner-add-shift planner-add-shift-square"')
+        self.assertContains(
+            response,
+            'class="planner-add-shift planner-add-shift-square js-shift-modal-trigger"',
+        )
+        self.assertContains(response, 'data-modal-url="')
+        self.assertContains(response, "modal=1")
         self.assertContains(response, 'title="Add Shift"')
         self.assertContains(response, ">+</a>")
         self.assertNotContains(response, ">Add Shift</a>")
