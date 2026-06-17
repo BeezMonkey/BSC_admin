@@ -507,6 +507,27 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, "Participant view")
         self.assertContains(response, "Participant focus")
         self.assertContains(response, "Worker filter")
+        self.assertContains(response, "1 week")
+        self.assertContains(response, "planner-week-toolbar")
+        self.assertEqual(len(response.context["planner_days"]), 7)
+
+    def test_roster_planner_multi_week_range_is_not_month_view(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_planner"),
+            {
+                "date_from": "2026-06-01",
+                "date_to": "2026-06-14",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "2 weeks")
+        self.assertContains(response, "multi-week")
+        self.assertNotContains(response, "month view")
+        self.assertNotContains(response, "Month view")
+        self.assertEqual(len(response.context["planner_days"]), 14)
 
     def test_roster_planner_worker_view_labels_and_filters(self):
         self.login_admin()
@@ -562,10 +583,10 @@ class ShiftSchedulingTests(TestCase):
 
         self.assertContains(response, "planner-date-grid")
         self.assertContains(response, "Mon")
-        self.assertContains(response, "08/06/2026")
-        self.assertContains(response, "09/06/2026")
-        self.assertContains(response, "10/06/2026")
-        self.assertContains(response, "No shifts")
+        self.assertContains(response, "08/06")
+        self.assertContains(response, "09/06")
+        self.assertContains(response, "10/06")
+        self.assertNotContains(response, ">No shifts<")
         self.assertContains(response, "9:00 am - 11:00 am")
         self.assertNotContains(response, "a.m.")
 
@@ -598,7 +619,7 @@ class ShiftSchedulingTests(TestCase):
             },
         )
 
-        self.assertContains(response, 'class="planner-add-shift"')
+        self.assertContains(response, 'class="planner-add-shift planner-add-shift-square"')
         self.assertContains(response, 'title="Add Shift"')
         self.assertContains(response, ">+</a>")
         self.assertNotContains(response, ">Add Shift</a>")

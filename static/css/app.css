@@ -490,33 +490,100 @@ td.actions a:last-child {
   color: var(--muted);
 }
 
+.planner-week-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  margin-bottom: 0.75rem;
+  padding: 0.78rem 0.9rem;
+}
+
+.planner-week-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.planner-week-controls .button {
+  min-height: 2rem;
+  padding: 0.34rem 0.62rem;
+}
+
+.planner-week-range {
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: var(--weight-heading);
+  white-space: nowrap;
+}
+
+.planner-scope-chips {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.planner-scope-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.65rem;
+  border: 1px solid #cde7e3;
+  border-radius: 999px;
+  padding: 0.24rem 0.55rem;
+  color: var(--brand-dark);
+  background: #f3fbf9;
+  font-size: 0.82rem;
+  font-weight: var(--weight-label);
+  line-height: 1.2;
+}
+
+.planner-scope-multi-week .planner-scope-chip:first-child {
+  color: #854d0e;
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
 .planner-filter-card {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.planner-filter-card-compact {
+  padding: 0.86rem;
 }
 
 .planner-filter-bar {
   margin-bottom: 0;
 }
 
-.planner-summary {
+.planner-filter-bar-compact {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  grid-template-columns: minmax(130px, 0.75fr) minmax(160px, 1fr) minmax(160px, 1fr) minmax(135px, 0.82fr) minmax(135px, 0.82fr) auto auto;
+  align-items: end;
+  gap: 0.58rem;
 }
 
-.planner-summary h2,
+.planner-filter-bar-compact button,
+.planner-filter-bar-compact .button {
+  min-height: 2.35rem;
+  padding: 0.5rem 0.72rem;
+}
+
 .planner-shift-card h2 {
   margin: 0 0 0.35rem;
   font-size: 1rem;
 }
 
-.planner-summary p {
-  margin: 0;
-  color: var(--muted);
+.planner-shift-card {
+  gap: 0.8rem;
 }
 
 .planner-scroll-frame {
+  max-width: 100%;
   overflow-x: auto;
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -526,13 +593,13 @@ td.actions a:last-child {
 
 .planner-date-grid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(150px, 1fr));
+  grid-template-columns: repeat(7, minmax(140px, 1fr));
   gap: 0;
-  min-width: 1080px;
+  min-width: 980px;
 }
 
 .planner-day-card {
-  min-height: 13rem;
+  min-height: 12rem;
   border: 0;
   border-right: 1px solid var(--line);
   border-radius: 0;
@@ -544,7 +611,7 @@ td.actions a:last-child {
 }
 
 .planner-weekend {
-  background: #f3faf9;
+  background: #fff7ed;
 }
 
 .planner-day-card header {
@@ -552,14 +619,14 @@ td.actions a:last-child {
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.45rem;
-  min-height: 3.45rem;
-  padding: 0.62rem 0.68rem;
+  min-height: 3rem;
+  padding: 0.52rem 0.62rem;
   border-bottom: 1px solid var(--line);
   background: #fbfcfd;
 }
 
 .planner-weekend header {
-  background: #eef8f7;
+  background: #ffedd5;
 }
 
 .planner-day-card header div {
@@ -569,23 +636,27 @@ td.actions a:last-child {
 
 .planner-day-card header span {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.86rem;
 }
 
 .planner-add-shift {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.55rem;
-  height: 1.55rem;
+  width: 1.68rem;
+  height: 1.68rem;
   border: 1px solid #9fcfc7;
-  border-radius: 999px;
+  border-radius: 5px;
   color: var(--brand-dark);
   background: #ffffff;
   font-size: 1rem;
   font-weight: var(--weight-link);
   line-height: 1;
   white-space: nowrap;
+}
+
+.planner-add-shift-square {
+  flex: 0 0 auto;
 }
 
 .planner-add-shift:hover {
@@ -596,15 +667,15 @@ td.actions a:last-child {
 
 .planner-day-shifts {
   display: grid;
-  gap: 0.48rem;
-  padding: 0.6rem;
+  gap: 0.44rem;
+  padding: 0.52rem;
 }
 
 .planner-shift-tile {
   display: grid;
-  gap: 0.42rem;
+  gap: 0.36rem;
   overflow: hidden;
-  padding: 0.52rem;
+  padding: 0.5rem;
   border: 0;
   border-left: 3px solid var(--brand);
   border-radius: 6px;
@@ -618,7 +689,7 @@ td.actions a:last-child {
 .planner-shift-time {
   display: block;
   color: var(--brand-dark);
-  font-size: 0.86rem;
+  font-size: 0.82rem;
   line-height: 1.25;
   overflow-wrap: anywhere;
 }
@@ -626,7 +697,7 @@ td.actions a:last-child {
 .planner-shift-meta {
   margin: 0.18rem 0 0;
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   line-height: 1.3;
   overflow-wrap: anywhere;
 }
@@ -640,21 +711,19 @@ td.actions a:last-child {
 }
 
 .planner-shift-tile .status-pill {
-  padding: 0.16rem 0.42rem;
-  font-size: 0.74rem;
+  padding: 0.12rem 0.38rem;
+  font-size: 0.7rem;
 }
 
 .planner-shift-view {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: var(--weight-link);
   color: var(--brand-dark);
 }
 
 .planner-empty-day {
   margin: 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-  font-weight: var(--weight-label);
+  min-height: 3.6rem;
 }
 
 .filter-bar label,
@@ -1715,12 +1784,27 @@ tbody tr:last-child td {
     justify-items: start;
   }
 
-  .planner-summary {
+  .planner-week-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .planner-week-controls,
+  .planner-scope-chips {
+    justify-content: flex-start;
+  }
+
+  .planner-week-range {
+    width: 100%;
+  }
+
+  .planner-filter-bar-compact {
     grid-template-columns: 1fr;
   }
 
   .planner-date-grid {
-    grid-template-columns: repeat(7, minmax(150px, 1fr));
+    grid-template-columns: repeat(7, minmax(140px, 1fr));
+    min-width: 980px;
   }
 
   .shift-list-item {
