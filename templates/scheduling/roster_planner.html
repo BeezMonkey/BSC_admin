@@ -1,4 +1,5 @@
 {% extends "admin_base.html" %}
+{% load static %}
 
 {% block title %}Quick Roster Planner - Brisbane Star Care{% endblock %}
 
@@ -105,7 +106,7 @@
               <strong>{{ day.date|date:"D" }}</strong>
               <span>{{ day.date|date:"d/m" }}</span>
             </div>
-            <a class="planner-add-shift planner-add-shift-square" href="{{ day.add_shift_url }}" title="Add Shift" aria-label="Add shift for {{ day.date|date:'d/m/Y' }}">+</a>
+            <a class="planner-add-shift planner-add-shift-square js-shift-modal-trigger" href="{{ day.add_shift_url }}" data-modal-url="{{ day.add_shift_url }}{% if '?' in day.add_shift_url %}&{% else %}?{% endif %}modal=1" title="Add Shift" aria-label="Create shift on {{ day.date|date:'d/m/Y' }}">+</a>
           </header>
           <div class="planner-day-shifts">
             {% for shift in day.shifts %}
@@ -134,4 +135,6 @@
     </div>
   </div>
 </section>
+<div id="shift-modal-root"></div>
+<script src="{% static 'js/shift_modal.js' %}" defer></script>
 {% endblock %}

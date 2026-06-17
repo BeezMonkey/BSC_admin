@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.dateparse import parse_date
@@ -276,7 +277,7 @@ def roster_planner(request):
             )
             planner_scope_modifier = "multi-week"
         else:
-            planner_span_label = f"{planner_day_count} days"
+            planner_span_label = "1 day" if planner_day_count == 1 else f"{planner_day_count} days"
             planner_scope_modifier = "short-range"
 
         def planner_url_for(start_date, end_date):
@@ -409,18 +410,54 @@ def worker_shift_list(request):
 @admin_required
 def shift_create(request):
     return_url = get_safe_return_url(request, "")
+    is_modal = request.GET.get("modal") == "1" or request.POST.get("modal") == "1"
+    modal_context = {"is_modal": is_modal}
     if request.method == "POST":
         form = ShiftForm(request.POST, created_by=request.user)
         if form.is_valid():
             shift = form.save()
+            if is_modal:
+                return JsonResponse({"ok": True})
             messages.success(request, "Shift created.")
             if return_url:
                 return redirect(return_url)
             return redirect(shift)
+        if is_modal:
+            service_date = form["service_date"].value()
+            modal_date_label = format_filter_date(service_date) if service_date else ""
+            return render(
+                request,
+                "scheduling/partials/shift_form_modal.html",
+                {
+                    "form": form,
+                    "title": "New Shift",
+                    "modal_title": (
+                        f"New Shift on {modal_date_label}" if modal_date_label else "New Shift"
+                    ),
+                    "return_url": return_url,
+                    "form_action": f"{reverse('shift_create')}?modal=1",
+                    **modal_context,
+                },
+                status=400,
+            )
     else:
         initial = {
             key: request.GET[key]
-            for key in ("participant", "worker", "service_date")
+            for key in (
+                "participant",
+                "worker",
+                "service_date",
+                "start_time",
+                "end_time",
+                "break_minutes",
+                "support_item",
+                "service_type",
+                "location",
+                "address",
+                "instructions",
+                "admin_notes",
+                "status",
+            )
             if request.GET.get(key)
         }
         if request.GET.get("from_planner") and request.GET.get("participant"):
@@ -430,10 +467,28 @@ def shift_create(request):
             initial.setdefault("address", participant_address(participant))
         form = ShiftForm(created_by=request.user, initial=initial)
 
+    if is_modal:
+        service_date = form["service_date"].value()
+        modal_date_label = format_filter_date(service_date) if service_date else ""
+        return render(
+            request,
+            "scheduling/partials/shift_form_modal.html",
+            {
+                "form": form,
+                "title": "New Shift",
+                "modal_title": (
+                    f"New Shift on {modal_date_label}" if modal_date_label else "New Shift"
+                ),
+                "return_url": return_url,
+                "form_action": request.get_full_path(),
+                **modal_context,
+            },
+        )
+
     return render(
         request,
         "scheduling/shift_form.html",
-        {"form": form, "title": "New Shift", "return_url": return_url},
+        {"form": form, "title": "New Shift", "return_url": return_url, **modal_context},
     )
 
 

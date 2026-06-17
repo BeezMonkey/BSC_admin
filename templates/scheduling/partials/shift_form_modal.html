@@ -1,0 +1,26 @@
+<div class="shift-modal-backdrop" data-shift-modal-backdrop>
+  <section class="shift-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="shift-modal-title">
+    <header class="shift-modal-header">
+      <div>
+        <h2 id="shift-modal-title">{{ modal_title|default:title }}</h2>
+        <p>Create a rostered service without leaving the planner.</p>
+      </div>
+      <button class="shift-modal-close" type="button" data-shift-modal-close aria-label="Close new shift modal">&times;</button>
+    </header>
+
+    <form class="record-form shift-modal-form js-shift-modal-form" method="post" action="{{ form_action }}" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="modal" value="1">
+      {% if return_url %}
+        <input type="hidden" name="next" value="{{ return_url }}">
+      {% endif %}
+      <div class="shift-modal-body">
+        {% include "scheduling/partials/shift_form_fields.html" %}
+      </div>
+      <footer class="shift-modal-footer">
+        <button type="button" class="button secondary" data-shift-modal-close>Cancel</button>
+        <button type="submit">Create Shift</button>
+      </footer>
+    </form>
+  </section>
+</div>
