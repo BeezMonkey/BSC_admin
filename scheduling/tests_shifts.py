@@ -184,6 +184,23 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, 'value="2026-06-10"')
         self.assertNotContains(response, 'class="app-shell"')
 
+    def test_shift_create_modal_uses_friendly_empty_options_and_au_date_hint(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("shift_create"),
+            {"service_date": "2026-06-19", "modal": "1"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="service_date"')
+        self.assertContains(response, 'type="date"')
+        self.assertContains(response, 'lang="en-AU"')
+        self.assertContains(response, "Select participant")
+        self.assertContains(response, "Select worker")
+        self.assertContains(response, "Select support item")
+        self.assertNotContains(response, "---------")
+
     def test_shift_create_modal_post_valid_returns_json_success(self):
         self.login_admin()
 
