@@ -59,9 +59,9 @@ class ShiftForm(forms.ModelForm):
             "status",
         ]
         widgets = {
-            "service_date": forms.DateInput(attrs={"type": "date"}),
-            "start_time": forms.TimeInput(attrs={"type": "time"}),
-            "end_time": forms.TimeInput(attrs={"type": "time"}),
+            "service_date": forms.DateInput(attrs={"type": "date", "lang": "en-AU"}),
+            "start_time": forms.TimeInput(attrs={"type": "time", "lang": "en-AU"}),
+            "end_time": forms.TimeInput(attrs={"type": "time", "lang": "en-AU"}),
             "address": forms.Textarea(attrs={"rows": 3}),
             "instructions": forms.Textarea(attrs={"rows": 3}),
             "admin_notes": forms.Textarea(attrs={"rows": 3}),
@@ -71,6 +71,20 @@ class ShiftForm(forms.ModelForm):
         self.created_by = kwargs.pop("created_by", None)
         super().__init__(*args, **kwargs)
         self.fields["support_item"].queryset = SupportItem.active_items()
+        self.fields["participant"].empty_label = "Select participant"
+        self.fields["worker"].empty_label = "Select worker"
+        self.fields["support_item"].empty_label = "Select support item"
+        self.fields["service_type"].choices = self.with_empty_choice_label(
+            self.fields["service_type"].choices,
+            "Select service type",
+        )
+
+    @staticmethod
+    def with_empty_choice_label(choices, label):
+        choices = list(choices)
+        if choices and choices[0][0] == "":
+            choices[0] = ("", label)
+        return choices
 
     def clean(self):
         cleaned_data = super().clean()
