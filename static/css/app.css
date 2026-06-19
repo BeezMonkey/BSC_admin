@@ -16,6 +16,10 @@
   --sidebar-active-text: #0f766e;
   --sidebar-active-border: #128b7e;
   --shadow: 0 1px 2px rgba(15, 23, 42, 0.035);
+  --planner-copy-bg: #f3e8ff;
+  --planner-copy-bg-hover: #ede9fe;
+  --planner-copy-border: #d8b4fe;
+  --planner-copy-ink: #7e22ce;
   --weight-action: 600;
   --weight-heading: 650;
   --weight-label: 650;
@@ -678,10 +682,12 @@ td.actions a:last-child {
   justify-content: center;
   width: 1.68rem;
   height: 1.68rem;
-  border: 1px solid #d6e1df;
+  min-height: 1.68rem;
+  border: 1px solid var(--planner-copy-border);
   border-radius: 5px;
-  color: var(--brand-dark);
-  background: #f7fbfa;
+  padding: 0;
+  color: var(--planner-copy-ink);
+  background: var(--planner-copy-bg);
   cursor: pointer;
 }
 
@@ -697,8 +703,8 @@ td.actions a:last-child {
 
 .planner-paste-shift:hover,
 .planner-paste-shift:focus {
-  border-color: var(--brand);
-  background: #ffffff;
+  border-color: var(--planner-copy-ink);
+  background: var(--planner-copy-bg-hover);
 }
 
 .planner-paste-shift-hidden {
@@ -790,9 +796,16 @@ td.actions a:last-child {
 }
 
 .planner-shift-action-active {
-  border-color: #9fcfc7;
-  color: var(--brand-dark);
-  background: #ffffff;
+  border-color: var(--planner-copy-border);
+  color: var(--planner-copy-ink);
+  background: var(--planner-copy-bg);
+}
+
+.planner-shift-action-active:hover,
+.planner-shift-action-active:focus {
+  border-color: var(--planner-copy-ink);
+  color: var(--planner-copy-ink);
+  background: var(--planner-copy-bg-hover);
 }
 
 .planner-empty-day {
