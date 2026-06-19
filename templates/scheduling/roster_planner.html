@@ -106,7 +106,17 @@
               <strong>{{ day.date|date:"D" }}</strong>
               <span>{{ day.date|date:"d/m" }}</span>
             </div>
-            <a class="planner-add-shift planner-add-shift-square js-shift-modal-trigger" href="{{ day.add_shift_url }}" data-modal-url="{{ day.add_shift_url }}{% if '?' in day.add_shift_url %}&{% else %}?{% endif %}modal=1" title="Add Shift" aria-label="Create shift on {{ day.date|date:'d/m/Y' }}">+</a>
+            <span class="planner-day-actions">
+              <button class="planner-paste-shift planner-paste-shift-hidden js-shift-paste-target" type="button" data-service-date="{{ day.date|date:'Y-m-d' }}" title="Paste copied shift" aria-label="Paste copied shift on {{ day.date|date:'d/m/Y' }}">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M8 4h8l1 2h2v14H5V6h2Z"></path>
+                  <path d="M9 4h6"></path>
+                  <path d="M9 12h6"></path>
+                  <path d="M9 16h4"></path>
+                </svg>
+              </button>
+              <a class="planner-add-shift planner-add-shift-square js-shift-modal-trigger" href="{{ day.add_shift_url }}" data-modal-url="{{ day.add_shift_url }}{% if '?' in day.add_shift_url %}&{% else %}?{% endif %}modal=1" title="Add Shift" aria-label="Create shift on {{ day.date|date:'d/m/Y' }}">+</a>
+            </span>
           </header>
           <div class="planner-day-shifts">
             {% for shift in day.shifts %}
@@ -119,7 +129,7 @@
                 <div class="planner-shift-tile-footer">
                   <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
                   <span class="planner-shift-actions">
-                    <a class="planner-shift-action planner-shift-copy-link js-shift-modal-trigger" href="{{ shift.copy_shift_url }}" data-modal-url="{{ shift.copy_shift_url }}{% if '?' in shift.copy_shift_url %}&{% else %}?{% endif %}modal=1" title="Copy shift" aria-label="Copy shift from {{ shift.service_date|date:'d/m/Y' }}">
+                    <a class="planner-shift-action planner-shift-copy-link js-shift-copy-source js-shift-modal-trigger" href="{{ shift.copy_shift_url }}" data-copy-url="{{ shift.copy_shift_url }}" data-modal-url="{{ shift.copy_shift_url }}{% if '?' in shift.copy_shift_url %}&{% else %}?{% endif %}modal=1" title="Copy shift" aria-label="Copy shift from {{ shift.service_date|date:'d/m/Y' }}">
                       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                         <rect x="8" y="8" width="10" height="10" rx="2"></rect>
                         <path d="M6 14H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1"></path>
