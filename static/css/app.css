@@ -639,6 +639,13 @@ td.actions a:last-child {
   font-size: 0.86rem;
 }
 
+.planner-day-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 0 0 auto;
+}
+
 .planner-add-shift {
   display: inline-flex;
   align-items: center;
@@ -663,6 +670,39 @@ td.actions a:last-child {
   border-color: var(--brand);
   color: #ffffff;
   background: var(--brand);
+}
+
+.planner-paste-shift {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.68rem;
+  height: 1.68rem;
+  border: 1px solid #d6e1df;
+  border-radius: 5px;
+  color: var(--brand-dark);
+  background: #f7fbfa;
+  cursor: pointer;
+}
+
+.planner-paste-shift svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.planner-paste-shift:hover,
+.planner-paste-shift:focus {
+  border-color: var(--brand);
+  background: #ffffff;
+}
+
+.planner-paste-shift-hidden {
+  display: none;
 }
 
 .planner-day-shifts {
@@ -745,6 +785,12 @@ td.actions a:last-child {
 .planner-shift-action:hover,
 .planner-shift-action:focus {
   border-color: var(--line);
+  color: var(--brand-dark);
+  background: #ffffff;
+}
+
+.planner-shift-action-active {
+  border-color: #9fcfc7;
   color: var(--brand-dark);
   background: #ffffff;
 }

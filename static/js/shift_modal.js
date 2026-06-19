@@ -1,8 +1,38 @@
 (function () {
   const triggerSelector = ".js-shift-modal-trigger";
+  const copySourceSelector = ".js-shift-copy-source";
+  const pasteTargetSelector = ".js-shift-paste-target";
   const closeSelector = "[data-shift-modal-close]";
   const rootId = "shift-modal-root";
   let lastTrigger = null;
+  let copiedShiftUrl = "";
+
+  function copiedShiftUrlForDate(serviceDate, includeModal) {
+    const url = new URL(copiedShiftUrl, window.location.origin);
+    url.searchParams.set("service_date", serviceDate);
+    if (includeModal) {
+      url.searchParams.set("modal", "1");
+    } else {
+      url.searchParams.delete("modal");
+    }
+    return `${url.pathname}?${url.searchParams.toString()}`;
+  }
+
+  function showPasteTargets() {
+    document.querySelectorAll(pasteTargetSelector).forEach(function (target) {
+      target.classList.remove("planner-paste-shift-hidden");
+      target.removeAttribute("hidden");
+    });
+  }
+
+  function markCopiedShift(trigger) {
+    document.querySelectorAll(copySourceSelector).forEach(function (source) {
+      source.classList.remove("planner-shift-action-active");
+    });
+    trigger.classList.add("planner-shift-action-active");
+    copiedShiftUrl = trigger.dataset.copyUrl || trigger.href;
+    showPasteTargets();
+  }
 
   function modalRoot() {
     let root = document.getElementById(rootId);
@@ -75,6 +105,28 @@
   }
 
   document.addEventListener("click", function (event) {
+    const copySource = event.target.closest(copySourceSelector);
+    if (copySource) {
+      event.preventDefault();
+      markCopiedShift(copySource);
+      return;
+    }
+
+    const pasteTarget = event.target.closest(pasteTargetSelector);
+    if (pasteTarget && copiedShiftUrl) {
+      event.preventDefault();
+      lastTrigger = pasteTarget;
+      const pasteUrl = copiedShiftUrlForDate(pasteTarget.dataset.serviceDate, false);
+      const pasteModalUrl = copiedShiftUrlForDate(pasteTarget.dataset.serviceDate, true);
+      loadModal({
+        href: pasteUrl,
+        dataset: { modalUrl: pasteModalUrl },
+      }).catch(function () {
+        window.location.href = pasteUrl;
+      });
+      return;
+    }
+
     const trigger = event.target.closest(triggerSelector);
     if (trigger) {
       event.preventDefault();
