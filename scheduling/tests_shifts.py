@@ -732,9 +732,14 @@ class ShiftSchedulingTests(TestCase):
 
         self.assertContains(
             response,
-            'class="planner-shift-copy-link js-shift-modal-trigger"',
+            'class="planner-shift-action planner-shift-copy-link js-shift-modal-trigger"',
         )
-        self.assertContains(response, ">Copy</a>")
+        self.assertContains(response, 'class="planner-shift-action planner-shift-view"')
+        self.assertContains(response, 'aria-hidden="true"')
+        self.assertContains(response, 'title="Copy shift"')
+        self.assertContains(response, 'title="View shift"')
+        self.assertNotContains(response, ">Copy</a>")
+        self.assertNotContains(response, ">View</a>")
         self.assertContains(response, "Copy shift from 08/06/2026")
         self.assertContains(response, "participant=1")
         self.assertContains(response, "worker=1")
