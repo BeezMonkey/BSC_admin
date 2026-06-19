@@ -715,10 +715,15 @@ td.actions a:last-child {
   font-size: 0.7rem;
 }
 
+.planner-shift-copy-link,
 .planner-shift-view {
   font-size: 0.78rem;
   font-weight: var(--weight-link);
   color: var(--brand-dark);
+}
+
+.planner-shift-copy-link {
+  color: var(--muted);
 }
 
 .planner-empty-day {

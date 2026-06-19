@@ -706,6 +706,48 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, "service_date=2026-06-08")
         self.assertContains(response, "next=")
 
+    def test_roster_planner_shift_copy_link_prefills_new_shift_modal(self):
+        self.create_shift(
+            service_date=date(2026, 6, 8),
+            start_time=time(8, 30),
+            end_time=time(12, 30),
+            break_minutes=15,
+            status=Shift.Status.COMPLETED,
+            location="Participant home",
+            address="10 Creek Street",
+            instructions="Use side entrance.",
+            admin_notes="Copied note.",
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_planner"),
+            {
+                "participant": self.participant.id,
+                "worker": self.worker.id,
+                "date_from": "2026-06-08",
+                "date_to": "2026-06-08",
+            },
+        )
+
+        self.assertContains(
+            response,
+            'class="planner-shift-copy-link js-shift-modal-trigger"',
+        )
+        self.assertContains(response, ">Copy</a>")
+        self.assertContains(response, "Copy shift from 08/06/2026")
+        self.assertContains(response, "participant=1")
+        self.assertContains(response, "worker=1")
+        self.assertContains(response, "service_date=2026-06-08")
+        self.assertContains(response, "start_time=08%3A30")
+        self.assertContains(response, "end_time=12%3A30")
+        self.assertContains(response, "break_minutes=15")
+        self.assertContains(response, "support_item=1")
+        self.assertContains(response, f"service_type={Shift.ServiceType.PERSONAL_CARE}")
+        self.assertContains(response, f"status={Shift.Status.DRAFT}")
+        self.assertContains(response, "modal=1")
+        self.assertContains(response, "next=")
+
     def test_shift_create_prefills_service_date_from_planner(self):
         self.login_admin()
 

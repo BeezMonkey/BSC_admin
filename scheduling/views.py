@@ -260,6 +260,27 @@ def roster_planner(request):
         shift.display_time = (
             f"{format_roster_time(shift.start_time)} - {format_roster_time(shift.end_time)}"
         )
+        copy_shift_params = {
+            "view": view_mode,
+            "participant": shift.participant_id,
+            "worker": shift.worker_id,
+            "service_date": shift.service_date.isoformat(),
+            "start_time": shift.start_time.strftime("%H:%M"),
+            "end_time": shift.end_time.strftime("%H:%M"),
+            "break_minutes": shift.break_minutes,
+            "support_item": shift.support_item_id,
+            "service_type": shift.service_type,
+            "location": shift.location,
+            "address": shift.address,
+            "instructions": shift.instructions,
+            "admin_notes": shift.admin_notes,
+            "status": Shift.Status.DRAFT,
+            "next": request.get_full_path(),
+        }
+        shift.copy_shift_url = (
+            f"{reverse('shift_create')}?"
+            f"{urlencode({key: value for key, value in copy_shift_params.items() if value != '' and value is not None})}"
+        )
     planner_days = []
     if display_date_from and display_date_to and display_date_from <= display_date_to:
         planner_day_count = (display_date_to - display_date_from).days + 1
