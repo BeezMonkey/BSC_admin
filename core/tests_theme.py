@@ -63,3 +63,15 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn(".planner-shift-tile-footer", css)
         self.assertIn("minmax(140px, 1fr)", css)
         self.assertIn("border-radius: 5px;", css)
+
+    def test_planner_copy_paste_actions_use_purple_accent(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+
+        self.assertIn("--planner-copy-bg: #f3e8ff;", css)
+        self.assertIn("--planner-copy-border: #d8b4fe;", css)
+        self.assertIn("--planner-copy-ink: #7e22ce;", css)
+        self.assertIn(".planner-paste-shift", css)
+        self.assertIn(".planner-paste-shift {\n  display: inline-flex;", css)
+        self.assertIn("padding: 0;\n  color: var(--planner-copy-ink);", css)
+        self.assertIn(".planner-shift-action-active", css)
+        self.assertIn(".planner-shift-action-active:hover,\n.planner-shift-action-active:focus", css)
