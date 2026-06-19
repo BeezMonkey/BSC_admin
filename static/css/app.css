@@ -715,15 +715,38 @@ td.actions a:last-child {
   font-size: 0.7rem;
 }
 
-.planner-shift-copy-link,
-.planner-shift-view {
-  font-size: 0.78rem;
-  font-weight: var(--weight-link);
-  color: var(--brand-dark);
+.planner-shift-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
-.planner-shift-copy-link {
+.planner-shift-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
   color: var(--muted);
+}
+
+.planner-shift-action svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.planner-shift-action:hover,
+.planner-shift-action:focus {
+  border-color: var(--line);
+  color: var(--brand-dark);
+  background: #ffffff;
 }
 
 .planner-empty-day {
