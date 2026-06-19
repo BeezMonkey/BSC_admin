@@ -118,6 +118,7 @@
                 </div>
                 <div class="planner-shift-tile-footer">
                   <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
+                  <a class="planner-shift-copy-link js-shift-modal-trigger" href="{{ shift.copy_shift_url }}" data-modal-url="{{ shift.copy_shift_url }}{% if '?' in shift.copy_shift_url %}&{% else %}?{% endif %}modal=1" aria-label="Copy shift from {{ shift.service_date|date:'d/m/Y' }}">Copy</a>
                   <a class="planner-shift-view" href="{% url 'shift_detail' shift.id %}">View</a>
                 </div>
               </article>
