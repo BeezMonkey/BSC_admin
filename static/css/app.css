@@ -749,22 +749,40 @@ td.actions a:last-child {
 }
 
 .planner-shift-tile-footer {
+  display: grid;
+  gap: 0.34rem;
+}
+
+.planner-shift-footer-main {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.35rem;
-  flex-wrap: wrap;
+  justify-content: flex-start;
+  min-width: 0;
 }
 
 .planner-shift-tile .status-pill {
   padding: 0.12rem 0.38rem;
   font-size: 0.7rem;
+  line-height: 1.2;
+}
+
+.planner-shift-action-rail {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
 }
 
 .planner-shift-actions {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.18rem;
+  max-width: 100%;
+  border: 1px solid rgba(216, 225, 234, 0.78);
+  border-radius: 7px;
+  padding: 0.12rem;
+  background: rgba(255, 255, 255, 0.74);
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .planner-shift-delete-form {
@@ -776,11 +794,11 @@ td.actions a:last-child {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.65rem;
-  height: 1.65rem;
-  min-height: 1.65rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  min-height: 1.5rem;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: 5px;
   padding: 0;
   color: var(--muted);
   background: transparent;
@@ -788,8 +806,8 @@ td.actions a:last-child {
 }
 
 .planner-shift-action svg {
-  width: 0.95rem;
-  height: 0.95rem;
+  width: 0.86rem;
+  height: 0.86rem;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
@@ -804,6 +822,15 @@ td.actions a:last-child {
   background: #ffffff;
 }
 
+.planner-shift-edit:hover,
+.planner-shift-edit:focus,
+.planner-shift-view:hover,
+.planner-shift-view:focus {
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
 .planner-shift-action-active {
   border-color: var(--planner-copy-border);
   color: var(--planner-copy-ink);
@@ -815,6 +842,10 @@ td.actions a:last-child {
   border-color: var(--planner-copy-ink);
   color: var(--planner-copy-ink);
   background: var(--planner-copy-bg-hover);
+}
+
+.planner-shift-delete {
+  color: #991b1b;
 }
 
 .planner-shift-delete:hover,
