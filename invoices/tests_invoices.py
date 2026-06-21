@@ -129,6 +129,20 @@ class InvoiceGenerationTests(TestCase):
             f'class="sidebar-link active" href="{reverse("invoice_placeholder")}"',
         )
 
+    def test_invoice_settings_logo_field_uses_compact_custom_layout(self):
+        settings = InvoiceSettings.load()
+        settings.logo.name = "invoice_settings/logos/BSC-Logo-h.png"
+        settings.save(update_fields=["logo"])
+        self.login_admin()
+
+        response = self.client.get(reverse("invoice_settings"))
+
+        self.assertContains(response, "Current logo")
+        self.assertContains(response, "BSC-Logo-h.png")
+        self.assertContains(response, "Remove current logo")
+        self.assertContains(response, "invoice-logo-field")
+        self.assertNotContains(response, "Currently:")
+
     def test_accountant_cannot_manage_invoice_settings(self):
         self.login_accountant()
 
@@ -169,6 +183,35 @@ class InvoiceGenerationTests(TestCase):
         self.assertEqual(settings.invoice_prefix, "BSC")
         self.assertEqual(settings.next_invoice_sequence, 7)
         self.assertTrue(settings.logo.name.startswith("invoice_settings/logos/"))
+
+    def test_admin_can_remove_invoice_settings_logo(self):
+        settings = InvoiceSettings.load()
+        settings.logo.name = "invoice_settings/logos/BSC-Logo-h.png"
+        settings.save(update_fields=["logo"])
+        self.login_admin()
+
+        response = self.client.post(
+            reverse("invoice_settings"),
+            {
+                "business_name": "Brisbane Star Care",
+                "abn": "36 601 940 023",
+                "phone": "",
+                "email": "",
+                "address": "",
+                "bank_name": "",
+                "account_name": "",
+                "bsb": "",
+                "account_number": "",
+                "invoice_prefix": "BSC",
+                "next_invoice_sequence": "1",
+                "accent_colour": "#6f2c80",
+                "remove_logo": "on",
+            },
+        )
+
+        self.assertRedirects(response, reverse("invoice_settings"))
+        settings.refresh_from_db()
+        self.assertEqual(settings.logo.name, "")
 
     def test_invoice_list_links_to_invoice_settings(self):
         self.login_admin()

@@ -25,7 +25,28 @@
       {% include "participants/partials/field.html" with field=form.phone %}
       {% include "participants/partials/field.html" with field=form.email %}
       {% include "participants/partials/field.html" with field=form.address %}
-      {% include "participants/partials/field.html" with field=form.logo %}
+      <div class="field invoice-logo-field">
+        <span>Logo</span>
+        {% if settings.logo %}
+          <div class="invoice-logo-current">
+            <img src="{{ settings.logo.url }}" alt="Current logo">
+            <div>
+              <strong>Current logo</strong>
+              <span>{{ settings.logo.name|cut:"invoice_settings/logos/" }}</span>
+            </div>
+          </div>
+          <label class="checkbox-row">
+            {{ form.remove_logo }}
+            <span>Remove current logo</span>
+          </label>
+        {% else %}
+          <p>No logo uploaded yet.</p>
+        {% endif %}
+        {{ form.logo }}
+        {% if form.logo.errors %}
+          <span class="field-error">{{ form.logo.errors|striptags }}</span>
+        {% endif %}
+      </div>
     </div>
   </section>
 

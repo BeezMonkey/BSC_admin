@@ -20,6 +20,8 @@ class InvoiceCreateForm(forms.Form):
 
 
 class InvoiceSettingsForm(forms.ModelForm):
+    remove_logo = forms.BooleanField(required=False)
+
     class Meta:
         model = InvoiceSettings
         fields = [
@@ -40,4 +42,13 @@ class InvoiceSettingsForm(forms.ModelForm):
         widgets = {
             "address": forms.Textarea(attrs={"rows": 3}),
             "accent_colour": forms.TextInput(attrs={"placeholder": "#6f2c80"}),
+            "logo": forms.FileInput(),
         }
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.cleaned_data.get("remove_logo"):
+            instance.logo = ""
+        if commit:
+            instance.save()
+        return instance
