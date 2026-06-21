@@ -397,24 +397,61 @@ def format_money(value):
     return f"{value:.2f}"
 
 
+def append_if_present(lines, label, value):
+    value = (value or "").strip()
+    if value:
+        lines.append(f"{label}: {value}")
+
+
+def append_multiline_if_present(lines, value):
+    value = (value or "").strip()
+    if value:
+        lines.extend(line for line in value.splitlines() if line.strip())
+
+
 @finance_required
 def invoice_pdf(request, invoice_id):
     invoice = get_invoice(invoice_id)
+    settings_obj = InvoiceSettings.load()
     pdf_lines = [
-        "Brisbane Star Care NDIS Invoice",
-        f"Invoice: {invoice.invoice_number}",
-        f"Participant: {invoice.participant.display_name}",
-        f"Period: {format_au_date(invoice.period_start)} to {format_au_date(invoice.period_end)}",
-        f"Status: {invoice.get_status_display()}",
-        "",
+        settings_obj.business_name,
+        "NDIS Invoice",
     ]
+    append_if_present(pdf_lines, "ABN", settings_obj.abn)
+    append_if_present(pdf_lines, "Phone", settings_obj.phone)
+    append_if_present(pdf_lines, "Email", settings_obj.email)
+    append_multiline_if_present(pdf_lines, settings_obj.address)
+    pdf_lines.extend(
+        [
+            "",
+            f"Invoice: {invoice.invoice_number}",
+            f"Participant: {invoice.participant.display_name}",
+            f"Period: {format_au_date(invoice.period_start)} to {format_au_date(invoice.period_end)}",
+            f"Status: {invoice.get_status_display()}",
+            "",
+            "Line Items",
+        ]
+    )
     for line in invoice.lines.all():
         pdf_lines.append(
             f"{line.support_item_number} {line.description} "
             f"{line.quantity:.2f} x ${format_money(line.unit_price)} = "
             f"${format_money(line.line_total)}"
         )
-    pdf_lines.append(f"Total: ${format_money(invoice.total_amount)}")
+    pdf_lines.extend(
+        [
+            f"Total: ${format_money(invoice.total_amount)}",
+            "",
+            "Payment Details",
+        ]
+    )
+    append_if_present(pdf_lines, "Bank", settings_obj.bank_name)
+    append_if_present(pdf_lines, "Account name", settings_obj.account_name)
+    append_if_present(pdf_lines, "BSB", settings_obj.bsb)
+    append_if_present(pdf_lines, "Account number", settings_obj.account_number)
+    if pdf_lines[-1] == "Payment Details":
+        pdf_lines.pop()
+        pdf_lines.pop()
     response = HttpResponse(build_simple_pdf(pdf_lines), content_type="application/pdf")
     response["Content-Disposition"] = (
         f'attachment; filename="{invoice.invoice_number}.pdf"'
