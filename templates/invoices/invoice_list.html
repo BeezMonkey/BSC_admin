@@ -8,7 +8,10 @@
     <h1>Invoices</h1>
     <p>Generated invoices from approved service logs.</p>
   </div>
-  <a class="button" href="{% url 'invoice_create' %}">Create Invoice</a>
+  <div class="button-row">
+    <a class="button secondary" href="{% url 'invoice_settings' %}">Invoice Settings</a>
+    <a class="button" href="{% url 'invoice_create' %}">Create Invoice</a>
+  </div>
 </div>
 
 <form class="filter-bar" method="get">

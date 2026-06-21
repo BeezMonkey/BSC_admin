@@ -2,11 +2,12 @@ from datetime import date, time
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import UserProfile
-from invoices.models import Invoice, InvoiceLine
+from invoices.models import Invoice, InvoiceLine, InvoiceSettings
 from participants.models import Participant
 from scheduling.models import Shift, SupportItem
 from service_logs.models import ServiceLog
@@ -112,6 +113,70 @@ class InvoiceGenerationTests(TestCase):
 
     def login_worker(self):
         self.client.login(username="worker", password="test-password-123")
+
+    def test_admin_can_view_invoice_settings(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("invoice_settings"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Invoice Settings")
+        self.assertContains(response, "Business name")
+        self.assertContains(response, "Invoice prefix")
+        self.assertContains(response, "Logo")
+        self.assertContains(
+            response,
+            f'class="sidebar-link active" href="{reverse("invoice_placeholder")}"',
+        )
+
+    def test_accountant_cannot_manage_invoice_settings(self):
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_settings"))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_admin_can_update_invoice_settings(self):
+        self.login_admin()
+        logo = SimpleUploadedFile(
+            "bsc-logo.png",
+            b"fake image bytes",
+            content_type="image/png",
+        )
+
+        response = self.client.post(
+            reverse("invoice_settings"),
+            {
+                "business_name": "Brisbane Star Care",
+                "abn": "36 601 940 023",
+                "phone": "0455 102 973",
+                "email": "admin@brisbanestarcare.com.au",
+                "address": "Brisbane QLD",
+                "bank_name": "Suncorp Australia",
+                "account_name": "Brisbane Star Care",
+                "bsb": "484 799",
+                "account_number": "353 422 224",
+                "invoice_prefix": "BSC",
+                "next_invoice_sequence": "7",
+                "accent_colour": "#6f2c80",
+                "logo": logo,
+            },
+        )
+
+        self.assertRedirects(response, reverse("invoice_settings"))
+        settings = InvoiceSettings.load()
+        self.assertEqual(settings.business_name, "Brisbane Star Care")
+        self.assertEqual(settings.invoice_prefix, "BSC")
+        self.assertEqual(settings.next_invoice_sequence, 7)
+        self.assertTrue(settings.logo.name.startswith("invoice_settings/logos/"))
+
+    def test_invoice_list_links_to_invoice_settings(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("invoice_placeholder"))
+
+        self.assertContains(response, reverse("invoice_settings"))
+        self.assertContains(response, "Invoice Settings")
 
     def create_payload(self, **overrides):
         data = {
