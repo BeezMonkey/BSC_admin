@@ -86,3 +86,18 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn(".js-shift-delete-trigger", script)
         self.assertIn("Delete shift?", script)
         self.assertIn("data-shift-delete-confirm", script)
+
+    def test_planner_shift_action_layout_is_compact_and_consistent(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+        template = Path("templates/scheduling/roster_planner.html").read_text(encoding="utf-8")
+
+        self.assertIn('class="planner-shift-footer-main"', template)
+        self.assertIn('class="planner-shift-action-rail"', template)
+        self.assertIn(".planner-shift-footer-main", css)
+        self.assertIn(".planner-shift-action-rail", css)
+        self.assertIn("justify-content: flex-end;", css)
+        self.assertIn("background: rgba(255, 255, 255, 0.74);", css)
+        self.assertIn(".planner-shift-edit:hover", css)
+        self.assertIn(".planner-shift-view:hover", css)
+        self.assertIn(".planner-shift-delete", css)
+        self.assertIn("color: #991b1b;", css)
