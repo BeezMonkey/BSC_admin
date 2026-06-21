@@ -260,6 +260,10 @@ def roster_planner(request):
         shift.display_time = (
             f"{format_roster_time(shift.start_time)} - {format_roster_time(shift.end_time)}"
         )
+        shift.can_delete_from_planner = shift.status in (
+            Shift.Status.DRAFT,
+            Shift.Status.PUBLISHED,
+        )
         copy_shift_params = {
             "view": view_mode,
             "participant": shift.participant_id,
@@ -720,6 +724,20 @@ def shift_cancel(request, shift_id):
     )
     messages.success(request, "Shift cancelled.")
     return redirect(shift)
+
+
+@admin_required
+@require_POST
+def shift_delete(request, shift_id):
+    shift = get_object_or_404(Shift, id=shift_id)
+    return_url = get_safe_return_url(request, reverse("roster_planner"))
+    if shift.status not in (Shift.Status.DRAFT, Shift.Status.PUBLISHED):
+        messages.error(request, "Only draft or published shifts can be deleted.")
+        return redirect(shift)
+
+    shift.delete()
+    messages.success(request, "Shift deleted.")
+    return redirect(return_url)
 
 
 @worker_required

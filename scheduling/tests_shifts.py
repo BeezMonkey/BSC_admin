@@ -757,6 +757,60 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, "modal=1")
         self.assertContains(response, "next=")
 
+    def test_roster_planner_shows_delete_action_only_for_unstarted_shifts(self):
+        draft_shift = self.create_shift(status=Shift.Status.DRAFT, service_date=date(2026, 6, 8))
+        published_shift = self.create_shift(
+            status=Shift.Status.PUBLISHED,
+            service_date=date(2026, 6, 8),
+            start_time=time(12, 0),
+            end_time=time(14, 0),
+        )
+        completed_shift = self.create_shift(
+            status=Shift.Status.COMPLETED,
+            service_date=date(2026, 6, 8),
+            start_time=time(15, 0),
+            end_time=time(17, 0),
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_planner"),
+            {
+                "date_from": "2026-06-08",
+                "date_to": "2026-06-08",
+            },
+        )
+
+        self.assertContains(response, reverse("shift_delete", args=[draft_shift.id]))
+        self.assertContains(response, reverse("shift_delete", args=[published_shift.id]))
+        self.assertNotContains(response, reverse("shift_delete", args=[completed_shift.id]))
+        self.assertContains(response, 'class="planner-shift-delete-form"')
+        self.assertContains(response, 'class="planner-shift-action planner-shift-delete"')
+        self.assertContains(response, 'title="Delete shift"')
+        self.assertContains(response, 'aria-label="Delete shift"')
+
+    def test_admin_can_delete_draft_shift_from_planner_and_return_to_current_view(self):
+        shift = self.create_shift(status=Shift.Status.DRAFT, service_date=date(2026, 6, 8))
+        next_url = f"{reverse('roster_planner')}?date_from=2026-06-08&date_to=2026-06-08"
+        self.login_admin()
+
+        response = self.client.post(
+            reverse("shift_delete", args=[shift.id]),
+            {"next": next_url},
+        )
+
+        self.assertRedirects(response, next_url)
+        self.assertFalse(Shift.objects.filter(id=shift.id).exists())
+
+    def test_admin_cannot_delete_completed_shift(self):
+        shift = self.create_shift(status=Shift.Status.COMPLETED)
+        self.login_admin()
+
+        response = self.client.post(reverse("shift_delete", args=[shift.id]))
+
+        self.assertRedirects(response, reverse("shift_detail", args=[shift.id]))
+        self.assertTrue(Shift.objects.filter(id=shift.id).exists())
+
     def test_shift_create_prefills_service_date_from_planner(self):
         self.login_admin()
 

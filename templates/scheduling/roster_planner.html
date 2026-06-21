@@ -141,6 +141,21 @@
                         <circle cx="12" cy="12" r="3"></circle>
                       </svg>
                     </a>
+                    {% if shift.can_delete_from_planner %}
+                      <form class="planner-shift-delete-form" method="post" action="{% url 'shift_delete' shift.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ current_planner_url }}">
+                        <button class="planner-shift-action planner-shift-delete" type="submit" title="Delete shift" aria-label="Delete shift" onclick="return confirm('Delete this shift?');">
+                          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M3 6h18"></path>
+                            <path d="M8 6V4h8v2"></path>
+                            <path d="M6 6l1 15h10l1-15"></path>
+                            <path d="M10 11v6"></path>
+                            <path d="M14 11v6"></path>
+                          </svg>
+                        </button>
+                      </form>
+                    {% endif %}
                   </span>
                 </div>
               </article>
