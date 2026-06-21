@@ -8,7 +8,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import UserProfile
-from invoices.models import Invoice, InvoiceLine
+from invoices.models import Invoice, InvoiceLine, InvoiceSettings
 from participants.models import Participant
 from scheduling.models import Shift, SupportItem
 from service_logs.models import ServiceLog
@@ -150,6 +150,35 @@ class InvoiceExportTests(TestCase):
         self.assertIn("2.00 x $65.47 = $130.94", content)
         self.assertIn("Total: $130.94", content)
         self.assertNotIn("130.940000000000", content)
+
+    def test_invoice_pdf_uses_invoice_settings_profile_and_payment_details(self):
+        settings = InvoiceSettings.load()
+        settings.business_name = "Brisbane Star Care"
+        settings.abn = "36 601 940 023"
+        settings.phone = "0455 555 555"
+        settings.email = "billing@example.com"
+        settings.address = "1 Care Street\nBrisbane QLD 4000"
+        settings.bank_name = "BSC Bank"
+        settings.account_name = "Brisbane Star Care Pty Ltd"
+        settings.bsb = "123-456"
+        settings.account_number = "987654321"
+        settings.save()
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_pdf", args=[self.invoice.id]))
+
+        content = response.content.decode("latin-1")
+        self.assertIn("Brisbane Star Care", content)
+        self.assertIn("ABN: 36 601 940 023", content)
+        self.assertIn("Phone: 0455 555 555", content)
+        self.assertIn("Email: billing@example.com", content)
+        self.assertIn("1 Care Street", content)
+        self.assertIn("Brisbane QLD 4000", content)
+        self.assertIn("Payment Details", content)
+        self.assertIn("Bank: BSC Bank", content)
+        self.assertIn("Account name: Brisbane Star Care Pty Ltd", content)
+        self.assertIn("BSB: 123-456", content)
+        self.assertIn("Account number: 987654321", content)
 
     def test_finance_user_can_mark_invoice_issued(self):
         self.login_accountant()
