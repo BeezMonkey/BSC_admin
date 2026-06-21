@@ -1955,6 +1955,17 @@ tbody tr:last-child td {
   }
 }
 
+@media (max-width: 1280px) {
+  .planner-filter-bar-compact {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .planner-filter-bar-compact button,
+  .planner-filter-bar-compact .button {
+    width: 100%;
+  }
+}
+
 @media (max-width: 760px) {
   .app-shell {
     grid-template-columns: 1fr;
