@@ -24,6 +24,8 @@ from .models import Shift, SupportItem
 
 
 def format_filter_date(value):
+    if hasattr(value, "strftime"):
+        return value.strftime("%d/%m/%Y")
     parsed_date = parse_date(value)
     if not parsed_date:
         return value
@@ -263,6 +265,10 @@ def roster_planner(request):
         shift.can_delete_from_planner = shift.status in (
             Shift.Status.DRAFT,
             Shift.Status.PUBLISHED,
+        )
+        shift.can_edit_from_planner = shift.status not in (
+            Shift.Status.COMPLETED,
+            Shift.Status.CANCELLED,
         )
         copy_shift_params = {
             "view": view_mode,
@@ -643,6 +649,7 @@ def shift_edit(request, shift_id):
         request,
         reverse("shift_detail", args=[shift.id]),
     )
+    is_modal = request.GET.get("modal") == "1" or request.POST.get("modal") == "1"
     if shift.status in [Shift.Status.COMPLETED, Shift.Status.CANCELLED]:
         messages.error(request, "Completed or cancelled shifts cannot be edited.")
         return redirect(shift)
@@ -650,10 +657,52 @@ def shift_edit(request, shift_id):
         form = ShiftForm(request.POST, instance=shift, created_by=request.user)
         if form.is_valid():
             shift = form.save()
+            if is_modal:
+                return JsonResponse({"ok": True})
             messages.success(request, "Shift updated.")
             return redirect(return_url)
+        if is_modal:
+            service_date = form["service_date"].value()
+            modal_date_label = format_filter_date(service_date) if service_date else ""
+            return render(
+                request,
+                "scheduling/partials/shift_form_modal.html",
+                {
+                    "form": form,
+                    "title": "Edit Shift",
+                    "modal_title": (
+                        f"Edit Shift on {modal_date_label}" if modal_date_label else "Edit Shift"
+                    ),
+                    "modal_subtitle": "Update this rostered service without leaving the planner.",
+                    "submit_label": "Save Shift",
+                    "return_url": return_url,
+                    "form_action": f"{reverse('shift_edit', args=[shift.id])}?modal=1",
+                    "is_modal": True,
+                },
+                status=400,
+            )
     else:
         form = ShiftForm(instance=shift, created_by=request.user)
+
+    if is_modal:
+        service_date = form["service_date"].value()
+        modal_date_label = format_filter_date(service_date) if service_date else ""
+        return render(
+            request,
+            "scheduling/partials/shift_form_modal.html",
+            {
+                "form": form,
+                "title": "Edit Shift",
+                "modal_title": (
+                    f"Edit Shift on {modal_date_label}" if modal_date_label else "Edit Shift"
+                ),
+                "modal_subtitle": "Update this rostered service without leaving the planner.",
+                "submit_label": "Save Shift",
+                "return_url": return_url,
+                "form_action": request.get_full_path(),
+                "is_modal": True,
+            },
+        )
 
     return render(
         request,
