@@ -3,7 +3,7 @@
     <header class="shift-modal-header">
       <div>
         <h2 id="shift-modal-title">{{ modal_title|default:title }}</h2>
-        <p>Create a rostered service without leaving the planner.</p>
+        <p>{{ modal_subtitle|default:"Create a rostered service without leaving the planner." }}</p>
       </div>
       <button class="shift-modal-close" type="button" data-shift-modal-close aria-label="Close new shift modal">&times;</button>
     </header>
@@ -19,7 +19,7 @@
       </div>
       <footer class="shift-modal-footer">
         <button type="button" class="button secondary" data-shift-modal-close>Cancel</button>
-        <button type="submit">Create Shift</button>
+        <button type="submit">{{ submit_label|default:"Create Shift" }}</button>
       </footer>
     </form>
   </section>

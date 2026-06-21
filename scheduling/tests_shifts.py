@@ -382,6 +382,59 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(edit_response, f'name="next" value="{list_path.replace("&", "&amp;")}"')
         self.assertRedirects(post_response, list_path)
 
+    def test_shift_edit_plain_get_keeps_full_page_fallback(self):
+        shift = self.create_shift(status=Shift.Status.PUBLISHED)
+        self.login_admin()
+
+        response = self.client.get(reverse("shift_edit", args=[shift.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="app-shell"')
+        self.assertContains(response, 'class="record-form"')
+        self.assertContains(response, "Edit Shift")
+        self.assertNotContains(response, 'class="shift-modal-dialog"')
+
+    def test_shift_edit_modal_get_returns_partial_form(self):
+        shift = self.create_shift(status=Shift.Status.PUBLISHED, service_date=date(2026, 6, 10))
+        self.login_admin()
+
+        response = self.client.get(reverse("shift_edit", args=[shift.id]), {"modal": "1"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="shift-modal-dialog"')
+        self.assertContains(response, "Edit Shift on 10/06/2026")
+        self.assertContains(response, 'name="modal" value="1"')
+        self.assertContains(response, 'value="2026-06-10"')
+        self.assertContains(response, "Save Shift")
+        self.assertNotContains(response, 'class="app-shell"')
+
+    def test_shift_edit_modal_post_valid_returns_json_success(self):
+        shift = self.create_shift(status=Shift.Status.PUBLISHED)
+        self.login_admin()
+
+        response = self.client.post(
+            f"{reverse('shift_edit', args=[shift.id])}?modal=1",
+            self.shift_payload(service_date="2026-06-11", modal="1"),
+        )
+
+        shift.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"ok": True})
+        self.assertEqual(shift.service_date, date(2026, 6, 11))
+
+    def test_shift_edit_modal_post_invalid_returns_partial_with_errors(self):
+        shift = self.create_shift(status=Shift.Status.PUBLISHED)
+        self.login_admin()
+
+        response = self.client.post(
+            f"{reverse('shift_edit', args=[shift.id])}?modal=1",
+            self.shift_payload(end_time="08:00", modal="1"),
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertContains(response, 'class="shift-modal-dialog"', status_code=400)
+        self.assertContains(response, "End time must be after start time", status_code=400)
+
     def test_end_time_must_be_after_start_time(self):
         self.login_admin()
 
@@ -754,6 +807,32 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, "support_item=1")
         self.assertContains(response, f"service_type={Shift.ServiceType.PERSONAL_CARE}")
         self.assertContains(response, f"status={Shift.Status.DRAFT}")
+        self.assertContains(response, "modal=1")
+        self.assertContains(response, "next=")
+
+    def test_roster_planner_shift_edit_link_opens_modal_with_fallback(self):
+        editable_shift = self.create_shift(status=Shift.Status.PUBLISHED, service_date=date(2026, 6, 8))
+        completed_shift = self.create_shift(
+            status=Shift.Status.COMPLETED,
+            service_date=date(2026, 6, 8),
+            start_time=time(13, 0),
+            end_time=time(15, 0),
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_planner"),
+            {
+                "date_from": "2026-06-08",
+                "date_to": "2026-06-08",
+            },
+        )
+
+        self.assertContains(response, reverse("shift_edit", args=[editable_shift.id]))
+        self.assertNotContains(response, reverse("shift_edit", args=[completed_shift.id]))
+        self.assertContains(response, 'class="planner-shift-action planner-shift-edit js-shift-modal-trigger"')
+        self.assertContains(response, 'title="Edit shift"')
+        self.assertContains(response, 'aria-label="Edit shift"')
         self.assertContains(response, "modal=1")
         self.assertContains(response, "next=")
 
