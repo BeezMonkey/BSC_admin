@@ -767,15 +767,24 @@ td.actions a:last-child {
   gap: 0.25rem;
 }
 
+.planner-shift-delete-form {
+  display: inline-flex;
+  margin: 0;
+}
+
 .planner-shift-action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 1.65rem;
   height: 1.65rem;
+  min-height: 1.65rem;
   border: 1px solid transparent;
   border-radius: 6px;
+  padding: 0;
   color: var(--muted);
+  background: transparent;
+  cursor: pointer;
 }
 
 .planner-shift-action svg {
@@ -806,6 +815,13 @@ td.actions a:last-child {
   border-color: var(--planner-copy-ink);
   color: var(--planner-copy-ink);
   background: var(--planner-copy-bg-hover);
+}
+
+.planner-shift-delete:hover,
+.planner-shift-delete:focus {
+  border-color: #fecaca;
+  color: #b91c1c;
+  background: #fef2f2;
 }
 
 .planner-empty-day {

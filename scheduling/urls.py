@@ -6,6 +6,7 @@ from .views import (
     roster_planner,
     shift_cancel,
     shift_create,
+    shift_delete,
     shift_detail,
     shift_edit,
     shift_bulk_publish,
@@ -29,6 +30,7 @@ urlpatterns = [
     path("roster/<int:shift_id>/edit/", shift_edit, name="shift_edit"),
     path("roster/<int:shift_id>/publish/", shift_publish, name="shift_publish"),
     path("roster/<int:shift_id>/cancel/", shift_cancel, name="shift_cancel"),
+    path("roster/<int:shift_id>/delete/", shift_delete, name="shift_delete"),
     path("settings/support-items/", support_item_list, name="support_item_list"),
     path("settings/support-items/new/", support_item_create, name="support_item_create"),
     path(
