@@ -25,6 +25,18 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn("font-weight: var(--weight-action);", css)
         self.assertIn("font-weight: var(--weight-heading);", css)
 
+    def test_invoice_settings_logo_field_is_styled(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+        template = Path("templates/invoices/invoice_settings.html").read_text(encoding="utf-8")
+
+        self.assertIn(".invoice-logo-field", css)
+        self.assertIn(".invoice-logo-current", css)
+        self.assertIn("object-fit: contain;", css)
+        self.assertIn("overflow-wrap: anywhere;", css)
+        self.assertIn(".checkbox-row", css)
+        self.assertIn('class="field invoice-logo-field"', template)
+        self.assertIn("Remove current logo", template)
+
     def test_admin_sidebar_groups_real_v1_modules(self):
         template = Path("templates/admin_base.html").read_text(encoding="utf-8")
 

@@ -1018,6 +1018,58 @@ input[type="checkbox"] {
   accent-color: var(--brand);
 }
 
+.invoice-logo-field {
+  min-width: 0;
+}
+
+.invoice-logo-field p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.invoice-logo-current {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 0.65rem;
+  background: #f8fafc;
+}
+
+.invoice-logo-current img {
+  width: 72px;
+  height: 46px;
+  object-fit: contain;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #ffffff;
+}
+
+.invoice-logo-current strong,
+.invoice-logo-current span {
+  display: block;
+  min-width: 0;
+}
+
+.invoice-logo-current span {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  color: var(--muted);
+  font-weight: var(--weight-action);
+}
+
 .bulk-actions {
   display: flex;
   justify-content: flex-end;
