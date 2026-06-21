@@ -29,7 +29,7 @@
         <span>Logo</span>
         {% if settings.logo %}
           <div class="invoice-logo-current">
-            <img src="{{ settings.logo.url }}" alt="Current logo">
+            <div class="invoice-logo-placeholder" aria-hidden="true">Logo</div>
             <div>
               <strong>Current logo</strong>
               <span>{{ settings.logo.name|cut:"invoice_settings/logos/" }}</span>

@@ -141,7 +141,9 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, "BSC-Logo-h.png")
         self.assertContains(response, "Remove current logo")
         self.assertContains(response, "invoice-logo-field")
+        self.assertContains(response, "invoice-logo-placeholder")
         self.assertNotContains(response, "Currently:")
+        self.assertNotContains(response, 'alt="Current logo"')
 
     def test_accountant_cannot_manage_invoice_settings(self):
         self.login_accountant()

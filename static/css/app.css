@@ -1039,13 +1039,18 @@ input[type="checkbox"] {
   background: #f8fafc;
 }
 
-.invoice-logo-current img {
+.invoice-logo-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 72px;
   height: 46px;
-  object-fit: contain;
   border: 1px solid var(--line);
   border-radius: 5px;
+  color: var(--brand-dark);
   background: #ffffff;
+  font-size: 0.78rem;
+  font-weight: var(--weight-label);
 }
 
 .invoice-logo-current strong,
