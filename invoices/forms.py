@@ -2,6 +2,8 @@ from django import forms
 
 from participants.models import Participant
 
+from .models import InvoiceSettings
+
 
 class InvoiceCreateForm(forms.Form):
     participant = forms.ModelChoiceField(queryset=Participant.objects.all())
@@ -15,3 +17,27 @@ class InvoiceCreateForm(forms.Form):
         if period_start and period_end and period_end < period_start:
             self.add_error("period_end", "Period end must be on or after period start.")
         return cleaned_data
+
+
+class InvoiceSettingsForm(forms.ModelForm):
+    class Meta:
+        model = InvoiceSettings
+        fields = [
+            "business_name",
+            "abn",
+            "phone",
+            "email",
+            "address",
+            "bank_name",
+            "account_name",
+            "bsb",
+            "account_number",
+            "invoice_prefix",
+            "next_invoice_sequence",
+            "accent_colour",
+            "logo",
+        ]
+        widgets = {
+            "address": forms.Textarea(attrs={"rows": 3}),
+            "accent_colour": forms.TextInput(attrs={"placeholder": "#6f2c80"}),
+        }

@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
 
+from accounts.decorators import admin_required
 from accounts.decorators import finance_required
 from core.audit import write_audit_log
 from core.models import AuditLog
@@ -19,8 +20,8 @@ from core.pagination import paginate_queryset
 from core.sorting import apply_sorting
 from service_logs.models import ServiceLog
 
-from .forms import InvoiceCreateForm
-from .models import Invoice, InvoiceLine
+from .forms import InvoiceCreateForm, InvoiceSettingsForm
+from .models import Invoice, InvoiceLine, InvoiceSettings
 
 
 def format_filter_date(value):
@@ -265,6 +266,28 @@ def invoice_detail(request, invoice_id):
         {
             "invoice": invoice,
             "return_url": get_safe_return_url(request, reverse("invoice_placeholder")),
+        },
+    )
+
+
+@admin_required
+def invoice_settings(request):
+    settings_obj = InvoiceSettings.load()
+    if request.method == "POST":
+        form = InvoiceSettingsForm(request.POST, request.FILES, instance=settings_obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Invoice settings updated.")
+            return redirect("invoice_settings")
+    else:
+        form = InvoiceSettingsForm(instance=settings_obj)
+
+    return render(
+        request,
+        "invoices/invoice_settings.html",
+        {
+            "form": form,
+            "settings": settings_obj,
         },
     )
 

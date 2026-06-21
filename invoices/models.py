@@ -1,11 +1,59 @@
 from decimal import Decimal, ROUND_HALF_UP
 
 from django.conf import settings
+from django.core.validators import RegexValidator
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 
 from service_logs.models import ServiceLog
+
+
+class InvoiceSettings(models.Model):
+    business_name = models.CharField(max_length=120, default="Brisbane Star Care")
+    abn = models.CharField("ABN", max_length=30, default="36 601 940 023")
+    phone = models.CharField(max_length=30, blank=True)
+    email = models.EmailField(blank=True)
+    address = models.TextField(blank=True)
+    bank_name = models.CharField(max_length=120, blank=True)
+    account_name = models.CharField(max_length=120, blank=True)
+    bsb = models.CharField("BSB", max_length=20, blank=True)
+    account_number = models.CharField(max_length=40, blank=True)
+    invoice_prefix = models.CharField(max_length=12, default="BSC")
+    next_invoice_sequence = models.PositiveIntegerField(default=1)
+    accent_colour = models.CharField(
+        max_length=7,
+        default="#6f2c80",
+        validators=[
+            RegexValidator(
+                regex=r"^#[0-9A-Fa-f]{6}$",
+                message="Enter a valid hex colour, for example #6f2c80.",
+            )
+        ],
+    )
+    logo = models.FileField(upload_to="invoice_settings/logos/", blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Invoice settings"
+        verbose_name_plural = "Invoice settings"
+
+    @classmethod
+    def load(cls):
+        settings_obj, _ = cls.objects.get_or_create(pk=1)
+        return settings_obj
+
+    @property
+    def invoice_number_example(self):
+        return f"{self.invoice_prefix}-{timezone.localdate():%Y%m}-{self.next_invoice_sequence:04d}"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        self.invoice_prefix = self.invoice_prefix.strip().upper()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return "Invoice settings"
 
 
 class Invoice(models.Model):

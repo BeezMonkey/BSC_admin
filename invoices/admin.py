@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Invoice, InvoiceLine
+from .models import Invoice, InvoiceLine, InvoiceSettings
 
 
 class InvoiceLineInline(admin.TabularInline):
@@ -31,3 +31,8 @@ class InvoiceAdmin(admin.ModelAdmin):
     list_filter = ("status", "period_start", "period_end")
     search_fields = ("invoice_number", "participant__first_name", "participant__last_name")
     inlines = [InvoiceLineInline]
+
+
+@admin.register(InvoiceSettings)
+class InvoiceSettingsAdmin(admin.ModelAdmin):
+    list_display = ("business_name", "abn", "invoice_prefix", "next_invoice_sequence", "updated_at")

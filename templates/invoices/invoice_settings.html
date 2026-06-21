@@ -1,0 +1,57 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Invoice Settings - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Invoice Settings</h1>
+    <p>Manage billing profile, invoice numbering, payment details, and logo for future invoice PDFs.</p>
+  </div>
+  <a class="button secondary" href="{% url 'invoice_placeholder' %}">Back to Invoices</a>
+</div>
+
+<form class="record-form" method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+    <div class="error">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <section class="card form-section">
+    <h2>Business Profile</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.business_name %}
+      {% include "participants/partials/field.html" with field=form.abn %}
+      {% include "participants/partials/field.html" with field=form.phone %}
+      {% include "participants/partials/field.html" with field=form.email %}
+      {% include "participants/partials/field.html" with field=form.address %}
+      {% include "participants/partials/field.html" with field=form.logo %}
+    </div>
+  </section>
+
+  <section class="card form-section">
+    <h2>Invoice Numbering</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.invoice_prefix %}
+      {% include "participants/partials/field.html" with field=form.next_invoice_sequence %}
+      {% include "participants/partials/field.html" with field=form.accent_colour %}
+    </div>
+    <p>Example: {{ settings.invoice_number_example }}</p>
+  </section>
+
+  <section class="card form-section">
+    <h2>Payment Details</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.bank_name %}
+      {% include "participants/partials/field.html" with field=form.account_name %}
+      {% include "participants/partials/field.html" with field=form.bsb %}
+      {% include "participants/partials/field.html" with field=form.account_number %}
+    </div>
+  </section>
+
+  <div class="form-actions">
+    <button type="submit">Save Settings</button>
+    <a class="button secondary" href="{% url 'invoice_placeholder' %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}
