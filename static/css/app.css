@@ -577,6 +577,10 @@ td.actions a:last-child {
   padding: 0.5rem 0.72rem;
 }
 
+.planner-filter-actions {
+  display: contents;
+}
+
 .planner-shift-card h2 {
   margin: 0 0 0.35rem;
   font-size: 1rem;
@@ -1952,6 +1956,23 @@ tbody tr:last-child td {
 
   .workflow-checklist-action span {
     text-align: left;
+  }
+}
+
+@media (max-width: 1280px) {
+  .planner-filter-bar-compact {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .planner-filter-bar-compact button,
+  .planner-filter-bar-compact .button {
+    width: 100%;
+  }
+
+  .planner-filter-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.58rem;
   }
 }
 
