@@ -127,56 +127,52 @@
                   <p class="planner-shift-meta">{{ shift.worker.display_name }}</p>
                 </div>
                 <div class="planner-shift-tile-footer">
-                  <div class="planner-shift-footer-main">
-                    <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
-                  </div>
-                  <div class="planner-shift-action-rail">
-                    <span class="planner-shift-actions">
-                      <a class="planner-shift-action planner-shift-copy-link js-shift-copy-source js-shift-modal-trigger" href="{{ shift.copy_shift_url }}" data-copy-url="{{ shift.copy_shift_url }}" data-modal-url="{{ shift.copy_shift_url }}{% if '?' in shift.copy_shift_url %}&{% else %}?{% endif %}modal=1" title="Copy shift" aria-label="Copy shift from {{ shift.service_date|date:'d/m/Y' }}">
+                  <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
+                  <span class="planner-shift-actions">
+                    <a class="planner-shift-action planner-shift-copy-link js-shift-copy-source js-shift-modal-trigger" href="{{ shift.copy_shift_url }}" data-copy-url="{{ shift.copy_shift_url }}" data-modal-url="{{ shift.copy_shift_url }}{% if '?' in shift.copy_shift_url %}&{% else %}?{% endif %}modal=1" title="Copy shift" aria-label="Copy shift from {{ shift.service_date|date:'d/m/Y' }}">
+                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <rect x="8" y="8" width="10" height="10" rx="2"></rect>
+                        <path d="M6 14H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1"></path>
+                      </svg>
+                    </a>
+                    {% if shift.can_edit_from_planner %}
+                      <a class="planner-shift-action planner-shift-edit js-shift-modal-trigger" href="{% url 'shift_edit' shift.id %}?next={{ current_planner_url|urlencode }}" data-modal-url="{% url 'shift_edit' shift.id %}?modal=1&amp;next={{ current_planner_url|urlencode }}" title="Edit shift" aria-label="Edit shift">
                         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                          <rect x="8" y="8" width="10" height="10" rx="2"></rect>
-                          <path d="M6 14H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v1"></path>
+                          <path d="M12 20h9"></path>
+                          <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
                         </svg>
                       </a>
-                      {% if shift.can_edit_from_planner %}
-                        <a class="planner-shift-action planner-shift-edit js-shift-modal-trigger" href="{% url 'shift_edit' shift.id %}?next={{ current_planner_url|urlencode }}" data-modal-url="{% url 'shift_edit' shift.id %}?modal=1&amp;next={{ current_planner_url|urlencode }}" title="Edit shift" aria-label="Edit shift">
+                    {% endif %}
+                    <a class="planner-shift-action planner-shift-view" href="{% url 'shift_detail' shift.id %}" title="View shift" aria-label="View shift">
+                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                    </a>
+                    {% if shift.can_delete_from_planner %}
+                      <form class="planner-shift-delete-form" method="post" action="{% url 'shift_delete' shift.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ current_planner_url }}">
+                        <button
+                          class="planner-shift-action planner-shift-delete js-shift-delete-trigger"
+                          type="submit"
+                          title="Delete shift"
+                          aria-label="Delete shift"
+                          data-delete-summary="{{ shift.service_date|date:'d/m/Y' }} {{ shift.display_time }}"
+                          data-delete-participant="{{ shift.participant.display_name }}"
+                          data-delete-worker="{{ shift.worker.display_name }}"
+                        >
                           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                            <path d="M12 20h9"></path>
-                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                            <path d="M3 6h18"></path>
+                            <path d="M8 6V4h8v2"></path>
+                            <path d="M6 6l1 15h10l1-15"></path>
+                            <path d="M10 11v6"></path>
+                            <path d="M14 11v6"></path>
                           </svg>
-                        </a>
-                      {% endif %}
-                      <a class="planner-shift-action planner-shift-view" href="{% url 'shift_detail' shift.id %}" title="View shift" aria-label="View shift">
-                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                          <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path>
-                          <circle cx="12" cy="12" r="3"></circle>
-                        </svg>
-                      </a>
-                      {% if shift.can_delete_from_planner %}
-                        <form class="planner-shift-delete-form" method="post" action="{% url 'shift_delete' shift.id %}">
-                          {% csrf_token %}
-                          <input type="hidden" name="next" value="{{ current_planner_url }}">
-                          <button
-                            class="planner-shift-action planner-shift-delete js-shift-delete-trigger"
-                            type="submit"
-                            title="Delete shift"
-                            aria-label="Delete shift"
-                            data-delete-summary="{{ shift.service_date|date:'d/m/Y' }} {{ shift.display_time }}"
-                            data-delete-participant="{{ shift.participant.display_name }}"
-                            data-delete-worker="{{ shift.worker.display_name }}"
-                          >
-                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                              <path d="M3 6h18"></path>
-                              <path d="M8 6V4h8v2"></path>
-                              <path d="M6 6l1 15h10l1-15"></path>
-                              <path d="M10 11v6"></path>
-                              <path d="M14 11v6"></path>
-                            </svg>
-                          </button>
-                        </form>
-                      {% endif %}
-                    </span>
-                  </div>
+                        </button>
+                      </form>
+                    {% endif %}
+                  </span>
                 </div>
               </article>
             {% empty %}
