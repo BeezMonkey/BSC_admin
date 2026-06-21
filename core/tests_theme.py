@@ -63,6 +63,7 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn(".planner-shift-tile-footer", css)
         self.assertIn("minmax(140px, 1fr)", css)
         self.assertIn("border-radius: 5px;", css)
+        self.assertIn("margin: -1rem -1rem 1rem;", css)
 
     def test_planner_copy_paste_actions_use_purple_accent(self):
         css = Path("static/css/app.css").read_text(encoding="utf-8")
@@ -75,3 +76,13 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn("padding: 0;\n  color: var(--planner-copy-ink);", css)
         self.assertIn(".planner-shift-action-active", css)
         self.assertIn(".planner-shift-action-active:hover,\n.planner-shift-action-active:focus", css)
+
+    def test_planner_delete_confirmation_modal_assets_exist(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+        script = Path("static/js/shift_modal.js").read_text(encoding="utf-8")
+
+        self.assertIn(".shift-delete-confirm-card", css)
+        self.assertIn(".shift-modal-delete-button", css)
+        self.assertIn(".js-shift-delete-trigger", script)
+        self.assertIn("Delete shift?", script)
+        self.assertIn("data-shift-delete-confirm", script)
