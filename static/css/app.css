@@ -577,6 +577,10 @@ td.actions a:last-child {
   padding: 0.5rem 0.72rem;
 }
 
+.planner-filter-actions {
+  display: contents;
+}
+
 .planner-shift-card h2 {
   margin: 0 0 0.35rem;
   font-size: 1rem;
@@ -1963,6 +1967,12 @@ tbody tr:last-child td {
   .planner-filter-bar-compact button,
   .planner-filter-bar-compact .button {
     width: 100%;
+  }
+
+  .planner-filter-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.58rem;
   }
 }
 
