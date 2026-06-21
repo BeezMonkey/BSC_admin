@@ -785,9 +785,13 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, reverse("shift_delete", args=[published_shift.id]))
         self.assertNotContains(response, reverse("shift_delete", args=[completed_shift.id]))
         self.assertContains(response, 'class="planner-shift-delete-form"')
-        self.assertContains(response, 'class="planner-shift-action planner-shift-delete"')
+        self.assertContains(response, 'class="planner-shift-action planner-shift-delete js-shift-delete-trigger"')
         self.assertContains(response, 'title="Delete shift"')
         self.assertContains(response, 'aria-label="Delete shift"')
+        self.assertContains(response, 'data-delete-summary="08/06/2026')
+        self.assertContains(response, 'data-delete-participant="Ava Nguyen"')
+        self.assertContains(response, 'data-delete-worker="Wendy Worker"')
+        self.assertNotContains(response, "return confirm")
 
     def test_admin_can_delete_draft_shift_from_planner_and_return_to_current_view(self):
         shift = self.create_shift(status=Shift.Status.DRAFT, service_date=date(2026, 6, 8))

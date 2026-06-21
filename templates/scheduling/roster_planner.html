@@ -145,7 +145,15 @@
                       <form class="planner-shift-delete-form" method="post" action="{% url 'shift_delete' shift.id %}">
                         {% csrf_token %}
                         <input type="hidden" name="next" value="{{ current_planner_url }}">
-                        <button class="planner-shift-action planner-shift-delete" type="submit" title="Delete shift" aria-label="Delete shift" onclick="return confirm('Delete this shift?');">
+                        <button
+                          class="planner-shift-action planner-shift-delete js-shift-delete-trigger"
+                          type="submit"
+                          title="Delete shift"
+                          aria-label="Delete shift"
+                          data-delete-summary="{{ shift.service_date|date:'d/m/Y' }} {{ shift.display_time }}"
+                          data-delete-participant="{{ shift.participant.display_name }}"
+                          data-delete-worker="{{ shift.worker.display_name }}"
+                        >
                           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                             <path d="M3 6h18"></path>
                             <path d="M8 6V4h8v2"></path>
