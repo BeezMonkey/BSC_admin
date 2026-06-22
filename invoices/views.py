@@ -450,6 +450,14 @@ def pdf_text(text, x, y, font_size=10, font="F1"):
     return {"text": text, "x": x, "y": y, "font_size": font_size, "font": font}
 
 
+def estimate_text_width(text, font_size):
+    return len(str(text)) * font_size * 0.48
+
+
+def pdf_right_text(text, right_x, y, font_size=10, font="F1"):
+    return pdf_text(text, right_x - estimate_text_width(text, font_size), y, font_size, font)
+
+
 def pdf_line(x1, y1, x2, y2, width=1.5, color=(0.435, 0.173, 0.502)):
     return {
         "line": True,
@@ -503,41 +511,48 @@ def invoice_pdf(request, invoice_id):
     append_if_present(sent_to_lines, "Phone", participant.plan_manager_phone)
     append_if_present(sent_to_lines, "Email", participant.plan_manager_email)
 
+    page_left = 32
+    page_right = 580
+    logo_area_width = 58
+    logo_text_x = page_left + logo_area_width + 12
+    header_y = 742
+    divider_y = 684
     pdf_lines = [
-        pdf_text(settings_obj.business_name, 82, 736, 15, "F2"),
-        pdf_text("Honouring Your Choices, Brightening Your World.", 82, 718, 6.5),
-        pdf_text("TAX INVOICE", 478, 744, 11, "F2"),
-        pdf_text(f"Invoice No.: # {invoice.invoice_number}", 430, 724, 9.5),
-        pdf_text(f"Invoice Date: {invoice_date}", 444, 708, 9.5),
-        pdf_text(
+        pdf_line(page_left, header_y - 3, page_left + logo_area_width, header_y - 3, width=0.75),
+        pdf_text(settings_obj.business_name, logo_text_x, header_y - 1, 14, "F2"),
+        pdf_text("Honouring Your Choices, Brightening Your World.", logo_text_x, header_y - 19, 6.3),
+        pdf_right_text("TAX INVOICE", page_right, header_y, 11, "F2"),
+        pdf_right_text(f"Invoice No.: # {invoice.invoice_number}", page_right, header_y - 19, 9),
+        pdf_right_text(f"Invoice Date: {invoice_date}", page_right, header_y - 35, 9),
+        pdf_right_text(
             f"Period: {format_au_date(invoice.period_start)} to {format_au_date(invoice.period_end)}",
-            444,
-            692,
+            page_right,
+            header_y - 51,
             7.5,
         ),
-        pdf_line(32, 674, 580, 674, width=3),
+        pdf_line(page_left, divider_y, page_right, divider_y, width=3),
     ]
-    y = 610
+    y = 628
     if settings_obj.business_name:
-        pdf_lines.append(pdf_text(settings_obj.business_name, 32, y, 10, "F2"))
+        pdf_lines.append(pdf_text(settings_obj.business_name, page_left, y, 10, "F2"))
         y -= 16
     for business_line in business_lines:
         font = "F2" if business_line.startswith("ABN:") else "F1"
-        pdf_lines.append(pdf_text(business_line, 32, y, 9.5, font))
+        pdf_lines.append(pdf_text(business_line, page_left, y, 9.5, font))
         y -= 14
 
     pdf_lines.extend(
         [
-            pdf_line(32, 440, 278, 440, width=2),
+            pdf_line(page_left, 462, 278, 462, width=2),
             pdf_line(332, 440, 580, 440, width=2),
-            pdf_text("PARTICIPANT INFORMATION", 32, 410, 10, "F2"),
+            pdf_text("PARTICIPANT INFORMATION", page_left, 432, 10, "F2"),
             pdf_text("SENT TO", 332, 410, 10, "F2"),
         ]
     )
-    y = 388
+    y = 410
     for participant_line in participant_lines:
         font = "F2" if participant_line.startswith(("NDIS NUMBER:", "Phone:", "Email:", "Address:")) else "F1"
-        pdf_lines.append(pdf_text(participant_line, 32, y, 9, font))
+        pdf_lines.append(pdf_text(participant_line, page_left, y, 9, font))
         y -= 13
     y = 388
     for sent_to_line in sent_to_lines:

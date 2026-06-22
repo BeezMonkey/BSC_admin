@@ -2,6 +2,7 @@ import csv
 from datetime import date, time
 from decimal import Decimal
 from io import StringIO
+from pathlib import Path
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -212,6 +213,13 @@ class InvoiceExportTests(TestCase):
         self.assertIn("Invoice Total", content)
         self.assertIn("/Helvetica-Bold", content)
         self.assertIn("/F2", content)
+
+    def test_invoice_pdf_header_uses_alignment_helpers(self):
+        view_source = Path("invoices/views.py").read_text(encoding="utf-8")
+
+        self.assertIn("def pdf_right_text", view_source)
+        self.assertIn("pdf_right_text(\"TAX INVOICE\"", view_source)
+        self.assertIn("logo_area_width", view_source)
 
     def test_finance_user_can_mark_invoice_issued(self):
         self.login_accountant()
