@@ -228,6 +228,9 @@ class InvoiceExportTests(TestCase):
         self.assertIn("def next_invoice_section_y", view_source)
         self.assertIn("line_items_top = next_invoice_section_y", view_source)
         self.assertNotIn("page_left,\n                292,", view_source)
+        self.assertIn("business_info_y", view_source)
+        self.assertNotIn('participant_line.startswith(("NDIS NUMBER:", "Phone:", "Email:", "Address:"))', view_source)
+        self.assertNotIn('sent_to_line.startswith(("Phone:", "Email:"))', view_source)
 
     def test_finance_user_can_mark_invoice_issued(self):
         self.login_accountant()
