@@ -488,6 +488,14 @@ def participant_address(participant):
     return ", ".join(part for part in parts if part)
 
 
+def next_invoice_section_y(line_groups, section_top, row_start_gap=52, row_gap=13, after_gap=58):
+    longest_group = max((len(group) for group in line_groups), default=0)
+    if not longest_group:
+        return section_top - row_start_gap - after_gap
+    last_line_y = section_top - row_start_gap - ((longest_group - 1) * row_gap)
+    return last_line_y - after_gap
+
+
 @finance_required
 def invoice_pdf(request, invoice_id):
     invoice = get_invoice(invoice_id)
@@ -518,7 +526,7 @@ def invoice_pdf(request, invoice_id):
     header_y = 742
     divider_y = 684
     detail_line_gap = 13
-    participant_section_top = 548
+    participant_section_top = 568
     invoice_detail_x = 442
     sent_to_x = 332
     pdf_lines = [
@@ -558,23 +566,27 @@ def invoice_pdf(request, invoice_id):
         pdf_lines.append(pdf_text(sent_to_line, sent_to_x, y, 9, font))
         y -= 13
 
+    line_items_top = next_invoice_section_y(
+        [participant_lines, sent_to_lines],
+        participant_section_top,
+    )
     pdf_lines.extend(
         [
             pdf_text(
                 f"Period: {format_au_date(invoice.period_start)} to {format_au_date(invoice.period_end)}",
                 page_left,
-                292,
+                line_items_top,
                 8,
             ),
-            pdf_text("Line Items", 32, 272, 10, "F2"),
-            pdf_text("Item", 32, 248, 8.5, "F2"),
-            pdf_text("Description", 138, 248, 8.5, "F2"),
-            pdf_text("Qty", 350, 248, 8.5, "F2"),
-            pdf_text("Rate", 414, 248, 8.5, "F2"),
-            pdf_text("Amount", 500, 248, 8.5, "F2"),
+            pdf_text("Line Items", 32, line_items_top - 20, 10, "F2"),
+            pdf_text("Item", 32, line_items_top - 44, 8.5, "F2"),
+            pdf_text("Description", 138, line_items_top - 44, 8.5, "F2"),
+            pdf_text("Qty", 350, line_items_top - 44, 8.5, "F2"),
+            pdf_text("Rate", 414, line_items_top - 44, 8.5, "F2"),
+            pdf_text("Amount", 500, line_items_top - 44, 8.5, "F2"),
         ]
     )
-    y = 226
+    y = line_items_top - 66
     for line in invoice.lines.all():
         pdf_lines.extend(
             [

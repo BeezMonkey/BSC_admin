@@ -225,6 +225,9 @@ class InvoiceExportTests(TestCase):
         self.assertIn("detail_line_gap", view_source)
         self.assertIn("participant_section_top", view_source)
         self.assertIn("sent_to_x", view_source)
+        self.assertIn("def next_invoice_section_y", view_source)
+        self.assertIn("line_items_top = next_invoice_section_y", view_source)
+        self.assertNotIn("page_left,\n                292,", view_source)
 
     def test_finance_user_can_mark_invoice_issued(self):
         self.login_accountant()
