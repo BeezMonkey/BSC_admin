@@ -218,7 +218,9 @@ class InvoiceExportTests(TestCase):
         view_source = Path("invoices/views.py").read_text(encoding="utf-8")
 
         self.assertIn("def pdf_right_text", view_source)
-        self.assertIn("pdf_right_text(\"TAX INVOICE\"", view_source)
+        self.assertNotIn("pdf_right_text(\"TAX INVOICE\"", view_source)
+        self.assertIn("invoice_detail_x", view_source)
+        self.assertIn("pdf_text(\"TAX INVOICE\", invoice_detail_x", view_source)
         self.assertIn("logo_area_width", view_source)
         self.assertIn("detail_line_gap", view_source)
         self.assertIn("participant_section_top", view_source)
