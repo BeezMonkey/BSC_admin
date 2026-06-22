@@ -517,16 +517,17 @@ def invoice_pdf(request, invoice_id):
     logo_text_x = page_left + logo_area_width + 12
     header_y = 742
     divider_y = 684
-    detail_line_gap = 15
-    participant_section_top = 518
+    detail_line_gap = 13
+    participant_section_top = 548
+    invoice_detail_x = 442
     sent_to_x = 332
     pdf_lines = [
         pdf_line(page_left, header_y - 3, page_left + logo_area_width, header_y - 3, width=0.75),
         pdf_text(settings_obj.business_name, logo_text_x, header_y - 1, 14, "F2"),
         pdf_text("Honouring Your Choices, Brightening Your World.", logo_text_x, header_y - 19, 6.3),
-        pdf_right_text("TAX INVOICE", page_right, header_y, 11, "F2"),
-        pdf_right_text(f"Invoice No.: # {invoice.invoice_number}", page_right, header_y - detail_line_gap, 8.5),
-        pdf_right_text(f"Invoice Date: {invoice_date}", page_right, header_y - (detail_line_gap * 2), 8.5),
+        pdf_text("TAX INVOICE", invoice_detail_x, header_y, 10.5, "F2"),
+        pdf_text(f"Invoice No.: # {invoice.invoice_number}", invoice_detail_x, header_y - detail_line_gap, 8.5),
+        pdf_text(f"Invoice Date: {invoice_date}", invoice_detail_x, header_y - (detail_line_gap * 2), 8.5),
         pdf_line(page_left, divider_y, page_right, divider_y, width=3),
     ]
     y = 628
