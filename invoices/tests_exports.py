@@ -210,6 +210,8 @@ class InvoiceExportTests(TestCase):
         self.assertIn("Rate", content)
         self.assertIn("Amount", content)
         self.assertIn("Invoice Total", content)
+        self.assertIn("/Helvetica-Bold", content)
+        self.assertIn("/F2", content)
 
     def test_finance_user_can_mark_invoice_issued(self):
         self.login_accountant()

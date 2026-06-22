@@ -381,17 +381,19 @@ def build_simple_pdf(lines):
             text = line.get("text", "")
             x = line.get("x", 50)
             font_size = line.get("font_size", 12)
+            font = line.get("font", "F1")
             y = line.get("y", y if not index else y - 18)
         else:
             text = line
             x = 50
             font_size = 12
+            font = "F1"
             if index:
                 y -= 18
         operations.extend(
             [
                 "BT",
-                f"/F1 {font_size} Tf",
+                f"/{font} {font_size} Tf",
                 f"{x} {y} Td",
                 f"({escape_pdf_text(text)}) Tj",
                 "ET",
@@ -402,8 +404,9 @@ def build_simple_pdf(lines):
         b"<< /Type /Catalog /Pages 2 0 R >>",
         b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
         b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] "
-        b"/Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+        b"/Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>",
         b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>",
         b"<< /Length " + str(len(stream)).encode("ascii") + b" >>\nstream\n" + stream + b"\nendstream",
     ]
     pdf = bytearray(b"%PDF-1.4\n")
@@ -443,8 +446,8 @@ def append_multiline_if_present(lines, value):
         lines.extend(line for line in value.splitlines() if line.strip())
 
 
-def pdf_text(text, x, y, font_size=12):
-    return {"text": text, "x": x, "y": y, "font_size": font_size}
+def pdf_text(text, x, y, font_size=10, font="F1"):
+    return {"text": text, "x": x, "y": y, "font_size": font_size, "font": font}
 
 
 def pdf_line(x1, y1, x2, y2, width=1.5, color=(0.435, 0.173, 0.502)):
@@ -501,63 +504,66 @@ def invoice_pdf(request, invoice_id):
     append_if_present(sent_to_lines, "Email", participant.plan_manager_email)
 
     pdf_lines = [
-        pdf_text(settings_obj.business_name, 82, 742, 19),
-        pdf_text("Honouring Your Choices, Brightening Your World.", 82, 720, 8),
-        pdf_text("TAX INVOICE", 455, 748, 14),
-        pdf_text(f"Invoice No.: # {invoice.invoice_number}", 405, 724, 12),
-        pdf_text(f"Invoice Date: {invoice_date}", 415, 704, 12),
+        pdf_text(settings_obj.business_name, 82, 736, 15, "F2"),
+        pdf_text("Honouring Your Choices, Brightening Your World.", 82, 718, 6.5),
+        pdf_text("TAX INVOICE", 478, 744, 11, "F2"),
+        pdf_text(f"Invoice No.: # {invoice.invoice_number}", 430, 724, 9.5),
+        pdf_text(f"Invoice Date: {invoice_date}", 444, 708, 9.5),
         pdf_text(
             f"Period: {format_au_date(invoice.period_start)} to {format_au_date(invoice.period_end)}",
-            415,
-            686,
-            9,
+            444,
+            692,
+            7.5,
         ),
         pdf_line(32, 674, 580, 674, width=3),
     ]
     y = 610
     if settings_obj.business_name:
-        pdf_lines.append(pdf_text(settings_obj.business_name, 32, y, 12))
-        y -= 18
-    for business_line in business_lines:
-        pdf_lines.append(pdf_text(business_line, 32, y))
+        pdf_lines.append(pdf_text(settings_obj.business_name, 32, y, 10, "F2"))
         y -= 16
+    for business_line in business_lines:
+        font = "F2" if business_line.startswith("ABN:") else "F1"
+        pdf_lines.append(pdf_text(business_line, 32, y, 9.5, font))
+        y -= 14
 
     pdf_lines.extend(
         [
             pdf_line(32, 440, 278, 440, width=2),
             pdf_line(332, 440, 580, 440, width=2),
-            pdf_text("PARTICIPANT INFORMATION", 32, 410, 12),
-            pdf_text("SENT TO", 332, 410, 12),
+            pdf_text("PARTICIPANT INFORMATION", 32, 410, 10, "F2"),
+            pdf_text("SENT TO", 332, 410, 10, "F2"),
         ]
     )
     y = 388
     for participant_line in participant_lines:
-        pdf_lines.append(pdf_text(participant_line, 32, y))
-        y -= 16
+        font = "F2" if participant_line.startswith(("NDIS NUMBER:", "Phone:", "Email:", "Address:")) else "F1"
+        pdf_lines.append(pdf_text(participant_line, 32, y, 9, font))
+        y -= 13
     y = 388
     for sent_to_line in sent_to_lines:
-        pdf_lines.append(pdf_text(sent_to_line, 332, y))
-        y -= 16
+        font = "F2" if sent_to_line.startswith(("Phone:", "Email:")) else "F1"
+        pdf_lines.append(pdf_text(sent_to_line, 332, y, 9, font))
+        y -= 13
 
     pdf_lines.extend(
         [
-            pdf_text("Line Items", 32, 272, 12),
-            pdf_text("Item", 32, 248, 10),
-            pdf_text("Description", 138, 248, 10),
-            pdf_text("Qty", 350, 248, 10),
-            pdf_text("Rate", 414, 248, 10),
-            pdf_text("Amount", 500, 248, 10),
+            pdf_text("Line Items", 32, 272, 10, "F2"),
+            pdf_text("Item", 32, 248, 8.5, "F2"),
+            pdf_text("Description", 138, 248, 8.5, "F2"),
+            pdf_text("Qty", 350, 248, 8.5, "F2"),
+            pdf_text("Rate", 414, 248, 8.5, "F2"),
+            pdf_text("Amount", 500, 248, 8.5, "F2"),
         ]
     )
     y = 226
     for line in invoice.lines.all():
         pdf_lines.extend(
             [
-                pdf_text(line.support_item_number, 32, y, 8),
-                pdf_text(line.description[:36], 138, y, 8),
-                pdf_text(f"{line.quantity:.2f}", 350, y, 8),
-                pdf_text(f"${format_money(line.unit_price)}", 414, y, 8),
-                pdf_text(f"${format_money(line.line_total)}", 500, y, 9),
+                pdf_text(line.support_item_number, 32, y, 7.5),
+                pdf_text(line.description[:36], 138, y, 7.5),
+                pdf_text(f"{line.quantity:.2f}", 350, y, 7.5),
+                pdf_text(f"${format_money(line.unit_price)}", 414, y, 7.5),
+                pdf_text(f"${format_money(line.line_total)}", 500, y, 8, "F2"),
                 pdf_text(
                     f"{line.quantity:.2f} x ${format_money(line.unit_price)} = ${format_money(line.line_total)}",
                     32,
@@ -571,7 +577,7 @@ def invoice_pdf(request, invoice_id):
     pdf_lines.extend(
         [
             pdf_text("Invoice Total", 395, max(y - 12, 126), 12),
-            pdf_text(f"Total: ${format_money(invoice.total_amount)}", 500, max(y - 12, 126), 12),
+            pdf_text(f"Total: ${format_money(invoice.total_amount)}", 500, max(y - 12, 126), 12, "F2"),
         ]
     )
     payment_lines = []
@@ -581,10 +587,10 @@ def invoice_pdf(request, invoice_id):
     append_if_present(payment_lines, "Account number", settings_obj.account_number)
     if payment_lines:
         y = max(y - 52, 54)
-        pdf_lines.append(pdf_text("Payment Details", 32, y, 12))
+        pdf_lines.append(pdf_text("Payment Details", 32, y, 10, "F2"))
         y -= 22
         for payment_line in payment_lines:
-            pdf_lines.append(pdf_text(payment_line, 32, y))
+            pdf_lines.append(pdf_text(payment_line, 32, y, 9))
             y -= 16
     response = HttpResponse(build_simple_pdf(pdf_lines), content_type="application/pdf")
     response["Content-Disposition"] = (
