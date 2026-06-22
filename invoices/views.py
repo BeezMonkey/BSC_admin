@@ -526,6 +526,7 @@ def invoice_pdf(request, invoice_id):
     header_y = 742
     divider_y = 684
     detail_line_gap = 13
+    business_info_y = 642
     participant_section_top = 568
     invoice_detail_x = 442
     sent_to_x = 332
@@ -538,7 +539,7 @@ def invoice_pdf(request, invoice_id):
         pdf_text(f"Invoice Date: {invoice_date}", invoice_detail_x, header_y - (detail_line_gap * 2), 8.5),
         pdf_line(page_left, divider_y, page_right, divider_y, width=3),
     ]
-    y = 628
+    y = business_info_y
     if settings_obj.business_name:
         pdf_lines.append(pdf_text(settings_obj.business_name, page_left, y, 10, "F2"))
         y -= 16
@@ -557,13 +558,11 @@ def invoice_pdf(request, invoice_id):
     )
     y = participant_section_top - 52
     for participant_line in participant_lines:
-        font = "F2" if participant_line.startswith(("NDIS NUMBER:", "Phone:", "Email:", "Address:")) else "F1"
-        pdf_lines.append(pdf_text(participant_line, page_left, y, 9, font))
+        pdf_lines.append(pdf_text(participant_line, page_left, y, 9))
         y -= 13
     y = participant_section_top - 52
     for sent_to_line in sent_to_lines:
-        font = "F2" if sent_to_line.startswith(("Phone:", "Email:")) else "F1"
-        pdf_lines.append(pdf_text(sent_to_line, sent_to_x, y, 9, font))
+        pdf_lines.append(pdf_text(sent_to_line, sent_to_x, y, 9))
         y -= 13
 
     line_items_top = next_invoice_section_y(
