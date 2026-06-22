@@ -355,15 +355,35 @@ def invoice_csv(request, invoice_id):
     return response
 
 
+def escape_pdf_text(value):
+    return str(value).replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+
+
 def build_simple_pdf(lines):
-    text_lines = ["BT", "/F1 12 Tf", "50 760 Td"]
+    operations = []
+    y = 760
     for index, line in enumerate(lines):
-        safe_line = line.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
-        if index:
-            text_lines.append("0 -18 Td")
-        text_lines.append(f"({safe_line}) Tj")
-    text_lines.append("ET")
-    stream = "\n".join(text_lines).encode("latin-1", errors="replace")
+        if isinstance(line, dict):
+            text = line.get("text", "")
+            x = line.get("x", 50)
+            font_size = line.get("font_size", 12)
+            y = line.get("y", y if not index else y - 18)
+        else:
+            text = line
+            x = 50
+            font_size = 12
+            if index:
+                y -= 18
+        operations.extend(
+            [
+                "BT",
+                f"/F1 {font_size} Tf",
+                f"{x} {y} Td",
+                f"({escape_pdf_text(text)}) Tj",
+                "ET",
+            ]
+        )
+    stream = "\n".join(operations).encode("latin-1", errors="replace")
     objects = [
         b"<< /Type /Catalog /Pages 2 0 R >>",
         b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
@@ -409,49 +429,85 @@ def append_multiline_if_present(lines, value):
         lines.extend(line for line in value.splitlines() if line.strip())
 
 
+def pdf_text(text, x, y, font_size=12):
+    return {"text": text, "x": x, "y": y, "font_size": font_size}
+
+
 @finance_required
 def invoice_pdf(request, invoice_id):
     invoice = get_invoice(invoice_id)
     settings_obj = InvoiceSettings.load()
+    business_lines = []
+    append_if_present(business_lines, "ABN", settings_obj.abn)
+    append_if_present(business_lines, "Phone", settings_obj.phone)
+    append_if_present(business_lines, "Email", settings_obj.email)
+    append_multiline_if_present(business_lines, settings_obj.address)
+
     pdf_lines = [
-        settings_obj.business_name,
-        "NDIS Invoice",
-    ]
-    append_if_present(pdf_lines, "ABN", settings_obj.abn)
-    append_if_present(pdf_lines, "Phone", settings_obj.phone)
-    append_if_present(pdf_lines, "Email", settings_obj.email)
-    append_multiline_if_present(pdf_lines, settings_obj.address)
-    pdf_lines.extend(
-        [
-            "",
-            f"Invoice: {invoice.invoice_number}",
-            f"Participant: {invoice.participant.display_name}",
+        pdf_text(settings_obj.business_name, 50, 750, 18),
+        pdf_text("NDIS Invoice", 50, 726, 14),
+        pdf_text("Invoice Details", 365, 750, 12),
+        pdf_text(f"Invoice: {invoice.invoice_number}", 365, 728),
+        pdf_text(
             f"Period: {format_au_date(invoice.period_start)} to {format_au_date(invoice.period_end)}",
-            f"Status: {invoice.get_status_display()}",
-            "",
-            "Line Items",
-        ]
-    )
-    for line in invoice.lines.all():
-        pdf_lines.append(
-            f"{line.support_item_number} {line.description} "
-            f"{line.quantity:.2f} x ${format_money(line.unit_price)} = "
-            f"${format_money(line.line_total)}"
-        )
+            365,
+            710,
+        ),
+        pdf_text(f"Status: {invoice.get_status_display()}", 365, 692),
+    ]
+    y = 704
+    for business_line in business_lines:
+        pdf_lines.append(pdf_text(business_line, 50, y))
+        y -= 16
+
     pdf_lines.extend(
         [
-            f"Total: ${format_money(invoice.total_amount)}",
-            "",
-            "Payment Details",
+            pdf_text("Bill To", 50, 640, 12),
+            pdf_text(invoice.participant.display_name, 50, 620),
+            pdf_text("Line Items", 50, 574, 12),
+            pdf_text("Item", 50, 548, 10),
+            pdf_text("Description", 150, 548, 10),
+            pdf_text("Qty", 360, 548, 10),
+            pdf_text("Rate", 420, 548, 10),
+            pdf_text("Amount", 500, 548, 10),
         ]
     )
-    append_if_present(pdf_lines, "Bank", settings_obj.bank_name)
-    append_if_present(pdf_lines, "Account name", settings_obj.account_name)
-    append_if_present(pdf_lines, "BSB", settings_obj.bsb)
-    append_if_present(pdf_lines, "Account number", settings_obj.account_number)
-    if pdf_lines[-1] == "Payment Details":
-        pdf_lines.pop()
-        pdf_lines.pop()
+    y = 526
+    for line in invoice.lines.all():
+        pdf_lines.extend(
+            [
+                pdf_text(line.support_item_number, 50, y, 9),
+                pdf_text(line.description[:34], 150, y, 9),
+                pdf_text(f"{line.quantity:.2f}", 360, y, 9),
+                pdf_text(f"${format_money(line.unit_price)}", 420, y, 9),
+                pdf_text(f"${format_money(line.line_total)}", 500, y, 9),
+                pdf_text(
+                    f"{line.quantity:.2f} x ${format_money(line.unit_price)} = ${format_money(line.line_total)}",
+                    50,
+                    y - 14,
+                    8,
+                ),
+            ]
+        )
+        y -= 36
+
+    pdf_lines.extend(
+        [
+            pdf_text("Invoice Total", 395, max(y - 12, 250), 12),
+            pdf_text(f"Total: ${format_money(invoice.total_amount)}", 500, max(y - 12, 250), 12),
+        ]
+    )
+    payment_lines = []
+    append_if_present(payment_lines, "Bank", settings_obj.bank_name)
+    append_if_present(payment_lines, "Account name", settings_obj.account_name)
+    append_if_present(payment_lines, "BSB", settings_obj.bsb)
+    append_if_present(payment_lines, "Account number", settings_obj.account_number)
+    if payment_lines:
+        pdf_lines.append(pdf_text("Payment Details", 50, 180, 12))
+        y = 158
+        for payment_line in payment_lines:
+            pdf_lines.append(pdf_text(payment_line, 50, y))
+            y -= 16
     response = HttpResponse(build_simple_pdf(pdf_lines), content_type="application/pdf")
     response["Content-Disposition"] = (
         f'attachment; filename="{invoice.invoice_number}.pdf"'

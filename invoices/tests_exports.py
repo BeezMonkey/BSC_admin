@@ -180,6 +180,21 @@ class InvoiceExportTests(TestCase):
         self.assertIn("BSB: 123-456", content)
         self.assertIn("Account number: 987654321", content)
 
+    def test_invoice_pdf_uses_structured_invoice_sections(self):
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_pdf", args=[self.invoice.id]))
+
+        content = response.content.decode("latin-1")
+        self.assertIn("Invoice Details", content)
+        self.assertIn("Bill To", content)
+        self.assertIn("Item", content)
+        self.assertIn("Description", content)
+        self.assertIn("Qty", content)
+        self.assertIn("Rate", content)
+        self.assertIn("Amount", content)
+        self.assertIn("Invoice Total", content)
+
     def test_finance_user_can_mark_invoice_issued(self):
         self.login_accountant()
 
