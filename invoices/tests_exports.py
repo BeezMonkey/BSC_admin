@@ -181,13 +181,29 @@ class InvoiceExportTests(TestCase):
         self.assertIn("Account number: 987654321", content)
 
     def test_invoice_pdf_uses_structured_invoice_sections(self):
+        self.participant.ndis_number = "431211998"
+        self.participant.phone = "0416 017 469"
+        self.participant.email = "jules@example.com"
+        self.participant.plan_manager_name = "My Autonomy Plan Management"
+        self.participant.plan_manager_phone = "1300 603 389"
+        self.participant.plan_manager_email = "invoices@myautonomy.com.au"
+        self.participant.save()
         self.login_accountant()
 
         response = self.client.get(reverse("invoice_pdf", args=[self.invoice.id]))
 
         content = response.content.decode("latin-1")
-        self.assertIn("Invoice Details", content)
-        self.assertIn("Bill To", content)
+        self.assertIn("TAX INVOICE", content)
+        self.assertIn("Invoice No.: #", content)
+        self.assertIn("Invoice Date:", content)
+        self.assertIn("PARTICIPANT INFORMATION", content)
+        self.assertIn("NDIS NUMBER: 431211998", content)
+        self.assertIn("Phone: 0416 017 469", content)
+        self.assertIn("Email: jules@example.com", content)
+        self.assertIn("SENT TO", content)
+        self.assertIn("Name: My Autonomy Plan Management", content)
+        self.assertIn("Phone: 1300 603 389", content)
+        self.assertIn("Email: invoices@myautonomy.com.au", content)
         self.assertIn("Item", content)
         self.assertIn("Description", content)
         self.assertIn("Qty", content)
