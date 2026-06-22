@@ -220,6 +220,9 @@ class InvoiceExportTests(TestCase):
         self.assertIn("def pdf_right_text", view_source)
         self.assertIn("pdf_right_text(\"TAX INVOICE\"", view_source)
         self.assertIn("logo_area_width", view_source)
+        self.assertIn("detail_line_gap", view_source)
+        self.assertIn("participant_section_top", view_source)
+        self.assertIn("sent_to_x", view_source)
 
     def test_finance_user_can_mark_invoice_issued(self):
         self.login_accountant()

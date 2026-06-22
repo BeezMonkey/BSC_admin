@@ -517,19 +517,16 @@ def invoice_pdf(request, invoice_id):
     logo_text_x = page_left + logo_area_width + 12
     header_y = 742
     divider_y = 684
+    detail_line_gap = 15
+    participant_section_top = 518
+    sent_to_x = 332
     pdf_lines = [
         pdf_line(page_left, header_y - 3, page_left + logo_area_width, header_y - 3, width=0.75),
         pdf_text(settings_obj.business_name, logo_text_x, header_y - 1, 14, "F2"),
         pdf_text("Honouring Your Choices, Brightening Your World.", logo_text_x, header_y - 19, 6.3),
         pdf_right_text("TAX INVOICE", page_right, header_y, 11, "F2"),
-        pdf_right_text(f"Invoice No.: # {invoice.invoice_number}", page_right, header_y - 19, 9),
-        pdf_right_text(f"Invoice Date: {invoice_date}", page_right, header_y - 35, 9),
-        pdf_right_text(
-            f"Period: {format_au_date(invoice.period_start)} to {format_au_date(invoice.period_end)}",
-            page_right,
-            header_y - 51,
-            7.5,
-        ),
+        pdf_right_text(f"Invoice No.: # {invoice.invoice_number}", page_right, header_y - detail_line_gap, 8.5),
+        pdf_right_text(f"Invoice Date: {invoice_date}", page_right, header_y - (detail_line_gap * 2), 8.5),
         pdf_line(page_left, divider_y, page_right, divider_y, width=3),
     ]
     y = 628
@@ -543,25 +540,31 @@ def invoice_pdf(request, invoice_id):
 
     pdf_lines.extend(
         [
-            pdf_line(page_left, 462, 278, 462, width=2),
-            pdf_line(332, 440, 580, 440, width=2),
-            pdf_text("PARTICIPANT INFORMATION", page_left, 432, 10, "F2"),
-            pdf_text("SENT TO", 332, 410, 10, "F2"),
+            pdf_line(page_left, participant_section_top, 278, participant_section_top, width=2),
+            pdf_line(sent_to_x, participant_section_top, page_right, participant_section_top, width=2),
+            pdf_text("PARTICIPANT INFORMATION", page_left, participant_section_top - 30, 10, "F2"),
+            pdf_text("SENT TO", sent_to_x, participant_section_top - 30, 10, "F2"),
         ]
     )
-    y = 410
+    y = participant_section_top - 52
     for participant_line in participant_lines:
         font = "F2" if participant_line.startswith(("NDIS NUMBER:", "Phone:", "Email:", "Address:")) else "F1"
         pdf_lines.append(pdf_text(participant_line, page_left, y, 9, font))
         y -= 13
-    y = 388
+    y = participant_section_top - 52
     for sent_to_line in sent_to_lines:
         font = "F2" if sent_to_line.startswith(("Phone:", "Email:")) else "F1"
-        pdf_lines.append(pdf_text(sent_to_line, 332, y, 9, font))
+        pdf_lines.append(pdf_text(sent_to_line, sent_to_x, y, 9, font))
         y -= 13
 
     pdf_lines.extend(
         [
+            pdf_text(
+                f"Period: {format_au_date(invoice.period_start)} to {format_au_date(invoice.period_end)}",
+                page_left,
+                292,
+                8,
+            ),
             pdf_text("Line Items", 32, 272, 10, "F2"),
             pdf_text("Item", 32, 248, 8.5, "F2"),
             pdf_text("Description", 138, 248, 8.5, "F2"),
