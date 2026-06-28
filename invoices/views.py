@@ -530,6 +530,11 @@ def invoice_pdf(request, invoice_id):
     participant_section_top = 568
     invoice_detail_x = 442
     sent_to_x = 332
+    item_col_x = page_left
+    description_col_x = 138
+    qty_col_right = 382
+    rate_col_right = 454
+    amount_col_right = page_right
     pdf_lines = [
         pdf_line(page_left, header_y - 3, page_left + logo_area_width, header_y - 3, width=0.75),
         pdf_text(settings_obj.business_name, logo_text_x, header_y - 1, 14, "F2"),
@@ -577,37 +582,56 @@ def invoice_pdf(request, invoice_id):
                 line_items_top,
                 8,
             ),
-            pdf_text("Line Items", 32, line_items_top - 20, 10, "F2"),
-            pdf_text("Item", 32, line_items_top - 44, 8.5, "F2"),
-            pdf_text("Description", 138, line_items_top - 44, 8.5, "F2"),
-            pdf_text("Qty", 350, line_items_top - 44, 8.5, "F2"),
-            pdf_text("Rate", 414, line_items_top - 44, 8.5, "F2"),
-            pdf_text("Amount", 500, line_items_top - 44, 8.5, "F2"),
+            pdf_text("Line Items", page_left, line_items_top - 20, 10, "F2"),
+            pdf_line(
+                page_left,
+                line_items_top - 34,
+                page_right,
+                line_items_top - 34,
+                width=0.75,
+                color=(0.82, 0.84, 0.88),
+            ),
+            pdf_text("Item", item_col_x, line_items_top - 48, 8.5, "F2"),
+            pdf_text("Description", description_col_x, line_items_top - 48, 8.5, "F2"),
+            pdf_right_text("Qty", qty_col_right, line_items_top - 48, 8.5, "F2"),
+            pdf_right_text("Rate", rate_col_right, line_items_top - 48, 8.5, "F2"),
+            pdf_right_text("Amount", amount_col_right, line_items_top - 48, 8.5, "F2"),
+            pdf_line(
+                page_left,
+                line_items_top - 58,
+                page_right,
+                line_items_top - 58,
+                width=0.75,
+                color=(0.82, 0.84, 0.88),
+            ),
         ]
     )
-    y = line_items_top - 66
+    y = line_items_top - 76
     for line in invoice.lines.all():
         pdf_lines.extend(
             [
-                pdf_text(line.support_item_number, 32, y, 7.5),
-                pdf_text(line.description[:36], 138, y, 7.5),
-                pdf_text(f"{line.quantity:.2f}", 350, y, 7.5),
-                pdf_text(f"${format_money(line.unit_price)}", 414, y, 7.5),
-                pdf_text(f"${format_money(line.line_total)}", 500, y, 8, "F2"),
-                pdf_text(
-                    f"{line.quantity:.2f} x ${format_money(line.unit_price)} = ${format_money(line.line_total)}",
-                    32,
-                    y - 14,
-                    8,
-                ),
+                pdf_text(line.support_item_number, item_col_x, y, 7.5),
+                pdf_text(line.description[:44], description_col_x, y, 7.5),
+                pdf_right_text(f"{line.quantity:.2f}", qty_col_right, y, 7.5),
+                pdf_right_text(f"${format_money(line.unit_price)}", rate_col_right, y, 7.5),
+                pdf_right_text(f"${format_money(line.line_total)}", amount_col_right, y, 8, "F2"),
             ]
         )
-        y -= 36
+        y -= 22
 
+    total_y = max(y - 10, 126)
     pdf_lines.extend(
         [
-            pdf_text("Invoice Total", 395, max(y - 12, 126), 12),
-            pdf_text(f"Total: ${format_money(invoice.total_amount)}", 500, max(y - 12, 126), 12, "F2"),
+            pdf_line(
+                380,
+                total_y + 14,
+                page_right,
+                total_y + 14,
+                width=0.75,
+                color=(0.82, 0.84, 0.88),
+            ),
+            pdf_text("Invoice Total", 380, total_y, 9, "F2"),
+            pdf_right_text(f"${format_money(invoice.total_amount)}", amount_col_right, total_y, 10, "F2"),
         ]
     )
     payment_lines = []
