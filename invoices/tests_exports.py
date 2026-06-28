@@ -178,10 +178,14 @@ class InvoiceExportTests(TestCase):
         self.assertIn("1 Care Street", content)
         self.assertIn("Brisbane QLD 4000", content)
         self.assertIn("Payment Details", content)
-        self.assertIn("Bank: BSC Bank", content)
-        self.assertIn("Account name: Brisbane Star Care Pty Ltd", content)
-        self.assertIn("BSB: 123-456", content)
-        self.assertIn("Account number: 987654321", content)
+        self.assertIn("Bank", content)
+        self.assertIn("BSC Bank", content)
+        self.assertIn("Account name", content)
+        self.assertIn("Brisbane Star Care Pty Ltd", content)
+        self.assertIn("BSB", content)
+        self.assertIn("123-456", content)
+        self.assertIn("Account number", content)
+        self.assertIn("987654321", content)
 
     def test_invoice_pdf_uses_structured_invoice_sections(self):
         self.participant.ndis_number = "431211998"
@@ -250,6 +254,17 @@ class InvoiceExportTests(TestCase):
         self.assertIn('pdf_right_text(f"${format_money(line.line_total)}"', view_source)
         self.assertIn('pdf_right_text(f"${format_money(invoice.total_amount)}"', view_source)
         self.assertNotIn('f"{line.quantity:.2f} x ${format_money(line.unit_price)}', view_source)
+
+    def test_invoice_pdf_payment_details_use_two_column_layout(self):
+        view_source = Path("invoices/views.py").read_text(encoding="utf-8")
+
+        self.assertIn("payment_label_x", view_source)
+        self.assertIn("payment_value_x", view_source)
+        self.assertIn("payment_details_top", view_source)
+        self.assertIn("payment_detail_rows", view_source)
+        self.assertIn('pdf_text(label, payment_label_x', view_source)
+        self.assertIn('pdf_text(value, payment_value_x', view_source)
+        self.assertNotIn('append_if_present(payment_lines, "Bank"', view_source)
 
     def test_finance_user_can_mark_invoice_issued(self):
         self.login_accountant()

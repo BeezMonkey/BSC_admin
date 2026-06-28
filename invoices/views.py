@@ -634,18 +634,39 @@ def invoice_pdf(request, invoice_id):
             pdf_right_text(f"${format_money(invoice.total_amount)}", amount_col_right, total_y, 10, "F2"),
         ]
     )
-    payment_lines = []
-    append_if_present(payment_lines, "Bank", settings_obj.bank_name)
-    append_if_present(payment_lines, "Account name", settings_obj.account_name)
-    append_if_present(payment_lines, "BSB", settings_obj.bsb)
-    append_if_present(payment_lines, "Account number", settings_obj.account_number)
-    if payment_lines:
-        y = max(y - 52, 54)
-        pdf_lines.append(pdf_text("Payment Details", 32, y, 10, "F2"))
-        y -= 22
-        for payment_line in payment_lines:
-            pdf_lines.append(pdf_text(payment_line, 32, y, 9))
-            y -= 16
+    payment_detail_rows = [
+        ("Bank", settings_obj.bank_name),
+        ("Account name", settings_obj.account_name),
+        ("BSB", settings_obj.bsb),
+        ("Account number", settings_obj.account_number),
+    ]
+    payment_detail_rows = [
+        (label, (value or "").strip())
+        for label, value in payment_detail_rows
+        if (value or "").strip()
+    ]
+    if payment_detail_rows:
+        payment_details_top = max(y - 52, 54)
+        payment_label_x = page_left
+        payment_value_x = page_left + 88
+        pdf_lines.extend(
+            [
+                pdf_text("Payment Details", page_left, payment_details_top, 10, "F2"),
+                pdf_line(
+                    page_left,
+                    payment_details_top - 10,
+                    292,
+                    payment_details_top - 10,
+                    width=0.75,
+                    color=(0.82, 0.84, 0.88),
+                ),
+            ]
+        )
+        y = payment_details_top - 28
+        for label, value in payment_detail_rows:
+            pdf_lines.append(pdf_text(label, payment_label_x, y, 8.5, "F2"))
+            pdf_lines.append(pdf_text(value, payment_value_x, y, 8.5))
+            y -= 14
     response = HttpResponse(build_simple_pdf(pdf_lines), content_type="application/pdf")
     response["Content-Disposition"] = (
         f'attachment; filename="{invoice.invoice_number}.pdf"'
