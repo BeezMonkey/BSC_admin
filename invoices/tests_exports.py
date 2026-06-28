@@ -148,8 +148,10 @@ class InvoiceExportTests(TestCase):
         content = response.content.decode("latin-1")
         self.assertIn("Period: 01/06/2026 to 30/06/2026", content)
         self.assertNotIn("Period: 2026-06-01 to 2026-06-30", content)
-        self.assertIn("2.00 x $65.47 = $130.94", content)
-        self.assertIn("Total: $130.94", content)
+        self.assertIn("2.00", content)
+        self.assertIn("$65.47", content)
+        self.assertIn("$130.94", content)
+        self.assertIn("Invoice Total", content)
         self.assertNotIn("130.940000000000", content)
 
     def test_invoice_pdf_uses_invoice_settings_profile_and_payment_details(self):
@@ -231,6 +233,23 @@ class InvoiceExportTests(TestCase):
         self.assertIn("business_info_y", view_source)
         self.assertNotIn('participant_line.startswith(("NDIS NUMBER:", "Phone:", "Email:", "Address:"))', view_source)
         self.assertNotIn('sent_to_line.startswith(("Phone:", "Email:"))', view_source)
+
+    def test_invoice_pdf_line_items_use_table_columns(self):
+        view_source = Path("invoices/views.py").read_text(encoding="utf-8")
+
+        self.assertIn("item_col_x", view_source)
+        self.assertIn("description_col_x", view_source)
+        self.assertIn("qty_col_right", view_source)
+        self.assertIn("rate_col_right", view_source)
+        self.assertIn("amount_col_right", view_source)
+        self.assertIn('pdf_right_text("Qty"', view_source)
+        self.assertIn('pdf_right_text("Rate"', view_source)
+        self.assertIn('pdf_right_text("Amount"', view_source)
+        self.assertIn('pdf_right_text(f"{line.quantity:.2f}"', view_source)
+        self.assertIn('pdf_right_text(f"${format_money(line.unit_price)}"', view_source)
+        self.assertIn('pdf_right_text(f"${format_money(line.line_total)}"', view_source)
+        self.assertIn('pdf_right_text(f"${format_money(invoice.total_amount)}"', view_source)
+        self.assertNotIn('f"{line.quantity:.2f} x ${format_money(line.unit_price)}', view_source)
 
     def test_finance_user_can_mark_invoice_issued(self):
         self.login_accountant()
