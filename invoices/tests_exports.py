@@ -223,6 +223,13 @@ class InvoiceExportTests(TestCase):
     def test_invoice_pdf_header_uses_alignment_helpers(self):
         view_source = Path("invoices/views.py").read_text(encoding="utf-8")
 
+        self.assertIn("INVOICE_STATIC_LOGO_PATH", view_source)
+        self.assertIn("def pdf_image", view_source)
+        self.assertIn("def load_pdf_image", view_source)
+        self.assertIn("static/img/bsc-logo.png", view_source)
+        self.assertIn("logo_image", view_source)
+        self.assertIn("if logo_image:", view_source)
+        self.assertIn("else:", view_source)
         self.assertIn("def pdf_right_text", view_source)
         self.assertNotIn("pdf_right_text(\"TAX INVOICE\"", view_source)
         self.assertIn("invoice_detail_x", view_source)
