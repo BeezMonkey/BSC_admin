@@ -588,12 +588,16 @@ def invoice_pdf(request, invoice_id):
     logo_area_width = 58
     logo_text_x = page_left + logo_area_width + 12
     header_y = 742
+    invoice_detail_y = 738
     divider_y = 684
     detail_line_gap = 13
-    business_info_y = 642
+    business_info_y = 646
     participant_section_top = 568
-    invoice_detail_x = 442
+    invoice_detail_x = 448
     sent_to_x = 332
+    logo_width = 208
+    logo_height = 43
+    logo_y = header_y - 25
     item_col_x = page_left
     description_col_x = 138
     qty_col_right = 382
@@ -602,13 +606,13 @@ def invoice_pdf(request, invoice_id):
     logo_path = settings.BASE_DIR / INVOICE_STATIC_LOGO_PATH
     logo_image = load_pdf_image(logo_path)
     pdf_lines = [
-        pdf_text("TAX INVOICE", invoice_detail_x, header_y, 10.5, "F2"),
-        pdf_text(f"Invoice No.: # {invoice.invoice_number}", invoice_detail_x, header_y - detail_line_gap, 8.5),
-        pdf_text(f"Invoice Date: {invoice_date}", invoice_detail_x, header_y - (detail_line_gap * 2), 8.5),
+        pdf_text("TAX INVOICE", invoice_detail_x, invoice_detail_y, 10.5, "F2"),
+        pdf_text(f"Invoice No.: # {invoice.invoice_number}", invoice_detail_x, invoice_detail_y - detail_line_gap, 8.5),
+        pdf_text(f"Invoice Date: {invoice_date}", invoice_detail_x, invoice_detail_y - (detail_line_gap * 2), 8.5),
         pdf_line(page_left, divider_y, page_right, divider_y, width=3),
     ]
     if logo_image:
-        pdf_lines.insert(0, pdf_image(logo_image, page_left, header_y - 27, 220, 46))
+        pdf_lines.insert(0, pdf_image(logo_image, page_left, logo_y, logo_width, logo_height))
     else:
         pdf_lines = [
             pdf_line(page_left, header_y - 3, page_left + logo_area_width, header_y - 3, width=0.75),
