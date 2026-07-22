@@ -7,6 +7,7 @@ from pathlib import Path
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from accounts.models import UserProfile
 from invoices.models import Invoice, InvoiceLine, InvoiceSettings
@@ -139,6 +140,18 @@ class InvoiceExportTests(TestCase):
         self.assertIn("attachment;", response["Content-Disposition"])
         self.assertTrue(response.content.startswith(b"%PDF"))
         self.assertIn(self.invoice.invoice_number.encode("latin-1"), response.content)
+
+    def test_invoice_pdf_uses_clear_download_filename(self):
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_pdf", args=[self.invoice.id]))
+
+        invoice_date = timezone.localtime(self.invoice.created_at).strftime("%y%m%d")
+        invoice_sequence = self.invoice.invoice_number.rsplit("-", 1)[-1]
+        self.assertIn(
+            f'filename="Invoice_{invoice_date}_{invoice_sequence}_Ava_Nguyen.pdf"',
+            response["Content-Disposition"],
+        )
 
     def test_invoice_pdf_formats_amounts_to_two_decimal_places(self):
         self.login_accountant()

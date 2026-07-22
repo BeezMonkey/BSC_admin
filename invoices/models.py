@@ -2,7 +2,7 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from django.conf import settings
 from django.core.validators import RegexValidator
-from django.db import models
+from django.db import models, transaction
 from django.urls import reverse
 from django.utils import timezone
 
@@ -45,7 +45,7 @@ class InvoiceSettings(models.Model):
 
     @property
     def invoice_number_example(self):
-        return f"{self.invoice_prefix}-{timezone.localdate():%Y%m}-{self.next_invoice_sequence:04d}"
+        return f"{self.invoice_prefix}-{timezone.localdate():%y%m%d}-{self.next_invoice_sequence:04d}"
 
     def save(self, *args, **kwargs):
         self.pk = 1
@@ -89,10 +89,22 @@ class Invoice(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.invoice_number:
-            today = timezone.localdate()
-            prefix = f"INV-{today:%Y%m%d}"
-            count = Invoice.objects.filter(invoice_number__startswith=prefix).count() + 1
-            self.invoice_number = f"{prefix}-{count:04d}"
+            with transaction.atomic():
+                settings_obj = InvoiceSettings.objects.select_for_update().get_or_create(
+                    pk=1
+                )[0]
+                date_part = timezone.localdate().strftime("%y%m%d")
+                sequence = settings_obj.next_invoice_sequence
+                while True:
+                    invoice_number = (
+                        f"{settings_obj.invoice_prefix}-{date_part}-{sequence:04d}"
+                    )
+                    if not Invoice.objects.filter(invoice_number=invoice_number).exists():
+                        break
+                    sequence += 1
+                self.invoice_number = invoice_number
+                settings_obj.next_invoice_sequence = sequence + 1
+                settings_obj.save(update_fields=["next_invoice_sequence", "updated_at"])
         super().save(*args, **kwargs)
 
     @property

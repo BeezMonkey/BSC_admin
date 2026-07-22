@@ -1,4 +1,5 @@
 import csv
+import re
 import zlib
 from decimal import Decimal
 from io import StringIO
@@ -41,6 +42,21 @@ def format_filter_date(value):
 
 def format_au_date(value):
     return value.strftime("%d/%m/%Y")
+
+
+def safe_filename_part(value, fallback="Invoice"):
+    value = re.sub(r"[^A-Za-z0-9]+", "_", str(value or "")).strip("_")
+    return value or fallback
+
+
+def invoice_download_filename(invoice, extension):
+    invoice_date = timezone.localtime(invoice.created_at).strftime("%y%m%d")
+    invoice_sequence = safe_filename_part(
+        invoice.invoice_number.rsplit("-", 1)[-1],
+        "0000",
+    )
+    participant_name = safe_filename_part(invoice.participant.display_name, "Participant")
+    return f"Invoice_{invoice_date}_{invoice_sequence}_{participant_name}.{extension}"
 
 
 def build_invoice_filter_summary(status, q, participant_query, period_from, period_to):
@@ -745,7 +761,7 @@ def invoice_pdf(request, invoice_id):
             y -= 14
     response = HttpResponse(build_simple_pdf(pdf_lines), content_type="application/pdf")
     response["Content-Disposition"] = (
-        f'attachment; filename="{invoice.invoice_number}.pdf"'
+        f'attachment; filename="{invoice_download_filename(invoice, "pdf")}"'
     )
     return response
 
