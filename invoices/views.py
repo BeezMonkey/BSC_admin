@@ -1,7 +1,10 @@
 import csv
+import zlib
 from decimal import Decimal
 from io import StringIO
+from pathlib import Path
 
+from django.conf import settings
 from django.contrib import messages
 from django.db.models import DecimalField, Q, Sum, Value
 from django.db.models.functions import Coalesce
@@ -11,6 +14,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
+from PIL import Image
 
 from accounts.decorators import admin_required
 from accounts.decorators import finance_required
@@ -23,6 +27,9 @@ from service_logs.models import ServiceLog
 
 from .forms import InvoiceCreateForm, InvoiceSettingsForm
 from .models import Invoice, InvoiceLine, InvoiceSettings
+
+
+INVOICE_STATIC_LOGO_PATH = Path("static/img/bsc-logo.png")
 
 
 def format_filter_date(value):
@@ -362,9 +369,22 @@ def escape_pdf_text(value):
 
 def build_simple_pdf(lines):
     operations = []
+    images = []
     y = 760
     for index, line in enumerate(lines):
         if isinstance(line, dict):
+            if line.get("image"):
+                image_name = f"Im{len(images) + 1}"
+                images.append((image_name, line))
+                operations.extend(
+                    [
+                        "q",
+                        f"{line['width']} 0 0 {line['height']} {line['x']} {line['y']} cm",
+                        f"/{image_name} Do",
+                        "Q",
+                    ]
+                )
+                continue
             if line.get("line"):
                 color = line.get("color", (0, 0, 0))
                 width = line.get("width", 1)
@@ -400,15 +420,35 @@ def build_simple_pdf(lines):
             ]
         )
     stream = "\n".join(operations).encode("latin-1", errors="replace")
+    image_resources = ""
+    if images:
+        image_resources = " /XObject << " + " ".join(
+            f"/{name} {index} 0 R" for index, (name, _) in enumerate(images, start=7)
+        ) + " >>"
     objects = [
         b"<< /Type /Catalog /Pages 2 0 R >>",
         b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
         b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] "
-        b"/Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>",
+        + (
+            f"/Resources << /Font << /F1 4 0 R /F2 5 0 R >>{image_resources} >> "
+            "/Contents 6 0 R >>"
+        ).encode("ascii"),
         b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
         b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>",
         b"<< /Length " + str(len(stream)).encode("ascii") + b" >>\nstream\n" + stream + b"\nendstream",
     ]
+    for _, image in images:
+        image_data = image["data"]
+        objects.append(
+            (
+                f"<< /Type /XObject /Subtype /Image /Width {image['pixel_width']} "
+                f"/Height {image['pixel_height']} /ColorSpace /DeviceRGB "
+                f"/BitsPerComponent 8 /Filter /FlateDecode /Length {len(image_data)} >>\n"
+            ).encode("ascii")
+            + b"stream\n"
+            + image_data
+            + b"\nendstream"
+        )
     pdf = bytearray(b"%PDF-1.4\n")
     offsets = [0]
     for number, obj in enumerate(objects, start=1):
@@ -468,6 +508,30 @@ def pdf_line(x1, y1, x2, y2, width=1.5, color=(0.435, 0.173, 0.502)):
         "width": width,
         "color": color,
     }
+
+
+def pdf_image(image, x, y, width, height):
+    return {
+        "image": True,
+        "x": x,
+        "y": y,
+        "width": width,
+        "height": height,
+        **image,
+    }
+
+
+def load_pdf_image(path):
+    try:
+        with Image.open(path) as image:
+            image = image.convert("RGB")
+            return {
+                "data": zlib.compress(image.tobytes()),
+                "pixel_width": image.width,
+                "pixel_height": image.height,
+            }
+    except (OSError, ValueError):
+        return None
 
 
 def format_invoice_date(value):
@@ -535,15 +599,23 @@ def invoice_pdf(request, invoice_id):
     qty_col_right = 382
     rate_col_right = 454
     amount_col_right = page_right
+    logo_path = settings.BASE_DIR / INVOICE_STATIC_LOGO_PATH
+    logo_image = load_pdf_image(logo_path)
     pdf_lines = [
-        pdf_line(page_left, header_y - 3, page_left + logo_area_width, header_y - 3, width=0.75),
-        pdf_text(settings_obj.business_name, logo_text_x, header_y - 1, 14, "F2"),
-        pdf_text("Honouring Your Choices, Brightening Your World.", logo_text_x, header_y - 19, 6.3),
         pdf_text("TAX INVOICE", invoice_detail_x, header_y, 10.5, "F2"),
         pdf_text(f"Invoice No.: # {invoice.invoice_number}", invoice_detail_x, header_y - detail_line_gap, 8.5),
         pdf_text(f"Invoice Date: {invoice_date}", invoice_detail_x, header_y - (detail_line_gap * 2), 8.5),
         pdf_line(page_left, divider_y, page_right, divider_y, width=3),
     ]
+    if logo_image:
+        pdf_lines.insert(0, pdf_image(logo_image, page_left, header_y - 27, 220, 46))
+    else:
+        pdf_lines = [
+            pdf_line(page_left, header_y - 3, page_left + logo_area_width, header_y - 3, width=0.75),
+            pdf_text(settings_obj.business_name, logo_text_x, header_y - 1, 14, "F2"),
+            pdf_text("Honouring Your Choices, Brightening Your World.", logo_text_x, header_y - 19, 6.3),
+            *pdf_lines,
+        ]
     y = business_info_y
     if settings_obj.business_name:
         pdf_lines.append(pdf_text(settings_obj.business_name, page_left, y, 10, "F2"))
