@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from accounts.models import UserProfile
 from invoices.models import Invoice, InvoiceLine, InvoiceSettings
@@ -214,6 +215,66 @@ class InvoiceGenerationTests(TestCase):
         self.assertRedirects(response, reverse("invoice_settings"))
         settings.refresh_from_db()
         self.assertEqual(settings.logo.name, "")
+
+    def test_invoice_settings_example_uses_global_sequence_format(self):
+        settings = InvoiceSettings.load()
+        settings.invoice_prefix = "BSC"
+        settings.next_invoice_sequence = 451
+        settings.save()
+
+        today = timezone.localdate().strftime("%y%m%d")
+
+        self.assertEqual(settings.invoice_number_example, f"BSC-{today}-0451")
+
+    def test_invoice_number_uses_global_invoice_settings_sequence(self):
+        settings = InvoiceSettings.load()
+        settings.invoice_prefix = "BSC"
+        settings.next_invoice_sequence = 451
+        settings.save()
+        today = timezone.localdate().strftime("%y%m%d")
+
+        first_invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            created_by=self.accountant_user,
+        )
+        second_invoice = Invoice.objects.create(
+            participant=self.other_participant,
+            period_start=date(2026, 7, 1),
+            period_end=date(2026, 7, 31),
+            created_by=self.accountant_user,
+        )
+
+        settings.refresh_from_db()
+        self.assertEqual(first_invoice.invoice_number, f"BSC-{today}-0451")
+        self.assertEqual(second_invoice.invoice_number, f"BSC-{today}-0452")
+        self.assertEqual(settings.next_invoice_sequence, 453)
+
+    def test_invoice_number_skips_existing_sequence_value(self):
+        settings = InvoiceSettings.load()
+        settings.invoice_prefix = "BSC"
+        settings.next_invoice_sequence = 451
+        settings.save()
+        today = timezone.localdate().strftime("%y%m%d")
+        Invoice.objects.create(
+            invoice_number=f"BSC-{today}-0451",
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            created_by=self.accountant_user,
+        )
+
+        invoice = Invoice.objects.create(
+            participant=self.other_participant,
+            period_start=date(2026, 7, 1),
+            period_end=date(2026, 7, 31),
+            created_by=self.accountant_user,
+        )
+
+        settings.refresh_from_db()
+        self.assertEqual(invoice.invoice_number, f"BSC-{today}-0452")
+        self.assertEqual(settings.next_invoice_sequence, 453)
 
     def test_invoice_list_links_to_invoice_settings(self):
         self.login_admin()
@@ -592,7 +653,7 @@ class InvoiceGenerationTests(TestCase):
         response = self.client.get(
             reverse("invoice_placeholder"),
             {
-                "q": "INV-",
+                "q": "BSC-",
                 "participant": "Ava",
                 "status": Invoice.Status.DRAFT,
                 "period_from": "2026-06-01",
@@ -605,7 +666,7 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, "Showing 1-20 of 25 records")
         self.assertContains(
             response,
-            "?q=INV-&amp;participant=Ava&amp;status=draft&amp;period_from=2026-06-01&amp;period_to=2026-06-30&amp;page=2",
+            "?q=BSC-&amp;participant=Ava&amp;status=draft&amp;period_from=2026-06-01&amp;period_to=2026-06-30&amp;page=2",
         )
         self.assertNotContains(response, "Ben Taylor")
 
