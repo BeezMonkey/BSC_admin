@@ -130,6 +130,36 @@ class InvoiceExportTests(TestCase):
         self.assertEqual(rows[0]["unit_price"], "65.47")
         self.assertEqual(rows[0]["line_total"], "130.94")
 
+    def test_invoice_exports_include_an_admin_approved_travel_claim(self):
+        travel_support_item = SupportItem.objects.create(
+            item_number="04_799_0125_6_1",
+            name="Provider travel - non-labour costs",
+            category="Core Supports",
+            unit=SupportItem.Unit.EACH,
+            price_limit=Decimal("1.00"),
+            gst_code=SupportItem.GSTCode.GST_FREE,
+            is_active=True,
+        )
+        InvoiceLine.objects.create_travel_claim_from_service_log(
+            invoice=self.invoice,
+            service_log=self.service_log,
+            support_item=travel_support_item,
+            amount=Decimal("35.00"),
+        )
+        self.login_accountant()
+
+        csv_response = self.client.get(reverse("invoice_csv", args=[self.invoice.id]))
+        pdf_response = self.client.get(reverse("invoice_pdf", args=[self.invoice.id]))
+
+        rows = list(csv.DictReader(StringIO(csv_response.content.decode("utf-8"))))
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[1]["support_item_number"], "04_799_0125_6_1")
+        self.assertEqual(rows[1]["quantity"], "35.00")
+        self.assertEqual(rows[1]["unit_price"], "1.00")
+        self.assertEqual(rows[1]["line_total"], "35.00")
+        self.assertIn(b"04_799_0125_6_1", pdf_response.content)
+        self.assertIn(b"$35.00", pdf_response.content)
+
     def test_finance_user_can_download_invoice_pdf(self):
         self.login_accountant()
 

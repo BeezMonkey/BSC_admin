@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django import forms
 
 from participants.models import Participant
@@ -17,6 +19,37 @@ class InvoiceCreateForm(forms.Form):
         if period_start and period_end and period_end < period_start:
             self.add_error("period_end", "Period end must be on or after period start.")
         return cleaned_data
+
+
+class TravelClaimForm(forms.Form):
+    amount = forms.DecimalField(
+        label="Travel claim amount",
+        required=False,
+        min_value=Decimal("0.00"),
+        max_digits=10,
+        decimal_places=2,
+        widget=forms.NumberInput(
+            attrs={
+                "min": "0",
+                "step": "0.01",
+                "placeholder": "0.00",
+            }
+        ),
+    )
+
+    def __init__(self, *args, service_log, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.service_log = service_log
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get("amount")
+        if not amount:
+            return Decimal("0.00")
+        if self.service_log.kilometres <= Decimal("0.00"):
+            raise forms.ValidationError(
+                "Worker must record kilometres before a travel claim can be added."
+            )
+        return amount
 
 
 class InvoiceSettingsForm(forms.ModelForm):

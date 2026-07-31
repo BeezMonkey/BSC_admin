@@ -28,7 +28,7 @@ def admin_dashboard(request):
     ).count()
     approved_log_count = ServiceLog.objects.filter(
         status=ServiceLog.Status.APPROVED,
-        invoice_line__isnull=True,
+        invoice_lines__isnull=True,
     ).count()
     draft_invoice_count = Invoice.objects.filter(status=Invoice.Status.DRAFT).count()
     issued_invoice_count = Invoice.objects.filter(status=Invoice.Status.ISSUED).count()

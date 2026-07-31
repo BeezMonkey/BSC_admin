@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import TestCase
@@ -61,7 +63,11 @@ class SeedDemoDataCommandTests(TestCase):
         self.assertEqual(worker.email, "worker@example.com")
         self.assertEqual(assignment.notes, "Demo assignment for local trial.")
         self.assertEqual(second_assignment.notes, "Second demo assignment for local trial.")
-        self.assertEqual(support_item.name, "Assistance with self-care activities")
+        self.assertEqual(
+            support_item.name,
+            "Assistance With Self-Care Activities - Standard - Weekday Daytime",
+        )
+        self.assertEqual(support_item.price_limit, Decimal("73.58"))
         self.assertEqual(shift.status, Shift.Status.COMPLETED)
         self.assertEqual(second_shift.service_type, Shift.ServiceType.COMMUNITY_ACCESS)
         self.assertEqual(service_log.status, ServiceLog.Status.INVOICED)
@@ -85,3 +91,25 @@ class SeedDemoDataCommandTests(TestCase):
         self.assertEqual(ServiceLog.objects.count(), 2)
         self.assertEqual(Invoice.objects.count(), 2)
         self.assertEqual(InvoiceLine.objects.count(), 2)
+
+    def test_seed_demo_data_preserves_a_travel_line_for_an_existing_service_log(self):
+        self.run_command()
+        service_log = ServiceLog.objects.get(shift__participant__ndis_number="430000001")
+        invoice = Invoice.objects.get(participant=service_log.participant)
+        travel_item = SupportItem.objects.create(
+            item_number="04_799_0125_6_1",
+            name="Provider travel - non-labour costs",
+            unit=SupportItem.Unit.EACH,
+            price_limit=Decimal("1.00"),
+            gst_code=SupportItem.GSTCode.GST_FREE,
+        )
+        InvoiceLine.objects.create_travel_claim_from_service_log(
+            invoice=invoice,
+            service_log=service_log,
+            support_item=travel_item,
+            amount=Decimal("4.50"),
+        )
+
+        self.run_command()
+
+        self.assertEqual(InvoiceLine.objects.filter(service_log=service_log).count(), 2)

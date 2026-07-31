@@ -131,6 +131,7 @@ class InvoiceLineManager(models.Manager):
         return self.create(
             invoice=invoice,
             service_log=service_log,
+            line_type=InvoiceLine.LineType.SERVICE,
             support_item_number=support_item.item_number,
             description=support_item.name,
             unit=support_item.unit,
@@ -140,17 +141,55 @@ class InvoiceLineManager(models.Manager):
             line_total=line_total,
         )
 
+    def create_travel_claim_from_service_log(
+        self,
+        invoice,
+        service_log,
+        support_item,
+        amount,
+    ):
+        amount = Decimal(amount)
+        if amount <= Decimal("0.00"):
+            raise ValueError("Travel claim amount must be greater than zero.")
+
+        unit_price = support_item.price_limit
+        line_total = (amount * unit_price).quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+        return self.create(
+            invoice=invoice,
+            service_log=service_log,
+            line_type=InvoiceLine.LineType.TRAVEL_NON_LABOUR,
+            support_item_number=support_item.item_number,
+            description=support_item.name,
+            unit=support_item.unit,
+            unit_price=unit_price,
+            quantity=amount,
+            gst_code=support_item.gst_code,
+            line_total=line_total,
+        )
+
 
 class InvoiceLine(models.Model):
+    class LineType(models.TextChoices):
+        SERVICE = "service", "Service"
+        TRAVEL_NON_LABOUR = "travel_non_labour", "Provider travel - non-labour"
+
     invoice = models.ForeignKey(
         Invoice,
         on_delete=models.CASCADE,
         related_name="lines",
     )
-    service_log = models.OneToOneField(
+    service_log = models.ForeignKey(
         ServiceLog,
         on_delete=models.PROTECT,
-        related_name="invoice_line",
+        related_name="invoice_lines",
+    )
+    line_type = models.CharField(
+        max_length=30,
+        choices=LineType.choices,
+        default=LineType.SERVICE,
     )
     support_item_number = models.CharField(max_length=50)
     description = models.CharField(max_length=255)
@@ -164,6 +203,12 @@ class InvoiceLine(models.Model):
 
     class Meta:
         ordering = ["id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["service_log", "line_type"],
+                name="unique_invoice_line_type_per_service_log",
+            )
+        ]
 
     def __str__(self):
         return f"{self.invoice} - {self.support_item_number}"

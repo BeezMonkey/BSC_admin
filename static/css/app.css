@@ -1990,6 +1990,40 @@ tbody tr:last-child td {
   padding: 0;
 }
 
+.invoice-preview-table table {
+  min-width: 940px;
+}
+
+.invoice-travel-claim {
+  min-width: 10rem;
+}
+
+.invoice-travel-claim label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: var(--weight-label);
+}
+
+.invoice-travel-claim input {
+  width: 7rem;
+}
+
+.invoice-travel-claim small,
+.invoice-travel-empty {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.invoice-travel-claim .errorlist {
+  margin: 0 0 0.35rem;
+  color: #b91c1c;
+  font-size: 0.78rem;
+}
+
 @media (max-width: 1050px) {
   .dashboard-overview {
     grid-template-columns: 1fr;

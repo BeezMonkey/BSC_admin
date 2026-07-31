@@ -368,8 +368,10 @@ class Command(BaseCommand):
         )
         InvoiceLine.objects.update_or_create(
             service_log=service_log,
+            line_type=InvoiceLine.LineType.SERVICE,
             defaults={
                 "invoice": invoice,
+                "line_type": InvoiceLine.LineType.SERVICE,
                 "support_item_number": service_log.support_item.item_number,
                 "description": service_log.support_item.name,
                 "unit": service_log.support_item.unit,

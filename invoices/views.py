@@ -7,6 +7,7 @@ from pathlib import Path
 
 from django.conf import settings
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import DecimalField, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse
@@ -25,12 +26,14 @@ from core.navigation import get_safe_return_url
 from core.pagination import paginate_queryset
 from core.sorting import apply_sorting
 from service_logs.models import ServiceLog
+from scheduling.models import SupportItem
 
-from .forms import InvoiceCreateForm, InvoiceSettingsForm
+from .forms import InvoiceCreateForm, InvoiceSettingsForm, TravelClaimForm
 from .models import Invoice, InvoiceLine, InvoiceSettings
 
 
 INVOICE_STATIC_LOGO_PATH = Path("static/img/bsc-logo.png")
+TRAVEL_SUPPORT_ITEM_NUMBER = "04_799_0125_6_1"
 
 
 def format_filter_date(value):
@@ -153,7 +156,7 @@ def get_billable_logs(participant, period_start, period_end):
         service_date__gte=period_start,
         service_date__lte=period_end,
         status=ServiceLog.Status.APPROVED,
-        invoice_line__isnull=True,
+        invoice_lines__isnull=True,
     ).select_related("participant", "worker", "support_item")
 
 
@@ -167,7 +170,7 @@ def get_selected_billable_logs(service_log_ids):
     service_logs = ServiceLog.objects.filter(
         id__in=unique_ids,
         status=ServiceLog.Status.APPROVED,
-        invoice_line__isnull=True,
+        invoice_lines__isnull=True,
     ).select_related("participant", "worker", "support_item")
     service_logs = list(service_logs.order_by("service_date", "id"))
     if len(service_logs) != len(unique_ids):
@@ -186,6 +189,20 @@ def build_selected_invoice_form_data(service_logs):
     }
 
 
+def build_invoice_rows(service_logs, data=None):
+    return [
+        {
+            "service_log": service_log,
+            "travel_form": TravelClaimForm(
+                data=data,
+                prefix=f"travel-{service_log.id}",
+                service_log=service_log,
+            ),
+        }
+        for service_log in service_logs
+    ]
+
+
 @finance_required
 def invoice_create(request):
     selected_ids = request.GET.getlist("service_log_ids")
@@ -200,6 +217,8 @@ def invoice_create(request):
     if request.method == "GET" and selected_service_logs:
         form = InvoiceCreateForm(build_selected_invoice_form_data(selected_service_logs))
         form.is_valid()
+    elif request.method == "POST":
+        form = InvoiceCreateForm(request.POST)
     else:
         form = InvoiceCreateForm(request.GET or None)
 
@@ -216,7 +235,6 @@ def invoice_create(request):
         )
 
     if request.method == "POST":
-        form = InvoiceCreateForm(request.POST)
         if selected_error:
             service_logs = ServiceLog.objects.none()
         elif form.is_valid():
@@ -242,27 +260,61 @@ def invoice_create(request):
             elif not service_logs:
                 messages.error(request, "No approved logs found for this invoice.")
             else:
-                invoice = Invoice.objects.create(
-                    participant=form.cleaned_data["participant"],
-                    period_start=form.cleaned_data["period_start"],
-                    period_end=form.cleaned_data["period_end"],
-                    created_by=request.user,
-                )
-                for service_log in service_logs:
-                    InvoiceLine.objects.create_from_service_log(
-                        invoice=invoice,
-                        service_log=service_log,
-                    )
-                    service_log.status = ServiceLog.Status.INVOICED
-                    service_log.save(update_fields=["status", "updated_at"])
-                write_audit_log(
-                    request.user,
-                    AuditLog.Action.INVOICE_CREATED,
-                    invoice,
-                    f"Created invoice {invoice.invoice_number}.",
-                )
-                messages.success(request, "Invoice created.")
-                return redirect(invoice)
+                invoice_rows = build_invoice_rows(service_logs, request.POST)
+                if all(row["travel_form"].is_valid() for row in invoice_rows):
+                    travel_claims = {
+                        row["service_log"].id: row["travel_form"].cleaned_data["amount"]
+                        for row in invoice_rows
+                        if row["travel_form"].cleaned_data["amount"] > Decimal("0.00")
+                    }
+                    travel_support_item = None
+                    if travel_claims:
+                        travel_support_item = SupportItem.objects.filter(
+                            item_number=TRAVEL_SUPPORT_ITEM_NUMBER,
+                            is_active=True,
+                        ).first()
+                        if not travel_support_item:
+                            selected_error = (
+                                "The active Provider travel - non-labour support item is "
+                                "required before travel claims can be invoiced."
+                            )
+
+                    if not travel_claims or travel_support_item:
+                        with transaction.atomic():
+                            invoice = Invoice.objects.create(
+                                participant=form.cleaned_data["participant"],
+                                period_start=form.cleaned_data["period_start"],
+                                period_end=form.cleaned_data["period_end"],
+                                created_by=request.user,
+                            )
+                            for service_log in service_logs:
+                                InvoiceLine.objects.create_from_service_log(
+                                    invoice=invoice,
+                                    service_log=service_log,
+                                )
+                                travel_amount = travel_claims.get(service_log.id)
+                                if travel_amount:
+                                    InvoiceLine.objects.create_travel_claim_from_service_log(
+                                        invoice=invoice,
+                                        service_log=service_log,
+                                        support_item=travel_support_item,
+                                        amount=travel_amount,
+                                    )
+                                service_log.status = ServiceLog.Status.INVOICED
+                                service_log.save(update_fields=["status", "updated_at"])
+                        write_audit_log(
+                            request.user,
+                            AuditLog.Action.INVOICE_CREATED,
+                            invoice,
+                            f"Created invoice {invoice.invoice_number}.",
+                        )
+                        messages.success(request, "Invoice created.")
+                        return redirect(invoice)
+
+    invoice_rows = build_invoice_rows(
+        service_logs,
+        request.POST if request.method == "POST" else None,
+    )
 
     return render(
         request,
@@ -270,6 +322,7 @@ def invoice_create(request):
         {
             "form": form,
             "service_logs": service_logs,
+            "invoice_rows": invoice_rows,
             "selected_error": selected_error,
             "selected_service_log_ids": selected_ids,
         },
@@ -326,9 +379,11 @@ def get_invoice(invoice_id):
 
 
 def release_invoice_service_logs(invoice):
-    lines = list(invoice.lines.select_related("service_log"))
-    for line in lines:
-        service_log = line.service_log
+    service_logs = {
+        line.service_log_id: line.service_log
+        for line in invoice.lines.select_related("service_log")
+    }
+    for service_log in service_logs.values():
         service_log.status = ServiceLog.Status.APPROVED
         service_log.save(update_fields=["status", "updated_at"])
     invoice.lines.all().delete()

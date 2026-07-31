@@ -3,11 +3,13 @@ from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import UserProfile
+from invoices.forms import TravelClaimForm
 from invoices.models import Invoice, InvoiceLine, InvoiceSettings
 from participants.models import Participant
 from scheduling.models import Shift, SupportItem
@@ -78,6 +80,7 @@ class InvoiceGenerationTests(TestCase):
         service_date = overrides.pop("service_date", date(2026, 6, 1))
         status = overrides.pop("status", ServiceLog.Status.APPROVED)
         actual_hours = overrides.pop("actual_hours", Decimal("2.00"))
+        kilometres = overrides.pop("kilometres", Decimal("0.00"))
         case_notes = overrides.pop("case_notes", f"Log for {participant.display_name}")
         shift = Shift.objects.create(
             participant=participant,
@@ -98,13 +101,26 @@ class InvoiceGenerationTests(TestCase):
             actual_end_time=time(11, 0),
             break_minutes=0,
             actual_hours=actual_hours,
-            kilometres=Decimal("0.0"),
+            kilometres=kilometres,
             case_notes=case_notes,
             worker_notes="",
         )
         service_log.status = status
         service_log.save(update_fields=["status", "updated_at"])
         return service_log
+
+    def create_travel_support_item(self, **overrides):
+        data = {
+            "item_number": "04_799_0125_6_1",
+            "name": "Provider travel - non-labour costs",
+            "category": "Core Supports",
+            "unit": SupportItem.Unit.EACH,
+            "price_limit": Decimal("1.00"),
+            "gst_code": SupportItem.GSTCode.GST_FREE,
+            "is_active": True,
+        }
+        data.update(overrides)
+        return SupportItem.objects.create(**data)
 
     def login_accountant(self):
         self.client.login(username="accountant", password="test-password-123")
@@ -341,6 +357,63 @@ class InvoiceGenerationTests(TestCase):
         self.assertEqual(first_log.status, ServiceLog.Status.INVOICED)
         self.assertEqual(second_log.status, ServiceLog.Status.INVOICED)
 
+    def test_finance_user_can_add_an_admin_approved_travel_claim_to_an_invoice(self):
+        service_log = self.create_service_log(kilometres=Decimal("43.00"))
+        self.create_travel_support_item()
+        self.login_accountant()
+
+        response = self.client.post(
+            reverse("invoice_create"),
+            {
+                **self.create_payload(),
+                f"travel-{service_log.id}-amount": "35.00",
+            },
+        )
+
+        invoice = Invoice.objects.get()
+        self.assertRedirects(response, reverse("invoice_detail", args=[invoice.id]))
+        self.assertEqual(invoice.lines.count(), 2)
+        travel_line = invoice.lines.get(
+            line_type=InvoiceLine.LineType.TRAVEL_NON_LABOUR
+        )
+        self.assertEqual(travel_line.support_item_number, "04_799_0125_6_1")
+        self.assertEqual(travel_line.quantity, Decimal("35.00"))
+        self.assertEqual(travel_line.line_total, Decimal("35.00"))
+        self.assertEqual(invoice.total_amount, Decimal("165.94"))
+        service_log.refresh_from_db()
+        self.assertEqual(service_log.kilometres, Decimal("43.00"))
+        self.assertEqual(service_log.status, ServiceLog.Status.INVOICED)
+
+    def test_invoice_preview_shows_worker_kilometres_and_admin_travel_claim_input(self):
+        service_log = self.create_service_log(kilometres=Decimal("43.00"))
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_create"), self.create_payload())
+
+        self.assertContains(response, "Travel km")
+        self.assertContains(response, "43.00")
+        self.assertContains(response, "Travel claim amount")
+        self.assertContains(response, f'name="travel-{service_log.id}-amount"')
+        self.assertContains(response, "Admin enters the approved amount.")
+
+    def test_invoice_is_not_created_when_travel_item_is_not_active(self):
+        service_log = self.create_service_log(kilometres=Decimal("15.00"))
+        self.login_accountant()
+
+        response = self.client.post(
+            reverse("invoice_create"),
+            {
+                **self.create_payload(),
+                f"travel-{service_log.id}-amount": "15.00",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "active Provider travel - non-labour support item")
+        self.assertFalse(Invoice.objects.exists())
+        service_log.refresh_from_db()
+        self.assertEqual(service_log.status, ServiceLog.Status.APPROVED)
+
     def test_invoice_line_preserves_support_item_values(self):
         service_log = self.create_service_log(actual_hours=Decimal("2.00"))
         self.login_accountant()
@@ -354,6 +427,75 @@ class InvoiceGenerationTests(TestCase):
         self.assertEqual(line.unit_price, Decimal("65.47"))
         self.assertEqual(line.quantity, Decimal("2.00"))
         self.assertEqual(line.line_total, Decimal("130.94"))
+
+    def test_invoice_line_can_snapshot_service_and_travel_for_one_service_log(self):
+        service_log = self.create_service_log(kilometres=Decimal("43.00"))
+        travel_support_item = self.create_travel_support_item()
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 1),
+            created_by=self.accountant_user,
+        )
+
+        service_line = InvoiceLine.objects.create_from_service_log(invoice, service_log)
+        travel_line = InvoiceLine.objects.create_travel_claim_from_service_log(
+            invoice=invoice,
+            service_log=service_log,
+            support_item=travel_support_item,
+            amount=Decimal("35.00"),
+        )
+
+        self.assertEqual(invoice.lines.count(), 2)
+        self.assertEqual(service_line.line_type, InvoiceLine.LineType.SERVICE)
+        self.assertEqual(travel_line.line_type, InvoiceLine.LineType.TRAVEL_NON_LABOUR)
+        self.assertEqual(travel_line.quantity, Decimal("35.00"))
+        self.assertEqual(travel_line.unit_price, Decimal("1.00"))
+        self.assertEqual(travel_line.line_total, Decimal("35.00"))
+        service_log.refresh_from_db()
+        self.assertEqual(service_log.kilometres, Decimal("43.00"))
+
+    def test_invoice_line_disallows_duplicate_travel_claim_for_one_service_log(self):
+        service_log = self.create_service_log(kilometres=Decimal("20.00"))
+        travel_support_item = self.create_travel_support_item()
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 1),
+            created_by=self.accountant_user,
+        )
+
+        InvoiceLine.objects.create_travel_claim_from_service_log(
+            invoice=invoice,
+            service_log=service_log,
+            support_item=travel_support_item,
+            amount=Decimal("20.00"),
+        )
+
+        with transaction.atomic():
+            with self.assertRaises(IntegrityError):
+                InvoiceLine.objects.create_travel_claim_from_service_log(
+                    invoice=invoice,
+                    service_log=service_log,
+                    support_item=travel_support_item,
+                    amount=Decimal("20.00"),
+                )
+
+    def test_travel_claim_form_requires_recorded_kilometres_for_a_positive_claim(self):
+        service_log = self.create_service_log(kilometres=Decimal("0.00"))
+
+        form = TravelClaimForm({"amount": "12.50"}, service_log=service_log)
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("Worker must record kilometres", str(form.errors["amount"]))
+
+    def test_travel_claim_form_allows_an_optional_claim_for_logged_kilometres(self):
+        service_log = self.create_service_log(kilometres=Decimal("12.50"))
+
+        form = TravelClaimForm({"amount": ""}, service_log=service_log)
+
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data["amount"], Decimal("0.00"))
 
     def test_already_invoiced_logs_are_excluded(self):
         service_log = self.create_service_log()
@@ -828,6 +970,33 @@ class InvoiceGenerationTests(TestCase):
         service_log.refresh_from_db()
         self.assertRedirects(response, reverse("invoice_placeholder"))
         self.assertFalse(Invoice.objects.filter(id=invoice.id).exists())
+        self.assertEqual(service_log.status, ServiceLog.Status.APPROVED)
+        self.assertFalse(InvoiceLine.objects.filter(service_log=service_log).exists())
+
+    def test_cancelling_invoice_with_travel_claim_releases_the_log_once(self):
+        service_log = self.create_service_log(kilometres=Decimal("12.00"))
+        travel_support_item = self.create_travel_support_item()
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 1),
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create_from_service_log(invoice, service_log)
+        InvoiceLine.objects.create_travel_claim_from_service_log(
+            invoice=invoice,
+            service_log=service_log,
+            support_item=travel_support_item,
+            amount=Decimal("12.00"),
+        )
+        service_log.status = ServiceLog.Status.INVOICED
+        service_log.save(update_fields=["status", "updated_at"])
+        self.login_accountant()
+
+        response = self.client.post(reverse("invoice_cancel", args=[invoice.id]))
+
+        service_log.refresh_from_db()
+        self.assertRedirects(response, reverse("invoice_detail", args=[invoice.id]))
         self.assertEqual(service_log.status, ServiceLog.Status.APPROVED)
         self.assertFalse(InvoiceLine.objects.filter(service_log=service_log).exists())
 
