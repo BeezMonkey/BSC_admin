@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import TestCase
@@ -39,7 +41,7 @@ class SeedInvoiceDemoDataCommandTests(TestCase):
         self.assertEqual(
             ServiceLog.objects.filter(
                 status=ServiceLog.Status.APPROVED,
-                invoice_line__isnull=True,
+                invoice_lines__isnull=True,
             ).count(),
             1,
         )
@@ -66,6 +68,30 @@ class SeedInvoiceDemoDataCommandTests(TestCase):
         self.assertEqual(ServiceLog.objects.count(), 4)
         self.assertEqual(Invoice.objects.filter(invoice_number__startswith="DEMO-INV-").count(), 3)
         self.assertEqual(InvoiceLine.objects.count(), 3)
+
+    def test_seed_invoice_demo_data_preserves_existing_travel_lines(self):
+        call_command("seed_invoice_demo_data", verbosity=0)
+        service_log = ServiceLog.objects.filter(
+            status=ServiceLog.Status.INVOICED
+        ).order_by("id")[0]
+        invoice = Invoice.objects.get(lines__service_log=service_log)
+        travel_item = SupportItem.objects.create(
+            item_number="04_799_0125_6_1",
+            name="Provider travel - non-labour costs",
+            unit=SupportItem.Unit.EACH,
+            price_limit=Decimal("1.00"),
+            gst_code=SupportItem.GSTCode.GST_FREE,
+        )
+        InvoiceLine.objects.create_travel_claim_from_service_log(
+            invoice=invoice,
+            service_log=service_log,
+            support_item=travel_item,
+            amount=Decimal("12.00"),
+        )
+
+        call_command("seed_invoice_demo_data", verbosity=0)
+
+        self.assertEqual(InvoiceLine.objects.filter(service_log=service_log).count(), 2)
 
     def test_seed_invoice_demo_data_reset_preserves_non_demo_records(self):
         User = get_user_model()

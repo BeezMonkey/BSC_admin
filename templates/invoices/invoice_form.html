@@ -41,31 +41,6 @@
 
 <section class="card table-card invoice-preview-table">
   <h2>Approved Logs</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Worker</th>
-        <th>Support item</th>
-        <th>Hours</th>
-        <th>Notes</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for service_log in service_logs %}
-        <tr>
-          <td>{{ service_log.service_date|date:"d/m/Y" }}</td>
-          <td>{{ service_log.worker.display_name }}</td>
-          <td>{{ service_log.support_item }}</td>
-          <td>{{ service_log.actual_hours }}</td>
-          <td>{{ service_log.case_notes|truncatechars:80 }}</td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="5">No approved logs found.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
   {% if service_logs %}
     <form method="post">
       {% csrf_token %}
@@ -75,8 +50,58 @@
       {% for service_log_id in selected_service_log_ids %}
         <input type="hidden" name="service_log_ids" value="{{ service_log_id }}">
       {% endfor %}
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Worker</th>
+            <th>Support item</th>
+            <th>Hours</th>
+            <th>Travel km</th>
+            <th>Travel claim</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in invoice_rows %}
+            <tr>
+              <td>{{ row.service_log.service_date|date:"d/m/Y" }}</td>
+              <td>{{ row.service_log.worker.display_name }}</td>
+              <td>{{ row.service_log.support_item }}</td>
+              <td>{{ row.service_log.actual_hours }}</td>
+              <td>{{ row.service_log.kilometres|floatformat:2 }}</td>
+              <td class="invoice-travel-claim">
+                {% if row.service_log.kilometres > 0 %}
+                  {{ row.travel_form.amount.errors }}
+                  {{ row.travel_form.amount.label_tag }}
+                  {{ row.travel_form.amount }}
+                  <small>Admin enters the approved amount.</small>
+                {% else %}
+                  <span class="invoice-travel-empty">No travel recorded</span>
+                {% endif %}
+              </td>
+              <td>{{ row.service_log.case_notes|truncatechars:80 }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
       <button type="submit">Create Invoice</button>
     </form>
+  {% else %}
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Worker</th>
+          <th>Support item</th>
+          <th>Hours</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="5">No approved logs found.</td></tr>
+      </tbody>
+    </table>
   {% endif %}
 </section>
 {% endblock %}

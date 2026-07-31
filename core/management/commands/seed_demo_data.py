@@ -208,13 +208,13 @@ class Command(BaseCommand):
         support_item, _ = SupportItem.objects.update_or_create(
             item_number="01_011_0107_1_1",
             defaults={
-                "name": "Assistance with self-care activities",
-                "category": "Core supports",
+                "name": "Assistance With Self-Care Activities - Standard - Weekday Daytime",
+                "category": "Core Supports",
                 "unit": SupportItem.Unit.HOUR,
-                "price_limit": Decimal("65.47"),
+                "price_limit": Decimal("73.58"),
                 "gst_code": SupportItem.GSTCode.GST_FREE,
                 "is_active": True,
-                "notes": "Local demo support item.",
+                "notes": "2026-27 NDIS Pricing Schedule v1.2. National price.",
             },
         )
         return support_item
@@ -324,8 +324,10 @@ class Command(BaseCommand):
         )
         InvoiceLine.objects.update_or_create(
             service_log=service_log,
+            line_type=InvoiceLine.LineType.SERVICE,
             defaults={
                 "invoice": invoice,
+                "line_type": InvoiceLine.LineType.SERVICE,
                 "support_item_number": service_log.support_item.item_number,
                 "description": service_log.support_item.name,
                 "unit": service_log.support_item.unit,
@@ -352,8 +354,10 @@ class Command(BaseCommand):
         )
         InvoiceLine.objects.update_or_create(
             service_log=service_log,
+            line_type=InvoiceLine.LineType.SERVICE,
             defaults={
                 "invoice": invoice,
+                "line_type": InvoiceLine.LineType.SERVICE,
                 "support_item_number": service_log.support_item.item_number,
                 "description": service_log.support_item.name,
                 "unit": service_log.support_item.unit,
