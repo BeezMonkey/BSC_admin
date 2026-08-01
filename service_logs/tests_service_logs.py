@@ -244,6 +244,44 @@ class ServiceLogCompletionTests(TestCase):
         self.assertContains(detail_response, "<dt>Date</dt><dd>01/06/2026</dd>", html=True)
         self.assertNotContains(detail_response, "<dt>Date</dt><dd>June 1, 2026</dd>", html=True)
 
+    def test_worker_log_detail_displays_noon_as_numeric_time(self):
+        shift = self.create_shift(end_time=time(12, 0))
+        service_log = ServiceLog.objects.create_from_shift(
+            shift=shift,
+            actual_start_time=time(9, 0),
+            actual_end_time=time(12, 0),
+            break_minutes=0,
+            actual_hours=Decimal("3.00"),
+            kilometres=Decimal("0.0"),
+            case_notes="Noon finish.",
+            worker_notes="",
+        )
+        self.login_worker()
+
+        response = self.client.get(reverse("worker_service_log_detail", args=[service_log.id]))
+
+        self.assertContains(response, "<dt>Actual time</dt><dd>9:00 am - 12:00 pm</dd>", html=True)
+        self.assertNotContains(response, "noon")
+
+    def test_admin_log_detail_displays_noon_as_numeric_time(self):
+        shift = self.create_shift(end_time=time(12, 0))
+        service_log = ServiceLog.objects.create_from_shift(
+            shift=shift,
+            actual_start_time=time(9, 0),
+            actual_end_time=time(12, 0),
+            break_minutes=0,
+            actual_hours=Decimal("3.00"),
+            kilometres=Decimal("0.0"),
+            case_notes="Noon finish.",
+            worker_notes="",
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_detail", args=[service_log.id]))
+
+        self.assertContains(response, "<dt>Actual time</dt><dd>9:00 am - 12:00 pm</dd>", html=True)
+        self.assertNotContains(response, "noon")
+
     def test_admin_can_view_submitted_service_log_detail(self):
         shift = self.create_shift()
         service_log = ServiceLog.objects.create_from_shift(

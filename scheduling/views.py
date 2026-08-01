@@ -12,6 +12,7 @@ from django.views.decorators.http import require_POST
 
 from accounts.decorators import admin_required, worker_required
 from core.audit import write_audit_log
+from core.formatting import format_display_time
 from core.models import AuditLog
 from core.navigation import get_safe_return_url
 from core.pagination import paginate_queryset
@@ -33,7 +34,7 @@ def format_filter_date(value):
 
 
 def format_roster_time(value):
-    return value.strftime("%I:%M %p").lstrip("0").lower()
+    return format_display_time(value)
 
 
 def build_roster_filter_summary(status, participant_query, worker_query, date_from, date_to):

@@ -1,11 +1,12 @@
 {% extends "worker_base.html" %}
+{% load bsc_formatting %}
 
 {% block title %}Complete Service Log - Brisbane Star Care{% endblock %}
 
 {% block content %}
 <section class="worker-card">
   <h1>Complete Service Log</h1>
-  <p>{{ shift.participant.display_name }} | {{ shift.service_date|date:"d/m/Y" }} | {{ shift.start_time }} - {{ shift.end_time }}</p>
+  <p>{{ shift.participant.display_name }} | {{ shift.service_date|date:"d/m/Y" }} | {{ shift.start_time|display_time }} - {{ shift.end_time|display_time }}</p>
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
