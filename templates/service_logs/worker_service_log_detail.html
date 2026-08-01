@@ -1,4 +1,5 @@
 {% extends "worker_base.html" %}
+{% load bsc_formatting %}
 
 {% block title %}Service Log - Brisbane Star Care{% endblock %}
 
@@ -13,7 +14,7 @@
   <dl class="detail-list">
     <dt>Date</dt><dd>{{ service_log.service_date|date:"d/m/Y" }}</dd>
     <dt>Status</dt><dd>{{ service_log.get_status_display }}</dd>
-    <dt>Actual time</dt><dd>{{ service_log.actual_start_time }} - {{ service_log.actual_end_time }}</dd>
+    <dt>Actual time</dt><dd>{{ service_log.actual_start_time|display_time }} - {{ service_log.actual_end_time|display_time }}</dd>
     <dt>Actual hours</dt><dd>{{ service_log.actual_hours }}</dd>
     <dt>Kilometres</dt><dd>{{ service_log.kilometres }}</dd>
     <dt>Case notes</dt><dd>{{ service_log.case_notes }}</dd>

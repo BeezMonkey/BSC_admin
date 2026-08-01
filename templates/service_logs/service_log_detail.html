@@ -1,4 +1,5 @@
 {% extends "admin_base.html" %}
+{% load bsc_formatting %}
 
 {% block title %}Service Log - Brisbane Star Care{% endblock %}
 
@@ -18,7 +19,7 @@
       <dt>Shift ID</dt><dd>{{ service_log.shift.id }}</dd>
       <dt>Worker</dt><dd>{{ service_log.worker.display_name }}</dd>
       <dt>Support item</dt><dd>{{ service_log.support_item }}</dd>
-      <dt>Actual time</dt><dd>{{ service_log.actual_start_time }} - {{ service_log.actual_end_time }}</dd>
+      <dt>Actual time</dt><dd>{{ service_log.actual_start_time|display_time }} - {{ service_log.actual_end_time|display_time }}</dd>
       <dt>Break</dt><dd>{{ service_log.break_minutes }} minutes</dd>
       <dt>Actual hours</dt><dd>{{ service_log.actual_hours }}</dd>
       <dt>Kilometres</dt><dd>{{ service_log.kilometres }}</dd>

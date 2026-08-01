@@ -1,4 +1,5 @@
 {% extends "worker_base.html" %}
+{% load bsc_formatting %}
 
 {% block title %}Shift Detail - Brisbane Star Care{% endblock %}
 
@@ -12,7 +13,7 @@
   </div>
   <dl class="detail-list">
     <dt>Date</dt><dd>{{ shift.service_date|date:"d/m/Y" }}</dd>
-    <dt>Time</dt><dd>{{ shift.start_time }} - {{ shift.end_time }}</dd>
+    <dt>Time</dt><dd>{{ shift.start_time|display_time }} - {{ shift.end_time|display_time }}</dd>
     <dt>Status</dt><dd>{{ shift.get_status_display }}</dd>
     <dt>Address</dt><dd>{{ shift.address|default:"-" }}</dd>
     <dt>Instructions</dt><dd>{{ shift.instructions|default:"-" }}</dd>
