@@ -1,0 +1,102 @@
+from io import StringIO
+
+from django.contrib.auth import get_user_model
+from django.core.management import call_command
+from django.test import TestCase
+
+from accounts.models import UserProfile
+from invoices.models import InvoiceSettings
+from participants.models import Participant, ParticipantWorkerAssignment
+from scheduling.models import Shift, SupportItem
+from service_logs.models import ServiceLog
+from workers.models import SupportWorker
+
+
+class ResetBetaDemoDataCommandTests(TestCase):
+    def test_dry_run_does_not_change_database(self):
+        User = get_user_model()
+        admin = User.objects.create_user(
+            username="admin",
+            email="admin@example.com",
+            password="admin-password",
+        )
+        UserProfile.objects.create(user=admin, role=UserProfile.Role.ADMIN)
+        real_participant = Participant.objects.create(
+            first_name="Real",
+            last_name="Participant",
+            ndis_number="123456789",
+            status=Participant.Status.ACTIVE,
+        )
+        settings = InvoiceSettings.load()
+        settings.next_invoice_sequence = 42
+        settings.save()
+        out = StringIO()
+
+        call_command("reset_beta_demo_data", stdout=out)
+
+        self.assertIn("Dry run only", out.getvalue())
+        self.assertEqual(User.objects.count(), 1)
+        self.assertEqual(Participant.objects.count(), 1)
+        self.assertEqual(Participant.objects.get().id, real_participant.id)
+        settings.refresh_from_db()
+        self.assertEqual(settings.next_invoice_sequence, 42)
+
+    def test_confirm_removes_legacy_demo_data_and_creates_five_by_five_trial_set(self):
+        call_command("seed_beta_test_data", verbosity=0)
+        call_command("seed_invoice_demo_data", verbosity=0)
+        out = StringIO()
+
+        call_command("reset_beta_demo_data", confirm=True, stdout=out, verbosity=0)
+
+        User = get_user_model()
+        self.assertIn("Beta demo data reset complete", out.getvalue())
+        self.assertEqual(User.objects.filter(username__startswith="bsc_demo_worker_").count(), 5)
+        self.assertEqual(Participant.objects.filter(ndis_number__startswith="777000").count(), 5)
+        self.assertEqual(SupportWorker.objects.filter(email__startswith="bsc.demo.worker").count(), 5)
+        self.assertEqual(ParticipantWorkerAssignment.objects.filter(is_active=True).count(), 5)
+        self.assertEqual(Shift.objects.filter(status=Shift.Status.PUBLISHED).count(), 5)
+        self.assertEqual(ServiceLog.objects.count(), 0)
+        self.assertEqual(SupportItem.objects.filter(item_number="BETA-TEST-001").count(), 0)
+        self.assertEqual(SupportItem.objects.filter(item_number="DEMO-INVOICE-001").count(), 0)
+        self.assertEqual(Participant.objects.filter(ndis_number="990000001").count(), 0)
+        self.assertEqual(Participant.objects.filter(ndis_number__startswith="889000").count(), 0)
+        self.assertEqual(User.objects.filter(username="beta_worker").count(), 0)
+        self.assertEqual(User.objects.filter(username__startswith="invoice_demo_").count(), 0)
+
+    def test_confirm_preserves_real_records_settings_and_official_support_items(self):
+        User = get_user_model()
+        admin = User.objects.create_user(
+            username="admin",
+            email="admin@example.com",
+            password="admin-password",
+        )
+        UserProfile.objects.create(user=admin, role=UserProfile.Role.ADMIN)
+        real_participant = Participant.objects.create(
+            first_name="Real",
+            last_name="Participant",
+            ndis_number="123456789",
+            status=Participant.Status.ACTIVE,
+        )
+        official_item = SupportItem.objects.create(
+            item_number="01_011_0107_1_1",
+            name="Existing official item",
+            unit=SupportItem.Unit.HOUR,
+            price_limit="70.00",
+            gst_code=SupportItem.GSTCode.GST_FREE,
+            is_active=True,
+        )
+        settings = InvoiceSettings.load()
+        settings.invoice_prefix = "BSC"
+        settings.next_invoice_sequence = 88
+        settings.save()
+
+        call_command("reset_beta_demo_data", confirm=True, verbosity=0)
+
+        admin.refresh_from_db()
+        settings.refresh_from_db()
+        self.assertTrue(admin.check_password("admin-password"))
+        self.assertTrue(Participant.objects.filter(id=real_participant.id).exists())
+        self.assertEqual(settings.next_invoice_sequence, 88)
+        self.assertTrue(SupportItem.objects.filter(id=official_item.id).exists())
+        self.assertTrue(SupportItem.objects.filter(item_number="04_104_0125_6_1").exists())
+        self.assertTrue(SupportItem.objects.filter(item_number="04_799_0125_6_1").exists())
