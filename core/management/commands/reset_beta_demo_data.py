@@ -127,9 +127,21 @@ class Command(BaseCommand):
         demo_users = self.demo_users()
         demo_participants = self.demo_participants()
         demo_workers = self.demo_workers(demo_users)
-        demo_shifts = self.demo_shifts(demo_participants, demo_workers)
-        demo_logs = self.demo_logs(demo_participants, demo_workers, demo_shifts)
-        demo_invoices = self.demo_invoices(demo_participants)
+        legacy_support_items = SupportItem.objects.filter(
+            item_number__in=LEGACY_SUPPORT_ITEMS,
+        )
+        demo_shifts = self.demo_shifts(
+            demo_participants,
+            demo_workers,
+            legacy_support_items,
+        )
+        demo_logs = self.demo_logs(
+            demo_participants,
+            demo_workers,
+            demo_shifts,
+            legacy_support_items,
+        )
+        demo_invoices = self.demo_invoices(demo_participants, demo_logs)
         return {
             "users": demo_users,
             "participants": demo_participants,
@@ -148,7 +160,7 @@ class Command(BaseCommand):
                 demo_invoices,
                 demo_logs,
             ),
-            "support_items": SupportItem.objects.filter(item_number__in=LEGACY_SUPPORT_ITEMS),
+            "support_items": legacy_support_items,
         }
 
     def write_plan(self, plan):
@@ -190,23 +202,27 @@ class Command(BaseCommand):
             email__startswith="bsc.demo.worker",
         )
 
-    def demo_shifts(self, demo_participants, demo_workers):
-        return Shift.objects.filter(participant__in=demo_participants) | Shift.objects.filter(
-            worker__in=demo_workers,
+    def demo_shifts(self, demo_participants, demo_workers, legacy_support_items):
+        return (
+            Shift.objects.filter(participant__in=demo_participants)
+            | Shift.objects.filter(worker__in=demo_workers)
+            | Shift.objects.filter(support_item__in=legacy_support_items)
         )
 
-    def demo_logs(self, demo_participants, demo_workers, demo_shifts):
+    def demo_logs(self, demo_participants, demo_workers, demo_shifts, legacy_support_items):
         return (
             ServiceLog.objects.filter(participant__in=demo_participants)
             | ServiceLog.objects.filter(worker__in=demo_workers)
             | ServiceLog.objects.filter(shift__in=demo_shifts)
+            | ServiceLog.objects.filter(support_item__in=legacy_support_items)
         )
 
-    def demo_invoices(self, demo_participants):
+    def demo_invoices(self, demo_participants, demo_logs):
         queryset = Invoice.objects.filter(participant__in=demo_participants)
+        queryset = queryset | Invoice.objects.filter(lines__service_log__in=demo_logs)
         for prefix in LEGACY_INVOICE_PREFIXES:
             queryset = queryset | Invoice.objects.filter(invoice_number__startswith=prefix)
-        return queryset
+        return queryset.distinct()
 
     def demo_documents(
         self,
