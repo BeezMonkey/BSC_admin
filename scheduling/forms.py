@@ -1,8 +1,17 @@
 from decimal import Decimal
 
 from django import forms
+from django.db.models import Q
 
 from .models import Shift, SupportItem
+from workers.models import SupportWorker
+
+
+def schedulable_worker_queryset(include_worker=None):
+    filters = Q(status=SupportWorker.Status.ACTIVE)
+    if include_worker and include_worker.pk:
+        filters |= Q(pk=include_worker.pk)
+    return SupportWorker.objects.filter(filters).order_by("last_name", "first_name")
 
 
 class SupportItemForm(forms.ModelForm):
@@ -71,6 +80,9 @@ class ShiftForm(forms.ModelForm):
         self.created_by = kwargs.pop("created_by", None)
         super().__init__(*args, **kwargs)
         self.fields["support_item"].queryset = SupportItem.active_items()
+        self.fields["worker"].queryset = schedulable_worker_queryset(
+            getattr(self.instance, "worker", None)
+        )
         self.fields["participant"].empty_label = "Select participant"
         self.fields["worker"].empty_label = "Select worker"
         self.fields["support_item"].empty_label = "Select support item"
@@ -161,10 +173,9 @@ class RecurringShiftForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from participants.models import Participant
-        from workers.models import SupportWorker
 
         self.fields["participant"].queryset = Participant.objects.all()
-        self.fields["worker"].queryset = SupportWorker.objects.all()
+        self.fields["worker"].queryset = schedulable_worker_queryset()
         self.fields["support_item"].queryset = SupportItem.active_items()
 
     def clean(self):
