@@ -55,7 +55,9 @@
       {% include "participants/partials/field.html" with field=form.employment_type %}
       {% include "participants/partials/field.html" with field=form.abn %}
       {% include "participants/partials/field.html" with field=form.start_date %}
-      {% include "participants/partials/field.html" with field=form.status %}
+      {% if form.username %}
+        {% include "participants/partials/field.html" with field=form.status %}
+      {% endif %}
     </div>
   </section>
 
@@ -76,12 +78,24 @@
     </div>
   </section>
 
-  <section class="card form-section account-access-section">
-    <h2>Account Access</h2>
-    <div class="form-grid">
-      {% include "participants/partials/field.html" with field=form.account_active %}
+  <section class="card form-section worker-access-section">
+    <h2>Worker Access and Archive</h2>
+    <div class="worker-access-grid">
+      <div class="worker-access-panel">
+        <h3>Account Access</h3>
+        {% include "participants/partials/field.html" with field=form.account_active %}
+        <p class="form-section-note">Login access controls whether this worker can sign in to the worker portal.</p>
+        <p class="form-section-note">Turn this off to stop this worker signing in. Their worker record and history are kept.</p>
+      </div>
+      {% if not form.username %}
+        <div class="worker-access-panel worker-access-panel-warning">
+          <h3>Archive status</h3>
+          {% include "participants/partials/field.html" with field=form.status %}
+          <p class="form-section-note">Set Worker status to Inactive to archive this worker.</p>
+          <p class="form-section-note">Archived workers are removed from new scheduling and assignment choices. Existing shifts, service logs, invoices, and documents are kept.</p>
+        </div>
+      {% endif %}
     </div>
-    <p class="form-section-note">Turn this off to stop this worker signing in. Their worker record and history are kept.</p>
   </section>
 
   <div class="form-actions">

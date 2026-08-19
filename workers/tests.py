@@ -480,6 +480,34 @@ class SupportWorkerManagementTests(TestCase):
         self.assertContains(detail_response, "<dt>Worker status</dt>", html=True)
         self.assertContains(detail_response, "<dd>Active</dd>", html=True)
 
+    def test_worker_edit_explains_archive_without_delete_action(self):
+        user = get_user_model().objects.create_user(
+            username="maya-archive",
+            email="maya.archive@example.com",
+            password="test-password-123",
+        )
+        worker = SupportWorker.objects.create(
+            user=user,
+            first_name="Maya",
+            last_name="Singh",
+            email="maya.archive@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("worker_edit", args=[worker.id]))
+
+        self.assertContains(response, 'class="card form-section worker-access-section"')
+        self.assertContains(response, "Worker Access and Archive")
+        self.assertContains(response, "Login access")
+        self.assertContains(response, "Archive status")
+        self.assertContains(response, "Set Worker status to Inactive to archive this worker.")
+        self.assertContains(
+            response,
+            "Archived workers are removed from new scheduling and assignment choices. Existing shifts, service logs, invoices, and documents are kept.",
+        )
+        self.assertNotContains(response, "Delete Worker")
+
     def test_admin_can_edit_worker(self):
         user = get_user_model().objects.create_user(
             username="maya",
