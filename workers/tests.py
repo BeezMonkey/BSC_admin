@@ -427,6 +427,10 @@ class SupportWorkerManagementTests(TestCase):
             edit_response,
             "Turn this off to stop this worker signing in. Their worker record and history are kept.",
         )
+        self.assertContains(edit_response, "Account Access")
+        content = edit_response.content.decode()
+        self.assertLess(content.index("Internal Notes"), content.index("Account Access"))
+        self.assertLess(content.index("Internal Notes"), content.index("Login enabled"))
         self.assertContains(detail_response, "<dt>Login enabled</dt>", html=True)
         self.assertContains(detail_response, "<dd>No</dd>", html=True)
         self.assertContains(detail_response, "<dt>Worker status</dt>", html=True)
