@@ -11,19 +11,20 @@
   <a class="button" href="{% url 'worker_create' %}?next={{ current_list_url|urlencode }}">Add Worker</a>
 </div>
 
+<div class="quick-filter-row" aria-label="Support worker views">
+  <a class="button secondary {% if worker_scope == 'active' %}active{% endif %}"
+     href="{% url 'worker_list' %}?scope=active">Active Workers</a>
+  <a class="button secondary {% if worker_scope == 'archived' %}active{% endif %}"
+     href="{% url 'worker_list' %}?scope=archived">Archived Workers</a>
+  <a class="button secondary {% if worker_scope == 'all' %}active{% endif %}"
+     href="{% url 'worker_list' %}?scope=all">All Workers</a>
+</div>
+
 <form class="filter-bar" method="get">
+  <input type="hidden" name="scope" value="{{ worker_scope }}">
   <label>
     Search
     <input type="search" name="q" value="{{ query }}" placeholder="Name, email, or phone">
-  </label>
-  <label>
-    Status
-    <select name="status">
-      <option value="">All statuses</option>
-      {% for value, label in status_choices %}
-        <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
-      {% endfor %}
-    </select>
   </label>
   <label>
     Employment type
