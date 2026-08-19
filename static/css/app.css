@@ -1374,8 +1374,35 @@ tbody tr:last-child td {
   line-height: 1.45;
 }
 
-.account-access-section {
-  border-top: 3px solid #f6c8c8;
+.worker-access-section {
+  border-top: 3px solid #f3b8b8;
+  background: #fffafa;
+}
+
+.worker-access-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.worker-access-panel {
+  border: 1px solid #ead6d6;
+  border-radius: 7px;
+  padding: 0.95rem;
+  background: #ffffff;
+}
+
+.worker-access-panel-warning {
+  border-color: #f3c7c7;
+  background: #fff7f7;
+}
+
+.worker-access-panel h3 {
+  margin: 0 0 0.75rem;
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.25;
+  font-weight: var(--weight-heading);
 }
 
 .field-error {
