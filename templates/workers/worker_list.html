@@ -46,7 +46,6 @@
         <th>Email</th>
         <th>Phone</th>
         <th><a class="sort-link" href="?{{ sorting.links.employment_type }}">Type</a></th>
-        <th>Compliance</th>
         <th><a class="sort-link" href="?{{ sorting.links.status }}">Status</a></th>
         <th>Actions</th>
       </tr>
@@ -58,10 +57,6 @@
           <td>{{ worker.email }}</td>
           <td>{{ worker.phone|default:"-" }}</td>
           <td>{{ worker.get_employment_type_display }}</td>
-          <td>
-            Police: {{ worker.get_police_check_status_display }}<br>
-            WWCC: {{ worker.get_wwcc_status_display }}
-          </td>
           <td><span class="status-pill status-{{ worker.status }}">{{ worker.get_status_display }}</span></td>
           <td class="actions">
             <a href="{% url 'worker_detail' worker.id %}?next={{ current_list_url|urlencode }}">View</a>
@@ -70,7 +65,7 @@
         </tr>
       {% empty %}
         <tr>
-          <td colspan="7">
+          <td colspan="6">
             <div class="empty-state">
               {% if has_filters %}
                 <strong>No support workers match the current filters.</strong>

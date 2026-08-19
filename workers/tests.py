@@ -376,6 +376,33 @@ class SupportWorkerManagementTests(TestCase):
         self.assertContains(response, "Upload Document")
         self.assertContains(response, "Create Shift")
 
+    def test_worker_list_omits_compliance_summary_but_detail_retains_it(self):
+        user = get_user_model().objects.create_user(
+            username="maya-list",
+            email="maya.list@example.com",
+            password="test-password-123",
+        )
+        worker = SupportWorker.objects.create(
+            user=user,
+            first_name="Maya",
+            last_name="Singh",
+            email="maya.list@example.com",
+            status=SupportWorker.Status.ACTIVE,
+            police_check_status=SupportWorker.ComplianceStatus.CURRENT,
+            wwcc_status=SupportWorker.ComplianceStatus.PENDING,
+        )
+        self.login_admin()
+
+        list_response = self.client.get(reverse("worker_list"))
+        detail_response = self.client.get(reverse("worker_detail", args=[worker.id]))
+
+        self.assertNotContains(list_response, "<th>Compliance</th>", html=True)
+        self.assertNotContains(list_response, "Police: Current")
+        self.assertNotContains(list_response, "WWCC: Pending")
+        self.assertContains(detail_response, "<h2>Compliance</h2>", html=True)
+        self.assertContains(detail_response, "Police check")
+        self.assertContains(detail_response, "WWCC / Blue Card")
+
     def test_admin_can_edit_worker(self):
         user = get_user_model().objects.create_user(
             username="maya",
