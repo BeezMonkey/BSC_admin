@@ -28,18 +28,14 @@
         {% include "participants/partials/field.html" with field=form.email %}
         {% include "participants/partials/field.html" with field=form.password1 %}
         {% include "participants/partials/field.html" with field=form.password2 %}
-        {% include "participants/partials/field.html" with field=form.account_active %}
       </div>
-      <p class="form-section-note">Turn this off to stop this worker signing in. Their worker record and history are kept.</p>
     </section>
   {% else %}
     <section class="card form-section">
       <h2>Login Account</h2>
       <div class="form-grid">
         {% include "participants/partials/field.html" with field=form.email %}
-        {% include "participants/partials/field.html" with field=form.account_active %}
       </div>
-      <p class="form-section-note">Turn this off to stop this worker signing in. Their worker record and history are kept.</p>
     </section>
   {% endif %}
 
@@ -78,6 +74,14 @@
     <div class="form-grid single">
       {% include "participants/partials/field.html" with field=form.notes %}
     </div>
+  </section>
+
+  <section class="card form-section account-access-section">
+    <h2>Account Access</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.account_active %}
+    </div>
+    <p class="form-section-note">Turn this off to stop this worker signing in. Their worker record and history are kept.</p>
   </section>
 
   <div class="form-actions">

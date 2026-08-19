@@ -1374,6 +1374,10 @@ tbody tr:last-child td {
   line-height: 1.45;
 }
 
+.account-access-section {
+  border-top: 3px solid #f6c8c8;
+}
+
 .field-error {
   color: #b91c1c;
   font-size: 0.88rem;
