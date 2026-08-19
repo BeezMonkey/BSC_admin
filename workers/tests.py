@@ -403,6 +403,35 @@ class SupportWorkerManagementTests(TestCase):
         self.assertContains(detail_response, "Police check")
         self.assertContains(detail_response, "WWCC / Blue Card")
 
+    def test_worker_edit_distinguishes_login_access_from_worker_status(self):
+        user = get_user_model().objects.create_user(
+            username="maya-login",
+            email="maya.login@example.com",
+            password="test-password-123",
+            is_active=False,
+        )
+        worker = SupportWorker.objects.create(
+            user=user,
+            first_name="Maya",
+            last_name="Singh",
+            email="maya.login@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        self.login_admin()
+
+        edit_response = self.client.get(reverse("worker_edit", args=[worker.id]))
+        detail_response = self.client.get(reverse("worker_detail", args=[worker.id]))
+
+        self.assertContains(edit_response, "Login enabled")
+        self.assertContains(
+            edit_response,
+            "Turn this off to stop this worker signing in. Their worker record and history are kept.",
+        )
+        self.assertContains(detail_response, "<dt>Login enabled</dt>", html=True)
+        self.assertContains(detail_response, "<dd>No</dd>", html=True)
+        self.assertContains(detail_response, "<dt>Worker status</dt>", html=True)
+        self.assertContains(detail_response, "<dd>Active</dd>", html=True)
+
     def test_admin_can_edit_worker(self):
         user = get_user_model().objects.create_user(
             username="maya",

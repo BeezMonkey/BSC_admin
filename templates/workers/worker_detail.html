@@ -47,7 +47,7 @@
       <dd>{{ worker.phone|default:"-" }}</dd>
       <dt>Address</dt>
       <dd>{{ worker.address|default:"-" }}</dd>
-      <dt>Account active</dt>
+      <dt>Login enabled</dt>
       <dd>{{ worker.user.is_active|yesno:"Yes,No" }}</dd>
     </dl>
   </section>
@@ -61,7 +61,7 @@
       <dd>{{ worker.abn|default:"-" }}</dd>
       <dt>Start date</dt>
       <dd>{% if worker.start_date %}{{ worker.start_date|date:"d/m/Y" }}{% else %}-{% endif %}</dd>
-      <dt>Status</dt>
+      <dt>Worker status</dt>
       <dd>{{ worker.get_status_display }}</dd>
     </dl>
   </section>

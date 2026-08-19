@@ -1367,6 +1367,13 @@ tbody tr:last-child td {
   grid-template-columns: 1fr;
 }
 
+.form-section-note {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
 .field-error {
   color: #b91c1c;
   font-size: 0.88rem;
