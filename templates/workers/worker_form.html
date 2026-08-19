@@ -30,6 +30,7 @@
         {% include "participants/partials/field.html" with field=form.password2 %}
         {% include "participants/partials/field.html" with field=form.account_active %}
       </div>
+      <p class="form-section-note">Turn this off to stop this worker signing in. Their worker record and history are kept.</p>
     </section>
   {% else %}
     <section class="card form-section">
@@ -38,6 +39,7 @@
         {% include "participants/partials/field.html" with field=form.email %}
         {% include "participants/partials/field.html" with field=form.account_active %}
       </div>
+      <p class="form-section-note">Turn this off to stop this worker signing in. Their worker record and history are kept.</p>
     </section>
   {% endif %}
 

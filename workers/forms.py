@@ -12,7 +12,7 @@ class SupportWorkerCreateForm(forms.Form):
     email = forms.EmailField()
     password1 = forms.CharField(label="Password", widget=forms.PasswordInput)
     password2 = forms.CharField(label="Confirm password", widget=forms.PasswordInput)
-    account_active = forms.BooleanField(required=False, initial=True)
+    account_active = forms.BooleanField(label="Login enabled", required=False, initial=True)
     first_name = forms.CharField(max_length=100)
     last_name = forms.CharField(max_length=100)
     phone = forms.CharField(max_length=30, required=False)
@@ -92,7 +92,7 @@ class SupportWorkerCreateForm(forms.Form):
 
 
 class SupportWorkerEditForm(forms.ModelForm):
-    account_active = forms.BooleanField(required=False)
+    account_active = forms.BooleanField(label="Login enabled", required=False)
 
     class Meta:
         model = SupportWorker
