@@ -1,6 +1,7 @@
 from django import forms
 
 from .models import Participant, ParticipantWorkerAssignment
+from workers.models import SupportWorker
 
 
 class ParticipantForm(forms.ModelForm):
@@ -93,6 +94,9 @@ class ParticipantWorkerAssignmentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.participant = kwargs.pop("participant")
         super().__init__(*args, **kwargs)
+        self.fields["worker"].queryset = SupportWorker.objects.filter(
+            status=SupportWorker.Status.ACTIVE,
+        ).order_by("last_name", "first_name")
 
     def clean(self):
         cleaned_data = super().clean()

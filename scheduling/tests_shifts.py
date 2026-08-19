@@ -201,6 +201,53 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, "Select support item")
         self.assertNotContains(response, "---------")
 
+    def test_shift_create_only_offers_active_workers(self):
+        archived_user = self.create_user_with_role(
+            "archivedworker",
+            UserProfile.Role.SUPPORT_WORKER,
+        )
+        archived_worker = SupportWorker.objects.create(
+            user=archived_user,
+            first_name="Archived",
+            last_name="Worker",
+            email="archived.worker@example.com",
+            status=SupportWorker.Status.INACTIVE,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("shift_create"))
+        post_response = self.client.post(
+            reverse("shift_create"),
+            self.shift_payload(worker=archived_worker.id),
+        )
+
+        self.assertContains(response, self.worker.display_name)
+        self.assertNotContains(response, archived_worker.display_name)
+        self.assertEqual(post_response.status_code, 200)
+        self.assertFormError(
+            post_response.context["form"],
+            "worker",
+            "Select a valid choice. That choice is not one of the available choices.",
+        )
+        self.assertEqual(Shift.objects.count(), 0)
+
+    def test_shift_edit_preserves_historical_archived_worker(self):
+        shift = self.create_shift(status=Shift.Status.DRAFT)
+        self.worker.status = SupportWorker.Status.INACTIVE
+        self.worker.save(update_fields=["status"])
+        self.login_admin()
+
+        get_response = self.client.get(reverse("shift_edit", args=[shift.id]))
+        post_response = self.client.post(
+            reverse("shift_edit", args=[shift.id]),
+            self.shift_payload(worker=self.worker.id),
+        )
+
+        shift.refresh_from_db()
+        self.assertContains(get_response, self.worker.display_name)
+        self.assertRedirects(post_response, reverse("shift_detail", args=[shift.id]))
+        self.assertEqual(shift.worker, self.worker)
+
     def test_shift_create_modal_post_valid_returns_json_success(self):
         self.login_admin()
 
@@ -1474,6 +1521,36 @@ class ShiftSchedulingTests(TestCase):
             ).count(),
             3,
         )
+
+    def test_recurring_shift_create_only_offers_active_workers(self):
+        archived_user = self.create_user_with_role(
+            "archivedworker",
+            UserProfile.Role.SUPPORT_WORKER,
+        )
+        archived_worker = SupportWorker.objects.create(
+            user=archived_user,
+            first_name="Archived",
+            last_name="Worker",
+            email="archived.worker@example.com",
+            status=SupportWorker.Status.INACTIVE,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("recurring_shift_create"))
+        post_response = self.client.post(
+            reverse("recurring_shift_create"),
+            self.recurring_shift_payload(worker=archived_worker.id),
+        )
+
+        self.assertContains(response, self.worker.display_name)
+        self.assertNotContains(response, archived_worker.display_name)
+        self.assertEqual(post_response.status_code, 200)
+        self.assertFormError(
+            post_response.context["form"],
+            "worker",
+            "Select a valid choice. That choice is not one of the available choices.",
+        )
+        self.assertEqual(Shift.objects.count(), 0)
 
     def test_admin_can_cancel_shift_with_reason(self):
         shift = Shift.objects.create(

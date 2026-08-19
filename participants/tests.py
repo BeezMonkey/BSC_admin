@@ -367,6 +367,60 @@ class ParticipantManagementTests(TestCase):
         self.assertContains(response, "Upload Document")
         self.assertContains(response, "Create Shift")
 
+    def test_participant_assignment_only_offers_active_workers(self):
+        participant = Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            status=Participant.Status.ACTIVE,
+        )
+        active_user = get_user_model().objects.create_user(
+            username="activeworker",
+            email="active.worker@example.com",
+            password="test-password-123",
+        )
+        archived_user = get_user_model().objects.create_user(
+            username="archivedworker",
+            email="archived.worker@example.com",
+            password="test-password-123",
+        )
+        active_worker = SupportWorker.objects.create(
+            user=active_user,
+            first_name="Active",
+            last_name="Worker",
+            email="active.worker@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        archived_worker = SupportWorker.objects.create(
+            user=archived_user,
+            first_name="Archived",
+            last_name="Worker",
+            email="archived.worker@example.com",
+            status=SupportWorker.Status.INACTIVE,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("participant_assign_worker", args=[participant.id]))
+        post_response = self.client.post(
+            reverse("participant_assign_worker", args=[participant.id]),
+            {
+                "worker": archived_worker.id,
+                "start_date": "2026-06-01",
+                "end_date": "",
+                "is_active": "on",
+                "notes": "",
+            },
+        )
+
+        self.assertContains(response, active_worker.display_name)
+        self.assertNotContains(response, archived_worker.display_name)
+        self.assertEqual(post_response.status_code, 200)
+        self.assertFormError(
+            post_response.context["form"],
+            "worker",
+            "Select a valid choice. That choice is not one of the available choices.",
+        )
+        self.assertFalse(ParticipantWorkerAssignment.objects.filter(worker=archived_worker).exists())
+
     def test_admin_can_edit_participant(self):
         participant = Participant.objects.create(
             first_name="Ava",
