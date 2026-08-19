@@ -16,9 +16,23 @@ from .models import SupportWorker
 def worker_list(request):
     workers = SupportWorker.objects.select_related("user")
     query = request.GET.get("q", "").strip()
-    status = request.GET.get("status", "").strip()
+    requested_status = request.GET.get("status", "").strip()
+    requested_scope = request.GET.get("scope", "").strip()
+    if requested_scope in {"active", "archived", "all"}:
+        worker_scope = requested_scope
+    elif requested_status == SupportWorker.Status.INACTIVE:
+        worker_scope = "archived"
+    elif requested_status == SupportWorker.Status.ACTIVE:
+        worker_scope = "active"
+    else:
+        worker_scope = "active"
     employment_type = request.GET.get("employment_type", "").strip()
-    has_filters = bool(query or status or employment_type)
+    has_filters = bool(query or employment_type)
+
+    if worker_scope == "archived":
+        workers = workers.filter(status=SupportWorker.Status.INACTIVE)
+    elif worker_scope == "active":
+        workers = workers.filter(status=SupportWorker.Status.ACTIVE)
 
     if query:
         workers = workers.filter(
@@ -27,8 +41,6 @@ def worker_list(request):
             | Q(email__icontains=query)
             | Q(phone__icontains=query)
         )
-    if status:
-        workers = workers.filter(status=status)
     if employment_type:
         workers = workers.filter(employment_type=employment_type)
     workers, sorting = apply_sorting(
@@ -50,10 +62,9 @@ def worker_list(request):
             "pagination": pagination,
             "sorting": sorting,
             "query": query,
-            "status": status,
+            "worker_scope": worker_scope,
             "employment_type": employment_type,
             "has_filters": has_filters,
-            "status_choices": SupportWorker.Status.choices,
             "employment_type_choices": SupportWorker.EmploymentType.choices,
             "current_list_url": request.get_full_path(),
         },

@@ -172,6 +172,46 @@ class SupportWorkerManagementTests(TestCase):
 
         self.assertContains(response, 'class="status-pill status-active"')
 
+    def test_worker_list_defaults_to_active_and_offers_archive_views(self):
+        active_user = get_user_model().objects.create_user(
+            username="activeworker",
+            email="activeworker@example.com",
+            password="test-password-123",
+        )
+        inactive_user = get_user_model().objects.create_user(
+            username="inactiveworker",
+            email="inactiveworker@example.com",
+            password="test-password-123",
+        )
+        SupportWorker.objects.create(
+            user=active_user,
+            first_name="Active",
+            last_name="Worker",
+            email="activeworker@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        SupportWorker.objects.create(
+            user=inactive_user,
+            first_name="Inactive",
+            last_name="Worker",
+            email="inactiveworker@example.com",
+            status=SupportWorker.Status.INACTIVE,
+        )
+        self.login_admin()
+
+        default_response = self.client.get(reverse("worker_list"))
+        archived_response = self.client.get(reverse("worker_list"), {"scope": "archived"})
+        all_response = self.client.get(reverse("worker_list"), {"scope": "all"})
+
+        self.assertContains(default_response, "<td>Active Worker</td>", html=True)
+        self.assertNotContains(default_response, "<td>Inactive Worker</td>", html=True)
+        self.assertContains(default_response, "Active Workers")
+        self.assertContains(default_response, "Archived Workers")
+        self.assertContains(archived_response, "<td>Inactive Worker</td>", html=True)
+        self.assertNotContains(archived_response, "<td>Active Worker</td>", html=True)
+        self.assertContains(all_response, "<td>Active Worker</td>", html=True)
+        self.assertContains(all_response, "<td>Inactive Worker</td>", html=True)
+
     def test_worker_list_is_paginated_and_preserves_filters(self):
         for index in range(25):
             user = get_user_model().objects.create_user(
@@ -252,6 +292,7 @@ class SupportWorkerManagementTests(TestCase):
         response = self.client.get(
             reverse("worker_list"),
             {
+                "scope": "all",
                 "employment_type": SupportWorker.EmploymentType.EMPLOYEE,
                 "sort": "status",
                 "direction": "desc",
@@ -259,10 +300,13 @@ class SupportWorkerManagementTests(TestCase):
         )
         content = response.content.decode()
 
-        self.assertLess(content.index("Inactive Worker"), content.index("Active Worker"))
+        self.assertLess(
+            content.index("<td>Inactive Worker</td>"),
+            content.index("<td>Active Worker</td>"),
+        )
         self.assertContains(
             response,
-            "?employment_type=employee&amp;sort=status&amp;direction=asc",
+            "?scope=all&amp;employment_type=employee&amp;sort=status&amp;direction=asc",
         )
 
     def test_worker_list_distinguishes_empty_filter_results(self):
