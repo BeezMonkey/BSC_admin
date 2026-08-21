@@ -587,10 +587,8 @@ def wrap_pdf_text(text, max_width, font_size):
     return lines
 
 
-def invoice_line_type_label(line):
-    if line.line_type == InvoiceLine.LineType.TRAVEL_NON_LABOUR:
-        return "Travel"
-    return "Service"
+def invoice_line_service_date(line):
+    return format_au_date(line.service_log.service_date)
 
 
 def pdf_line(x1, y1, x2, y2, width=1.5, color=(0.435, 0.173, 0.502)):
@@ -763,7 +761,7 @@ def invoice_pdf(request, invoice_id):
                 width=0.75,
                 color=(0.82, 0.84, 0.88),
             ),
-            pdf_text("Item", item_col_x, line_items_top - 48, 8.5, "F2"),
+            pdf_text("Date", item_col_x, line_items_top - 48, 8.5, "F2"),
             pdf_text("Description", description_col_x, line_items_top - 48, 8.5, "F2"),
             pdf_right_text("Qty", qty_col_right, line_items_top - 48, 8.5, "F2"),
             pdf_right_text("Rate", rate_col_right, line_items_top - 48, 8.5, "F2"),
@@ -788,7 +786,7 @@ def invoice_pdf(request, invoice_id):
         code_y = y - (len(description_lines) * 10)
         pdf_lines.extend(
             [
-                pdf_text(invoice_line_type_label(line), item_col_x, y, 7.5, "F2"),
+                pdf_text(invoice_line_service_date(line), item_col_x, y, 7.5),
                 pdf_right_text(f"{line.quantity:.2f}", qty_col_right, y, 7.5),
                 pdf_right_text(f"${format_money(line.unit_price)}", rate_col_right, y, 7.5),
                 pdf_right_text(f"${format_money(line.line_total)}", amount_col_right, y, 8, "F2"),

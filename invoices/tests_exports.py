@@ -269,7 +269,8 @@ class InvoiceExportTests(TestCase):
         self.assertIn("Name: My Autonomy Plan Management", content)
         self.assertIn("Phone: 1300 603 389", content)
         self.assertIn("Email: invoices@myautonomy.com.au", content)
-        self.assertIn("Item", content)
+        self.assertIn("Date", content)
+        self.assertIn("01/06/2026", content)
         self.assertIn("Description", content)
         self.assertIn("Qty", content)
         self.assertIn("Rate", content)
@@ -324,13 +325,14 @@ class InvoiceExportTests(TestCase):
         self.assertIn('pdf_right_text(f"${format_money(invoice.total_amount)}"', view_source)
         self.assertNotIn('f"{line.quantity:.2f} x ${format_money(line.unit_price)}', view_source)
 
-    def test_invoice_pdf_line_item_code_sits_under_description(self):
+    def test_invoice_pdf_line_item_date_sits_in_first_column(self):
         view_source = Path("invoices/views.py").read_text(encoding="utf-8")
 
-        self.assertIn("def invoice_line_type_label", view_source)
-        self.assertIn("pdf_text(invoice_line_type_label(line), item_col_x", view_source)
+        self.assertIn("def invoice_line_service_date", view_source)
+        self.assertIn("pdf_text(invoice_line_service_date(line), item_col_x", view_source)
         self.assertIn("pdf_text(line.support_item_number, description_col_x", view_source)
         self.assertNotIn("pdf_text(line.support_item_number, item_col_x", view_source)
+        self.assertNotIn("def invoice_line_type_label", view_source)
 
     def test_invoice_pdf_payment_details_use_two_column_layout(self):
         view_source = Path("invoices/views.py").read_text(encoding="utf-8")
