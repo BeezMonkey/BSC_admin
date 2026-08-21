@@ -324,6 +324,14 @@ class InvoiceExportTests(TestCase):
         self.assertIn('pdf_right_text(f"${format_money(invoice.total_amount)}"', view_source)
         self.assertNotIn('f"{line.quantity:.2f} x ${format_money(line.unit_price)}', view_source)
 
+    def test_invoice_pdf_line_item_code_sits_under_description(self):
+        view_source = Path("invoices/views.py").read_text(encoding="utf-8")
+
+        self.assertIn("def invoice_line_type_label", view_source)
+        self.assertIn("pdf_text(invoice_line_type_label(line), item_col_x", view_source)
+        self.assertIn("pdf_text(line.support_item_number, description_col_x", view_source)
+        self.assertNotIn("pdf_text(line.support_item_number, item_col_x", view_source)
+
     def test_invoice_pdf_payment_details_use_two_column_layout(self):
         view_source = Path("invoices/views.py").read_text(encoding="utf-8")
 
