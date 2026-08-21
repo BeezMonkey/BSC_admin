@@ -197,6 +197,21 @@ class InvoiceExportTests(TestCase):
         self.assertIn("Invoice Total", content)
         self.assertNotIn("130.940000000000", content)
 
+    def test_invoice_pdf_wraps_full_line_item_description(self):
+        invoice_line = self.invoice.lines.first()
+        invoice_line.description = (
+            "Assistance With Self-Care Activities - Standard - Weekday Daytime"
+        )
+        invoice_line.save(update_fields=["description"])
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_pdf", args=[self.invoice.id]))
+
+        content = response.content.decode("latin-1")
+        self.assertIn("Assistance With Self-Care Activities - Standard -", content)
+        self.assertIn("Weekday Daytime", content)
+        self.assertIn("01_011_0107_1_1", content)
+
     def test_invoice_pdf_uses_invoice_settings_profile_and_payment_details(self):
         settings = InvoiceSettings.load()
         settings.business_name = "Brisbane Star Care"
