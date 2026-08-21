@@ -322,7 +322,7 @@ class InvoiceExportTests(TestCase):
         self.assertIn('pdf_right_text(f"{line.quantity:.2f}"', view_source)
         self.assertIn('pdf_right_text(f"${format_money(line.unit_price)}"', view_source)
         self.assertIn('pdf_right_text(f"${format_money(line.line_total)}"', view_source)
-        self.assertIn('pdf_right_text(f"${format_money(invoice.total_amount)}"', view_source)
+        self.assertIn('f"${format_money(invoice.total_amount)}"', view_source)
         self.assertNotIn('f"{line.quantity:.2f} x ${format_money(line.unit_price)}', view_source)
 
     def test_invoice_pdf_line_item_date_sits_in_first_column(self):
@@ -337,9 +337,14 @@ class InvoiceExportTests(TestCase):
     def test_invoice_pdf_payment_details_use_two_column_layout(self):
         view_source = Path("invoices/views.py").read_text(encoding="utf-8")
 
+        self.assertIn("footer_top", view_source)
+        self.assertIn("total_label_x", view_source)
+        self.assertIn("total_amount_right", view_source)
+        self.assertIn('f"${format_money(invoice.total_amount)}"', view_source)
+        self.assertIn("total_amount_right,", view_source)
+        self.assertIn("payment_details_top = max(footer_top - 50, 54)", view_source)
         self.assertIn("payment_label_x", view_source)
         self.assertIn("payment_value_x", view_source)
-        self.assertIn("payment_details_top", view_source)
         self.assertIn("payment_detail_rows", view_source)
         self.assertIn('pdf_text(label, payment_label_x', view_source)
         self.assertIn('pdf_text(value, payment_value_x', view_source)

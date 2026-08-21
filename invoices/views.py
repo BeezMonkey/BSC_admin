@@ -806,19 +806,27 @@ def invoice_pdf(request, invoice_id):
         )
         y -= max(30, 20 + (len(description_lines) * 10))
 
-    total_y = max(y - 10, 126)
+    footer_top = max(y - 10, 126)
+    total_label_x = 380
+    total_amount_right = page_right
     pdf_lines.extend(
         [
             pdf_line(
-                380,
-                total_y + 14,
+                total_label_x,
+                footer_top + 14,
                 page_right,
-                total_y + 14,
+                footer_top + 14,
                 width=0.75,
                 color=(0.82, 0.84, 0.88),
             ),
-            pdf_text("Invoice Total", 380, total_y, 9, "F2"),
-            pdf_right_text(f"${format_money(invoice.total_amount)}", amount_col_right, total_y, 10, "F2"),
+            pdf_text("Invoice Total", total_label_x, footer_top, 9, "F2"),
+            pdf_right_text(
+                f"${format_money(invoice.total_amount)}",
+                total_amount_right,
+                footer_top,
+                11.5,
+                "F2",
+            ),
         ]
     )
     payment_detail_rows = [
@@ -833,7 +841,7 @@ def invoice_pdf(request, invoice_id):
         if (value or "").strip()
     ]
     if payment_detail_rows:
-        payment_details_top = max(y - 52, 54)
+        payment_details_top = max(footer_top - 50, 54)
         payment_label_x = page_left
         payment_value_x = page_left + 88
         pdf_lines.extend(
