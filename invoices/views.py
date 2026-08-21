@@ -569,6 +569,24 @@ def pdf_right_text(text, right_x, y, font_size=10, font="F1"):
     return pdf_text(text, right_x - estimate_text_width(text, font_size), y, font_size, font)
 
 
+def wrap_pdf_text(text, max_width, font_size):
+    words = str(text).split()
+    if not words:
+        return [""]
+
+    lines = []
+    current = words[0]
+    for word in words[1:]:
+        candidate = f"{current} {word}"
+        if estimate_text_width(candidate, font_size) <= max_width:
+            current = candidate
+        else:
+            lines.append(current)
+            current = word
+    lines.append(current)
+    return lines
+
+
 def pdf_line(x1, y1, x2, y2, width=1.5, color=(0.435, 0.173, 0.502)):
     return {
         "line": True,
@@ -674,6 +692,7 @@ def invoice_pdf(request, invoice_id):
     qty_col_right = 382
     rate_col_right = 454
     amount_col_right = page_right
+    description_col_width = min(qty_col_right - description_col_x - 18, 200)
     logo_path = settings.BASE_DIR / INVOICE_STATIC_LOGO_PATH
     logo_image = load_pdf_image(logo_path)
     pdf_lines = [
@@ -755,16 +774,29 @@ def invoice_pdf(request, invoice_id):
     )
     y = line_items_top - 76
     for line in invoice.lines.all():
+        description_lines = wrap_pdf_text(
+            line.description,
+            description_col_width,
+            7.5,
+        )
         pdf_lines.extend(
             [
                 pdf_text(line.support_item_number, item_col_x, y, 7.5),
-                pdf_text(line.description[:44], description_col_x, y, 7.5),
                 pdf_right_text(f"{line.quantity:.2f}", qty_col_right, y, 7.5),
                 pdf_right_text(f"${format_money(line.unit_price)}", rate_col_right, y, 7.5),
                 pdf_right_text(f"${format_money(line.line_total)}", amount_col_right, y, 8, "F2"),
             ]
         )
-        y -= 22
+        for index, description_line in enumerate(description_lines):
+            pdf_lines.append(
+                pdf_text(
+                    description_line,
+                    description_col_x,
+                    y - (index * 10),
+                    7.5,
+                )
+            )
+        y -= max(22, 12 + (len(description_lines) * 10))
 
     total_y = max(y - 10, 126)
     pdf_lines.extend(
