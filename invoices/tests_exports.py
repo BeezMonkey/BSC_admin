@@ -77,11 +77,11 @@ class InvoiceExportTests(TestCase):
             service_log=self.service_log,
         )
 
-    def create_invoiced_service_log(self):
+    def create_invoiced_service_log(self, service_date=date(2026, 6, 1)):
         shift = Shift.objects.create(
             participant=self.participant,
             worker=self.worker,
-            service_date=date(2026, 6, 1),
+            service_date=service_date,
             start_time=time(9, 0),
             end_time=time(11, 0),
             break_minutes=0,
@@ -171,6 +171,15 @@ class InvoiceExportTests(TestCase):
         self.assertTrue(response.content.startswith(b"%PDF"))
         self.assertIn(self.invoice.invoice_number.encode("latin-1"), response.content)
 
+    def test_invoice_pdf_keeps_short_invoice_on_one_page(self):
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_pdf", args=[self.invoice.id]))
+
+        content = response.content.decode("latin-1")
+        self.assertEqual(content.count("/Type /Page /Parent"), 1)
+        self.assertNotIn("Continued", content)
+
     def test_invoice_pdf_uses_clear_download_filename(self):
         self.login_accountant()
 
@@ -196,6 +205,32 @@ class InvoiceExportTests(TestCase):
         self.assertIn("$130.94", content)
         self.assertIn("Invoice Total", content)
         self.assertNotIn("130.940000000000", content)
+
+    def test_invoice_pdf_paginates_many_line_items_without_repeating_footer(self):
+        settings = InvoiceSettings.load()
+        settings.bank_name = "Test Bank"
+        settings.account_name = "Brisbane Star Care"
+        settings.bsb = "123456"
+        settings.account_number = "12345678"
+        settings.save()
+        for day in range(2, 9):
+            service_log = self.create_invoiced_service_log(date(2026, 6, day))
+            InvoiceLine.objects.create_from_service_log(
+                invoice=self.invoice,
+                service_log=service_log,
+            )
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_pdf", args=[self.invoice.id]))
+
+        content = response.content.decode("latin-1")
+        self.assertGreater(content.count("/Type /Page /Parent"), 1)
+        self.assertGreater(content.count("(Date) Tj"), 1)
+        self.assertGreater(content.count("(Description) Tj"), 1)
+        self.assertEqual(content.count("(Invoice Total) Tj"), 1)
+        self.assertEqual(content.count("(Payment Details) Tj"), 1)
+        for day in range(2, 9):
+            self.assertEqual(content.count(f"({day:02d}/06/2026) Tj"), 1)
 
     def test_invoice_pdf_wraps_full_line_item_description(self):
         invoice_line = self.invoice.lines.first()
@@ -342,7 +377,9 @@ class InvoiceExportTests(TestCase):
         self.assertIn("total_amount_right", view_source)
         self.assertIn('f"${format_money(invoice.total_amount)}"', view_source)
         self.assertIn("total_amount_right,", view_source)
-        self.assertIn("payment_details_top = max(footer_top - 50, 54)", view_source)
+        self.assertIn("footer_minimum_top = invoice_footer_minimum_top", view_source)
+        self.assertIn("payment_details_top = footer_top - 50", view_source)
+        self.assertNotIn("payment_details_top = max(footer_top - 50, 54)", view_source)
         self.assertIn("payment_label_x", view_source)
         self.assertIn("payment_value_x", view_source)
         self.assertIn("payment_detail_rows", view_source)

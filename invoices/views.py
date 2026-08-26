@@ -438,7 +438,7 @@ def escape_pdf_text(value):
     return str(value).replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
 
 
-def build_simple_pdf(lines):
+def build_pdf_page_stream(lines):
     operations = []
     images = []
     y = 760
@@ -490,36 +490,84 @@ def build_simple_pdf(lines):
                 "ET",
             ]
         )
-    stream = "\n".join(operations).encode("latin-1", errors="replace")
-    image_resources = ""
-    if images:
-        image_resources = " /XObject << " + " ".join(
-            f"/{name} {index} 0 R" for index, (name, _) in enumerate(images, start=7)
-        ) + " >>"
+    return "\n".join(operations).encode("latin-1", errors="replace"), images
+
+
+def build_simple_pdf(lines_or_pages):
+    if lines_or_pages and isinstance(lines_or_pages[0], list):
+        pages = lines_or_pages
+    else:
+        pages = [lines_or_pages]
+
+    page_payloads = [build_pdf_page_stream(lines) for lines in pages]
+    next_object_number = 5
+    page_records = []
+    for stream, images in page_payloads:
+        page_object_number = next_object_number
+        content_object_number = page_object_number + 1
+        image_object_numbers = list(
+            range(content_object_number + 1, content_object_number + 1 + len(images))
+        )
+        page_records.append(
+            {
+                "page_object_number": page_object_number,
+                "content_object_number": content_object_number,
+                "image_object_numbers": image_object_numbers,
+                "stream": stream,
+                "images": images,
+            }
+        )
+        next_object_number = content_object_number + 1 + len(images)
+
+    page_kids = " ".join(
+        f"{record['page_object_number']} 0 R" for record in page_records
+    )
     objects = [
         b"<< /Type /Catalog /Pages 2 0 R >>",
-        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] "
-        + (
-            f"/Resources << /Font << /F1 4 0 R /F2 5 0 R >>{image_resources} >> "
-            "/Contents 6 0 R >>"
-        ).encode("ascii"),
+        f"<< /Type /Pages /Kids [{page_kids}] /Count {len(page_records)} >>".encode(
+            "ascii"
+        ),
         b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
         b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>",
-        b"<< /Length " + str(len(stream)).encode("ascii") + b" >>\nstream\n" + stream + b"\nendstream",
     ]
-    for _, image in images:
-        image_data = image["data"]
+
+    for record in page_records:
+        image_resources = ""
+        if record["images"]:
+            image_resources = " /XObject << " + " ".join(
+                f"/{name} {object_number} 0 R"
+                for (name, _), object_number in zip(
+                    record["images"],
+                    record["image_object_numbers"],
+                )
+            ) + " >>"
         objects.append(
-            (
-                f"<< /Type /XObject /Subtype /Image /Width {image['pixel_width']} "
-                f"/Height {image['pixel_height']} /ColorSpace /DeviceRGB "
-                f"/BitsPerComponent 8 /Filter /FlateDecode /Length {len(image_data)} >>\n"
+            b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] "
+            + (
+                f"/Resources << /Font << /F1 3 0 R /F2 4 0 R >>{image_resources} >> "
+                f"/Contents {record['content_object_number']} 0 R >>"
             ).encode("ascii")
-            + b"stream\n"
-            + image_data
+        )
+        stream = record["stream"]
+        objects.append(
+            b"<< /Length "
+            + str(len(stream)).encode("ascii")
+            + b" >>\nstream\n"
+            + stream
             + b"\nendstream"
         )
+        for _, image in record["images"]:
+            image_data = image["data"]
+            objects.append(
+                (
+                    f"<< /Type /XObject /Subtype /Image /Width {image['pixel_width']} "
+                    f"/Height {image['pixel_height']} /ColorSpace /DeviceRGB "
+                    f"/BitsPerComponent 8 /Filter /FlateDecode /Length {len(image_data)} >>\n"
+                ).encode("ascii")
+                + b"stream\n"
+                + image_data
+                + b"\nendstream"
+            )
     pdf = bytearray(b"%PDF-1.4\n")
     offsets = [0]
     for number, obj in enumerate(objects, start=1):
@@ -653,6 +701,58 @@ def next_invoice_section_y(line_groups, section_top, row_start_gap=52, row_gap=1
     return last_line_y - after_gap
 
 
+def invoice_line_row_height(description_lines):
+    return max(30, 20 + (len(description_lines) * 10))
+
+
+def append_invoice_table_header(
+    page_lines,
+    heading_y,
+    page_left,
+    page_right,
+    item_col_x,
+    description_col_x,
+    qty_col_right,
+    rate_col_right,
+    amount_col_right,
+    heading="Line Items",
+):
+    page_lines.extend(
+        [
+            pdf_text(heading, page_left, heading_y, 10, "F2"),
+            pdf_line(
+                page_left,
+                heading_y - 14,
+                page_right,
+                heading_y - 14,
+                width=0.75,
+                color=(0.82, 0.84, 0.88),
+            ),
+            pdf_text("Date", item_col_x, heading_y - 28, 8.5, "F2"),
+            pdf_text("Description", description_col_x, heading_y - 28, 8.5, "F2"),
+            pdf_right_text("Qty", qty_col_right, heading_y - 28, 8.5, "F2"),
+            pdf_right_text("Rate", rate_col_right, heading_y - 28, 8.5, "F2"),
+            pdf_right_text("Amount", amount_col_right, heading_y - 28, 8.5, "F2"),
+            pdf_line(
+                page_left,
+                heading_y - 38,
+                page_right,
+                heading_y - 38,
+                width=0.75,
+                color=(0.82, 0.84, 0.88),
+            ),
+        ]
+    )
+    return heading_y - 56
+
+
+def invoice_footer_minimum_top(payment_detail_rows, page_bottom=40):
+    if not payment_detail_rows:
+        return page_bottom
+    payment_rows_height = 28 + ((len(payment_detail_rows) - 1) * 14)
+    return page_bottom + 50 + payment_rows_height
+
+
 @finance_required
 def invoice_pdf(request, invoice_id):
     invoice = get_invoice(invoice_id)
@@ -744,45 +844,74 @@ def invoice_pdf(request, invoice_id):
         [participant_lines, sent_to_lines],
         participant_section_top,
     )
-    pdf_lines.extend(
-        [
-            pdf_text(
-                f"Period: {format_au_date(invoice.period_start)} to {format_au_date(invoice.period_end)}",
-                page_left,
-                line_items_top,
-                8,
-            ),
-            pdf_text("Line Items", page_left, line_items_top - 20, 10, "F2"),
-            pdf_line(
-                page_left,
-                line_items_top - 34,
-                page_right,
-                line_items_top - 34,
-                width=0.75,
-                color=(0.82, 0.84, 0.88),
-            ),
-            pdf_text("Date", item_col_x, line_items_top - 48, 8.5, "F2"),
-            pdf_text("Description", description_col_x, line_items_top - 48, 8.5, "F2"),
-            pdf_right_text("Qty", qty_col_right, line_items_top - 48, 8.5, "F2"),
-            pdf_right_text("Rate", rate_col_right, line_items_top - 48, 8.5, "F2"),
-            pdf_right_text("Amount", amount_col_right, line_items_top - 48, 8.5, "F2"),
-            pdf_line(
-                page_left,
-                line_items_top - 58,
-                page_right,
-                line_items_top - 58,
-                width=0.75,
-                color=(0.82, 0.84, 0.88),
-            ),
-        ]
+    pdf_lines.append(
+        pdf_text(
+            f"Period: {format_au_date(invoice.period_start)} to {format_au_date(invoice.period_end)}",
+            page_left,
+            line_items_top,
+            8,
+        )
     )
-    y = line_items_top - 76
-    for line in invoice.lines.all():
+    y = append_invoice_table_header(
+        pdf_lines,
+        line_items_top - 20,
+        page_left,
+        page_right,
+        item_col_x,
+        description_col_x,
+        qty_col_right,
+        rate_col_right,
+        amount_col_right,
+    )
+    pdf_pages = [pdf_lines]
+    payment_detail_rows = [
+        ("Bank", settings_obj.bank_name),
+        ("Account name", settings_obj.account_name),
+        ("BSB", settings_obj.bsb),
+        ("Account number", settings_obj.account_number),
+    ]
+    payment_detail_rows = [
+        (label, (value or "").strip())
+        for label, value in payment_detail_rows
+        if (value or "").strip()
+    ]
+    footer_minimum_top = invoice_footer_minimum_top(payment_detail_rows)
+    invoice_lines = list(invoice.lines.select_related("service_log"))
+    for line_index, line in enumerate(invoice_lines):
         description_lines = wrap_pdf_text(
             line.description,
             description_col_width,
             7.5,
         )
+        row_height = invoice_line_row_height(description_lines)
+        is_final_line = line_index == len(invoice_lines) - 1
+        required_bottom = footer_minimum_top + 10 if is_final_line else 40
+        if y - row_height < required_bottom:
+            pdf_lines = [
+                pdf_text("TAX INVOICE", page_left, 748, 10.5, "F2"),
+                pdf_text(
+                    f"Invoice No.: # {invoice.invoice_number}",
+                    page_left,
+                    732,
+                    8.5,
+                ),
+                pdf_right_text("Continued", page_right, 748, 8.5, "F2"),
+                pdf_right_text(participant.display_name, page_right, 732, 8.5),
+                pdf_line(page_left, 714, page_right, 714, width=3),
+            ]
+            pdf_pages.append(pdf_lines)
+            y = append_invoice_table_header(
+                pdf_lines,
+                684,
+                page_left,
+                page_right,
+                item_col_x,
+                description_col_x,
+                qty_col_right,
+                rate_col_right,
+                amount_col_right,
+                heading="Line Items (continued)",
+            )
         code_y = y - (len(description_lines) * 10)
         pdf_lines.extend(
             [
@@ -804,9 +933,9 @@ def invoice_pdf(request, invoice_id):
         pdf_lines.append(
             pdf_text(line.support_item_number, description_col_x, code_y, 6.8)
         )
-        y -= max(30, 20 + (len(description_lines) * 10))
+        y -= row_height
 
-    footer_top = max(y - 10, 126)
+    footer_top = y - 10
     total_label_x = 380
     total_amount_right = page_right
     pdf_lines.extend(
@@ -829,19 +958,8 @@ def invoice_pdf(request, invoice_id):
             ),
         ]
     )
-    payment_detail_rows = [
-        ("Bank", settings_obj.bank_name),
-        ("Account name", settings_obj.account_name),
-        ("BSB", settings_obj.bsb),
-        ("Account number", settings_obj.account_number),
-    ]
-    payment_detail_rows = [
-        (label, (value or "").strip())
-        for label, value in payment_detail_rows
-        if (value or "").strip()
-    ]
     if payment_detail_rows:
-        payment_details_top = max(footer_top - 50, 54)
+        payment_details_top = footer_top - 50
         payment_label_x = page_left
         payment_value_x = page_left + 88
         pdf_lines.extend(
@@ -862,7 +980,7 @@ def invoice_pdf(request, invoice_id):
             pdf_lines.append(pdf_text(label, payment_label_x, y, 8.5, "F2"))
             pdf_lines.append(pdf_text(value, payment_value_x, y, 8.5))
             y -= 14
-    response = HttpResponse(build_simple_pdf(pdf_lines), content_type="application/pdf")
+    response = HttpResponse(build_simple_pdf(pdf_pages), content_type="application/pdf")
     response["Content-Disposition"] = (
         f'attachment; filename="{invoice_download_filename(invoice, "pdf")}"'
     )
