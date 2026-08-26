@@ -1,11 +1,14 @@
 {% load bsc_formatting %}
 <div class="list-item shift-list-item shift-list-item-{{ tone }}">
   <div class="shift-list-main">
-    <strong>#{{ shift.id }} {{ shift.service_date|date:"d/m/Y" }} {{ shift.start_time|display_time }} - {{ shift.end_time|display_time }}</strong>
-    <span>{{ shift.participant.display_name }}</span>
+    <strong class="shift-list-title">
+      <span class="shift-list-date">#{{ shift.id }} {{ shift.service_date|date:"d/m/Y" }}</span>
+      <span class="shift-list-time">{{ shift.start_time|display_time }} - {{ shift.end_time|display_time }}</span>
+    </strong>
+    <span class="shift-list-meta">{{ shift.participant.display_name }}</span>
   </div>
   <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
-  <div class="list-item-actions">
+  <div class="list-item-actions shift-list-actions">
     <a href="{% url 'worker_shift_detail' shift.id %}">View</a>
     {% if shift.status == "published" %}
       <form method="post" action="{% url 'worker_shift_confirm' shift.id %}">

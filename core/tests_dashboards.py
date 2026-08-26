@@ -381,6 +381,29 @@ class DashboardPolishTests(TestCase):
         self.assertContains(response, 'href="/sw/profile/"')
         self.assertContains(response, 'method="post" action="/logout/"')
 
+    def test_worker_dashboard_uses_mobile_content_polish_hooks(self):
+        user = User.objects.create_user(username="worker", password="pass")
+        UserProfile.objects.create(
+            user=user,
+            role=UserProfile.Role.SUPPORT_WORKER,
+            is_active_worker=True,
+        )
+        SupportWorker.objects.create(
+            user=user,
+            first_name="Wendy",
+            last_name="Worker",
+            email="worker@example.com",
+        )
+
+        self.client.login(username="worker", password="pass")
+        response = self.client.get(reverse("worker_dashboard"))
+
+        self.assertContains(response, 'class="worker-content worker-dashboard-page"')
+        self.assertContains(response, 'class="card worker-action-summary worker-priority-panel"')
+        self.assertContains(response, 'class="card-grid worker-dashboard-grid worker-tool-grid"')
+        self.assertContains(response, 'class="card worker-tool-card"')
+        self.assertContains(response, "Open shifts")
+
     def test_worker_dashboard_shows_shift_action_summary(self):
         admin_user = User.objects.create_user(username="admin", password="pass")
         UserProfile.objects.create(user=admin_user, role=UserProfile.Role.ADMIN)

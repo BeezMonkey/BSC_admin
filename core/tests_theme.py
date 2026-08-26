@@ -122,3 +122,14 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn("worker-mobile-menu-button", script)
         self.assertIn("worker-nav-open", script)
         self.assertIn("Escape", script)
+
+    def test_worker_mobile_content_polish_assets_exist(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+
+        self.assertIn(".worker-dashboard-page", css)
+        self.assertIn(".worker-priority-panel", css)
+        self.assertIn(".worker-tool-grid", css)
+        self.assertIn(".worker-tool-card", css)
+        self.assertIn(".worker-shift-page", css)
+        self.assertIn(".shift-list-actions", css)
+        self.assertIn(".worker-shift-page .shift-list-item", css)

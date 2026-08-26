@@ -3,14 +3,14 @@
 {% block title %}Worker Dashboard - Brisbane Star Care{% endblock %}
 
 {% block content %}
-<section class="worker-content">
+<section class="worker-content worker-dashboard-page">
   <header class="page-header">
     <div>
       <h1>Worker Dashboard</h1>
       <p>Review upcoming shifts, submit service logs, access shared documents, and keep your profile details current.</p>
     </div>
   </header>
-  <section class="card worker-action-summary">
+  <section class="card worker-action-summary worker-priority-panel">
     <div>
       <h2>Shift action summary</h2>
       <p>Jump straight to the roster items that need your next step.</p>
@@ -37,23 +37,23 @@
     </div>
     {% endif %}
   </section>
-  <div class="card-grid worker-dashboard-grid">
-    <section class="card">
+  <div class="card-grid worker-dashboard-grid worker-tool-grid">
+    <section class="card worker-tool-card">
       <h2>My Shifts</h2>
       <p>View rostered shifts and confirm assigned work.</p>
       <a class="card-action" href="{% url 'worker_shift_list' %}">Open shifts</a>
     </section>
-    <section class="card">
+    <section class="card worker-tool-card">
       <h2>My Logs</h2>
       <p>Create and review service logs for completed support work.</p>
       <a class="card-action" href="{% url 'worker_log_list' %}">Open logs</a>
     </section>
-    <section class="card">
+    <section class="card worker-tool-card">
       <h2>My Documents</h2>
       <p>Access documents shared with your worker account.</p>
       <a class="card-action" href="{% url 'worker_document_list' %}">Open documents</a>
     </section>
-    <section class="card">
+    <section class="card worker-tool-card">
       <h2>Profile</h2>
       <p>Check your contact, employment, and status details.</p>
       <a class="card-action" href="{% url 'worker_profile' %}">Open profile</a>

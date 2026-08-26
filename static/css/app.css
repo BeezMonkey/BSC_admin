@@ -1661,6 +1661,23 @@ tbody tr:last-child td {
   gap: 0.25rem;
 }
 
+.shift-list-title {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  line-height: 1.25;
+}
+
+.shift-list-date,
+.shift-list-time,
+.shift-list-meta {
+  min-width: 0;
+}
+
+.shift-list-meta {
+  color: var(--ink);
+}
+
 .shift-list-item-attention {
   border-left-color: var(--accent);
   background: #fffbeb;
@@ -1760,6 +1777,23 @@ tbody tr:last-child td {
 
 .worker-dashboard-grid {
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.worker-dashboard-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.worker-priority-panel {
+  margin-bottom: 0;
+}
+
+.worker-tool-grid {
+  align-items: stretch;
+}
+
+.worker-tool-card {
+  min-height: 9rem;
 }
 
 .worker-table-scroll {
@@ -2297,6 +2331,76 @@ tbody tr:last-child td {
     grid-template-columns: 1fr;
   }
 
+  .worker-dashboard-page {
+    gap: 0.8rem;
+  }
+
+  .worker-dashboard-page .page-header {
+    margin-bottom: 0;
+    padding-bottom: 0.7rem;
+  }
+
+  .worker-priority-panel {
+    gap: 0.65rem;
+  }
+
+  .worker-priority-panel > div:first-child {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .worker-priority-panel h2 {
+    font-size: 1rem;
+  }
+
+  .worker-priority-panel p {
+    font-size: 0.9rem;
+  }
+
+  .worker-dashboard-page .action-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+
+  .worker-dashboard-page .action-summary-item {
+    min-height: 0;
+    padding: 0.65rem 0.55rem;
+  }
+
+  .worker-dashboard-page .action-summary-item strong {
+    font-size: 0.92rem;
+    line-height: 1.25;
+  }
+
+  .worker-dashboard-page .action-summary-item span {
+    font-size: 0.78rem;
+    line-height: 1.3;
+  }
+
+  .worker-tool-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  .worker-tool-card {
+    min-height: 0;
+    padding: 0.85rem;
+  }
+
+  .worker-tool-card h2 {
+    font-size: 0.98rem;
+  }
+
+  .worker-tool-card p {
+    font-size: 0.86rem;
+    line-height: 1.35;
+  }
+
+  .worker-tool-card .card-action {
+    width: 100%;
+    font-size: 0.88rem;
+  }
+
   .workflow-checklist-header {
     display: grid;
     justify-content: stretch;
@@ -2368,11 +2472,51 @@ tbody tr:last-child td {
   .shift-list-item {
     grid-template-columns: 1fr;
     align-items: start;
-    gap: 0.65rem;
+    gap: 0.55rem;
+    border: 1px solid var(--line);
+    border-left-width: 4px;
+    border-radius: 7px;
+    padding: 0.78rem;
+    background: #ffffff;
   }
 
   .shift-list-item .status-pill {
     justify-self: start;
+  }
+
+  .worker-shift-page .shift-section-title {
+    margin-top: 1.05rem;
+    font-size: 0.82rem;
+    letter-spacing: 0;
+  }
+
+  .worker-shift-page .shift-list-item + .shift-list-item {
+    margin-top: 0.65rem;
+  }
+
+  .worker-shift-page .shift-list-title {
+    display: grid;
+    gap: 0.18rem;
+    font-size: 0.98rem;
+  }
+
+  .worker-shift-page .shift-list-meta {
+    color: var(--muted);
+  }
+
+  .shift-list-actions {
+    width: 100%;
+  }
+
+  .shift-list-actions a,
+  .shift-list-actions button {
+    min-height: 2.15rem;
+  }
+
+  .shift-list-actions .primary-action,
+  .shift-list-actions form,
+  .shift-list-actions form button {
+    width: 100%;
   }
 
   .shift-filter-nav a,
