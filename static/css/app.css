@@ -2124,12 +2124,16 @@ tbody tr:last-child td {
 .worker-log-form {
   display: grid;
   gap: 1rem;
+  min-width: 0;
+  max-inline-size: 100%;
 }
 
 .worker-log-field-grid,
 .worker-log-notes-grid {
   display: grid;
   gap: 0.9rem 1rem;
+  min-width: 0;
+  max-inline-size: 100%;
 }
 
 .worker-log-field-grid {
@@ -2138,6 +2142,14 @@ tbody tr:last-child td {
 
 .worker-log-notes-grid {
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+}
+
+.worker-service-log-form-page .field,
+.worker-service-log-form-page input,
+.worker-service-log-form-page select,
+.worker-service-log-form-page textarea {
+  min-width: 0;
+  max-inline-size: 100%;
 }
 
 .worker-service-log-form-page textarea {
