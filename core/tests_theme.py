@@ -133,3 +133,13 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn(".worker-shift-page", css)
         self.assertIn(".shift-list-actions", css)
         self.assertIn(".worker-shift-page .shift-list-item", css)
+
+    def test_worker_service_log_mobile_form_assets_exist(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+
+        self.assertIn(".worker-service-log-form-page", css)
+        self.assertIn(".worker-log-shift-summary", css)
+        self.assertIn(".worker-log-field-grid", css)
+        self.assertIn(".worker-log-notes-grid", css)
+        self.assertIn(".worker-log-form-actions", css)
+        self.assertIn(".worker-service-log-form-page textarea", css)
