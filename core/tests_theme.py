@@ -108,3 +108,17 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn(".js-shift-delete-trigger", script)
         self.assertIn("Delete shift?", script)
         self.assertIn("data-shift-delete-confirm", script)
+
+    def test_worker_responsive_navigation_assets_exist(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+        script = Path("static/js/worker_nav.js").read_text(encoding="utf-8")
+
+        self.assertIn(".worker-mobile-menu-button", css)
+        self.assertIn(".worker-mobile-drawer", css)
+        self.assertIn(".worker-mobile-drawer-backdrop", css)
+        self.assertIn(".worker-nav-open", css)
+        self.assertIn("@media (max-width: 980px)", css)
+        self.assertIn("overflow-x: visible;", css)
+        self.assertIn("worker-mobile-menu-button", script)
+        self.assertIn("worker-nav-open", script)
+        self.assertIn("Escape", script)

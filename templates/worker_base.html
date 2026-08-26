@@ -1,7 +1,17 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block body %}
 <div class="app-shell worker-app-shell">
+  <header class="worker-mobile-header">
+    <button class="worker-mobile-menu-button" type="button" aria-label="Open worker menu" aria-controls="worker-mobile-drawer" aria-expanded="false">
+      <span aria-hidden="true"></span>
+    </button>
+    <div>
+      <div class="worker-mobile-brand">Brisbane Star Care</div>
+      <div class="worker-mobile-role">Support Worker</div>
+    </div>
+  </header>
   <aside class="sidebar worker-sidebar">
     <div class="brand">Brisbane Star Care</div>
     <nav class="sidebar-nav worker-sidebar-nav" aria-label="Worker navigation">
@@ -11,6 +21,27 @@
       <a class="sidebar-link{% if request.resolver_match.url_name == 'worker_document_list' or request.resolver_match.url_name == 'worker_document_detail' %} active{% endif %}" href="{% url 'worker_document_list' %}">Documents</a>
       <a class="sidebar-link{% if request.resolver_match.url_name == 'worker_profile' %} active{% endif %}" href="{% url 'worker_profile' %}">Profile</a>
     </nav>
+  </aside>
+  <div class="worker-mobile-drawer-backdrop" data-worker-menu-close hidden></div>
+  <aside class="worker-mobile-drawer" id="worker-mobile-drawer" aria-label="Worker menu" hidden>
+    <div class="worker-mobile-drawer-header">
+      <div>
+        <div class="worker-mobile-brand">Brisbane Star Care</div>
+        <div class="worker-mobile-role">{{ request.user.get_username }}</div>
+      </div>
+      <button class="worker-mobile-close-button" type="button" aria-label="Close worker menu" data-worker-menu-close>&times;</button>
+    </div>
+    <nav class="worker-mobile-drawer-nav" aria-label="Worker navigation">
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'worker_dashboard' %} active{% endif %}" href="{% url 'worker_dashboard' %}">Dashboard</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'worker_shift_list' or request.resolver_match.url_name == 'worker_shift_detail' %} active{% endif %}" href="{% url 'worker_shift_list' %}">My Shifts</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'worker_log_list' or request.resolver_match.url_name == 'worker_service_log_create' or request.resolver_match.url_name == 'worker_service_log_detail' %} active{% endif %}" href="{% url 'worker_log_list' %}">My Logs</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'worker_document_list' or request.resolver_match.url_name == 'worker_document_detail' %} active{% endif %}" href="{% url 'worker_document_list' %}">Documents</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'worker_profile' %} active{% endif %}" href="{% url 'worker_profile' %}">Profile</a>
+    </nav>
+    <form class="worker-mobile-logout" method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button class="button secondary" type="submit">Logout</button>
+    </form>
   </aside>
   <section class="content worker-main">
     <header class="topbar worker-topbar">
@@ -30,4 +61,5 @@
     {% block content %}{% endblock %}
   </section>
 </div>
+<script src="{% static 'js/worker_nav.js' %}" defer></script>
 {% endblock %}
