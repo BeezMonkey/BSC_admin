@@ -143,3 +143,6 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn(".worker-log-notes-grid", css)
         self.assertIn(".worker-log-form-actions", css)
         self.assertIn(".worker-service-log-form-page textarea", css)
+        self.assertIn(".worker-service-log-form-page .field", css)
+        self.assertIn(".worker-service-log-form-page input", css)
+        self.assertIn("max-inline-size: 100%;", css)
