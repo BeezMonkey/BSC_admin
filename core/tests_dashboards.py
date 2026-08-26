@@ -371,6 +371,15 @@ class DashboardPolishTests(TestCase):
         self.assertContains(response, 'class="sidebar worker-sidebar"')
         self.assertContains(response, 'class="topbar worker-topbar"')
         self.assertContains(response, 'class="button secondary topbar-logout"')
+        self.assertContains(response, 'class="worker-mobile-menu-button"')
+        self.assertContains(response, 'class="worker-mobile-drawer"')
+        self.assertContains(response, 'aria-label="Worker menu"')
+        self.assertContains(response, 'href="/sw/dashboard/"')
+        self.assertContains(response, 'href="/sw/shifts/"')
+        self.assertContains(response, 'href="/sw/logs/"')
+        self.assertContains(response, 'href="/sw/documents/"')
+        self.assertContains(response, 'href="/sw/profile/"')
+        self.assertContains(response, 'method="post" action="/logout/"')
 
     def test_worker_dashboard_shows_shift_action_summary(self):
         admin_user = User.objects.create_user(username="admin", password="pass")

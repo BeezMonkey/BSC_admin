@@ -4,7 +4,7 @@
 
 **Goal:** Make the Support Worker portal navigation work cleanly across desktop, medium-width, and phone-sized screens without changing worker business workflows.
 
-**Architecture:** Keep the worker portal on the existing `worker_base.html` shell. Add a mobile menu trigger and drawer navigation that reuse the same existing worker URLs, while CSS controls desktop sidebar, medium non-scrolling navigation, and phone drawer behavior. Add small vanilla JavaScript only for opening/closing the drawer.
+**Architecture:** Keep the worker portal on the existing `worker_base.html` shell. Add a menu trigger and drawer navigation that reuse the same existing worker URLs for medium and phone widths, while desktop keeps the existing sidebar. Preserve the approved worker content layout direction; this phase changes navigation behavior, not worker business content. Add small vanilla JavaScript only for opening/closing the drawer.
 
 **Tech Stack:** Django templates, Django test client, static CSS, vanilla JavaScript.
 
@@ -18,8 +18,8 @@
   - Keep existing sidebar links and logout POST form behavior.
 
 - Modify `static/css/app.css`
-  - Replace worker small-screen horizontal scrolling nav with non-scrolling responsive behavior.
-  - Add phone drawer styles.
+  - Replace worker medium/phone horizontal scrolling nav with drawer navigation.
+  - Keep desktop sidebar behavior.
   - Preserve current card/content styling.
 
 - Create `static/js/worker_nav.js`
@@ -55,7 +55,7 @@ def test_worker_responsive_navigation_assets_exist(self):
     self.assertIn(".worker-mobile-drawer", css)
     self.assertIn(".worker-mobile-drawer-backdrop", css)
     self.assertIn(".worker-nav-open", css)
-    self.assertIn("@media (max-width: 760px)", css)
+    self.assertIn("@media (max-width: 980px)", css)
     self.assertIn("overflow-x: visible;", css)
     self.assertIn("worker-mobile-menu-button", script)
     self.assertIn("worker-nav-open", script)
@@ -95,9 +95,9 @@ Expected: fails because `static/js/worker_nav.js`, drawer markup, and CSS hooks 
 **Files:**
 - Modify: `templates/worker_base.html`
 
-- [ ] **Step 1: Add a mobile header before the existing sidebar**
+- [ ] **Step 1: Add a compact worker header before the existing sidebar**
 
-Add a phone/medium header inside `.worker-app-shell` before `<aside class="sidebar worker-sidebar">`:
+Add a medium/phone header inside `.worker-app-shell` before `<aside class="sidebar worker-sidebar">`:
 
 ```django
 <header class="worker-mobile-header">
@@ -265,9 +265,9 @@ Add near the `.worker-app-shell` section:
 }
 ```
 
-- [ ] **Step 2: Replace worker horizontal nav behavior inside `@media (max-width: 760px)`**
+- [ ] **Step 2: Replace worker horizontal nav behavior inside `@media (max-width: 980px)`**
 
-Find the existing worker mobile rules where `.worker-sidebar-nav` uses flex and `overflow-x: auto`. Replace the worker-specific portion with:
+Find the existing worker mobile rules where `.worker-sidebar-nav` uses flex and `overflow-x: auto`. Replace the worker-specific portion with drawer behavior that applies to medium and phone widths:
 
 ```css
 .worker-mobile-header {
@@ -406,27 +406,14 @@ body.worker-nav-open {
 }
 ```
 
-- [ ] **Step 3: Add medium-width non-scrolling behavior**
+- [ ] **Step 3: Keep desktop sidebar and content stable above drawer breakpoint**
 
-Add a new media block before the `max-width: 760px` block:
+Add a small desktop/large-tablet guard before the drawer breakpoint if needed:
 
 ```css
-@media (min-width: 761px) and (max-width: 980px) {
+@media (min-width: 981px) {
   .worker-app-shell {
-    grid-template-columns: 170px minmax(0, 1fr);
-  }
-
-  .worker-sidebar {
-    padding: 1rem 0.75rem;
-  }
-
-  .worker-sidebar .brand {
-    font-size: 1rem;
-  }
-
-  .worker-sidebar-nav a {
-    padding: 0.7rem 0.75rem;
-    white-space: normal;
+    grid-template-columns: 290px minmax(0, 1fr);
   }
 }
 ```
@@ -496,8 +483,8 @@ Resize browser to a medium width around 760-980px.
 
 Expected:
 
-- worker navigation does not create body-level horizontal scrolling
-- sidebar is narrower but usable
+- compact menu button appears instead of horizontal scrolling tabs
+- drawer opens with existing worker destinations
 - content remains stable and not clipped
 
 - [ ] **Step 5: Manual phone-width check**

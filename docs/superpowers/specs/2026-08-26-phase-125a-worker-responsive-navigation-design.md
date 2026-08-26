@@ -24,14 +24,15 @@ Desktop keeps the existing worker sidebar pattern. The worker portal should stil
 
 ### Medium Window
 
-Medium-width windows should avoid horizontal scrolling navigation. The recommended first implementation is a compact, stable worker navigation layout that keeps all worker destinations reachable without hiding links off-screen.
+Medium-width windows should avoid horizontal scrolling navigation. Keep the worker content layout direction from the approved responsive sketch, but change the navigation to a menu-and-drawer pattern so links are not pushed off-screen.
 
 Acceptable medium behavior:
 
-- wrap navigation into a compact non-scrolling layout, or
-- use a compact side/rail layout if it can be implemented safely without disturbing content.
+- show a compact top-left menu trigger
+- open a simple drawer with the existing worker destinations
+- keep dashboard, shift summary, and page content density close to the current approved BSC layout
 
-For the first version, prefer the smallest template/CSS change that removes the awkward horizontal nav scroll while keeping content stable.
+Do not use horizontal scrolling tabs for worker navigation in medium windows.
 
 ### Phone
 
@@ -58,7 +59,7 @@ The following should be preserved from the current worker portal:
 - My Logs, Documents, and Profile page content
 - Existing page headings and action labels unless a label is required for accessibility
 
-This phase should not redesign the worker content area into the reference mobile app style.
+This phase should not redesign the worker content area into the reference mobile app style. The phone and medium content areas should remain BSC-styled and close to the approved worker responsive direction; only the navigation interaction changes.
 
 ## Accessibility And Interaction
 
