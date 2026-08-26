@@ -1378,6 +1378,18 @@ class ShiftSchedulingTests(TestCase):
         self.assertNotIn("Confirm", completed_section)
         self.assertNotIn("Complete Log", completed_section)
 
+    def test_worker_shift_list_uses_mobile_card_structure_hooks(self):
+        shift = self.create_shift(status=Shift.Status.PUBLISHED)
+        self.client.login(username="worker", password="test-password-123")
+
+        response = self.client.get(reverse("worker_shift_list"))
+
+        self.assertContains(response, 'class="worker-card worker-shift-page"')
+        self.assertContains(response, 'class="shift-list-meta"')
+        self.assertContains(response, 'class="list-item-actions shift-list-actions"')
+        self.assertContains(response, f'<span class="shift-list-date">#%s 01/06/2026</span>' % shift.id)
+        self.assertContains(response, reverse("worker_shift_confirm", args=[shift.id]))
+
     def test_worker_shift_list_can_filter_by_shift_group(self):
         published_shift = self.create_shift(
             service_date=date(2026, 6, 4),
