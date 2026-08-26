@@ -2077,6 +2077,89 @@ tbody tr:last-child td {
   padding: 0;
 }
 
+.worker-service-log-form-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.worker-log-form-header h1 {
+  margin: 0;
+}
+
+.worker-log-form-header p {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.worker-log-shift-summary {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 0.85rem;
+  background: #f8fafc;
+}
+
+.worker-log-shift-summary div {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.worker-log-shift-summary dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: var(--weight-label);
+}
+
+.worker-log-shift-summary dd {
+  margin: 0;
+  color: var(--ink);
+  font-weight: var(--weight-action);
+}
+
+.worker-log-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.worker-log-field-grid,
+.worker-log-notes-grid {
+  display: grid;
+  gap: 0.9rem 1rem;
+}
+
+.worker-log-field-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.worker-log-notes-grid {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+}
+
+.worker-service-log-form-page textarea {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+.worker-log-form-actions {
+  justify-content: flex-end;
+}
+
+.errorlist {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0;
+  color: #b91c1c;
+  font-size: 0.84rem;
+  font-weight: var(--weight-action);
+  list-style: none;
+}
+
 .invoice-preview-table table {
   min-width: 940px;
 }
@@ -2516,6 +2599,35 @@ tbody tr:last-child td {
   .shift-list-actions .primary-action,
   .shift-list-actions form,
   .shift-list-actions form button {
+    width: 100%;
+  }
+
+  .worker-service-log-form-page {
+    gap: 0.85rem;
+  }
+
+  .worker-log-shift-summary,
+  .worker-log-field-grid,
+  .worker-log-notes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .worker-log-shift-summary {
+    gap: 0.55rem;
+    padding: 0.75rem;
+  }
+
+  .worker-service-log-form-page textarea {
+    min-height: 7rem;
+  }
+
+  .worker-log-form-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .worker-log-form-actions button,
+  .worker-log-form-actions .button {
     width: 100%;
   }
 

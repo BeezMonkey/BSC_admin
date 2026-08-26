@@ -142,8 +142,28 @@ class ServiceLogCompletionTests(TestCase):
 
         response = self.client.get(reverse("worker_service_log_create", args=[shift.id]))
 
-        self.assertContains(response, "Ava Nguyen | 01/06/2026 |")
+        self.assertContains(response, "Ava Nguyen")
+        self.assertContains(response, "<dt>Date</dt>", html=True)
+        self.assertContains(response, "<dd>01/06/2026</dd>", html=True)
         self.assertNotContains(response, "Ava Nguyen | June 1, 2026 |")
+
+    def test_worker_complete_form_uses_mobile_layout_hooks(self):
+        shift = self.create_shift(status=Shift.Status.CONFIRMED)
+        self.login_worker()
+
+        response = self.client.get(reverse("worker_service_log_create", args=[shift.id]))
+
+        self.assertContains(response, 'class="worker-card worker-service-log-form-page"')
+        self.assertContains(response, 'class="worker-log-shift-summary"')
+        self.assertContains(response, 'class="worker-log-field-grid"')
+        self.assertContains(response, 'class="worker-log-notes-grid"')
+        self.assertContains(response, 'class="button-row worker-log-form-actions"')
+        self.assertContains(response, 'name="actual_start_time"')
+        self.assertContains(response, 'name="actual_end_time"')
+        self.assertContains(response, 'name="break_minutes"')
+        self.assertContains(response, 'name="kilometres"')
+        self.assertContains(response, 'name="case_notes"')
+        self.assertContains(response, "Submit Service Log")
 
     def test_shift_can_only_have_one_service_log(self):
         shift = self.create_shift()
