@@ -114,6 +114,11 @@ class ThemeTokenTests(SimpleTestCase):
         script = Path("static/js/worker_nav.js").read_text(encoding="utf-8")
 
         self.assertIn(".worker-mobile-menu-button", css)
+        self.assertIn(".worker-mobile-menu-icon", css)
+        self.assertIn("width: 2.35rem;", css)
+        self.assertIn("border-radius: 10px;", css)
+        self.assertIn("box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);", css)
+        self.assertIn(".worker-mobile-menu-icon {\n    width: 1rem;", css)
         self.assertIn(".worker-mobile-drawer", css)
         self.assertIn(".worker-mobile-drawer-backdrop", css)
         self.assertIn(".worker-nav-open", css)
@@ -122,6 +127,9 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn("worker-mobile-menu-button", script)
         self.assertIn("worker-nav-open", script)
         self.assertIn("Escape", script)
+
+        template = Path("templates/worker_base.html").read_text(encoding="utf-8")
+        self.assertIn('class="worker-mobile-menu-icon"', template)
 
     def test_worker_mobile_content_polish_assets_exist(self):
         css = Path("static/css/app.css").read_text(encoding="utf-8")
