@@ -1604,14 +1604,23 @@ tbody tr:last-child td {
   padding: 0.9rem 0;
 }
 
+.worker-shift-toolbar {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0.7rem 0 1.1rem;
+}
+
 .shift-summary {
   display: flex;
   gap: 0.6rem;
   flex-wrap: wrap;
-  margin: 0.7rem 0 1.1rem;
+  margin: 0;
 }
 
-.shift-summary span {
+.shift-summary > span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
   border-radius: 999px;
   padding: 0.35rem 0.65rem;
   color: var(--brand-dark);
@@ -1619,11 +1628,17 @@ tbody tr:last-child td {
   font-weight: var(--weight-label);
 }
 
+.shift-summary-count {
+  color: var(--brand-dark);
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .shift-filter-nav {
   display: flex;
   gap: 0.45rem;
   flex-wrap: wrap;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 
 .shift-filter-nav a {
@@ -1656,9 +1671,18 @@ tbody tr:last-child td {
   padding-left: 0.85rem;
 }
 
+.shift-list-item-top {
+  display: grid;
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
 .shift-list-main {
   display: grid;
   gap: 0.25rem;
+  min-width: 0;
 }
 
 .shift-list-title {
@@ -2505,22 +2529,40 @@ tbody tr:last-child td {
     font-size: 1.45rem;
   }
 
-  .worker-shift-page .shift-summary {
-    gap: 0.42rem;
-    margin: 0.25rem 0 0.78rem;
+  .worker-shift-toolbar {
+    gap: 0.65rem;
+    margin: 0.25rem 0 0.85rem;
   }
 
-  .worker-shift-page .shift-summary span {
-    padding: 0.25rem 0.48rem;
-    font-size: 0.82rem;
+  .worker-shift-page .shift-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.42rem;
+    margin: 0;
+  }
+
+  .worker-shift-page .shift-summary > span {
+    display: grid;
+    align-content: center;
+    gap: 0.08rem;
+    min-height: 3.1rem;
+    border-radius: 7px;
+    padding: 0.52rem 0.55rem;
+    font-size: 0.78rem;
     line-height: 1.2;
+  }
+
+  .worker-shift-page .shift-summary .shift-summary-count {
+    display: block;
+    font-size: 1.08rem;
+    line-height: 1;
   }
 
   .worker-shift-page .shift-filter-nav {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.45rem;
-    margin-bottom: 0.85rem;
+    margin-bottom: 0;
   }
 
   .worker-shift-page .shift-filter-nav a {
@@ -2692,14 +2734,23 @@ tbody tr:last-child td {
     justify-self: start;
   }
 
+  .shift-list-item-top {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) auto;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
   .shift-list-status-row {
     width: 100%;
-    justify-content: space-between;
+    justify-content: flex-start;
   }
 
   .shift-list-view-action {
-    min-height: 2.15rem;
-    padding: 0.36rem 0.68rem;
+    justify-self: end;
+    min-height: 2.4rem;
+    min-width: 4.2rem;
+    padding: 0.42rem 0.75rem;
   }
 
   .worker-shift-page .shift-section-title {
@@ -2817,8 +2868,7 @@ tbody tr:last-child td {
     width: 100%;
   }
 
-  .shift-filter-nav a,
-  .shift-summary span {
+  .shift-filter-nav a {
     font-size: 0.92rem;
   }
 

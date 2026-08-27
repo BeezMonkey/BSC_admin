@@ -1385,7 +1385,10 @@ class ShiftSchedulingTests(TestCase):
         response = self.client.get(reverse("worker_shift_list"))
 
         self.assertContains(response, 'class="worker-card worker-shift-page"')
+        self.assertContains(response, 'class="worker-shift-toolbar"')
+        self.assertContains(response, 'class="shift-summary-count"')
         self.assertContains(response, 'class="shift-list-meta"')
+        self.assertContains(response, 'class="shift-list-item-top"')
         self.assertContains(response, 'class="shift-list-status-row"')
         self.assertContains(response, 'class="shift-list-view-action"')
         self.assertContains(response, 'class="list-item-actions shift-list-actions"')
