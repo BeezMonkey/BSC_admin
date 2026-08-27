@@ -2161,6 +2161,16 @@ tbody tr:last-child td {
   max-width: 100%;
 }
 
+@supports (-webkit-touch-callout: none) {
+  .worker-service-log-form-page input[type="time"] {
+    -webkit-appearance: none;
+    appearance: none;
+    min-width: 0;
+    width: -webkit-fill-available;
+    max-width: -webkit-fill-available;
+  }
+}
+
 .worker-service-log-form-page textarea {
   min-height: 8rem;
   resize: vertical;

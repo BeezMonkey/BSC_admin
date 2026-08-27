@@ -154,3 +154,12 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn("display: block;", css)
         self.assertIn("box-sizing: border-box;", css)
         self.assertIn("max-width: 100%;", css)
+
+    def test_worker_service_log_time_inputs_have_ios_safari_override(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+
+        self.assertIn("@supports (-webkit-touch-callout: none)", css)
+        self.assertIn('.worker-service-log-form-page input[type="time"]', css)
+        self.assertIn("-webkit-appearance: none;", css)
+        self.assertIn("width: -webkit-fill-available;", css)
+        self.assertIn("max-width: -webkit-fill-available;", css)
