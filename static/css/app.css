@@ -1621,6 +1621,7 @@ tbody tr:last-child td {
   display: inline-flex;
   align-items: baseline;
   gap: 0.25rem;
+  border: 1px solid transparent;
   border-radius: 999px;
   padding: 0.35rem 0.65rem;
   color: var(--brand-dark);
@@ -1628,10 +1629,36 @@ tbody tr:last-child td {
   font-weight: var(--weight-label);
 }
 
+.shift-summary > .shift-summary-attention {
+  border-color: #f6d68b;
+  color: #92400e;
+  background: #fff7dc;
+}
+
+.shift-summary > .shift-summary-upcoming {
+  border-color: #bde3df;
+  color: var(--brand-dark);
+  background: #e7f5f3;
+}
+
+.shift-summary > .shift-summary-completed {
+  border-color: #d8c7f5;
+  color: #6d4aa2;
+  background: #f4efff;
+}
+
 .shift-summary-count {
   color: var(--brand-dark);
   font-size: 1rem;
   line-height: 1;
+}
+
+.shift-summary-attention .shift-summary-count {
+  color: #92400e;
+}
+
+.shift-summary-completed .shift-summary-count {
+  color: #6d4aa2;
 }
 
 .shift-filter-nav {
@@ -2777,9 +2804,14 @@ tbody tr:last-child td {
     width: 100%;
   }
 
+  .shift-list-primary-action {
+    gap: 0.5rem;
+    padding-top: 0.15rem;
+  }
+
   .shift-list-actions a,
   .shift-list-actions button {
-    min-height: 2.15rem;
+    min-height: 2.5rem;
   }
 
   .shift-list-actions .primary-action,
