@@ -146,3 +146,11 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn(".worker-service-log-form-page .field", css)
         self.assertIn(".worker-service-log-form-page input", css)
         self.assertIn("max-inline-size: 100%;", css)
+
+    def test_worker_service_log_time_inputs_are_ios_contained(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+
+        self.assertIn('.worker-service-log-form-page input[type="time"]', css)
+        self.assertIn("display: block;", css)
+        self.assertIn("box-sizing: border-box;", css)
+        self.assertIn("max-width: 100%;", css)
