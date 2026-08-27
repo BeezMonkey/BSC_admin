@@ -6,18 +6,29 @@
 <section class="worker-card worker-shift-page">
   <h1>My Shifts</h1>
 
-  <div class="shift-summary">
-    <span>{{ needs_attention_count }} needs attention</span>
-    <span>{{ upcoming_count }} upcoming</span>
-    <span>{{ completed_count }} completed</span>
-  </div>
+  <div class="worker-shift-toolbar">
+    <div class="shift-summary" aria-label="Shift summary">
+      <span aria-label="{{ needs_attention_count }} needs attention">
+        <strong class="shift-summary-count">{{ needs_attention_count }}</strong>
+        <span>needs attention</span>
+      </span>
+      <span aria-label="{{ upcoming_count }} upcoming">
+        <strong class="shift-summary-count">{{ upcoming_count }}</strong>
+        <span>upcoming</span>
+      </span>
+      <span aria-label="{{ completed_count }} completed">
+        <strong class="shift-summary-count">{{ completed_count }}</strong>
+        <span>completed</span>
+      </span>
+    </div>
 
-  <nav class="shift-filter-nav" aria-label="Shift view filters">
-    <a class="{% if selected_view == 'all' %}filter-active{% endif %}" href="?view=all">All</a>
-    <a class="{% if selected_view == 'needs_attention' %}filter-active{% endif %}" href="?view=needs_attention">Needs attention</a>
-    <a class="{% if selected_view == 'upcoming' %}filter-active{% endif %}" href="?view=upcoming">Upcoming</a>
-    <a class="{% if selected_view == 'completed' %}filter-active{% endif %}" href="?view=completed">Completed</a>
-  </nav>
+    <nav class="shift-filter-nav" aria-label="Shift view filters">
+      <a class="{% if selected_view == 'all' %}filter-active{% endif %}" href="?view=all"{% if selected_view == 'all' %} aria-current="page"{% endif %}>All</a>
+      <a class="{% if selected_view == 'needs_attention' %}filter-active{% endif %}" href="?view=needs_attention"{% if selected_view == 'needs_attention' %} aria-current="page"{% endif %}>Needs attention</a>
+      <a class="{% if selected_view == 'upcoming' %}filter-active{% endif %}" href="?view=upcoming"{% if selected_view == 'upcoming' %} aria-current="page"{% endif %}>Upcoming</a>
+      <a class="{% if selected_view == 'completed' %}filter-active{% endif %}" href="?view=completed"{% if selected_view == 'completed' %} aria-current="page"{% endif %}>Completed</a>
+    </nav>
+  </div>
 
   {% if shifts %}
     {% if visible_shift_groups.needs_attention %}

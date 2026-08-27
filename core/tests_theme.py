@@ -137,8 +137,13 @@ class ThemeTokenTests(SimpleTestCase):
     def test_worker_shift_mobile_density_assets_exist(self):
         css = Path("static/css/app.css").read_text(encoding="utf-8")
 
+        self.assertIn(".worker-shift-toolbar", css)
         self.assertIn(".worker-shift-page .shift-summary", css)
+        self.assertIn(".shift-summary > span", css)
+        self.assertIn(".worker-shift-page .shift-summary > span", css)
+        self.assertIn(".shift-summary-count", css)
         self.assertIn(".worker-shift-page .shift-filter-nav", css)
+        self.assertIn(".shift-list-item-top", css)
         self.assertIn(".shift-list-status-row", css)
         self.assertIn(".shift-list-view-action", css)
         self.assertIn("justify-content: space-between;", css)
