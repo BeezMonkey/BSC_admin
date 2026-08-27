@@ -173,3 +173,13 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn("-webkit-appearance: none;", css)
         self.assertIn("width: -webkit-fill-available;", css)
         self.assertIn("max-width: -webkit-fill-available;", css)
+
+    def test_worker_detail_mobile_polish_assets_exist(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+
+        self.assertIn(".worker-shift-detail-page", css)
+        self.assertIn(".worker-detail-header", css)
+        self.assertIn(".worker-detail-actions", css)
+        self.assertIn(".worker-primary-action", css)
+        self.assertIn(".worker-bottom-actions", css)
+        self.assertIn("padding-bottom: max(1rem, env(safe-area-inset-bottom));", css)

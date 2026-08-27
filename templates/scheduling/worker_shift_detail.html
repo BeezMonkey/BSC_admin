@@ -4,8 +4,8 @@
 {% block title %}Shift Detail - Brisbane Star Care{% endblock %}
 
 {% block content %}
-<section class="worker-card">
-  <div class="page-header">
+<section class="worker-card worker-shift-detail-page">
+  <div class="page-header worker-detail-header">
     <div>
       <h1>{{ shift.participant.display_name }}</h1>
     </div>
@@ -14,19 +14,21 @@
   <dl class="detail-list">
     <dt>Date</dt><dd>{{ shift.service_date|date:"d/m/Y" }}</dd>
     <dt>Time</dt><dd>{{ shift.start_time|display_time }} - {{ shift.end_time|display_time }}</dd>
-    <dt>Status</dt><dd>{{ shift.get_status_display }}</dd>
+    <dt>Status</dt><dd><span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span></dd>
     <dt>Address</dt><dd>{{ shift.address|default:"-" }}</dd>
     <dt>Instructions</dt><dd>{{ shift.instructions|default:"-" }}</dd>
     <dt>Service</dt><dd>{{ shift.get_service_type_display }}</dd>
   </dl>
-  {% if shift.status == "published" %}
-    <form method="post" action="{% url 'worker_shift_confirm' shift.id %}">
-      {% csrf_token %}
-      <button type="submit">Confirm Shift</button>
-    </form>
-  {% endif %}
-  {% if shift.status == "published" or shift.status == "confirmed" %}
-    <p><a class="button" href="{% url 'worker_service_log_create' shift.id %}">Complete Service Log</a></p>
-  {% endif %}
+  <div class="worker-detail-actions">
+    {% if shift.status == "published" %}
+      <form method="post" action="{% url 'worker_shift_confirm' shift.id %}">
+        {% csrf_token %}
+        <button class="worker-primary-action" type="submit">Confirm Shift</button>
+      </form>
+    {% endif %}
+    {% if shift.status == "published" or shift.status == "confirmed" %}
+      <a class="button worker-primary-action" href="{% url 'worker_service_log_create' shift.id %}">Complete Service Log</a>
+    {% endif %}
+  </div>
 </section>
 {% endblock %}
