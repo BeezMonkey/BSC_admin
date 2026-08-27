@@ -134,6 +134,16 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn(".shift-list-actions", css)
         self.assertIn(".worker-shift-page .shift-list-item", css)
 
+    def test_worker_shift_mobile_density_assets_exist(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+
+        self.assertIn(".worker-shift-page .shift-summary", css)
+        self.assertIn(".worker-shift-page .shift-filter-nav", css)
+        self.assertIn(".shift-list-status-row", css)
+        self.assertIn(".shift-list-view-action", css)
+        self.assertIn("justify-content: space-between;", css)
+        self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr));", css)
+
     def test_worker_service_log_mobile_form_assets_exist(self):
         css = Path("static/css/app.css").read_text(encoding="utf-8")
 

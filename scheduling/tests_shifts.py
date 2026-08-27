@@ -1386,6 +1386,8 @@ class ShiftSchedulingTests(TestCase):
 
         self.assertContains(response, 'class="worker-card worker-shift-page"')
         self.assertContains(response, 'class="shift-list-meta"')
+        self.assertContains(response, 'class="shift-list-status-row"')
+        self.assertContains(response, 'class="shift-list-view-action"')
         self.assertContains(response, 'class="list-item-actions shift-list-actions"')
         self.assertContains(response, f'<span class="shift-list-date">#%s 01/06/2026</span>' % shift.id)
         self.assertContains(response, reverse("worker_shift_confirm", args=[shift.id]))
