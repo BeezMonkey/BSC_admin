@@ -2149,7 +2149,16 @@ tbody tr:last-child td {
 .worker-service-log-form-page select,
 .worker-service-log-form-page textarea {
   min-width: 0;
+  max-width: 100%;
   max-inline-size: 100%;
+}
+
+.worker-service-log-form-page input[type="time"],
+.worker-service-log-form-page input[type="number"] {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
 }
 
 .worker-service-log-form-page textarea {
