@@ -1465,6 +1465,28 @@ class ShiftSchedulingTests(TestCase):
         self.assertEqual(shift.status, Shift.Status.CONFIRMED)
         self.assertIsNotNone(shift.confirmed_at)
 
+    def test_worker_shift_detail_uses_mobile_friendly_structure_hooks(self):
+        shift = self.create_shift(status=Shift.Status.CONFIRMED)
+        self.client.login(username="worker", password="test-password-123")
+
+        response = self.client.get(reverse("worker_shift_detail", args=[shift.id]))
+
+        self.assertContains(response, 'class="worker-card worker-shift-detail-page"')
+        self.assertContains(response, "worker-detail-header")
+        self.assertContains(response, 'class="worker-detail-actions"')
+        self.assertContains(response, "worker-primary-action")
+        self.assertContains(response, "Complete Service Log")
+
+    def test_worker_service_log_form_uses_mobile_action_safe_area_hooks(self):
+        shift = self.create_shift(status=Shift.Status.CONFIRMED)
+        self.client.login(username="worker", password="test-password-123")
+
+        response = self.client.get(reverse("worker_service_log_create", args=[shift.id]))
+
+        self.assertContains(response, 'class="worker-card worker-service-log-form-page"')
+        self.assertContains(response, "worker-bottom-actions")
+        self.assertContains(response, "Submit Service Log")
+
     def test_worker_cannot_access_other_worker_shift(self):
         shift = Shift.objects.create(
             participant=self.participant,
