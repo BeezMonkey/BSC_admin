@@ -120,6 +120,24 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn(".field textarea", css)
         self.assertIn("border-color: #d6e1eb;", css)
 
+    def test_admin_roster_and_invoice_form_alignment_assets_exist(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+        shift_fields = Path("templates/scheduling/partials/shift_form_fields.html").read_text(encoding="utf-8")
+        recurring_shift = Path("templates/scheduling/recurring_shift_form.html").read_text(encoding="utf-8")
+
+        self.assertIn(".shift-service-grid", css)
+        self.assertIn("grid-template-columns: repeat(3, minmax(0, 1fr));", css)
+        self.assertIn(".shift-service-grid {\n    grid-template-columns: repeat(2, minmax(0, 1fr));", css)
+        self.assertIn(".shift-address-field,\n.shift-instructions-field,\n.shift-admin-notes-field", css)
+        self.assertIn(".invoice-preview-empty-state {\n  justify-items: center;", css)
+        self.assertIn("border: 0;", css)
+        self.assertIn('class="form-grid shift-service-grid"', shift_fields)
+        self.assertIn("field_class=\"shift-address-field\"", shift_fields)
+        self.assertIn("field_class=\"shift-instructions-field\"", shift_fields)
+        self.assertIn("field_class=\"shift-admin-notes-field\"", shift_fields)
+        self.assertIn('class="form-grid shift-service-grid"', recurring_shift)
+        self.assertIn("field_class=\"shift-address-field\"", recurring_shift)
+
     def test_worker_access_archive_polish_assets_exist(self):
         css = Path("static/css/app.css").read_text(encoding="utf-8")
         template = Path("templates/workers/worker_form.html").read_text(encoding="utf-8")
