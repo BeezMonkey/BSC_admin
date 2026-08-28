@@ -1427,6 +1427,27 @@ tbody tr:last-child td {
   grid-template-columns: 1fr;
 }
 
+.shift-service-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+}
+
+.shift-service-grid .field {
+  min-width: 0;
+}
+
+.shift-address-field,
+.shift-instructions-field,
+.shift-admin-notes-field {
+  align-self: stretch;
+}
+
+.shift-address-field textarea,
+.shift-instructions-field textarea,
+.shift-admin-notes-field textarea {
+  min-height: 5.15rem;
+}
+
 .support-item-form-grid {
   align-items: start;
 }
@@ -2610,9 +2631,13 @@ tbody tr:last-child td {
 }
 
 .invoice-preview-empty-state {
+  justify-items: center;
   margin: 0;
+  border: 0;
+  border-radius: 0;
   padding: 1.9rem 1rem 2rem;
   text-align: center;
+  background: #fbfcfd;
 }
 
 .invoice-preview-empty-state strong {
@@ -2814,6 +2839,10 @@ tbody tr:last-child td {
 @media (max-width: 1050px) {
   .dashboard-overview {
     grid-template-columns: 1fr;
+  }
+
+  .shift-service-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .operations-summary-grid {
@@ -3080,6 +3109,10 @@ tbody tr:last-child td {
   }
 
   .shift-modal-body .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .shift-service-grid {
     grid-template-columns: 1fr;
   }
 

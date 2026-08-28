@@ -1,4 +1,4 @@
-<label class="field">
+<label class="field{% if field_class %} {{ field_class }}{% endif %}">
   <span>{{ field.label }}</span>
   {{ field }}
   {% if field.errors %}

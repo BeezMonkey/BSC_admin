@@ -19,12 +19,12 @@
 
 <section class="card form-section">
   <h2>Service Details</h2>
-  <div class="form-grid">
+  <div class="form-grid shift-service-grid">
     {% include "participants/partials/field.html" with field=form.support_item %}
     {% include "participants/partials/field.html" with field=form.service_type %}
-    {% include "participants/partials/field.html" with field=form.location %}
-    {% include "participants/partials/field.html" with field=form.address %}
-    {% include "participants/partials/field.html" with field=form.instructions %}
-    {% include "participants/partials/field.html" with field=form.admin_notes %}
+    {% include "participants/partials/field.html" with field=form.location field_class="shift-location-field" %}
+    {% include "participants/partials/field.html" with field=form.address field_class="shift-address-field" %}
+    {% include "participants/partials/field.html" with field=form.instructions field_class="shift-instructions-field" %}
+    {% include "participants/partials/field.html" with field=form.admin_notes field_class="shift-admin-notes-field" %}
   </div>
 </section>
