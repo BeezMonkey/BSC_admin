@@ -45,10 +45,10 @@
         <th>Name</th>
         <th>Category</th>
         <th>Unit</th>
-        <th>Price limit</th>
+        <th class="numeric-cell">Price limit</th>
         <th>GST</th>
         <th>Status</th>
-        <th>Actions</th>
+        <th class="actions-heading">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -58,7 +58,7 @@
           <td>{{ item.name }}</td>
           <td>{{ item.category|default:"-" }}</td>
           <td>{{ item.get_unit_display }}</td>
-          <td>${{ item.price_limit }}</td>
+          <td class="numeric-cell">${{ item.price_limit }}</td>
           <td>{{ item.get_gst_code_display }}</td>
           <td><span class="status-pill status-{% if item.is_active %}active{% else %}inactive{% endif %}">{{ item.is_active|yesno:"Active,Inactive" }}</span></td>
           <td class="actions">

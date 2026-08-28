@@ -43,12 +43,14 @@ Current stable commit:
 | Phase 130-131 | Product documentation | Phase progress index and BSC UI Design System v1. |
 | Phase 132 | Worker mobile QA polish | Worker mobile shift flow accessibility and narrow-screen layout refinements. |
 | Phase 133 | Admin table polish | Create Invoice table empty state, filter placeholder, alignment, and table density polish. |
+| Phase 134 | Admin table system polish | Shared Admin filter, button, table density, and numeric alignment polish. |
 
 ## Recent Detailed Index
 
 | PR | Date | Branch | Purpose |
 | --- | --- | --- | --- |
-| Current | 2026-08-28 | `codex/phase-133-admin-table-filter-polish` | Polishes the Create Invoice filter row, empty state, and preview table density. |
+| Current | 2026-08-28 | `codex/phase-134-admin-table-filter-system-polish` | Unifies Admin list filter rows, buttons, table density, action alignment, and numeric cells. |
+| #177 | 2026-08-28 | `codex/phase-133-admin-table-filter-polish` | Polished the Create Invoice filter row, empty state, and preview table density. |
 | #176 | 2026-08-28 | `codex/phase-132-worker-mobile-flow-qa-polish` | Refined worker mobile shift flow accessibility and narrow-screen layout resilience. |
 | #175 | 2026-08-28 | `codex/phase-131-ui-design-system-v1` | Added the BSC UI Design System v1 documentation for future UI work. |
 | #174 | 2026-08-28 | `codex/phase-130-phase-index-doc` | Added the phase progress index. |
@@ -254,6 +256,7 @@ Current stable commit:
 | 131 | `codex/phase-131-ui-design-system-v1` | BSC UI Design System v1 documentation. |
 | 132 | `codex/phase-132-worker-mobile-flow-qa-polish` | Worker mobile shift flow accessibility and narrow-screen layout polish. |
 | 133 | `codex/phase-133-admin-table-filter-polish` | Create Invoice filter, empty state, and preview table polish. |
+| 134 | `codex/phase-134-admin-table-filter-system-polish` | Shared Admin table, filter, button, and numeric alignment polish. |
 
 ## Notes
 
