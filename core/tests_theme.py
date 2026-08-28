@@ -161,6 +161,16 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn("justify-content: space-between;", css)
         self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr));", css)
 
+    def test_worker_shift_mobile_flow_polish_assets_exist(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+
+        self.assertIn(".shift-list-secondary-action", css)
+        self.assertIn("overflow-wrap: anywhere;", css)
+        self.assertIn("@media (max-width: 380px)", css)
+        self.assertIn("@media (max-width: 340px)", css)
+        self.assertIn("grid-template-columns: 1fr;", css)
+        self.assertIn("touch-action: manipulation;", css)
+
     def test_worker_service_log_mobile_form_assets_exist(self):
         css = Path("static/css/app.css").read_text(encoding="utf-8")
 

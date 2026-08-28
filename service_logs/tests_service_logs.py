@@ -157,7 +157,7 @@ class ServiceLogCompletionTests(TestCase):
         self.assertContains(response, 'class="worker-log-shift-summary"')
         self.assertContains(response, 'class="worker-log-field-grid"')
         self.assertContains(response, 'class="worker-log-notes-grid"')
-        self.assertContains(response, 'class="button-row worker-log-form-actions"')
+        self.assertContains(response, 'class="button-row worker-log-form-actions worker-bottom-actions"')
         self.assertContains(response, 'name="actual_start_time"')
         self.assertContains(response, 'name="actual_end_time"')
         self.assertContains(response, 'name="break_minutes"')
