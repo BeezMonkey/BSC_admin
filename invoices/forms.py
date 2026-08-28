@@ -8,9 +8,16 @@ from .models import InvoiceSettings
 
 
 class InvoiceCreateForm(forms.Form):
-    participant = forms.ModelChoiceField(queryset=Participant.objects.all())
-    period_start = forms.DateField(widget=forms.DateInput(attrs={"type": "date"}))
-    period_end = forms.DateField(widget=forms.DateInput(attrs={"type": "date"}))
+    participant = forms.ModelChoiceField(
+        empty_label="Select participant",
+        queryset=Participant.objects.all(),
+    )
+    period_start = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date", "placeholder": "dd/mm/yyyy"})
+    )
+    period_end = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date", "placeholder": "dd/mm/yyyy"})
+    )
 
     def clean(self):
         cleaned_data = super().clean()

@@ -329,6 +329,27 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, 'class="filter-bar invoice-preview-filter"')
         self.assertNotContains(response, "<p>\n    <label")
 
+    def test_invoice_create_uses_clear_empty_participant_placeholder(self):
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_create"))
+
+        self.assertContains(response, '<option value="" selected>Select participant</option>', html=True)
+        self.assertNotContains(response, ">---------<")
+
+    def test_invoice_create_empty_preview_uses_empty_state_instead_of_empty_table(self):
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_create"))
+
+        self.assertContains(response, 'class="invoice-preview-empty-state empty-state"')
+        self.assertContains(response, "No approved logs found")
+        self.assertContains(
+            response,
+            "Choose another participant or date range, or approve submitted service logs before creating an invoice.",
+        )
+        self.assertNotContains(response, '<tr><td colspan="5">No approved logs found.</td></tr>', html=True)
+
     def test_invoice_create_wraps_approved_logs_table_for_small_screens(self):
         self.login_accountant()
 
@@ -897,7 +918,11 @@ class InvoiceGenerationTests(TestCase):
 
         response = self.client.get(reverse("invoice_create"), self.create_payload())
 
-        self.assertContains(response, "<td>01/06/2026</td>", html=True)
+        self.assertContains(
+            response,
+            '<td class="invoice-preview-date-cell">01/06/2026</td>',
+            html=True,
+        )
         self.assertNotContains(response, "<td>June 1, 2026</td>", html=True)
         self.assertContains(response, 'name="period_start" value="2026-06-01"')
 
