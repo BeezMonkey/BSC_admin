@@ -1393,10 +1393,40 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, 'class="shift-list-meta"')
         self.assertContains(response, 'class="shift-list-item-top"')
         self.assertContains(response, 'class="shift-list-status-row"')
-        self.assertContains(response, 'class="shift-list-view-action"')
+        self.assertContains(response, 'class="shift-list-view-action shift-list-secondary-action"')
         self.assertContains(response, 'class="list-item-actions shift-list-actions shift-list-primary-action"')
         self.assertContains(response, f'<span class="shift-list-date">#%s 01/06/2026</span>' % shift.id)
         self.assertContains(response, reverse("worker_shift_confirm", args=[shift.id]))
+
+    def test_worker_shift_list_actions_have_clear_accessible_labels(self):
+        published_shift = self.create_shift(
+            service_date=date(2026, 6, 4),
+            status=Shift.Status.PUBLISHED,
+        )
+        confirmed_shift = self.create_shift(
+            service_date=date(2026, 6, 5),
+            status=Shift.Status.CONFIRMED,
+        )
+        self.client.login(username="worker", password="test-password-123")
+
+        response = self.client.get(reverse("worker_shift_list"))
+
+        self.assertContains(
+            response,
+            f'aria-label="View shift #{published_shift.id} details"',
+        )
+        self.assertContains(
+            response,
+            'class="shift-list-view-action shift-list-secondary-action"',
+        )
+        self.assertContains(
+            response,
+            f'aria-label="Confirm shift #{published_shift.id}"',
+        )
+        self.assertContains(
+            response,
+            f'aria-label="Complete log for shift #{confirmed_shift.id}"',
+        )
 
     def test_worker_shift_list_can_filter_by_shift_group(self):
         published_shift = self.create_shift(

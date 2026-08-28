@@ -1759,6 +1759,10 @@ tbody tr:last-child td {
   background: var(--brand);
 }
 
+.shift-list-secondary-action {
+  touch-action: manipulation;
+}
+
 .shift-list-item-attention {
   border-left-color: var(--accent);
   background: #fffbeb;
@@ -2557,6 +2561,7 @@ tbody tr:last-child td {
   }
 
   .worker-shift-page {
+    overflow: hidden;
     padding: 0.85rem;
   }
 
@@ -2572,6 +2577,7 @@ tbody tr:last-child td {
 
   .worker-shift-page .shift-summary {
     display: grid;
+    align-items: stretch;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.42rem;
     margin: 0;
@@ -2580,6 +2586,7 @@ tbody tr:last-child td {
   .worker-shift-page .shift-summary > span {
     display: grid;
     align-content: center;
+    justify-items: start;
     gap: 0.08rem;
     min-height: 3.1rem;
     border-radius: 7px;
@@ -2596,16 +2603,22 @@ tbody tr:last-child td {
 
   .worker-shift-page .shift-filter-nav {
     display: grid;
+    align-items: stretch;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.45rem;
     margin-bottom: 0;
   }
 
   .worker-shift-page .shift-filter-nav a {
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
+    width: 100%;
+    min-width: 0;
     min-height: 2.15rem;
     padding: 0.38rem 0.52rem;
     text-align: center;
+    touch-action: manipulation;
   }
 
   .worker-content {
@@ -2764,6 +2777,7 @@ tbody tr:last-child td {
     border-radius: 7px;
     padding: 0.78rem;
     background: #ffffff;
+    overflow: hidden;
   }
 
   .shift-list-item .status-pill {
@@ -2783,6 +2797,7 @@ tbody tr:last-child td {
   }
 
   .shift-list-view-action {
+    align-self: start;
     justify-self: end;
     min-height: 2.4rem;
     min-width: 4.2rem;
@@ -2803,10 +2818,12 @@ tbody tr:last-child td {
     display: grid;
     gap: 0.18rem;
     font-size: 0.98rem;
+    overflow-wrap: anywhere;
   }
 
   .worker-shift-page .shift-list-meta {
     color: var(--muted);
+    overflow-wrap: anywhere;
   }
 
   .shift-list-actions {
@@ -2821,6 +2838,7 @@ tbody tr:last-child td {
   .shift-list-actions a,
   .shift-list-actions button {
     min-height: 2.5rem;
+    touch-action: manipulation;
   }
 
   .shift-list-actions .primary-action,
@@ -2953,5 +2971,21 @@ tbody tr:last-child td {
 
   .pagination-links {
     justify-content: space-between;
+  }
+}
+
+@media (max-width: 380px) {
+  .worker-shift-page .shift-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .worker-shift-page .shift-summary > span {
+    min-height: 2.75rem;
+  }
+}
+
+@media (max-width: 340px) {
+  .worker-shift-page .shift-filter-nav {
+    grid-template-columns: 1fr;
   }
 }
