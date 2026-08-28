@@ -122,6 +122,14 @@ class ParticipantManagementTests(TestCase):
         self.assertContains(response, "Basic Information")
         self.assertContains(response, "NDIS Plan")
 
+    def test_participant_management_type_uses_clear_empty_option(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("participant_create"))
+
+        self.assertContains(response, "Select management type")
+        self.assertNotContains(response, "---------")
+
     def test_ndis_number_must_be_unique_when_supplied(self):
         Participant.objects.create(
             first_name="Existing",

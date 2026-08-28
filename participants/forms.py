@@ -49,6 +49,20 @@ class ParticipantForm(forms.ModelForm):
             "internal_notes": forms.Textarea(attrs={"rows": 3}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["management_type"].choices = self.with_empty_choice_label(
+            self.fields["management_type"].choices,
+            "Select management type",
+        )
+
+    @staticmethod
+    def with_empty_choice_label(choices, label):
+        choices = list(choices)
+        if choices and choices[0][0] == "":
+            choices[0] = ("", label)
+        return choices
+
     def clean_postcode(self):
         postcode = self.cleaned_data.get("postcode", "")
         if postcode and (len(postcode) != 4 or not postcode.isdigit()):

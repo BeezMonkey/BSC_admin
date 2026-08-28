@@ -108,6 +108,21 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn('class="field worker-access-toggle"', template)
         self.assertIn('class="worker-access-panel worker-access-panel-warning worker-archive-panel"', template)
 
+    def test_support_item_form_control_polish_assets_exist(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+        template = Path("templates/scheduling/support_item_form.html").read_text(encoding="utf-8")
+
+        self.assertIn(".support-item-form-grid", css)
+        self.assertIn(".support-item-active-panel", css)
+        self.assertIn(".support-item-notes-field", css)
+        self.assertIn(".toggle-field", css)
+        self.assertIn("grid-column: span 2;", css)
+        self.assertIn("align-self: end;", css)
+        self.assertIn(".support-item-notes-field {\n    grid-column: 1 / -1;", css)
+        self.assertIn('class="form-grid support-item-form-grid"', template)
+        self.assertIn('class="support-item-active-panel toggle-field"', template)
+        self.assertIn('class="field support-item-notes-field"', template)
+
     def test_admin_sidebar_groups_real_v1_modules(self):
         template = Path("templates/admin_base.html").read_text(encoding="utf-8")
 
