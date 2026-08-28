@@ -81,14 +81,22 @@
   <section class="card form-section worker-access-section">
     <h2>Worker Access and Archive</h2>
     <div class="worker-access-grid">
-      <div class="worker-access-panel">
+      <div class="worker-access-panel worker-access-panel-neutral">
         <h3>Account Access</h3>
-        {% include "participants/partials/field.html" with field=form.account_active %}
-        <p class="form-section-note">Login access controls whether this worker can sign in to the worker portal.</p>
-        <p class="form-section-note">Turn this off to stop this worker signing in. Their worker record and history are kept.</p>
+        <label class="field worker-access-toggle">
+          {{ form.account_active }}
+          <span>{{ form.account_active.label }}</span>
+          {% if form.account_active.errors %}
+            <span class="field-error">{{ form.account_active.errors|striptags }}</span>
+          {% endif %}
+        </label>
+        <div class="worker-access-copy">
+          <p class="form-section-note">Login access controls whether this worker can sign in to the worker portal.</p>
+          <p class="form-section-note">Turn this off to stop this worker signing in. Their worker record and history are kept.</p>
+        </div>
       </div>
       {% if not form.username %}
-        <div class="worker-access-panel worker-access-panel-warning">
+        <div class="worker-access-panel worker-access-panel-warning worker-archive-panel">
           <h3>Archive status</h3>
           {% include "participants/partials/field.html" with field=form.status %}
           <p class="form-section-note">Set Worker status to Inactive to archive this worker.</p>

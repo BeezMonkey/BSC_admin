@@ -400,7 +400,7 @@ class ServiceLogReviewTests(TestCase):
         self.assertContains(response, 'class="service-log-date-cell"')
         self.assertContains(response, 'class="service-log-person-cell"')
         self.assertContains(response, 'class="service-log-status-cell"')
-        self.assertContains(response, 'class="service-log-hours-cell"')
+        self.assertContains(response, 'class="service-log-hours-cell numeric-cell"')
         self.assertContains(response, 'class="actions service-log-actions-cell"')
 
     def test_service_log_detail_back_link_preserves_list_state(self):
