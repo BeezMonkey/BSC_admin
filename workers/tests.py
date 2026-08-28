@@ -508,6 +508,18 @@ class SupportWorkerManagementTests(TestCase):
         )
         self.assertNotContains(response, "Delete Worker")
 
+    def test_worker_create_shows_access_without_archive_panel(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("worker_create"))
+
+        self.assertContains(response, 'class="worker-access-panel worker-access-panel-neutral"')
+        self.assertContains(response, 'class="field worker-access-toggle"')
+        self.assertContains(response, "Account Access")
+        self.assertContains(response, "Login enabled")
+        self.assertNotContains(response, "Archive status")
+        self.assertNotContains(response, "worker-archive-panel")
+
     def test_admin_can_edit_worker(self):
         user = get_user_model().objects.create_user(
             username="maya",

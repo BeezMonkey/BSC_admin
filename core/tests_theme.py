@@ -82,6 +82,32 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn('class="service-log-hours-cell numeric-cell"', service_logs)
         self.assertIn('class="numeric-cell"', support_items)
 
+    def test_admin_form_section_polish_assets_exist(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+
+        self.assertIn(".form-section", css)
+        self.assertIn("border-color: #d5e0ea;", css)
+        self.assertIn(".form-section h2", css)
+        self.assertIn("border-bottom: 1px solid #e3ebf2;", css)
+        self.assertIn(".field span", css)
+        self.assertIn(".field input,\n.field select", css)
+        self.assertIn("height: 2.38rem;", css)
+        self.assertIn(".field textarea", css)
+        self.assertIn("border-color: #d6e1eb;", css)
+
+    def test_worker_access_archive_polish_assets_exist(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+        template = Path("templates/workers/worker_form.html").read_text(encoding="utf-8")
+
+        self.assertIn(".worker-access-panel-neutral", css)
+        self.assertIn(".worker-archive-panel", css)
+        self.assertIn(".worker-access-toggle", css)
+        self.assertIn("border-left: 3px solid var(--brand);", css)
+        self.assertIn("border-left: 3px solid #dc2626;", css)
+        self.assertIn('class="worker-access-panel worker-access-panel-neutral"', template)
+        self.assertIn('class="field worker-access-toggle"', template)
+        self.assertIn('class="worker-access-panel worker-access-panel-warning worker-archive-panel"', template)
+
     def test_admin_sidebar_groups_real_v1_modules(self):
         template = Path("templates/admin_base.html").read_text(encoding="utf-8")
 
