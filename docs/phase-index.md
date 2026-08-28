@@ -261,6 +261,7 @@ Current stable commit:
 | 134 | `codex/phase-134-admin-table-filter-system-polish` | Shared Admin table, filter, button, and numeric alignment polish. |
 | 135 | `codex/phase-135-admin-worker-form-polish` | Support Worker form section density and Worker Access/Archive danger-zone refinement. |
 | 136 | `codex/phase-136-admin-form-controls-polish` | Support Item active control layout and Participant empty select label polish. |
+| 137 | `codex/phase-137-admin-list-detail-polish` | Admin detail pages, related records, empty values, and status badge polish. |
 
 ## Notes
 

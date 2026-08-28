@@ -49,16 +49,16 @@
     <h2>Overview</h2>
     <dl class="detail-list">
       <dt>Preferred name</dt>
-      <dd>{{ participant.preferred_name|default:"-" }}</dd>
+      <dd>{% if participant.preferred_name %}{{ participant.preferred_name }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
       <dt>Date of birth</dt>
-      <dd>{% if participant.date_of_birth %}{{ participant.date_of_birth|date:"d/m/Y" }}{% else %}-{% endif %}</dd>
+      <dd>{% if participant.date_of_birth %}{{ participant.date_of_birth|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
       <dt>Phone</dt>
-      <dd>{{ participant.phone|default:"-" }}</dd>
+      <dd>{% if participant.phone %}{{ participant.phone }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
       <dt>Email</dt>
-      <dd>{{ participant.email|default:"-" }}</dd>
+      <dd>{% if participant.email %}{{ participant.email }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
       <dt>Address</dt>
       <dd>
-        {{ participant.address_line_1|default:"-" }}
+        {% if participant.address_line_1 %}{{ participant.address_line_1 }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}
         {% if participant.suburb %}<br>{{ participant.suburb }} {{ participant.state }} {{ participant.postcode }}{% endif %}
       </dd>
     </dl>
@@ -68,13 +68,19 @@
     <h2>NDIS Plan</h2>
     <dl class="detail-list">
       <dt>Management type</dt>
-      <dd>{{ participant.get_management_type_display|default:"-" }}</dd>
+      <dd>{% if participant.management_type %}{{ participant.get_management_type_display }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
       <dt>Plan period</dt>
-      <dd>{% if participant.plan_start_date %}{{ participant.plan_start_date|date:"d/m/Y" }}{% else %}-{% endif %} to {% if participant.plan_end_date %}{{ participant.plan_end_date|date:"d/m/Y" }}{% else %}-{% endif %}</dd>
+      <dd>
+        {% if participant.plan_start_date or participant.plan_end_date %}
+          {% if participant.plan_start_date %}{{ participant.plan_start_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %} to {% if participant.plan_end_date %}{{ participant.plan_end_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}
+        {% else %}
+          <span class="detail-empty">Not provided</span>
+        {% endif %}
+      </dd>
       <dt>Plan manager</dt>
-      <dd>{{ participant.plan_manager_name|default:"-" }}</dd>
+      <dd>{% if participant.plan_manager_name %}{{ participant.plan_manager_name }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
       <dt>Support coordinator</dt>
-      <dd>{{ participant.support_coordinator_name|default:"-" }}</dd>
+      <dd>{% if participant.support_coordinator_name %}{{ participant.support_coordinator_name }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
     </dl>
   </section>
 </div>
@@ -83,19 +89,19 @@
   <h2>Notes</h2>
   <dl class="detail-list">
     <dt>Worker visible notes</dt>
-    <dd>{{ participant.worker_visible_notes|default:"-" }}</dd>
+    <dd>{% if participant.worker_visible_notes %}{{ participant.worker_visible_notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
     <dt>Address access instructions</dt>
-    <dd>{{ participant.address_access_instructions|default:"-" }}</dd>
+    <dd>{% if participant.address_access_instructions %}{{ participant.address_access_instructions }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
     <dt>Risk/safety notes</dt>
-    <dd>{{ participant.risk_safety_notes|default:"-" }}</dd>
+    <dd>{% if participant.risk_safety_notes %}{{ participant.risk_safety_notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
     <dt>Internal notes</dt>
-    <dd>{{ participant.internal_notes|default:"-" }}</dd>
+    <dd>{% if participant.internal_notes %}{{ participant.internal_notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
   </dl>
 </section>
 
-<section class="card">
+<section class="card related-records-card">
   <h2>Assigned Workers</h2>
-  <table>
+  <table class="related-records-table">
     <thead>
       <tr>
         <th>Worker</th>
@@ -103,7 +109,7 @@
         <th>End</th>
         <th>Status</th>
         <th>Notes</th>
-        <th>Actions</th>
+        <th class="actions-heading">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -111,10 +117,10 @@
         <tr>
           <td>{{ assignment.worker.display_name }}</td>
           <td>{{ assignment.start_date|date:"d/m/Y" }}</td>
-          <td>{% if assignment.end_date %}{{ assignment.end_date|date:"d/m/Y" }}{% else %}-{% endif %}</td>
-          <td>{{ assignment.is_active|yesno:"Active,Ended" }}</td>
-          <td>{{ assignment.notes|default:"-" }}</td>
-          <td>
+          <td>{% if assignment.end_date %}{{ assignment.end_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
+          <td><span class="status-pill {% if assignment.is_active %}status-active{% else %}status-inactive{% endif %}">{{ assignment.is_active|yesno:"Active,Ended" }}</span></td>
+          <td>{% if assignment.notes %}{{ assignment.notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
+          <td class="actions">
             {% if assignment.is_active %}
               <form method="post" action="{% url 'assignment_end' assignment.id %}" class="inline-form">
                 {% csrf_token %}
@@ -122,13 +128,13 @@
                 <button type="submit">End</button>
               </form>
             {% else %}
-              -
+              <span class="detail-empty">No action</span>
             {% endif %}
           </td>
         </tr>
       {% empty %}
         <tr>
-          <td colspan="6">No workers assigned.</td>
+          <td colspan="6"><span class="detail-empty">No workers assigned.</span></td>
         </tr>
       {% endfor %}
     </tbody>

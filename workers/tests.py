@@ -353,6 +353,39 @@ class SupportWorkerManagementTests(TestCase):
         self.assertContains(response, "Police check")
         self.assertContains(response, "Current")
 
+    def test_worker_detail_uses_polished_related_records(self):
+        user = get_user_model().objects.create_user(
+            username="maya",
+            email="maya@example.com",
+            password="test-password-123",
+        )
+        worker = SupportWorker.objects.create(
+            user=user,
+            first_name="Maya",
+            last_name="Singh",
+            email="maya@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        participant = Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            status=Participant.Status.ACTIVE,
+        )
+        ParticipantWorkerAssignment.objects.create(
+            participant=participant,
+            worker=worker,
+            start_date=date(2026, 1, 1),
+            is_active=True,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("worker_detail", args=[worker.id]))
+
+        self.assertContains(response, 'class="card related-records-card"')
+        self.assertContains(response, 'class="related-records-table"')
+        self.assertContains(response, 'class="status-pill status-active"')
+        self.assertContains(response, 'class="detail-empty"')
+
     def test_worker_detail_back_link_preserves_list_state(self):
         user = get_user_model().objects.create_user(
             username="maya",
@@ -476,9 +509,11 @@ class SupportWorkerManagementTests(TestCase):
         self.assertLess(content.index("Internal Notes"), content.index("Account Access"))
         self.assertLess(content.index("Internal Notes"), content.index("Login enabled"))
         self.assertContains(detail_response, "<dt>Login enabled</dt>", html=True)
-        self.assertContains(detail_response, "<dd>No</dd>", html=True)
+        self.assertContains(detail_response, 'class="status-pill status-inactive"')
+        self.assertContains(detail_response, ">No</span>")
         self.assertContains(detail_response, "<dt>Worker status</dt>", html=True)
-        self.assertContains(detail_response, "<dd>Active</dd>", html=True)
+        self.assertContains(detail_response, 'class="status-pill status-active"')
+        self.assertContains(detail_response, ">Active</span>")
 
     def test_worker_edit_explains_archive_without_delete_action(self):
         user = get_user_model().objects.create_user(
