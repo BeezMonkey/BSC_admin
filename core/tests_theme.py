@@ -39,6 +39,22 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn("Remove current logo", template)
         self.assertNotIn('alt="Current logo"', template)
 
+    def test_invoice_create_table_and_filter_polish_assets_exist(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+        template = Path("templates/invoices/invoice_form.html").read_text(encoding="utf-8")
+
+        self.assertIn(".invoice-preview-filter", css)
+        self.assertIn(".invoice-preview-table", css)
+        self.assertIn(".invoice-preview-empty-state", css)
+        self.assertIn(".invoice-preview-table th", css)
+        self.assertIn(".invoice-preview-table td", css)
+        self.assertIn(".invoice-preview-hours-cell", css)
+        self.assertIn(".invoice-preview-table .status-pill", css)
+        self.assertIn("font-weight: 400;", css)
+        self.assertIn("border-bottom: 1px solid #e3ebf2;", css)
+        self.assertIn('class="invoice-preview-empty-state empty-state"', template)
+        self.assertIn('class="invoice-preview-hours-cell"', template)
+
     def test_admin_sidebar_groups_real_v1_modules(self):
         template = Path("templates/admin_base.html").read_text(encoding="utf-8")
 
