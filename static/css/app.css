@@ -383,7 +383,8 @@ button.danger:hover {
 
 td.actions {
   display: table-cell;
-  min-width: 142px;
+  min-width: 8.5rem;
+  text-align: right;
   white-space: nowrap;
 }
 
@@ -392,28 +393,29 @@ td.actions button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 1.85rem;
+  min-height: 2rem;
   border: 1px solid #d4dde8;
   border-radius: 6px;
-  padding: 0.24rem 0.5rem;
-  font-size: 0.86rem;
+  padding: 0.32rem 0.58rem;
+  font-size: 0.84rem;
   line-height: 1.2;
   font-weight: var(--weight-action);
 }
 
 td.actions a {
-  margin-right: 0.38rem;
+  margin-right: 0.32rem;
   color: var(--brand-dark);
   background: #f8fafc;
 }
 
 td.actions form {
   display: inline-flex;
+  justify-content: flex-end;
   margin: 0;
 }
 
 td.actions button {
-  min-height: 1.85rem;
+  min-height: 2rem;
 }
 
 td.actions a:hover {
@@ -432,6 +434,36 @@ td.actions a:last-child {
   gap: 0.75rem;
   margin-bottom: 1rem;
   flex-wrap: wrap;
+}
+
+.filter-bar label {
+  color: var(--ink);
+  font-size: 0.86rem;
+}
+
+.filter-bar input,
+.filter-bar select {
+  height: 2.38rem;
+  border-color: #d6e1eb;
+  color: var(--ink);
+  font-weight: 400;
+}
+
+.filter-bar input::placeholder {
+  color: #8794a6;
+}
+
+.filter-bar select:invalid,
+.filter-bar input[type="date"]:invalid {
+  color: #8794a6;
+}
+
+.filter-bar > button,
+.filter-bar > .button {
+  align-self: end;
+  height: 2.38rem;
+  min-height: 2.38rem;
+  padding: 0 0.86rem;
 }
 
 .filter-summary {
@@ -1083,7 +1115,7 @@ input[type="checkbox"] {
 
 .table-card {
   overflow-x: auto;
-  border: 1px solid var(--line);
+  border: 1px solid #d5e0ea;
   border-radius: 6px;
   background: var(--panel);
   box-shadow: var(--shadow);
@@ -1091,7 +1123,7 @@ input[type="checkbox"] {
 
 .table-card.card {
   display: block;
-  padding: 0.82rem;
+  padding: 0.78rem;
 }
 
 table {
@@ -1119,7 +1151,7 @@ table {
 .service-log-table .service-log-person-cell {
   min-width: 8.5rem;
   overflow-wrap: anywhere;
-  font-weight: 700;
+  font-weight: var(--weight-action);
 }
 
 .service-log-table td.service-log-actions-cell {
@@ -1153,7 +1185,7 @@ table {
 .roster-table .roster-person-cell {
   min-width: 8.5rem;
   overflow-wrap: anywhere;
-  font-weight: 700;
+  font-weight: var(--weight-action);
 }
 
 .roster-table .roster-service-cell {
@@ -1174,18 +1206,40 @@ table {
 
 th,
 td {
-  border-bottom: 1px solid var(--line);
-  padding: 0.7rem 0.86rem;
+  border-bottom: 1px solid #e3ebf2;
+  padding: 0.62rem 0.75rem;
   text-align: left;
-  vertical-align: top;
+  vertical-align: middle;
 }
 
 th {
   background: #fbfcfd;
-  color: var(--muted);
-  font-size: 0.8rem;
+  color: #5e6f87;
+  font-size: 0.78rem;
   font-weight: var(--weight-label);
   text-transform: none;
+}
+
+.table-card th,
+.table-card td {
+  border-bottom: 1px solid #e3ebf2;
+}
+
+.table-card td {
+  color: #172437;
+  font-size: 0.88rem;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.table-card .actions-heading {
+  text-align: right;
+}
+
+.numeric-cell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .sort-link {

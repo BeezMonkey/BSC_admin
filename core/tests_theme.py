@@ -55,6 +55,33 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn('class="invoice-preview-empty-state empty-state"', template)
         self.assertIn('class="invoice-preview-hours-cell"', template)
 
+    def test_admin_filter_and_table_system_polish_assets_exist(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+
+        self.assertIn(".filter-bar label", css)
+        self.assertIn(".filter-bar input,\n.filter-bar select", css)
+        self.assertIn(".filter-bar > button,\n.filter-bar > .button", css)
+        self.assertIn("height: 2.38rem;", css)
+        self.assertIn("border-color: #d6e1eb;", css)
+        self.assertIn(".table-card th,\n.table-card td", css)
+        self.assertIn("border-bottom: 1px solid #e3ebf2;", css)
+        self.assertIn(".table-card td", css)
+        self.assertIn("font-weight: 400;", css)
+        self.assertIn(".numeric-cell", css)
+        self.assertIn("text-align: right;", css)
+        self.assertIn("font-variant-numeric: tabular-nums;", css)
+        self.assertIn("td.actions", css)
+        self.assertIn("justify-content: flex-end;", css)
+
+    def test_admin_numeric_table_cells_use_alignment_hooks(self):
+        invoice_list = Path("templates/invoices/invoice_list.html").read_text(encoding="utf-8")
+        service_logs = Path("templates/service_logs/service_log_list.html").read_text(encoding="utf-8")
+        support_items = Path("templates/scheduling/support_item_list.html").read_text(encoding="utf-8")
+
+        self.assertIn('class="numeric-cell"', invoice_list)
+        self.assertIn('class="service-log-hours-cell numeric-cell"', service_logs)
+        self.assertIn('class="numeric-cell"', support_items)
+
     def test_admin_sidebar_groups_real_v1_modules(self):
         template = Path("templates/admin_base.html").read_text(encoding="utf-8")
 
