@@ -40,11 +40,14 @@ Current stable commit:
 | Phase 110-118 | Demo reset and worker archive | Noon display fix, safe demo reset, support item protection, worker list simplification, login wording, archived workers and scheduling safety. |
 | Phase 120-124 | Invoice PDF hardening | Description wrapping, line-item polish, service-date column, footer, multi-page pagination. |
 | Phase 125A-129A | Worker mobile experience | Responsive drawer navigation, mobile content, service-log form containment, iOS Safari time input fixes, shift card action hierarchy, menu icon polish. |
+| Phase 130-131 | Product documentation | Phase progress index and BSC UI Design System v1. |
 
 ## Recent Detailed Index
 
 | PR | Date | Branch | Purpose |
 | --- | --- | --- | --- |
+| Current | 2026-08-28 | `codex/phase-131-ui-design-system-v1` | Adds the BSC UI Design System v1 documentation for future UI work. |
+| #174 | 2026-08-28 | `codex/phase-130-phase-index-doc` | Added the phase progress index. |
 | #173 | 2026-08-27 | `codex/phase-129a-worker-menu-icon-polish` | Polished the worker mobile menu icon. |
 | #172 | 2026-08-27 | `codex/phase-128a-worker-shift-action-first` | Refined worker shift cards so primary actions are clearer and faster to use. |
 | #171 | 2026-08-27 | `codex/phase-127a-worker-shifts-mobile-actions` | Improved mobile shift-card action placement. |
@@ -243,6 +246,8 @@ Current stable commit:
 | 127A | `codex/phase-127a-worker-shifts-mobile-actions` | Worker mobile shift card actions. |
 | 128A | `codex/phase-128a-worker-shift-action-first` | Worker shift action hierarchy. |
 | 129A | `codex/phase-129a-worker-menu-icon-polish` | Worker mobile menu icon polish. |
+| 130 | `codex/phase-130-phase-index-doc` | Phase progress index documentation. |
+| 131 | `codex/phase-131-ui-design-system-v1` | BSC UI Design System v1 documentation. |
 
 ## Notes
 
