@@ -139,6 +139,25 @@ class SupportItemManagementTests(TestCase):
         self.assertContains(response, "ACTIVE-1")
         self.assertContains(response, "GST-free")
 
+    def test_support_item_detail_uses_polished_status_and_empty_values(self):
+        item = SupportItem.objects.create(
+            item_number="ACTIVE-1",
+            name="Community access",
+            category="",
+            unit=SupportItem.Unit.HOUR,
+            price_limit=Decimal("70.00"),
+            gst_code=SupportItem.GSTCode.GST_FREE,
+            is_active=False,
+            notes="",
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("support_item_detail", args=[item.id]))
+
+        self.assertContains(response, 'class="status-pill status-inactive"')
+        self.assertContains(response, 'class="detail-empty"')
+        self.assertContains(response, "Not provided")
+
     def test_admin_can_edit_support_item(self):
         item = SupportItem.objects.create(
             item_number="ACTIVE-1",

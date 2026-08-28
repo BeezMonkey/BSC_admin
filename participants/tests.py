@@ -318,6 +318,40 @@ class ParticipantManagementTests(TestCase):
         self.assertContains(response, "Roster")
         self.assertContains(response, "Service Logs")
 
+    def test_participant_detail_uses_polished_related_records(self):
+        participant = Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            ndis_number="111111111",
+            status=Participant.Status.ACTIVE,
+        )
+        worker_user = get_user_model().objects.create_user(
+            username="maya",
+            email="maya@example.com",
+            password="test-password-123",
+        )
+        worker = SupportWorker.objects.create(
+            user=worker_user,
+            first_name="Maya",
+            last_name="Singh",
+            email="maya@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        ParticipantWorkerAssignment.objects.create(
+            participant=participant,
+            worker=worker,
+            start_date=date(2026, 1, 1),
+            is_active=True,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("participant_detail", args=[participant.id]))
+
+        self.assertContains(response, 'class="card related-records-card"')
+        self.assertContains(response, 'class="related-records-table"')
+        self.assertContains(response, 'class="status-pill status-active"')
+        self.assertContains(response, 'class="detail-empty"')
+
     def test_participant_detail_back_link_preserves_list_state(self):
         participant = Participant.objects.create(
             first_name="Ava",
