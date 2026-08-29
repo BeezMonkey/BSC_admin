@@ -15,6 +15,7 @@ from scheduling.models import Shift
 
 from .forms import ServiceLogForm
 from .models import ServiceLog
+from .notifications import notify_admin_service_log_submitted
 
 
 @admin_required
@@ -212,6 +213,7 @@ def worker_service_log_create(request, shift_id):
             shift.status = Shift.Status.COMPLETED
             shift.completed_at = timezone.now()
             shift.save(update_fields=["status", "completed_at", "updated_at"])
+            notify_admin_service_log_submitted(service_log, request=request)
             messages.success(request, "Service log submitted.")
             return redirect("worker_service_log_detail", service_log_id=service_log.id)
     else:

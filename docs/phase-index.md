@@ -262,6 +262,7 @@ Current stable commit:
 | 135 | `codex/phase-135-admin-worker-form-polish` | Support Worker form section density and Worker Access/Archive danger-zone refinement. |
 | 136 | `codex/phase-136-admin-form-controls-polish` | Support Item active control layout and Participant empty select label polish. |
 | 137 | `codex/phase-137-admin-list-detail-polish` | Admin detail pages, related records, form alignment, empty values, and status badge polish. |
+| 138 | `codex/phase-138-service-log-email-notification` | Admin email notification when workers submit service logs. |
 
 ## Notes
 

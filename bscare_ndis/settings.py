@@ -181,6 +181,19 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'role_redirect'
 LOGOUT_REDIRECT_URL = 'login'
 
+BSC_ADMIN_BASE_URL = os.getenv("BSC_ADMIN_BASE_URL", "").strip().rstrip("/")
+ADMIN_NOTIFICATION_EMAILS = env_list("ADMIN_NOTIFICATION_EMAILS")
+
+if os.getenv("EMAIL_BACKEND"):
+    EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
+EMAIL_HOST = os.getenv("EMAIL_HOST", "localhost")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "25"))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", False)
+EMAIL_USE_SSL = env_bool("EMAIL_USE_SSL", False)
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "webmaster@localhost")
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
