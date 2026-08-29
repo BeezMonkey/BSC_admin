@@ -2,7 +2,9 @@ from datetime import date, time
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.core import mail
+from django.core.mail.backends.base import BaseEmailBackend
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from accounts.models import UserProfile
@@ -10,6 +12,11 @@ from participants.models import Participant
 from scheduling.models import Shift, SupportItem
 from service_logs.models import ServiceLog
 from workers.models import SupportWorker
+
+
+class FailingEmailBackend(BaseEmailBackend):
+    def send_messages(self, email_messages):
+        raise RuntimeError("SMTP unavailable")
 
 
 class ServiceLogCompletionTests(TestCase):
@@ -125,6 +132,64 @@ class ServiceLogCompletionTests(TestCase):
         self.assertEqual(service_log.worker, self.worker)
         self.assertEqual(shift.status, Shift.Status.COMPLETED)
         self.assertIsNotNone(shift.completed_at)
+
+    @override_settings(
+        ADMIN_NOTIFICATION_EMAILS=["kun-bi@hotmail.com"],
+        BSC_ADMIN_BASE_URL="https://admin.bscare.com.au",
+        DEFAULT_FROM_EMAIL="notifications@bscare.com.au",
+    )
+    def test_worker_service_log_submission_emails_admin_notification(self):
+        shift = self.create_shift()
+        self.login_worker()
+
+        response = self.client.post(
+            reverse("worker_service_log_create", args=[shift.id]),
+            self.log_payload(),
+        )
+
+        service_log = ServiceLog.objects.get()
+        self.assertRedirects(
+            response,
+            reverse("worker_service_log_detail", args=[service_log.id]),
+        )
+        self.assertEqual(len(mail.outbox), 1)
+        message = mail.outbox[0]
+        self.assertEqual(message.to, ["kun-bi@hotmail.com"])
+        self.assertEqual(message.from_email, "notifications@bscare.com.au")
+        self.assertIn("New service log submitted - Ava Nguyen", message.subject)
+        self.assertIn("Participant: Ava Nguyen", message.body)
+        self.assertIn("Worker: Wendy Worker", message.body)
+        self.assertIn("Service date: 01/06/2026", message.body)
+        self.assertIn("Actual hours: 2.00", message.body)
+        self.assertIn("Kilometres: 4.50", message.body)
+        self.assertIn(
+            f"https://admin.bscare.com.au{reverse('service_log_detail', args=[service_log.id])}",
+            message.body,
+        )
+
+    @override_settings(
+        ADMIN_NOTIFICATION_EMAILS=["kun-bi@hotmail.com"],
+        EMAIL_BACKEND="service_logs.tests_service_logs.FailingEmailBackend",
+    )
+    def test_worker_service_log_submission_continues_when_email_fails(self):
+        shift = self.create_shift()
+        self.login_worker()
+
+        with self.assertLogs("service_logs.notifications", level="WARNING") as logs:
+            response = self.client.post(
+                reverse("worker_service_log_create", args=[shift.id]),
+                self.log_payload(),
+            )
+
+        service_log = ServiceLog.objects.get()
+        shift.refresh_from_db()
+        self.assertIn("Failed to send service log notification email", logs.output[0])
+        self.assertRedirects(
+            response,
+            reverse("worker_service_log_detail", args=[service_log.id]),
+        )
+        self.assertEqual(service_log.status, ServiceLog.Status.SUBMITTED)
+        self.assertEqual(shift.status, Shift.Status.COMPLETED)
 
     def test_worker_can_open_complete_form_with_shift_defaults(self):
         shift = self.create_shift(status=Shift.Status.CONFIRMED)

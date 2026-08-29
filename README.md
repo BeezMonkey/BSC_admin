@@ -34,6 +34,26 @@ DJANGO_CSRF_TRUSTED_ORIGINS=
 DATABASE_URL=
 ```
 
+Service log admin notification email values:
+
+```text
+BSC_ADMIN_BASE_URL=https://admin.bscare.com.au
+ADMIN_NOTIFICATION_EMAILS=kun-bi@hotmail.com
+DEFAULT_FROM_EMAIL=notifications@bscare.com.au
+EMAIL_HOST=smtp.example.com
+EMAIL_PORT=587
+EMAIL_HOST_USER=notifications@bscare.com.au
+EMAIL_HOST_PASSWORD=change-me
+EMAIL_USE_TLS=True
+EMAIL_USE_SSL=False
+```
+
+Use a comma-separated list for multiple admin recipients:
+
+```text
+ADMIN_NOTIFICATION_EMAILS=kun-bi@hotmail.com,office@example.com
+```
+
 The system uses `Australia/Brisbane` as the fixed business timezone while keeping timezone-aware datetime storage enabled.
 
 For future PostgreSQL deployment:
