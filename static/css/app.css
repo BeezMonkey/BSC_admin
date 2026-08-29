@@ -1322,13 +1322,18 @@ tbody tr:last-child td {
 }
 
 .status-pill {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.5rem;
   border-radius: 999px;
   padding: 0.2rem 0.48rem;
   background: #e0f2fe;
   color: #075985;
   font-size: 0.8rem;
   font-weight: var(--weight-action);
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .status-pill.status-active,
@@ -1420,6 +1425,27 @@ tbody tr:last-child td {
 
 .form-grid.single {
   grid-template-columns: 1fr;
+}
+
+.shift-service-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+}
+
+.shift-service-grid .field {
+  min-width: 0;
+}
+
+.shift-address-field,
+.shift-instructions-field,
+.shift-admin-notes-field {
+  align-self: stretch;
+}
+
+.shift-address-field textarea,
+.shift-instructions-field textarea,
+.shift-admin-notes-field textarea {
+  min-height: 5.15rem;
 }
 
 .support-item-form-grid {
@@ -1629,11 +1655,6 @@ tbody tr:last-child td {
   line-height: 1.45;
 }
 
-.detail-empty {
-  color: #94a3b8;
-  font-weight: 700;
-}
-
 .shift-cancel-card {
   border-left: 4px solid #dc2626;
   background: #fffafa;
@@ -1664,20 +1685,63 @@ tbody tr:last-child td {
 .detail-list {
   display: grid;
   gap: 0;
-  grid-template-columns: 160px 1fr;
+  grid-template-columns: minmax(8.5rem, 0.32fr) minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid #edf1f6;
+  border-radius: 7px;
+  background: #ffffff;
 }
 
 .detail-list dt {
   border-top: 1px solid #edf1f6;
-  padding: 0.62rem 0.75rem 0.62rem 0;
+  padding: 0.58rem 0.72rem;
   color: var(--muted);
+  background: #fbfcfd;
+  font-size: 0.82rem;
   font-weight: var(--weight-label);
 }
 
 .detail-list dd {
   border-top: 1px solid #edf1f6;
+  border-left: 1px solid #edf1f6;
   margin: 0;
-  padding: 0.62rem 0 0.62rem 0.75rem;
+  min-width: 0;
+  padding: 0.58rem 0.72rem;
+  color: #172437;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.detail-list dt:first-of-type,
+.detail-list dd:first-of-type {
+  border-top: 0;
+}
+
+.detail-empty {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.related-records-card {
+  gap: 0.85rem;
+  overflow-x: auto;
+}
+
+.related-records-card h3 {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: var(--weight-label);
+}
+
+.related-records-table {
+  min-width: 620px;
+}
+
+.related-records-table th,
+.related-records-table td {
+  padding: 0.58rem 0.72rem;
+  font-size: 0.86rem;
 }
 
 .tabs-placeholder {
@@ -2567,9 +2631,13 @@ tbody tr:last-child td {
 }
 
 .invoice-preview-empty-state {
+  justify-items: center;
   margin: 0;
+  border: 0;
+  border-radius: 0;
   padding: 1.9rem 1rem 2rem;
   text-align: center;
+  background: #fbfcfd;
 }
 
 .invoice-preview-empty-state strong {
@@ -2771,6 +2839,10 @@ tbody tr:last-child td {
 @media (max-width: 1050px) {
   .dashboard-overview {
     grid-template-columns: 1fr;
+  }
+
+  .shift-service-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .operations-summary-grid {
@@ -3040,6 +3112,10 @@ tbody tr:last-child td {
     grid-template-columns: 1fr;
   }
 
+  .shift-service-grid {
+    grid-template-columns: 1fr;
+  }
+
   .shift-modal-footer {
     justify-content: stretch;
     flex-direction: column-reverse;
@@ -3231,6 +3307,10 @@ tbody tr:last-child td {
 
   .detail-list {
     grid-template-columns: 1fr;
+  }
+
+  .detail-list dd {
+    border-left: 0;
   }
 
   .workflow-panel {

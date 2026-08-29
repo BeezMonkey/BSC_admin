@@ -82,6 +82,31 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn('class="service-log-hours-cell numeric-cell"', service_logs)
         self.assertIn('class="numeric-cell"', support_items)
 
+    def test_admin_detail_and_related_record_polish_assets_exist(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+        participant_detail = Path("templates/participants/participant_detail.html").read_text(encoding="utf-8")
+        worker_detail = Path("templates/workers/worker_detail.html").read_text(encoding="utf-8")
+        support_item_detail = Path("templates/scheduling/support_item_detail.html").read_text(encoding="utf-8")
+
+        self.assertIn(".detail-list dt:first-of-type", css)
+        self.assertIn(".detail-list dd:first-of-type", css)
+        self.assertIn("grid-template-columns: minmax(8.5rem, 0.32fr) minmax(0, 1fr);", css)
+        self.assertIn(".detail-list dd", css)
+        self.assertIn("font-weight: 400;", css)
+        self.assertIn(".detail-empty", css)
+        self.assertIn("font-weight: 400;", css)
+        self.assertIn(".related-records-card", css)
+        self.assertIn(".related-records-table", css)
+        self.assertIn(".status-pill {\n  display: inline-flex;", css)
+        self.assertIn(".detail-list dd {\n    border-left: 0;", css)
+        self.assertIn('class="card related-records-card"', participant_detail)
+        self.assertIn('class="related-records-table"', participant_detail)
+        self.assertIn('class="card related-records-card"', worker_detail)
+        self.assertIn('class="related-records-table"', worker_detail)
+        self.assertIn('class="status-pill ', support_item_detail)
+        self.assertIn("status-active", support_item_detail)
+        self.assertIn("status-inactive", support_item_detail)
+
     def test_admin_form_section_polish_assets_exist(self):
         css = Path("static/css/app.css").read_text(encoding="utf-8")
 
@@ -94,6 +119,24 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn("height: 2.38rem;", css)
         self.assertIn(".field textarea", css)
         self.assertIn("border-color: #d6e1eb;", css)
+
+    def test_admin_roster_and_invoice_form_alignment_assets_exist(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+        shift_fields = Path("templates/scheduling/partials/shift_form_fields.html").read_text(encoding="utf-8")
+        recurring_shift = Path("templates/scheduling/recurring_shift_form.html").read_text(encoding="utf-8")
+
+        self.assertIn(".shift-service-grid", css)
+        self.assertIn("grid-template-columns: repeat(3, minmax(0, 1fr));", css)
+        self.assertIn(".shift-service-grid {\n    grid-template-columns: repeat(2, minmax(0, 1fr));", css)
+        self.assertIn(".shift-address-field,\n.shift-instructions-field,\n.shift-admin-notes-field", css)
+        self.assertIn(".invoice-preview-empty-state {\n  justify-items: center;", css)
+        self.assertIn("border: 0;", css)
+        self.assertIn('class="form-grid shift-service-grid"', shift_fields)
+        self.assertIn("field_class=\"shift-address-field\"", shift_fields)
+        self.assertIn("field_class=\"shift-instructions-field\"", shift_fields)
+        self.assertIn("field_class=\"shift-admin-notes-field\"", shift_fields)
+        self.assertIn('class="form-grid shift-service-grid"', recurring_shift)
+        self.assertIn("field_class=\"shift-address-field\"", recurring_shift)
 
     def test_worker_access_archive_polish_assets_exist(self):
         css = Path("static/css/app.css").read_text(encoding="utf-8")
