@@ -1,6 +1,6 @@
 # BSC Admin Phase Index
 
-Last updated: 2026-08-28
+Last updated: 2026-08-29
 
 This file is the working index for BSC Admin phase branches, PRs, and recovery points. Use it to understand what each phase changed, where to find it on GitHub, and which stable version can be used as a restore point.
 
@@ -45,12 +45,19 @@ Current stable commit:
 | Phase 133 | Admin table polish | Create Invoice table empty state, filter placeholder, alignment, and table density polish. |
 | Phase 134 | Admin table system polish | Shared Admin filter, button, table density, and numeric alignment polish. |
 | Phase 135 | Admin worker form polish | Support Worker form section density and Worker Access/Archive danger-zone refinement. |
+| Phase 136-137 | Admin form/detail polish | Admin form controls, roster shift forms, invoice forms, and detail pages aligned to the shared UI system. |
+| Phase 138 | Service log email notification | Worker service log submission sends an admin notification email through Brevo SMTP. |
 
 ## Recent Detailed Index
 
 | PR | Date | Branch | Purpose |
 | --- | --- | --- | --- |
-| Current | 2026-08-28 | `codex/phase-135-admin-worker-form-polish` | Polishes Support Worker form sections and separates account access from archive status visually. |
+| Current | 2026-08-29 | `codex/phase-139-email-provider-handoff` | Documents the final Brevo SMTP setup and successful service log email notification test. |
+| #183 | 2026-08-29 | `codex/phase-138-service-log-email-notification` | Added admin email notifications when workers submit service logs. Production testing uses Brevo SMTP with `admin@brisbanestarcare.com.au` as the verified sender and `kun-bi@hotmail.com` as the recipient. |
+| #182 | 2026-08-29 | `codex/phase-137-admin-list-detail-polish` | Polished admin shift and invoice form alignment. |
+| #181 | 2026-08-29 | `codex/phase-137-admin-list-detail-polish` | Polished admin detail pages for stronger visual consistency. |
+| #180 | 2026-08-29 | `codex/phase-136-admin-form-controls-polish` | Polished admin form controls and section alignment. |
+| #179 | 2026-08-28 | `codex/phase-135-admin-worker-form-polish` | Polished Support Worker form sections and separated account access from archive status visually. |
 | #178 | 2026-08-28 | `codex/phase-134-admin-table-filter-system-polish` | Unified Admin list filter rows, buttons, table density, action alignment, and numeric cells. |
 | #177 | 2026-08-28 | `codex/phase-133-admin-table-filter-polish` | Polished the Create Invoice filter row, empty state, and preview table density. |
 | #176 | 2026-08-28 | `codex/phase-132-worker-mobile-flow-qa-polish` | Refined worker mobile shift flow accessibility and narrow-screen layout resilience. |
