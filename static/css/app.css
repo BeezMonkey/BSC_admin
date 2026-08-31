@@ -2367,7 +2367,7 @@ tbody tr:last-child td {
 
 .workflow-checklist-list li {
   display: grid;
-  grid-template-columns: 1.35rem minmax(12rem, 1fr) minmax(8.5rem, auto);
+  grid-template-columns: 1.35rem minmax(0, 1fr) auto;
   gap: 0.62rem;
   align-items: start;
   border-top: 1px solid var(--line);
@@ -2398,13 +2398,33 @@ tbody tr:last-child td {
   min-width: 0;
 }
 
-.workflow-checklist-copy strong,
-.workflow-checklist-copy span,
-.workflow-checklist-action span {
-  display: block;
+.workflow-checklist-title-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.38rem;
+  flex-wrap: wrap;
 }
 
-.workflow-checklist-copy span {
+.workflow-checklist-title-line strong {
+  display: inline;
+}
+
+.workflow-checklist-detail {
+  display: inline;
+  color: #5c7187;
+  font-size: 0.78rem;
+  font-weight: var(--weight-label);
+  line-height: 1.25;
+}
+
+.workflow-checklist-detail::before {
+  color: #9aadb8;
+  content: "\00b7";
+  margin-right: 0.38rem;
+}
+
+.workflow-checklist-description {
+  display: block;
   margin-top: 0.08rem;
   color: var(--muted);
   font-size: 0.84rem;
@@ -2412,18 +2432,9 @@ tbody tr:last-child td {
 
 .workflow-checklist-action {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: flex-end;
-  gap: 0.5rem;
-  padding-top: 0.02rem;
-  white-space: nowrap;
-}
-
-.workflow-checklist-action span {
-  color: var(--muted);
-  font-size: 0.82rem;
-  font-weight: var(--weight-label);
-  text-align: right;
+  padding-top: 0;
 }
 
 .workflow-checklist-action a {
@@ -3021,10 +3032,6 @@ tbody tr:last-child td {
     flex-wrap: wrap;
     justify-content: flex-start;
     white-space: normal;
-  }
-
-  .workflow-checklist-action span {
-    text-align: left;
   }
 }
 

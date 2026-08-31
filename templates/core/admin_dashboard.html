@@ -65,11 +65,13 @@
       <li>
         <span class="workflow-checklist-number">{{ forloop.counter }}</span>
         <div class="workflow-checklist-copy">
-          <strong>{{ item.label }}</strong>
-          <span>{{ item.description }}</span>
+          <div class="workflow-checklist-title-line">
+            <strong>{{ item.label }}</strong>
+            <span class="workflow-checklist-detail">{{ item.detail }}</span>
+          </div>
+          <span class="workflow-checklist-description">{{ item.description }}</span>
         </div>
         <div class="workflow-checklist-action">
-          <span>{{ item.detail }}</span>
           <a href="{% url item.url_name %}{% if item.query %}?{{ item.query }}{% endif %}">Open</a>
         </div>
       </li>

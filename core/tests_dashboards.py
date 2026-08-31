@@ -479,6 +479,9 @@ class DashboardPolishTests(TestCase):
 
         self.assertContains(response, 'class="workflow-checklist-number"', count=6)
         self.assertContains(response, 'class="workflow-checklist-copy"', count=6)
+        self.assertContains(response, 'class="workflow-checklist-title-line"', count=6)
+        self.assertContains(response, 'class="workflow-checklist-detail"', count=6)
+        self.assertContains(response, 'class="workflow-checklist-description"', count=6)
         self.assertContains(response, 'class="workflow-checklist-action"', count=6)
         self.assertContains(response, '<a href="/participants/new/">Open</a>', html=True)
         self.assertContains(response, '<a href="/participants/">Open</a>', html=True)
