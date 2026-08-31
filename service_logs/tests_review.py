@@ -324,6 +324,10 @@ class ServiceLogReviewTests(TestCase):
 
         self.assertContains(response, 'class="service-log-date-stack"')
         self.assertContains(response, 'class="service-log-person-stack"')
+        self.assertContains(response, 'class="service-log-person-name"')
+        self.assertContains(response, 'class="service-log-role-label"')
+        self.assertContains(response, "Participant")
+        self.assertContains(response, "Support worker")
         self.assertContains(response, 'class="service-log-notes-preview"')
         self.assertContains(response, "Submitted")
 

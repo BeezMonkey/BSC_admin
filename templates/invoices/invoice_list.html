@@ -6,7 +6,7 @@
 <div class="page-header">
   <div>
     <h1>Invoices</h1>
-    <p>Generated invoices from approved service logs.</p>
+    <p>Track generated invoices, review draft billing, and follow issued invoices through payment.</p>
   </div>
   <div class="button-row">
     <a class="button secondary" href="{% url 'invoice_settings' %}">Invoice Settings</a>
@@ -14,35 +14,57 @@
   </div>
 </div>
 
-<form class="filter-bar" method="get">
-  <label>
-    Invoice
-    <input type="search" name="q" value="{{ q }}" placeholder="Invoice number">
-  </label>
-  <label>
-    Participant
-    <input type="search" name="participant" value="{{ participant_query }}" placeholder="Participant name">
-  </label>
-  <label>
-    Status
-    <select name="status">
-      <option value="">All statuses</option>
-      {% for value, label in status_choices %}
-        <option value="{{ value }}"{% if status == value %} selected{% endif %}>{{ label }}</option>
-      {% endfor %}
-    </select>
-  </label>
-  <label>
-    From
-    <input type="date" name="period_from" value="{{ period_from }}">
-  </label>
-  <label>
-    To
-    <input type="date" name="period_to" value="{{ period_to }}">
-  </label>
-  <button type="submit">Search</button>
-  <a class="button secondary" href="{% url 'invoice_placeholder' %}">Reset</a>
-</form>
+<section class="invoice-workbench" aria-label="Invoice status overview">
+  <div class="dashboard-section-heading">
+    <h2>Billing workbench</h2>
+    <p>Move draft invoices into issue, then close the loop when payment is received.</p>
+  </div>
+  <div class="invoice-status-grid">
+    {% for item in status_overview %}
+    <a class="invoice-status-card{% if item.active %} active{% endif %}" href="{{ item.url }}">
+      <span>{{ item.label }}</span>
+      <strong>{{ item.count_label }}</strong>
+      <small>{{ item.description }}</small>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="invoice-filter-panel" aria-label="Billing filters">
+  <div class="invoice-filter-copy">
+    <strong>Billing filters</strong>
+    <span>Search invoice number, participant, status, or period.</span>
+  </div>
+  <form class="filter-bar invoice-filter-bar" method="get">
+    <label>
+      Invoice
+      <input type="search" name="q" value="{{ q }}" placeholder="Invoice number">
+    </label>
+    <label>
+      Participant
+      <input type="search" name="participant" value="{{ participant_query }}" placeholder="Participant name">
+    </label>
+    <label>
+      Status
+      <select name="status">
+        <option value="">All statuses</option>
+        {% for value, label in status_choices %}
+          <option value="{{ value }}"{% if status == value %} selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      From
+      <input type="date" name="period_from" value="{{ period_from }}">
+    </label>
+    <label>
+      To
+      <input type="date" name="period_to" value="{{ period_to }}">
+    </label>
+    <button type="submit">Search</button>
+    <a class="button secondary" href="{% url 'invoice_placeholder' %}">Reset</a>
+  </form>
+</section>
 
 {% if filter_summary %}
 <div class="filter-summary">
@@ -51,8 +73,8 @@
 </div>
 {% endif %}
 
-<section class="card table-card">
-  <table>
+<section class="card table-card invoice-table-card">
+  <table class="invoice-table">
     <thead>
       <tr>
         <th><a class="sort-link" href="?{{ sorting.links.invoice }}">Invoice</a></th>
@@ -66,11 +88,31 @@
     <tbody>
       {% for invoice in invoices %}
         <tr>
-          <td><a href="{% url 'invoice_detail' invoice.id %}?next={{ current_list_url|urlencode }}">{{ invoice.invoice_number }}</a></td>
-          <td>{{ invoice.participant.display_name }}</td>
-          <td>{{ invoice.period_start|date:"d/m/Y" }} - {{ invoice.period_end|date:"d/m/Y" }}</td>
-          <td><span class="status-pill status-{{ invoice.status }}">{{ invoice.get_status_display }}</span></td>
-          <td class="numeric-cell">${{ invoice.total_amount|floatformat:2 }}</td>
+          <td class="invoice-number-cell">
+            <div class="invoice-number-stack">
+              <a class="invoice-primary-text" href="{% url 'invoice_detail' invoice.id %}?next={{ current_list_url|urlencode }}">{{ invoice.invoice_number }}</a>
+              <span>Created by {{ invoice.created_by.get_username }}</span>
+            </div>
+          </td>
+          <td class="invoice-participant-cell">
+            <div class="invoice-participant-stack">
+              <strong class="invoice-secondary-text">{{ invoice.participant.display_name }}</strong>
+              <span>Participant</span>
+            </div>
+          </td>
+          <td class="invoice-period-cell">
+            <div class="invoice-period-stack">
+              <strong class="invoice-secondary-text">{{ invoice.period_start|date:"d/m/Y" }} - {{ invoice.period_end|date:"d/m/Y" }}</strong>
+              <span>Billing period</span>
+            </div>
+          </td>
+          <td class="invoice-status-cell"><span class="status-pill status-{{ invoice.status }}">{{ invoice.get_status_display }}</span></td>
+          <td class="numeric-cell invoice-total-cell">
+            <div class="invoice-total-stack">
+              <strong>${{ invoice.total_amount|floatformat:2 }}</strong>
+              <span>Invoice total</span>
+            </div>
+          </td>
           <td class="actions">
             <a href="{% url 'invoice_detail' invoice.id %}?next={{ current_list_url|urlencode }}">View</a>
             {% if invoice.status == "draft" %}

@@ -84,14 +84,14 @@
           </td>
           <td class="service-log-person-cell">
             <div class="service-log-person-stack">
-              <strong>{{ service_log.participant.display_name }}</strong>
-              <span>Participant</span>
+              <strong class="service-log-person-name">{{ service_log.participant.display_name }}</strong>
+              <span class="service-log-role-label">Participant</span>
             </div>
           </td>
           <td class="service-log-person-cell">
             <div class="service-log-person-stack">
-              <strong>{{ service_log.worker.display_name }}</strong>
-              <span>Support worker</span>
+              <strong class="service-log-person-name">{{ service_log.worker.display_name }}</strong>
+              <span class="service-log-role-label">Support worker</span>
             </div>
           </td>
           <td class="service-log-status-cell"><span class="status-pill status-{{ service_log.status }}">{{ service_log.get_status_display }}</span></td>

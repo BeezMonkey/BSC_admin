@@ -8,7 +8,7 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import DecimalField, Q, Sum, Value
+from django.db.models import Count, DecimalField, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -83,6 +83,11 @@ def build_invoice_filter_summary(status, q, participant_query, period_from, peri
 
 @finance_required
 def invoice_list(request):
+    status_counts = {
+        row["status"]: row["count"]
+        for row in Invoice.objects.values("status").annotate(count=Count("id"))
+    }
+    total_count = sum(status_counts.values())
     invoices = Invoice.objects.select_related("participant", "created_by").annotate(
         total_amount_sort=Coalesce(
             Sum("lines__line_total"),
@@ -117,6 +122,47 @@ def invoice_list(request):
         period_from,
         period_to,
     )
+    draft_count = status_counts.get(Invoice.Status.DRAFT, 0)
+    issued_count = status_counts.get(Invoice.Status.ISSUED, 0)
+    paid_count = status_counts.get(Invoice.Status.PAID, 0)
+    cancelled_count = status_counts.get(Invoice.Status.CANCELLED, 0)
+    status_overview = [
+        {
+            "label": "All invoices",
+            "count_label": f"{total_count} record{'s' if total_count != 1 else ''}",
+            "description": "Full billing history",
+            "url": reverse("invoice_placeholder"),
+            "active": not status,
+        },
+        {
+            "label": "Draft",
+            "count_label": f"{draft_count} draft{'s' if draft_count != 1 else ''}",
+            "description": "Ready to review before issuing",
+            "url": f"{reverse('invoice_placeholder')}?status={Invoice.Status.DRAFT}",
+            "active": status == Invoice.Status.DRAFT,
+        },
+        {
+            "label": "Issued",
+            "count_label": f"{issued_count} awaiting payment",
+            "description": "Sent invoices not marked paid",
+            "url": f"{reverse('invoice_placeholder')}?status={Invoice.Status.ISSUED}",
+            "active": status == Invoice.Status.ISSUED,
+        },
+        {
+            "label": "Paid",
+            "count_label": f"{paid_count} paid",
+            "description": "Completed billing records",
+            "url": f"{reverse('invoice_placeholder')}?status={Invoice.Status.PAID}",
+            "active": status == Invoice.Status.PAID,
+        },
+        {
+            "label": "Cancelled",
+            "count_label": f"{cancelled_count} cancelled",
+            "description": "Removed from active billing",
+            "url": f"{reverse('invoice_placeholder')}?status={Invoice.Status.CANCELLED}",
+            "active": status == Invoice.Status.CANCELLED,
+        },
+    ]
     invoices, sorting = apply_sorting(
         request,
         invoices,
@@ -144,6 +190,7 @@ def invoice_list(request):
             "period_to": period_to,
             "has_filters": has_filters,
             "status_choices": Invoice.Status.choices,
+            "status_overview": status_overview,
             "filter_summary": filter_summary,
             "current_list_url": request.get_full_path(),
         },
