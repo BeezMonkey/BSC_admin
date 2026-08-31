@@ -252,6 +252,85 @@ class ServiceLogReviewTests(TestCase):
         self.assertContains(response, "Showing approved service logs.")
         self.assertContains(response, reverse("service_log_list"))
 
+    def test_service_log_list_shows_status_overview_cards(self):
+        self.service_log.status = ServiceLog.Status.APPROVED
+        self.service_log.save(update_fields=["status", "updated_at"])
+        submitted_shift = Shift.objects.create(
+            participant=self.participant,
+            worker=self.worker,
+            service_date=date(2026, 6, 2),
+            start_time=time(12, 0),
+            end_time=time(13, 0),
+            break_minutes=0,
+            planned_hours=Decimal("1.00"),
+            support_item=self.support_item,
+            service_type=Shift.ServiceType.PERSONAL_CARE,
+            status=Shift.Status.COMPLETED,
+            created_by=self.admin_user,
+        )
+        ServiceLog.objects.create_from_shift(
+            shift=submitted_shift,
+            actual_start_time=time(12, 0),
+            actual_end_time=time(13, 0),
+            break_minutes=0,
+            actual_hours=Decimal("1.00"),
+            kilometres=Decimal("0.0"),
+            case_notes="Another submitted log.",
+            worker_notes="",
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_list"))
+
+        self.assertContains(response, 'class="service-log-status-grid"')
+        self.assertContains(response, "All logs")
+        self.assertContains(response, "2 records")
+        self.assertContains(response, "Submitted")
+        self.assertContains(response, "1 waiting")
+        self.assertContains(response, "Approved")
+        self.assertContains(response, "1 ready")
+        self.assertContains(response, f'?status={ServiceLog.Status.SUBMITTED}')
+        self.assertContains(response, f'?status={ServiceLog.Status.APPROVED}')
+
+    def test_service_log_list_marks_active_status_overview_card(self):
+        self.service_log.status = ServiceLog.Status.APPROVED
+        self.service_log.save(update_fields=["status", "updated_at"])
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("service_log_list"),
+            {"status": ServiceLog.Status.APPROVED},
+        )
+
+        self.assertContains(response, 'class="service-log-status-card active"')
+        self.assertContains(response, "Ready to invoice")
+
+    def test_service_log_list_uses_workbench_filter_and_bulk_actions(self):
+        self.service_log.status = ServiceLog.Status.APPROVED
+        self.service_log.save(update_fields=["status", "updated_at"])
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_list"))
+
+        self.assertContains(response, 'class="filter-bar service-log-filter-bar"')
+        self.assertContains(response, 'class="bulk-actions service-log-bulk-actions"')
+        self.assertContains(response, "Billing action")
+        self.assertContains(response, "Select approved rows to create an invoice.")
+
+    def test_service_log_list_uses_readable_record_cells(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_list"))
+
+        self.assertContains(response, 'class="service-log-date-stack"')
+        self.assertContains(response, 'class="service-log-person-stack"')
+        self.assertContains(response, 'class="service-log-person-name"')
+        self.assertContains(response, 'class="service-log-role-label"')
+        self.assertContains(response, "Participant")
+        self.assertContains(response, "Support worker")
+        self.assertContains(response, 'class="service-log-notes-preview"')
+        self.assertContains(response, "Submitted")
+
     def test_service_log_list_is_paginated_and_preserves_filters(self):
         self.service_log.status = ServiceLog.Status.APPROVED
         self.service_log.save(update_fields=["status", "updated_at"])

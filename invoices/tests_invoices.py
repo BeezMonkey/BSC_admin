@@ -890,6 +890,89 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, "Clear filters")
         self.assertNotContains(response, "Create an invoice or adjust the filters")
 
+    def test_invoice_list_shows_billing_workbench_status_cards(self):
+        for invoice_status in [
+            Invoice.Status.DRAFT,
+            Invoice.Status.ISSUED,
+            Invoice.Status.PAID,
+            Invoice.Status.CANCELLED,
+        ]:
+            Invoice.objects.create(
+                participant=self.participant,
+                period_start=date(2026, 6, 1),
+                period_end=date(2026, 6, 30),
+                status=invoice_status,
+                created_by=self.accountant_user,
+            )
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_placeholder"))
+
+        self.assertContains(response, 'class="invoice-workbench"')
+        self.assertContains(response, "Billing workbench")
+        self.assertContains(response, "All invoices")
+        self.assertContains(response, "4 records")
+        self.assertContains(response, "Draft")
+        self.assertContains(response, "1 draft")
+        self.assertContains(response, "Issued")
+        self.assertContains(response, "1 awaiting payment")
+        self.assertContains(response, "Paid")
+        self.assertContains(response, "1 paid")
+        self.assertContains(response, "Cancelled")
+        self.assertContains(response, "1 cancelled")
+
+    def test_invoice_list_marks_active_status_overview_card(self):
+        Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            status=Invoice.Status.ISSUED,
+            created_by=self.accountant_user,
+        )
+        self.login_accountant()
+
+        response = self.client.get(
+            reverse("invoice_placeholder"),
+            {"status": Invoice.Status.ISSUED},
+        )
+
+        self.assertContains(response, 'class="invoice-status-card active"')
+        self.assertContains(response, "Showing issued invoices.")
+
+    def test_invoice_list_uses_workbench_filter_layout(self):
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_placeholder"))
+
+        self.assertContains(response, 'class="filter-bar invoice-filter-bar"')
+        self.assertContains(response, "Billing filters")
+        self.assertContains(response, "Search invoice number, participant, status, or period.")
+
+    def test_invoice_list_uses_readable_invoice_row_cells(self):
+        service_log = self.create_service_log(actual_hours=Decimal("2.00"))
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            status=Invoice.Status.DRAFT,
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create_from_service_log(invoice=invoice, service_log=service_log)
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_placeholder"))
+
+        self.assertContains(response, 'class="invoice-number-stack"')
+        self.assertContains(response, 'class="invoice-primary-text"')
+        self.assertContains(response, "Created by accountant")
+        self.assertContains(response, 'class="invoice-participant-stack"')
+        self.assertContains(response, 'class="invoice-secondary-text"')
+        self.assertContains(response, "Participant")
+        self.assertContains(response, 'class="invoice-period-stack"')
+        self.assertContains(response, "Billing period")
+        self.assertContains(response, 'class="invoice-total-stack"')
+        self.assertContains(response, "Invoice total")
+
     def test_invoice_create_previews_only_selected_service_logs(self):
         selected_log = self.create_service_log(
             service_date=date(2026, 6, 1),

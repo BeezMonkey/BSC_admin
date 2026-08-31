@@ -1113,6 +1113,122 @@ input[type="checkbox"] {
   margin-bottom: 0.75rem;
 }
 
+.service-log-workbench,
+.invoice-workbench {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.service-log-status-grid,
+.invoice-status-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.service-log-status-card,
+.invoice-status-card {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+  min-height: 5.5rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 0.75rem 0.82rem;
+  background: #ffffff;
+}
+
+.service-log-status-card:hover,
+.service-log-status-card.active,
+.invoice-status-card:hover,
+.invoice-status-card.active {
+  border-color: var(--brand);
+  background: #f8fffd;
+}
+
+.service-log-status-card span,
+.invoice-status-card span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: var(--weight-label);
+}
+
+.service-log-status-card strong,
+.invoice-status-card strong {
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.service-log-status-card small,
+.invoice-status-card small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
+.invoice-filter-panel {
+  display: grid;
+  gap: 0.62rem;
+  margin-bottom: 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 0.78rem;
+  background: #ffffff;
+  box-shadow: var(--shadow);
+}
+
+.invoice-filter-copy {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.invoice-filter-copy strong {
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.invoice-filter-copy span {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.invoice-filter-bar {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.service-log-filter-bar {
+  margin-bottom: 0.7rem;
+}
+
+.service-log-bulk-actions {
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.service-log-bulk-actions div {
+  display: grid;
+  gap: 0.14rem;
+}
+
+.service-log-bulk-actions strong {
+  color: var(--ink);
+  font-size: 0.92rem;
+}
+
+.service-log-bulk-actions span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 .table-card {
   overflow-x: auto;
   border: 1px solid #d5e0ea;
@@ -1134,6 +1250,10 @@ table {
 
 .service-log-table {
   min-width: 960px;
+}
+
+.invoice-table {
+  min-width: 900px;
 }
 
 .service-log-table .service-log-select-cell,
@@ -1166,8 +1286,106 @@ table {
 .service-log-table .notes-cell {
   max-width: 20rem;
   min-width: 14rem;
+}
+
+.invoice-table .invoice-status-cell,
+.invoice-table .invoice-total-cell {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.invoice-table .invoice-number-cell {
+  min-width: 10.5rem;
+}
+
+.invoice-table .invoice-participant-cell {
+  min-width: 9.5rem;
+  overflow-wrap: anywhere;
+}
+
+.invoice-table .invoice-period-cell {
+  min-width: 13rem;
+  white-space: nowrap;
+}
+
+.invoice-table td.actions {
+  min-width: 7.5rem;
+}
+
+.service-log-date-stack,
+.service-log-person-stack,
+.invoice-number-stack,
+.invoice-participant-stack,
+.invoice-period-stack,
+.invoice-total-stack {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+}
+
+.service-log-date-stack a,
+.service-log-person-stack strong,
+.invoice-number-stack a,
+.invoice-participant-stack strong,
+.invoice-period-stack strong,
+.invoice-total-stack strong {
+  color: var(--ink);
+  font-weight: var(--weight-heading);
+  line-height: 1.25;
+}
+
+.invoice-table .invoice-primary-text {
+  color: #172437;
+  font-size: 0.9rem;
+  font-weight: var(--weight-action);
+}
+
+.invoice-table .invoice-secondary-text {
+  color: #253348;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.service-log-table .service-log-person-name {
+  color: #253348;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.service-log-date-stack span,
+.service-log-person-stack span,
+.invoice-number-stack span,
+.invoice-participant-stack span,
+.invoice-period-stack span,
+.invoice-total-stack span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: var(--weight-label);
+  line-height: 1.25;
+}
+
+.invoice-number-stack span,
+.invoice-participant-stack span,
+.invoice-period-stack span {
+  color: #5f718b;
+  font-size: 0.76rem;
+  font-weight: 500;
+}
+
+.service-log-person-stack .service-log-role-label {
+  color: #71819a;
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.invoice-total-stack {
+  justify-items: end;
+}
+
+.service-log-notes-preview {
   overflow-wrap: anywhere;
   color: #314052;
+  line-height: 1.35;
 }
 
 .roster-table {
@@ -3018,8 +3236,15 @@ tbody tr:last-child td {
 
   .dashboard-workbench-grid,
   .operations-overview-grid,
-  .common-actions-grid {
+  .common-actions-grid,
+  .service-log-status-grid,
+  .invoice-status-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .service-log-bulk-actions {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .workflow-checklist-list li {
@@ -3220,8 +3445,21 @@ tbody tr:last-child td {
 
   .operations-overview-grid,
   .common-actions-grid,
-  .dashboard-workbench-grid {
+  .dashboard-workbench-grid,
+  .service-log-status-grid,
+  .invoice-status-grid {
     grid-template-columns: 1fr;
+  }
+
+  .invoice-filter-copy {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.18rem;
+  }
+
+  .invoice-workbench .dashboard-section-heading {
+    display: grid;
+    gap: 0.22rem;
   }
 
   .priority-queue-item {

@@ -6,11 +6,27 @@
 <div class="page-header">
   <div>
     <h1>Service Logs</h1>
-    <p>Submitted worker service records.</p>
+    <p>Review submitted support records, approve worker notes, and prepare billable logs.</p>
   </div>
 </div>
 
-<form method="get" class="filter-bar">
+<section class="service-log-workbench" aria-label="Service log status overview">
+  <div class="dashboard-section-heading">
+    <h2>Service log workbench</h2>
+    <p>Start with submitted logs, then move approved records into invoices.</p>
+  </div>
+  <div class="service-log-status-grid">
+    {% for item in status_overview %}
+    <a class="service-log-status-card{% if item.active %} active{% endif %}" href="{{ item.url }}">
+      <span>{{ item.label }}</span>
+      <strong>{{ item.count_label }}</strong>
+      <small>{{ item.description }}</small>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<form method="get" class="filter-bar service-log-filter-bar">
   <label>Status
     <select name="status">
       <option value="">All</option>
@@ -32,7 +48,11 @@
 
 <form method="get" action="{% url 'invoice_create' %}">
 <section class="card table-card service-log-table-card">
-  <div class="bulk-actions">
+  <div class="bulk-actions service-log-bulk-actions">
+    <div>
+      <strong>Billing action</strong>
+      <span>Select approved rows to create an invoice.</span>
+    </div>
     <button type="submit">Create Invoice from Selected</button>
   </div>
   <table class="service-log-table">
@@ -56,16 +76,31 @@
               <input type="checkbox" name="service_log_ids" value="{{ service_log.id }}">
             {% endif %}
           </td>
-          <td class="service-log-date-cell"><a href="{% url 'service_log_detail' service_log.id %}?next={{ current_list_url|urlencode }}">{{ service_log.service_date|date:"d/m/Y" }}</a></td>
-          <td class="service-log-person-cell">{{ service_log.participant.display_name }}</td>
-          <td class="service-log-person-cell">{{ service_log.worker.display_name }}</td>
+          <td class="service-log-date-cell">
+            <div class="service-log-date-stack">
+              <a href="{% url 'service_log_detail' service_log.id %}?next={{ current_list_url|urlencode }}">{{ service_log.service_date|date:"d/m/Y" }}</a>
+              <span>Submitted {{ service_log.submitted_at|date:"d/m/Y H:i" }}</span>
+            </div>
+          </td>
+          <td class="service-log-person-cell">
+            <div class="service-log-person-stack">
+              <strong class="service-log-person-name">{{ service_log.participant.display_name }}</strong>
+              <span class="service-log-role-label">Participant</span>
+            </div>
+          </td>
+          <td class="service-log-person-cell">
+            <div class="service-log-person-stack">
+              <strong class="service-log-person-name">{{ service_log.worker.display_name }}</strong>
+              <span class="service-log-role-label">Support worker</span>
+            </div>
+          </td>
           <td class="service-log-status-cell"><span class="status-pill status-{{ service_log.status }}">{{ service_log.get_status_display }}</span></td>
           <td class="service-log-hours-cell numeric-cell">{{ service_log.actual_hours }}</td>
-          <td class="notes-cell">{{ service_log.case_notes|truncatechars:80 }}</td>
+          <td class="notes-cell"><div class="service-log-notes-preview">{{ service_log.case_notes|truncatechars:80 }}</div></td>
           <td class="actions service-log-actions-cell">
             <a href="{% url 'service_log_detail' service_log.id %}?next={{ current_list_url|urlencode }}">View</a>
             {% if service_log.status == "approved" %}
-              <a href="{% url 'invoice_create' %}?participant={{ service_log.participant_id }}&period_start={{ service_log.service_date|date:'Y-m-d' }}&period_end={{ service_log.service_date|date:'Y-m-d' }}">Create Invoice</a>
+              <a class="primary-action" href="{% url 'invoice_create' %}?participant={{ service_log.participant_id }}&period_start={{ service_log.service_date|date:'Y-m-d' }}&period_end={{ service_log.service_date|date:'Y-m-d' }}">Create Invoice</a>
             {% endif %}
           </td>
         </tr>

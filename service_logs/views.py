@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -20,6 +21,11 @@ from .notifications import notify_admin_service_log_submitted
 
 @admin_required
 def service_log_list(request):
+    status_counts = {
+        row["status"]: row["count"]
+        for row in ServiceLog.objects.values("status").annotate(count=Count("id"))
+    }
+    total_count = sum(status_counts.values())
     service_logs = ServiceLog.objects.select_related(
         "shift",
         "participant",
@@ -32,6 +38,43 @@ def service_log_list(request):
         service_logs = service_logs.filter(status=status)
     status_label = dict(ServiceLog.Status.choices).get(status)
     filter_summary = f"Showing {status_label.lower()} service logs." if status_label else ""
+    status_overview = [
+        {
+            "label": "All logs",
+            "count_label": f"{total_count} record{'s' if total_count != 1 else ''}",
+            "description": "Full service log history",
+            "url": reverse("service_log_list"),
+            "active": not status,
+        },
+        {
+            "label": "Submitted",
+            "count_label": f"{status_counts.get(ServiceLog.Status.SUBMITTED, 0)} waiting",
+            "description": "Waiting for admin review",
+            "url": f"{reverse('service_log_list')}?status={ServiceLog.Status.SUBMITTED}",
+            "active": status == ServiceLog.Status.SUBMITTED,
+        },
+        {
+            "label": "Approved",
+            "count_label": f"{status_counts.get(ServiceLog.Status.APPROVED, 0)} ready",
+            "description": "Ready to invoice",
+            "url": f"{reverse('service_log_list')}?status={ServiceLog.Status.APPROVED}",
+            "active": status == ServiceLog.Status.APPROVED,
+        },
+        {
+            "label": "Invoiced",
+            "count_label": f"{status_counts.get(ServiceLog.Status.INVOICED, 0)} billed",
+            "description": "Already converted to invoices",
+            "url": f"{reverse('service_log_list')}?status={ServiceLog.Status.INVOICED}",
+            "active": status == ServiceLog.Status.INVOICED,
+        },
+        {
+            "label": "Rejected",
+            "count_label": f"{status_counts.get(ServiceLog.Status.REJECTED, 0)} returned",
+            "description": "Needs worker correction",
+            "url": f"{reverse('service_log_list')}?status={ServiceLog.Status.REJECTED}",
+            "active": status == ServiceLog.Status.REJECTED,
+        },
+    ]
     service_logs, sorting = apply_sorting(
         request,
         service_logs,
@@ -53,6 +96,7 @@ def service_log_list(request):
             "status": status,
             "has_filters": has_filters,
             "status_choices": ServiceLog.Status.choices,
+            "status_overview": status_overview,
             "filter_summary": filter_summary,
             "current_list_url": request.get_full_path(),
         },
