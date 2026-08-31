@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Count, Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
@@ -15,10 +15,34 @@ from .models import Participant, ParticipantWorkerAssignment
 
 @admin_required
 def participant_list(request):
-    participants = Participant.objects.all()
+    participants_base = Participant.objects.annotate(
+        active_worker_count=Count(
+            "worker_assignments",
+            filter=Q(worker_assignments__is_active=True),
+            distinct=True,
+        ),
+    ).order_by("last_name", "first_name", "id")
+    total_count = participants_base.count()
+    active_count = participants_base.filter(status=Participant.Status.ACTIVE).count()
+    inactive_count = participants_base.filter(status=Participant.Status.INACTIVE).count()
+    archived_count = participants_base.filter(status=Participant.Status.ARCHIVED).count()
+    needs_assignment_count = participants_base.filter(
+        status=Participant.Status.ACTIVE,
+        active_worker_count=0,
+    ).count()
+    participants = participants_base.prefetch_related(
+        Prefetch(
+            "worker_assignments",
+            queryset=ParticipantWorkerAssignment.objects.filter(is_active=True)
+            .select_related("worker")
+            .order_by("worker__last_name", "worker__first_name"),
+            to_attr="active_worker_assignments",
+        ),
+    )
     query = request.GET.get("q", "").strip()
     status = request.GET.get("status", "").strip()
-    has_filters = bool(query or status)
+    assignment = request.GET.get("assignment", "").strip()
+    has_filters = bool(query or status or assignment)
 
     if query:
         participants = participants.filter(
@@ -26,9 +50,52 @@ def participant_list(request):
             | Q(last_name__icontains=query)
             | Q(preferred_name__icontains=query)
             | Q(ndis_number__icontains=query)
+            | Q(phone__icontains=query)
+            | Q(email__icontains=query)
         )
     if status:
         participants = participants.filter(status=status)
+    if assignment == "assigned":
+        participants = participants.filter(active_worker_count__gt=0)
+    elif assignment == "unassigned":
+        participants = participants.filter(active_worker_count=0)
+    participant_overview = [
+        {
+            "label": "All participants",
+            "count_label": f"{total_count} record{'s' if total_count != 1 else ''}",
+            "description": "Full participant list",
+            "url": reverse("participant_list"),
+            "active": not status and not assignment,
+        },
+        {
+            "label": "Active",
+            "count_label": f"{active_count} active",
+            "description": "Currently receiving support",
+            "url": f"{reverse('participant_list')}?status={Participant.Status.ACTIVE}",
+            "active": status == Participant.Status.ACTIVE and not assignment,
+        },
+        {
+            "label": "Needs assignment",
+            "count_label": f"{needs_assignment_count} without workers",
+            "description": "Active participants without workers",
+            "url": f"{reverse('participant_list')}?status={Participant.Status.ACTIVE}&assignment=unassigned",
+            "active": status == Participant.Status.ACTIVE and assignment == "unassigned",
+        },
+        {
+            "label": "Inactive",
+            "count_label": f"{inactive_count} inactive",
+            "description": "Not currently active",
+            "url": f"{reverse('participant_list')}?status={Participant.Status.INACTIVE}",
+            "active": status == Participant.Status.INACTIVE and not assignment,
+        },
+        {
+            "label": "Archived",
+            "count_label": f"{archived_count} archived",
+            "description": "Historical participant records",
+            "url": f"{reverse('participant_list')}?status={Participant.Status.ARCHIVED}",
+            "active": status == Participant.Status.ARCHIVED and not assignment,
+        },
+    ]
     participants, sorting = apply_sorting(
         request,
         participants,
@@ -48,8 +115,10 @@ def participant_list(request):
             "sorting": sorting,
             "query": query,
             "status": status,
+            "assignment": assignment,
             "has_filters": has_filters,
             "status_choices": Participant.Status.choices,
+            "participant_overview": participant_overview,
             "current_list_url": request.get_full_path(),
         },
     )
