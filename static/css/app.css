@@ -1113,6 +1113,78 @@ input[type="checkbox"] {
   margin-bottom: 0.75rem;
 }
 
+.service-log-workbench {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.service-log-status-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.service-log-status-card {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+  min-height: 5.5rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 0.75rem 0.82rem;
+  background: #ffffff;
+}
+
+.service-log-status-card:hover,
+.service-log-status-card.active {
+  border-color: var(--brand);
+  background: #f8fffd;
+}
+
+.service-log-status-card span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: var(--weight-label);
+}
+
+.service-log-status-card strong {
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.service-log-status-card small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
+.service-log-filter-bar {
+  margin-bottom: 0.7rem;
+}
+
+.service-log-bulk-actions {
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.service-log-bulk-actions div {
+  display: grid;
+  gap: 0.14rem;
+}
+
+.service-log-bulk-actions strong {
+  color: var(--ink);
+  font-size: 0.92rem;
+}
+
+.service-log-bulk-actions span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 .table-card {
   overflow-x: auto;
   border: 1px solid #d5e0ea;
@@ -1166,8 +1238,34 @@ table {
 .service-log-table .notes-cell {
   max-width: 20rem;
   min-width: 14rem;
+}
+
+.service-log-date-stack,
+.service-log-person-stack {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+}
+
+.service-log-date-stack a,
+.service-log-person-stack strong {
+  color: var(--ink);
+  font-weight: var(--weight-heading);
+  line-height: 1.25;
+}
+
+.service-log-date-stack span,
+.service-log-person-stack span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: var(--weight-label);
+  line-height: 1.25;
+}
+
+.service-log-notes-preview {
   overflow-wrap: anywhere;
   color: #314052;
+  line-height: 1.35;
 }
 
 .roster-table {
@@ -3018,8 +3116,14 @@ tbody tr:last-child td {
 
   .dashboard-workbench-grid,
   .operations-overview-grid,
-  .common-actions-grid {
+  .common-actions-grid,
+  .service-log-status-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .service-log-bulk-actions {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .workflow-checklist-list li {
@@ -3220,7 +3324,8 @@ tbody tr:last-child td {
 
   .operations-overview-grid,
   .common-actions-grid,
-  .dashboard-workbench-grid {
+  .dashboard-workbench-grid,
+  .service-log-status-grid {
     grid-template-columns: 1fr;
   }
 
