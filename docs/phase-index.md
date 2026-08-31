@@ -1,6 +1,6 @@
 # BSC Admin Phase Index
 
-Last updated: 2026-08-29
+Last updated: 2026-08-31
 
 This file is the working index for BSC Admin phase branches, PRs, and recovery points. Use it to understand what each phase changed, where to find it on GitHub, and which stable version can be used as a restore point.
 
@@ -47,12 +47,14 @@ Current stable commit:
 | Phase 135 | Admin worker form polish | Support Worker form section density and Worker Access/Archive danger-zone refinement. |
 | Phase 136-137 | Admin form/detail polish | Admin form controls, roster shift forms, invoice forms, and detail pages aligned to the shared UI system. |
 | Phase 138 | Service log email notification | Worker service log submission sends an admin notification email through Brevo SMTP. |
+| Phase 139-140 | Email handoff and dashboard planning | Brevo SMTP setup documentation and Admin Dashboard Workbench design. |
 
 ## Recent Detailed Index
 
 | PR | Date | Branch | Purpose |
 | --- | --- | --- | --- |
-| Current | 2026-08-29 | `codex/phase-139-email-provider-handoff` | Documents the final Brevo SMTP setup and successful service log email notification test. |
+| Current | 2026-08-31 | `codex/phase-140-admin-dashboard-workbench` | Designs the compact Admin Dashboard Workbench direction: operations overview, priority queue, workflow checklist, common module actions, and optional recent activity. |
+| #184 | 2026-08-29 | `codex/phase-139-email-provider-handoff` | Documents the final Brevo SMTP setup and successful service log email notification test. |
 | #183 | 2026-08-29 | `codex/phase-138-service-log-email-notification` | Added admin email notifications when workers submit service logs. Production testing uses Brevo SMTP with `admin@brisbanestarcare.com.au` as the verified sender and `kun-bi@hotmail.com` as the recipient. |
 | #182 | 2026-08-29 | `codex/phase-137-admin-list-detail-polish` | Polished admin shift and invoice form alignment. |
 | #181 | 2026-08-29 | `codex/phase-137-admin-list-detail-polish` | Polished admin detail pages for stronger visual consistency. |
