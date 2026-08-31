@@ -2427,18 +2427,24 @@ tbody tr:last-child td {
 }
 
 .workflow-checklist-action a {
-  border-bottom: 1px solid transparent;
-  min-width: auto;
-  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.25rem;
+  min-height: 1.65rem;
+  border: 1px solid #cdded9;
+  border-radius: 6px;
+  padding: 0.12rem 0.5rem;
   color: var(--brand-dark);
-  background: transparent;
+  background: #ffffff;
   text-align: center;
   font-weight: var(--weight-label);
+  line-height: 1;
 }
 
 .workflow-checklist-action a:hover {
-  border-color: var(--brand-dark);
-  background: transparent;
+  border-color: var(--brand);
+  background: #f3fbf9;
 }
 
 .worker-action-summary {
