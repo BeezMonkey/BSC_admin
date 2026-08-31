@@ -2189,6 +2189,148 @@ tbody tr:last-child td {
   color: var(--ink);
 }
 
+.dashboard-workbench-header {
+  margin-bottom: 1rem;
+}
+
+.dashboard-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dashboard-section-heading h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.dashboard-section-heading p {
+  margin: 0.18rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.dashboard-overview-strip {
+  display: grid;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.operations-overview-grid,
+.common-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.72rem;
+}
+
+.operations-overview-item,
+.common-action-item {
+  display: grid;
+  gap: 0.25rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 0.82rem 0.9rem;
+  background: #ffffff;
+}
+
+.operations-overview-item:hover,
+.common-action-item:hover {
+  border-color: var(--brand);
+  background: #f8fffd;
+}
+
+.operations-overview-item strong,
+.common-action-item strong {
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.operations-overview-item span,
+.common-action-item span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.dashboard-workbench-grid {
+  grid-template-columns: minmax(26rem, 1.18fr) minmax(26rem, 0.82fr);
+}
+
+.priority-queue-list {
+  display: grid;
+  gap: 0.58rem;
+}
+
+.priority-queue-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: 7px;
+  padding: 0.72rem 0.82rem;
+  background: #ffffff;
+}
+
+.priority-queue-item:hover {
+  border-color: var(--brand);
+  border-left-color: var(--brand);
+  background: #f8fffd;
+}
+
+.priority-queue-item.invoice-ready,
+.priority-queue-item.invoice-draft {
+  border-left-color: var(--brand);
+}
+
+.priority-queue-item.invoice-issued {
+  border-left-color: #64748b;
+}
+
+.priority-queue-count {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 7px;
+  color: var(--brand-dark);
+  background: #ccfbf1;
+  font-weight: var(--weight-strong);
+  line-height: 1;
+}
+
+.priority-queue-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.16rem;
+}
+
+.priority-queue-copy strong {
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.priority-queue-copy span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.priority-queue-label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.common-actions {
+  margin-top: 1rem;
+}
+
 .workflow-checklist-header {
   display: flex;
   align-items: flex-start;
@@ -2849,6 +2991,12 @@ tbody tr:last-child td {
     grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   }
 
+  .dashboard-workbench-grid,
+  .operations-overview-grid,
+  .common-actions-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .workflow-checklist-list li {
     grid-template-columns: 1.5rem minmax(0, 1fr);
     gap: 0.55rem 0.7rem;
@@ -3047,6 +3195,21 @@ tbody tr:last-child td {
   .worker-tool-card .card-action {
     width: 100%;
     font-size: 0.88rem;
+  }
+
+  .operations-overview-grid,
+  .common-actions-grid,
+  .dashboard-workbench-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .priority-queue-item {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .priority-queue-label {
+    grid-column: 2;
+    white-space: normal;
   }
 
   .workflow-checklist-header {

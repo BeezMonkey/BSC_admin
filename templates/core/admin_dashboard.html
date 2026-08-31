@@ -3,40 +3,46 @@
 {% block title %}Admin Dashboard - Brisbane Star Care{% endblock %}
 
 {% block content %}
-<header class="page-header">
+<header class="page-header dashboard-workbench-header">
   <div>
-    <h1>Admin Dashboard</h1>
-    <p>Quick access to the main V1 operations modules.</p>
+    <h1>Today at BSC</h1>
+    <p>Review current admin follow-up work and continue the NDIS operations loop.</p>
   </div>
 </header>
-<div class="dashboard-overview">
-  <section class="card dashboard-card operations-summary">
+
+<section class="dashboard-overview-strip" aria-label="Operations overview">
+  <div class="dashboard-section-heading">
+    <h2>Operations overview</h2>
+    <p>Key counts for the current admin workflow.</p>
+  </div>
+  <div class="operations-overview-grid">
+    {% for item in operations_overview %}
+    <a class="operations-overview-item" href="{% url item.url_name %}{% if item.query %}?{{ item.query }}{% endif %}">
+      <strong>{{ item.label }}</strong>
+      <span>{{ item.description }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<div class="dashboard-overview dashboard-workbench-grid">
+  <section class="card dashboard-card priority-queue" aria-label="Operations summary">
     <div>
-      <h2>Operations summary</h2>
-      <p>Review the records that most commonly need admin follow-up.</p>
+      <h2>Priority queue</h2>
+      <p>Start here when you need to know what to handle first.</p>
     </div>
-    {% if operations_summary.has_actions %}
-    <div class="operations-summary-grid">
-      <a class="operations-summary-item roster" href="{% url 'roster_list' %}?status=draft">
-        <strong>{{ operations_summary.draft_shift_label }}</strong>
-        <span>Prepare or publish roster items</span>
+    {% if priority_queue %}
+    <div class="priority-queue-list">
+      {% for item in priority_queue %}
+      <a class="priority-queue-item {{ item.kind }}" href="{% url item.url_name %}{% if item.query %}?{{ item.query }}{% endif %}">
+        <span class="priority-queue-count">{{ item.count }}</span>
+        <span class="priority-queue-copy">
+          <strong>{{ item.action }}</strong>
+          <span>{{ item.description }}</span>
+        </span>
+        <span class="priority-queue-label">{{ item.label }}</span>
       </a>
-      <a class="operations-summary-item review" href="{% url 'service_log_list' %}?status=submitted">
-        <strong>{{ operations_summary.submitted_log_label }}</strong>
-        <span>Review worker service records</span>
-      </a>
-      <a class="operations-summary-item invoice-ready" href="{% url 'service_log_list' %}?status=approved">
-        <strong>{{ operations_summary.approved_log_label }}</strong>
-        <span>Ready to convert to invoice</span>
-      </a>
-      <a class="operations-summary-item invoice-draft" href="{% url 'invoice_placeholder' %}?status=draft">
-        <strong>{{ operations_summary.draft_invoice_label }}</strong>
-        <span>Check and issue billing</span>
-      </a>
-      <a class="operations-summary-item invoice-issued" href="{% url 'invoice_placeholder' %}?status=issued">
-        <strong>{{ operations_summary.issued_invoice_label }}</strong>
-        <span>Track payment follow-up</span>
-      </a>
+      {% endfor %}
     </div>
     {% else %}
     <div class="summary-empty-state">
@@ -45,6 +51,7 @@
     </div>
     {% endif %}
   </section>
+
   <section class="card dashboard-card workflow-checklist">
     <div class="workflow-checklist-header">
       <div>
@@ -70,46 +77,19 @@
     </ol>
   </section>
 </div>
-<div class="card-grid">
-  <section class="card">
-    <h2>Participants</h2>
-    <p>Manage participant records, NDIS details, and worker assignments.</p>
-    <a class="card-action" href="{% url 'participant_list' %}">Open participants</a>
-  </section>
-  <section class="card">
-    <h2>Support Workers</h2>
-    <p>Maintain worker profiles, contact details, and compliance information.</p>
-    <a class="card-action" href="{% url 'worker_list' %}">Open workers</a>
-  </section>
-  <section class="card">
-    <h2>Roster</h2>
-    <p>Create, publish, and manage one-off or recurring support shifts.</p>
-    <a class="card-action" href="{% url 'roster_list' %}">Open roster</a>
-  </section>
-  <section class="card">
-    <h2>Service Logs</h2>
-    <p>Review submitted worker notes, approve logs, or request corrections.</p>
-    <a class="card-action" href="{% url 'service_log_list' %}">Open service logs</a>
-  </section>
-  <section class="card">
-    <h2>Invoices</h2>
-    <p>Generate invoices from approved service logs and export billing files.</p>
-    <a class="card-action" href="{% url 'invoice_placeholder' %}">Open invoices</a>
-  </section>
-  <section class="card">
-    <h2>Documents</h2>
-    <p>Upload and share participant, worker, and internal documents.</p>
-    <a class="card-action" href="{% url 'document_list' %}">Open documents</a>
-  </section>
-  <section class="card">
-    <h2>Support Items</h2>
-    <p>Maintain service item codes used when scheduling and invoicing.</p>
-    <a class="card-action" href="{% url 'support_item_list' %}">Open support items</a>
-  </section>
-  <section class="card">
-    <h2>Audit Logs</h2>
-    <p>Check the recorded history for key business actions.</p>
-    <a class="card-action" href="{% url 'audit_log_list' %}">Open audit logs</a>
-  </section>
-</div>
+
+<section class="card dashboard-card common-actions">
+  <div class="dashboard-section-heading">
+    <h2>Common actions</h2>
+    <p>Frequently used admin shortcuts.</p>
+  </div>
+  <div class="common-actions-grid">
+    {% for item in module_links %}
+    <a class="common-action-item" href="{% url item.url_name %}">
+      <strong>{{ item.label }}</strong>
+      <span>{{ item.description }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
 {% endblock %}

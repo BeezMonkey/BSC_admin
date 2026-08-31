@@ -32,6 +32,27 @@ class DashboardPolishTests(TestCase):
         self.assertContains(response, "NDIS Admin")
         self.assertNotContains(response, "will be added")
 
+    def test_admin_dashboard_shows_common_module_actions(self):
+        user = User.objects.create_user(username="admin", password="pass")
+        UserProfile.objects.create(user=user, role=UserProfile.Role.ADMIN)
+
+        self.client.login(username="admin", password="pass")
+        response = self.client.get(reverse("admin_dashboard"))
+
+        self.assertContains(response, "Common actions")
+        self.assertContains(response, "Add participant")
+        self.assertContains(response, "Add worker")
+        self.assertContains(response, "Create shift")
+        self.assertContains(response, "Review logs")
+        self.assertContains(response, "Create invoice")
+        self.assertContains(response, "Upload document")
+        self.assertContains(response, reverse("participant_create"))
+        self.assertContains(response, reverse("worker_create"))
+        self.assertContains(response, reverse("shift_create"))
+        self.assertContains(response, reverse("service_log_list"))
+        self.assertContains(response, reverse("invoice_create"))
+        self.assertContains(response, reverse("document_create"))
+
     def test_admin_dashboard_marks_sidebar_link_active(self):
         user = User.objects.create_user(username="admin", password="pass")
         UserProfile.objects.create(user=user, role=UserProfile.Role.ADMIN)
@@ -156,6 +177,155 @@ class DashboardPolishTests(TestCase):
         self.assertContains(response, f'{reverse("invoice_placeholder")}?status={Invoice.Status.DRAFT}')
         self.assertContains(response, f'{reverse("invoice_placeholder")}?status={Invoice.Status.ISSUED}')
 
+    def test_admin_dashboard_shows_compact_workbench_overview_and_priority_queue(self):
+        admin_user = User.objects.create_user(username="admin", password="pass")
+        UserProfile.objects.create(user=admin_user, role=UserProfile.Role.ADMIN)
+        worker_user = User.objects.create_user(username="worker", password="pass")
+        UserProfile.objects.create(
+            user=worker_user,
+            role=UserProfile.Role.SUPPORT_WORKER,
+            is_active_worker=True,
+        )
+        worker = SupportWorker.objects.create(
+            user=worker_user,
+            first_name="Wendy",
+            last_name="Worker",
+            email="worker@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        inactive_worker_user = User.objects.create_user(username="inactiveworker", password="pass")
+        UserProfile.objects.create(
+            user=inactive_worker_user,
+            role=UserProfile.Role.SUPPORT_WORKER,
+            is_active_worker=True,
+        )
+        SupportWorker.objects.create(
+            user=inactive_worker_user,
+            first_name="Inactive",
+            last_name="Worker",
+            email="inactive.worker@example.com",
+            status=SupportWorker.Status.INACTIVE,
+        )
+        participant = Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            status=Participant.Status.ACTIVE,
+            address_line_1="10 Creek Street",
+            suburb="Brisbane",
+            state="QLD",
+            postcode="4000",
+        )
+        Participant.objects.create(
+            first_name="Inactive",
+            last_name="Participant",
+            status=Participant.Status.INACTIVE,
+            address_line_1="20 Creek Street",
+            suburb="Brisbane",
+            state="QLD",
+            postcode="4000",
+        )
+        support_item = SupportItem.objects.create(
+            item_number="01_011_0107_1_1",
+            name="Assistance with self-care activities",
+            unit=SupportItem.Unit.HOUR,
+            price_limit=Decimal("65.47"),
+            gst_code=SupportItem.GSTCode.GST_FREE,
+            is_active=True,
+        )
+        base_shift = {
+            "participant": participant,
+            "worker": worker,
+            "start_time": time(9, 0),
+            "end_time": time(11, 0),
+            "planned_hours": Decimal("2.00"),
+            "support_item": support_item,
+            "service_type": Shift.ServiceType.PERSONAL_CARE,
+            "created_by": admin_user,
+        }
+        Shift.objects.create(
+            **base_shift,
+            service_date=date(2026, 8, 31),
+            status=Shift.Status.DRAFT,
+        )
+        submitted_shift = Shift.objects.create(
+            **base_shift,
+            service_date=date(2026, 9, 1),
+            status=Shift.Status.COMPLETED,
+        )
+        approved_shift = Shift.objects.create(
+            **base_shift,
+            service_date=date(2026, 9, 2),
+            status=Shift.Status.COMPLETED,
+        )
+        ServiceLog.objects.create_from_shift(
+            shift=submitted_shift,
+            actual_start_time=time(9, 0),
+            actual_end_time=time(11, 0),
+            actual_hours=Decimal("2.00"),
+            case_notes="Submitted log for review.",
+            status=ServiceLog.Status.SUBMITTED,
+        )
+        ServiceLog.objects.create_from_shift(
+            shift=approved_shift,
+            actual_start_time=time(9, 0),
+            actual_end_time=time(11, 0),
+            actual_hours=Decimal("2.00"),
+            case_notes="Approved log awaiting invoice.",
+            status=ServiceLog.Status.APPROVED,
+        )
+        Invoice.objects.create(
+            participant=participant,
+            period_start=date(2026, 8, 1),
+            period_end=date(2026, 8, 31),
+            status=Invoice.Status.DRAFT,
+            created_by=admin_user,
+        )
+        Invoice.objects.create(
+            participant=participant,
+            period_start=date(2026, 7, 1),
+            period_end=date(2026, 7, 31),
+            status=Invoice.Status.ISSUED,
+            created_by=admin_user,
+        )
+
+        self.client.login(username="admin", password="pass")
+        response = self.client.get(reverse("admin_dashboard"))
+        content = response.content.decode()
+
+        self.assertContains(response, "Today at BSC")
+        self.assertContains(response, "Operations overview")
+        self.assertContains(response, "1 active participant")
+        self.assertContains(response, "1 active support worker")
+        self.assertContains(response, "1 submitted log")
+        self.assertContains(response, "1 ready to invoice")
+        self.assertContains(response, "Priority queue")
+        self.assertContains(response, "Review submitted service logs")
+        self.assertContains(response, "Create invoices from approved logs")
+        self.assertContains(response, "Publish draft roster shifts")
+        self.assertContains(response, "Check draft invoices")
+        self.assertContains(response, "Follow up issued invoices")
+        self.assertContains(response, f'{reverse("service_log_list")}?status={ServiceLog.Status.SUBMITTED}')
+        self.assertContains(response, f'{reverse("service_log_list")}?status={ServiceLog.Status.APPROVED}')
+        self.assertContains(response, f'{reverse("roster_list")}?status={Shift.Status.DRAFT}')
+        self.assertContains(response, f'{reverse("invoice_placeholder")}?status={Invoice.Status.DRAFT}')
+        self.assertContains(response, f'{reverse("invoice_placeholder")}?status={Invoice.Status.ISSUED}')
+        self.assertLess(
+            content.index("Review submitted service logs"),
+            content.index("Create invoices from approved logs"),
+        )
+        self.assertLess(
+            content.index("Create invoices from approved logs"),
+            content.index("Publish draft roster shifts"),
+        )
+        self.assertLess(
+            content.index("Publish draft roster shifts"),
+            content.index("Check draft invoices"),
+        )
+        self.assertLess(
+            content.index("Check draft invoices"),
+            content.index("Follow up issued invoices"),
+        )
+
     def test_admin_dashboard_pluralizes_operations_summary_counts(self):
         admin_user = User.objects.create_user(username="admin", password="pass")
         UserProfile.objects.create(user=admin_user, role=UserProfile.Role.ADMIN)
@@ -271,11 +441,13 @@ class DashboardPolishTests(TestCase):
 
         self.assertContains(response, "Operations summary")
         self.assertContains(response, "No outstanding admin actions.")
-        self.assertNotContains(response, "0 draft shifts")
-        self.assertNotContains(response, "0 submitted logs")
-        self.assertNotContains(response, "0 approved logs")
-        self.assertNotContains(response, "0 draft invoices")
-        self.assertNotContains(response, "0 issued invoices")
+        self.assertContains(response, "0 submitted logs")
+        self.assertContains(response, "0 ready to invoice")
+        self.assertNotContains(response, "Publish draft roster shifts")
+        self.assertNotContains(response, "Review submitted service logs")
+        self.assertNotContains(response, "Create invoices from approved logs")
+        self.assertNotContains(response, "Check draft invoices")
+        self.assertNotContains(response, "Follow up issued invoices")
 
     def test_admin_dashboard_shows_workflow_checklist(self):
         user = User.objects.create_user(username="admin", password="pass")
@@ -322,9 +494,11 @@ class DashboardPolishTests(TestCase):
         self.client.login(username="admin", password="pass")
         response = self.client.get(reverse("admin_dashboard"))
 
-        self.assertContains(response, 'class="dashboard-overview"')
-        self.assertContains(response, 'class="card dashboard-card operations-summary"')
+        self.assertContains(response, 'class="dashboard-overview dashboard-workbench-grid"')
+        self.assertContains(response, 'class="card dashboard-card priority-queue"')
         self.assertContains(response, 'class="card dashboard-card workflow-checklist"')
+        self.assertContains(response, 'class="dashboard-overview-strip"')
+        self.assertContains(response, 'class="common-actions-grid"')
 
     def test_worker_dashboard_lists_current_worker_tools(self):
         user = User.objects.create_user(username="worker", password="pass")

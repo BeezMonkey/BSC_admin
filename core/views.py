@@ -5,6 +5,7 @@ from invoices.models import Invoice
 from participants.models import Participant, ParticipantWorkerAssignment
 from scheduling.models import Shift
 from service_logs.models import ServiceLog
+from workers.models import SupportWorker
 
 from .models import AuditLog
 
@@ -32,22 +33,82 @@ def admin_dashboard(request):
     ).count()
     draft_invoice_count = Invoice.objects.filter(status=Invoice.Status.DRAFT).count()
     issued_invoice_count = Invoice.objects.filter(status=Invoice.Status.ISSUED).count()
-    operations_summary = {
-        "draft_shift_label": count_label(draft_shift_count, "draft shift"),
-        "submitted_log_label": count_label(submitted_log_count, "submitted log"),
-        "approved_log_label": count_label(approved_log_count, "approved log"),
-        "draft_invoice_label": count_label(draft_invoice_count, "draft invoice"),
-        "issued_invoice_label": count_label(issued_invoice_count, "issued invoice"),
-        "has_actions": any(
-            [
-                draft_shift_count,
-                submitted_log_count,
-                approved_log_count,
-                draft_invoice_count,
-                issued_invoice_count,
-            ]
-        ),
-    }
+    active_participant_count = Participant.objects.filter(status=Participant.Status.ACTIVE).count()
+    active_worker_count = SupportWorker.objects.filter(status=SupportWorker.Status.ACTIVE).count()
+    operations_overview = [
+        {
+            "label": count_label(active_participant_count, "active participant"),
+            "description": "Current participant records",
+            "url_name": "participant_list",
+            "query": f"status={Participant.Status.ACTIVE}",
+        },
+        {
+            "label": count_label(active_worker_count, "active support worker"),
+            "description": "Workers available for operations",
+            "url_name": "worker_list",
+            "query": f"status={SupportWorker.Status.ACTIVE}",
+        },
+        {
+            "label": count_label(submitted_log_count, "submitted log"),
+            "description": "Waiting for review",
+            "url_name": "service_log_list",
+            "query": f"status={ServiceLog.Status.SUBMITTED}",
+        },
+        {
+            "label": count_label(approved_log_count, "ready to invoice", "ready to invoice"),
+            "description": "Approved logs not billed",
+            "url_name": "service_log_list",
+            "query": f"status={ServiceLog.Status.APPROVED}",
+        },
+    ]
+    priority_queue = [
+        {
+            "count": submitted_log_count,
+            "label": count_label(submitted_log_count, "submitted log"),
+            "action": "Review submitted service logs",
+            "description": "Worker notes waiting for admin approval.",
+            "url_name": "service_log_list",
+            "query": f"status={ServiceLog.Status.SUBMITTED}",
+            "kind": "review",
+        },
+        {
+            "count": approved_log_count,
+            "label": count_label(approved_log_count, "approved log"),
+            "action": "Create invoices from approved logs",
+            "description": "Approved support records not billed yet.",
+            "url_name": "service_log_list",
+            "query": f"status={ServiceLog.Status.APPROVED}",
+            "kind": "invoice-ready",
+        },
+        {
+            "count": draft_shift_count,
+            "label": count_label(draft_shift_count, "draft shift"),
+            "action": "Publish draft roster shifts",
+            "description": "Workers cannot see draft shifts until they are published.",
+            "url_name": "roster_list",
+            "query": f"status={Shift.Status.DRAFT}",
+            "kind": "roster",
+        },
+        {
+            "count": draft_invoice_count,
+            "label": count_label(draft_invoice_count, "draft invoice"),
+            "action": "Check draft invoices",
+            "description": "Review draft billing before issuing.",
+            "url_name": "invoice_placeholder",
+            "query": f"status={Invoice.Status.DRAFT}",
+            "kind": "invoice-draft",
+        },
+        {
+            "count": issued_invoice_count,
+            "label": count_label(issued_invoice_count, "issued invoice"),
+            "action": "Follow up issued invoices",
+            "description": "Track invoices that have been issued but not marked paid.",
+            "url_name": "invoice_placeholder",
+            "query": f"status={Invoice.Status.ISSUED}",
+            "kind": "invoice-issued",
+        },
+    ]
+    active_priority_queue = [item for item in priority_queue if item["count"]]
     workflow_checklist = [
         {
             "label": "Add participant",
@@ -94,12 +155,46 @@ def admin_dashboard(request):
             "url_name": "invoice_create",
         },
     ]
+    module_links = [
+        {
+            "label": "Add participant",
+            "description": "Create a client record",
+            "url_name": "participant_create",
+        },
+        {
+            "label": "Add worker",
+            "description": "Create a support worker",
+            "url_name": "worker_create",
+        },
+        {
+            "label": "Create shift",
+            "description": "Add roster support",
+            "url_name": "shift_create",
+        },
+        {
+            "label": "Review logs",
+            "description": "Open service logs",
+            "url_name": "service_log_list",
+        },
+        {
+            "label": "Create invoice",
+            "description": "Bill approved support",
+            "url_name": "invoice_create",
+        },
+        {
+            "label": "Upload document",
+            "description": "Share a record",
+            "url_name": "document_create",
+        },
+    ]
     return render(
         request,
         "core/admin_dashboard.html",
         {
-            "operations_summary": operations_summary,
+            "operations_overview": operations_overview,
+            "priority_queue": active_priority_queue,
             "workflow_checklist": workflow_checklist,
+            "module_links": module_links,
         },
     )
 
