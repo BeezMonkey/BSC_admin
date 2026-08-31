@@ -2189,39 +2189,189 @@ tbody tr:last-child td {
   color: var(--ink);
 }
 
-.workflow-checklist-header {
+.dashboard-workbench-header {
+  margin-bottom: 1rem;
+}
+
+.dashboard-section-heading {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
 }
 
+.dashboard-section-heading h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.dashboard-section-heading p {
+  margin: 0.18rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.dashboard-overview-strip {
+  display: grid;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.operations-overview-grid,
+.common-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.72rem;
+}
+
+.operations-overview-item,
+.common-action-item {
+  display: grid;
+  gap: 0.25rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 0.82rem 0.9rem;
+  background: #ffffff;
+}
+
+.operations-overview-item:hover,
+.common-action-item:hover {
+  border-color: var(--brand);
+  background: #f8fffd;
+}
+
+.operations-overview-item strong,
+.common-action-item strong {
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.operations-overview-item span,
+.common-action-item span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.dashboard-workbench-grid {
+  grid-template-columns: minmax(26rem, 1.18fr) minmax(26rem, 0.82fr);
+}
+
+.priority-queue-list {
+  display: grid;
+  gap: 0.58rem;
+}
+
+.priority-queue-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: 7px;
+  padding: 0.72rem 0.82rem;
+  background: #ffffff;
+}
+
+.priority-queue-item:hover {
+  border-color: var(--brand);
+  border-left-color: var(--brand);
+  background: #f8fffd;
+}
+
+.priority-queue-item.invoice-ready,
+.priority-queue-item.invoice-draft {
+  border-left-color: var(--brand);
+}
+
+.priority-queue-item.invoice-issued {
+  border-left-color: #64748b;
+}
+
+.priority-queue-count {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 7px;
+  color: var(--brand-dark);
+  background: #ccfbf1;
+  font-weight: var(--weight-strong);
+  line-height: 1;
+}
+
+.priority-queue-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.16rem;
+}
+
+.priority-queue-copy strong {
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.priority-queue-copy span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.priority-queue-label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.common-actions {
+  margin-top: 1rem;
+}
+
+.workflow-checklist {
+  background: #fbfdfc;
+  box-shadow: none;
+}
+
+.workflow-checklist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.72rem;
+}
+
 .workflow-checklist-badge {
   flex: 0 0 auto;
   width: fit-content;
-  border-radius: 999px;
-  padding: 0.28rem 0.62rem;
-  color: var(--brand-dark);
-  background: #dff6f2;
-  font-size: 0.82rem;
+  border: 1px solid #dce8e5;
+  border-radius: 6px;
+  padding: 0.22rem 0.48rem;
+  color: var(--muted);
+  background: #ffffff;
+  font-size: 0.76rem;
   font-weight: var(--weight-label);
 }
 
 .workflow-checklist-list {
   display: grid;
   gap: 0;
-  margin: 0.1rem 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .workflow-checklist-list li {
   display: grid;
-  grid-template-columns: 1.5rem minmax(12rem, 1fr) minmax(8.5rem, auto);
-  gap: 0.7rem;
+  grid-template-columns: 1.35rem minmax(0, 1fr) auto;
+  gap: 0.62rem;
   align-items: start;
   border-top: 1px solid var(--line);
-  padding: 0.72rem 0;
+  padding: 0.66rem 0;
 }
 
 .workflow-checklist-list li:first-child {
@@ -2232,13 +2382,14 @@ tbody tr:last-child td {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.35rem;
+  height: 1.35rem;
   margin-top: 0.08rem;
-  border-radius: 999px;
-  color: #ffffff;
-  background: var(--brand);
-  font-size: 0.78rem;
+  border: 1px solid #dce8e5;
+  border-radius: 6px;
+  color: var(--brand-dark);
+  background: #ffffff;
+  font-size: 0.74rem;
   font-weight: var(--weight-heading);
   line-height: 1;
 }
@@ -2247,48 +2398,64 @@ tbody tr:last-child td {
   min-width: 0;
 }
 
-.workflow-checklist-copy strong,
-.workflow-checklist-copy span,
-.workflow-checklist-action span {
-  display: block;
+.workflow-checklist-title-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.38rem;
+  flex-wrap: wrap;
 }
 
-.workflow-checklist-copy span {
-  margin-top: 0.12rem;
+.workflow-checklist-title-line strong {
+  display: inline;
+}
+
+.workflow-checklist-detail {
+  display: inline;
+  color: #5c7187;
+  font-size: 0.78rem;
+  font-weight: var(--weight-label);
+  line-height: 1.25;
+}
+
+.workflow-checklist-detail::before {
+  color: #9aadb8;
+  content: "\00b7";
+  margin-right: 0.38rem;
+}
+
+.workflow-checklist-description {
+  display: block;
+  margin-top: 0.08rem;
   color: var(--muted);
-  font-size: 0.88rem;
+  font-size: 0.84rem;
 }
 
 .workflow-checklist-action {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: flex-end;
-  gap: 0.65rem;
-  padding-top: 0.02rem;
-  white-space: nowrap;
-}
-
-.workflow-checklist-action span {
-  color: var(--muted);
-  font-size: 0.86rem;
-  font-weight: var(--weight-label);
-  text-align: right;
+  padding-top: 0;
 }
 
 .workflow-checklist-action a {
-  border: 1px solid var(--line);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.25rem;
+  min-height: 1.65rem;
+  border: 1px solid #cdded9;
   border-radius: 6px;
-  min-width: 4.2rem;
-  padding: 0.38rem 0.68rem;
+  padding: 0.12rem 0.5rem;
   color: var(--brand-dark);
   background: #ffffff;
   text-align: center;
   font-weight: var(--weight-label);
+  line-height: 1;
 }
 
 .workflow-checklist-action a:hover {
   border-color: var(--brand);
-  background: #f8fffd;
+  background: #f3fbf9;
 }
 
 .worker-action-summary {
@@ -2849,6 +3016,12 @@ tbody tr:last-child td {
     grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   }
 
+  .dashboard-workbench-grid,
+  .operations-overview-grid,
+  .common-actions-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .workflow-checklist-list li {
     grid-template-columns: 1.5rem minmax(0, 1fr);
     gap: 0.55rem 0.7rem;
@@ -2859,10 +3032,6 @@ tbody tr:last-child td {
     flex-wrap: wrap;
     justify-content: flex-start;
     white-space: normal;
-  }
-
-  .workflow-checklist-action span {
-    text-align: left;
   }
 }
 
@@ -3047,6 +3216,21 @@ tbody tr:last-child td {
   .worker-tool-card .card-action {
     width: 100%;
     font-size: 0.88rem;
+  }
+
+  .operations-overview-grid,
+  .common-actions-grid,
+  .dashboard-workbench-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .priority-queue-item {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .priority-queue-label {
+    grid-column: 2;
+    white-space: normal;
   }
 
   .workflow-checklist-header {
