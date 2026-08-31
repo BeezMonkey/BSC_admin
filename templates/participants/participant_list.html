@@ -6,57 +6,125 @@
 <div class="page-header">
   <div>
     <h1>Participants</h1>
-    <p>Find, filter, and manage participant records.</p>
+    <p>Find participant records, check assignment coverage, and open the next admin action.</p>
   </div>
   <a class="button" href="{% url 'participant_create' %}?next={{ current_list_url|urlencode }}">Add Participant</a>
 </div>
 
-<form class="filter-bar" method="get">
-  <label>
-    Search
-    <input type="search" name="q" value="{{ query }}" placeholder="Name or NDIS number">
-  </label>
-  <label>
-    Status
-    <select name="status">
-      <option value="">All statuses</option>
-      {% for value, label in status_choices %}
-        <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
-      {% endfor %}
-    </select>
-  </label>
-  <button type="submit">Search</button>
-  <a class="button secondary" href="{% url 'participant_list' %}">Reset</a>
-</form>
+<section class="participant-workbench" aria-label="Participant status overview">
+  <div class="dashboard-section-heading">
+    <h2>Participant workbench</h2>
+    <p>Start with active participants, then check who still needs worker coverage.</p>
+  </div>
+  <div class="participant-status-grid">
+    {% for item in participant_overview %}
+    <a class="participant-status-card{% if item.active %} active{% endif %}" href="{{ item.url }}">
+      <span>{{ item.label }}</span>
+      <strong>{{ item.count_label }}</strong>
+      <small>{{ item.description }}</small>
+    </a>
+    {% endfor %}
+  </div>
+</section>
 
-<section class="card table-card">
-  <table>
+<section class="participant-filter-panel" aria-label="Participant filters">
+  <div class="participant-filter-copy">
+    <strong>Participant filters</strong>
+    <span>Search by name, NDIS number, phone, or email.</span>
+  </div>
+  <form class="filter-bar participant-filter-bar" method="get">
+    <label>
+      Search
+      <input type="search" name="q" value="{{ query }}" placeholder="Name, NDIS, phone, or email">
+    </label>
+    <label>
+      Status
+      <select name="status">
+        <option value="">All statuses</option>
+        {% for value, label in status_choices %}
+          <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      Worker assignment
+      <select name="assignment">
+        <option value="">All participants</option>
+        <option value="assigned" {% if assignment == "assigned" %}selected{% endif %}>Assigned</option>
+        <option value="unassigned" {% if assignment == "unassigned" %}selected{% endif %}>Not assigned</option>
+      </select>
+    </label>
+    <button type="submit">Search</button>
+    <a class="button secondary" href="{% url 'participant_list' %}">Reset</a>
+  </form>
+</section>
+
+<section class="card table-card participant-table-card">
+  <table class="participant-table">
     <thead>
       <tr>
-        <th><a class="sort-link" href="?{{ sorting.links.name }}">Name</a></th>
-        <th>NDIS Number</th>
-        <th>Management</th>
-        <th>Plan Period</th>
-        <th>Support Coordinator</th>
+        <th><a class="sort-link" href="?{{ sorting.links.name }}">Participant</a></th>
+        <th>Contact</th>
         <th><a class="sort-link" href="?{{ sorting.links.status }}">Status</a></th>
+        <th>Plan</th>
+        <th>Assigned Workers</th>
+        <th>Coordinator</th>
         <th class="actions-heading">Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for participant in participants %}
         <tr>
-          <td>{{ participant.display_name }}</td>
-          <td>{{ participant.ndis_number|default:"-" }}</td>
-          <td>{{ participant.get_management_type_display|default:"-" }}</td>
-          <td>
-            {% if participant.plan_start_date or participant.plan_end_date %}
-              {% if participant.plan_start_date %}{{ participant.plan_start_date|date:"d/m/Y" }}{% else %}-{% endif %} to {% if participant.plan_end_date %}{{ participant.plan_end_date|date:"d/m/Y" }}{% else %}-{% endif %}
-            {% else %}
-              -
-            {% endif %}
+          <td class="participant-identity-cell">
+            <div class="participant-identity">
+              <span class="participant-avatar" aria-hidden="true">{{ participant.initials }}</span>
+              <div class="participant-name-stack">
+                <a href="{% url 'participant_detail' participant.id %}?next={{ current_list_url|urlencode }}">{{ participant.display_name }}</a>
+                <span>NDIS {{ participant.ndis_number|default:"not recorded" }}</span>
+              </div>
+            </div>
           </td>
-          <td>{{ participant.support_coordinator_name|default:"-" }}</td>
-          <td><span class="status-pill status-{{ participant.status }}">{{ participant.get_status_display }}</span></td>
+          <td class="participant-contact-cell">
+            <div class="participant-contact-stack">
+              <strong>{{ participant.phone|default:"No phone" }}</strong>
+              <span>{{ participant.email|default:"No email" }}</span>
+            </div>
+          </td>
+          <td class="participant-status-cell"><span class="status-pill status-{{ participant.status }}">{{ participant.get_status_display }}</span></td>
+          <td class="participant-plan-cell">
+            <div class="participant-plan-stack">
+              <strong>{{ participant.get_management_type_display|default:"Management not set" }}</strong>
+              <span>
+                {% if participant.plan_start_date or participant.plan_end_date %}
+                  {% if participant.plan_start_date %}{{ participant.plan_start_date|date:"d/m/Y" }}{% else %}-{% endif %} to {% if participant.plan_end_date %}{{ participant.plan_end_date|date:"d/m/Y" }}{% else %}-{% endif %}
+                {% else %}
+                  Plan dates not set
+                {% endif %}
+              </span>
+            </div>
+          </td>
+          <td class="participant-workers-cell">
+            {% with active_worker_count=participant.active_worker_assignments|length %}
+              {% if active_worker_count %}
+                <div class="participant-worker-stack">
+                  <div class="participant-worker-avatars" aria-label="{{ active_worker_count }} active worker{% if active_worker_count != 1 %}s{% endif %}">
+                    {% for assignment in participant.active_worker_assignments|slice:":3" %}
+                      <span
+                        class="participant-worker-avatar"
+                        data-worker-name="{{ assignment.worker.display_name }}"
+                        aria-label="{{ assignment.worker.display_name }}"
+                        tabindex="0"
+                      >{{ assignment.worker.initials }}</span>
+                    {% endfor %}
+                  </div>
+                  <strong>{{ active_worker_count }} active worker{% if active_worker_count != 1 %}s{% endif %}</strong>
+                </div>
+              {% else %}
+                <span class="participant-no-worker">No active worker</span>
+              {% endif %}
+            {% endwith %}
+          </td>
+          <td class="participant-coordinator-cell">{{ participant.support_coordinator_name|default:"-" }}</td>
           <td class="actions">
             <a href="{% url 'participant_detail' participant.id %}?next={{ current_list_url|urlencode }}">View</a>
             <a href="{% url 'participant_edit' participant.id %}?next={{ current_list_url|urlencode }}">Edit</a>

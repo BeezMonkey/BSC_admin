@@ -69,6 +69,12 @@ class Participant(models.Model):
     def display_name(self):
         return f"{self.first_name} {self.last_name}".strip()
 
+    @property
+    def initials(self):
+        parts = [self.first_name, self.last_name]
+        letters = [part.strip()[0] for part in parts if part and part.strip()]
+        return "".join(letters[:2]).upper() or "P"
+
     def get_absolute_url(self):
         return reverse("participant_detail", args=[self.id])
 

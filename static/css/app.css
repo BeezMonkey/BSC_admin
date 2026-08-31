@@ -1114,21 +1114,24 @@ input[type="checkbox"] {
 }
 
 .service-log-workbench,
-.invoice-workbench {
+.invoice-workbench,
+.participant-workbench {
   display: grid;
   gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
 .service-log-status-grid,
-.invoice-status-grid {
+.invoice-status-grid,
+.participant-status-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.65rem;
 }
 
 .service-log-status-card,
-.invoice-status-card {
+.invoice-status-card,
+.participant-status-card {
   display: grid;
   gap: 0.2rem;
   min-width: 0;
@@ -1142,33 +1145,39 @@ input[type="checkbox"] {
 .service-log-status-card:hover,
 .service-log-status-card.active,
 .invoice-status-card:hover,
-.invoice-status-card.active {
+.invoice-status-card.active,
+.participant-status-card:hover,
+.participant-status-card.active {
   border-color: var(--brand);
   background: #f8fffd;
 }
 
 .service-log-status-card span,
-.invoice-status-card span {
+.invoice-status-card span,
+.participant-status-card span {
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: var(--weight-label);
 }
 
 .service-log-status-card strong,
-.invoice-status-card strong {
+.invoice-status-card strong,
+.participant-status-card strong {
   color: var(--ink);
   font-size: 1rem;
   line-height: 1.2;
 }
 
 .service-log-status-card small,
-.invoice-status-card small {
+.invoice-status-card small,
+.participant-status-card small {
   color: var(--muted);
   font-size: 0.78rem;
   line-height: 1.3;
 }
 
-.invoice-filter-panel {
+.invoice-filter-panel,
+.participant-filter-panel {
   display: grid;
   gap: 0.62rem;
   margin-bottom: 0.7rem;
@@ -1179,24 +1188,28 @@ input[type="checkbox"] {
   box-shadow: var(--shadow);
 }
 
-.invoice-filter-copy {
+.invoice-filter-copy,
+.participant-filter-copy {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 0.75rem;
 }
 
-.invoice-filter-copy strong {
+.invoice-filter-copy strong,
+.participant-filter-copy strong {
   color: var(--ink);
   font-size: 0.95rem;
 }
 
-.invoice-filter-copy span {
+.invoice-filter-copy span,
+.participant-filter-copy span {
   color: var(--muted);
   font-size: 0.84rem;
 }
 
-.invoice-filter-bar {
+.invoice-filter-bar,
+.participant-filter-bar {
   margin: 0;
   border: 0;
   padding: 0;
@@ -1256,6 +1269,11 @@ table {
   min-width: 900px;
 }
 
+.participant-table {
+  table-layout: fixed;
+  min-width: 1000px;
+}
+
 .service-log-table .service-log-select-cell,
 .service-log-table .service-log-hours-cell {
   width: 1%;
@@ -1312,12 +1330,81 @@ table {
   min-width: 7.5rem;
 }
 
+.participant-table th:nth-child(1),
+.participant-table .participant-identity-cell {
+  width: 27%;
+}
+
+.participant-table th:nth-child(2),
+.participant-table .participant-contact-cell {
+  width: 20%;
+}
+
+.participant-table th:nth-child(4),
+.participant-table .participant-plan-cell {
+  width: 13%;
+}
+
+.participant-table th:nth-child(3),
+.participant-table .participant-status-cell {
+  width: 8%;
+  white-space: nowrap;
+}
+
+.participant-table th:nth-child(5),
+.participant-table .participant-workers-cell {
+  width: 12%;
+}
+
+.participant-table th:nth-child(6),
+.participant-table .participant-coordinator-cell {
+  width: 10%;
+  color: #314052;
+  overflow-wrap: anywhere;
+}
+
+.participant-table th:nth-child(7),
+.participant-table td.actions {
+  width: 10%;
+}
+
+.participant-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.72rem;
+  min-width: 0;
+}
+
+.participant-avatar,
+.participant-worker-avatars span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid #bfeee6;
+  border-radius: 999px;
+  color: var(--brand-dark);
+  background: #ccfbf1;
+  font-weight: var(--weight-action);
+  line-height: 1;
+}
+
+.participant-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 0.84rem;
+}
+
 .service-log-date-stack,
 .service-log-person-stack,
 .invoice-number-stack,
 .invoice-participant-stack,
 .invoice-period-stack,
-.invoice-total-stack {
+.invoice-total-stack,
+.participant-name-stack,
+.participant-contact-stack,
+.participant-plan-stack,
+.participant-worker-stack {
   display: grid;
   gap: 0.16rem;
   min-width: 0;
@@ -1328,7 +1415,11 @@ table {
 .invoice-number-stack a,
 .invoice-participant-stack strong,
 .invoice-period-stack strong,
-.invoice-total-stack strong {
+.invoice-total-stack strong,
+.participant-name-stack a,
+.participant-contact-stack strong,
+.participant-plan-stack strong,
+.participant-worker-stack strong {
   color: var(--ink);
   font-weight: var(--weight-heading);
   line-height: 1.25;
@@ -1357,11 +1448,136 @@ table {
 .invoice-number-stack span,
 .invoice-participant-stack span,
 .invoice-period-stack span,
-.invoice-total-stack span {
+.invoice-total-stack span,
+.participant-name-stack span,
+.participant-contact-stack span,
+.participant-plan-stack span {
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: var(--weight-label);
   line-height: 1.25;
+}
+
+.participant-name-stack a {
+  font-size: 0.92rem;
+  font-weight: var(--weight-action);
+}
+
+.participant-contact-stack strong,
+.participant-plan-stack strong {
+  color: #253348;
+  font-size: 0.86rem;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.participant-contact-stack span,
+.participant-plan-stack span,
+.participant-name-stack span {
+  color: #5f718b;
+  font-size: 0.76rem;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.participant-worker-stack {
+  gap: 0.26rem;
+}
+
+.participant-worker-stack strong,
+.participant-no-worker {
+  color: #41516a;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.participant-worker-avatars {
+  display: flex;
+  align-items: center;
+  min-height: 1.55rem;
+}
+
+.participant-worker-avatar {
+  position: relative;
+  cursor: default;
+  outline: none;
+}
+
+.participant-worker-avatar::before,
+.participant-worker-avatar::after {
+  position: absolute;
+  left: 50%;
+  z-index: 30;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.participant-worker-avatar::before {
+  content: "";
+  bottom: calc(100% + 0.18rem);
+  width: 0.46rem;
+  height: 0.46rem;
+  background: #3156ad;
+  transform: translate(-50%, 0.1rem) rotate(45deg);
+}
+
+.participant-worker-avatar::after {
+  content: attr(data-worker-name);
+  bottom: calc(100% + 0.42rem);
+  min-width: max-content;
+  border-radius: 6px;
+  padding: 0.46rem 0.64rem;
+  color: #ffffff;
+  background: #3156ad;
+  box-shadow: 0 10px 24px rgba(21, 36, 76, 0.18);
+  font-size: 0.76rem;
+  font-weight: var(--weight-action);
+  line-height: 1.2;
+  white-space: nowrap;
+  transform: translate(-50%, 0.1rem);
+}
+
+.participant-worker-avatar:hover::before,
+.participant-worker-avatar:hover::after,
+.participant-worker-avatar:focus-visible::before,
+.participant-worker-avatar:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0) rotate(45deg);
+}
+
+.participant-worker-avatar:hover::after,
+.participant-worker-avatar:focus-visible::after {
+  transform: translate(-50%, 0);
+}
+
+.participant-worker-avatar:focus-visible {
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 4px rgba(49, 86, 173, 0.42);
+}
+
+.participant-worker-avatars span {
+  width: 1.45rem;
+  height: 1.45rem;
+  margin-right: -0.28rem;
+  border-color: #cdd7ff;
+  color: #3730a3;
+  background: #e0e7ff;
+  font-size: 0.62rem;
+}
+
+.participant-no-worker {
+  display: inline-flex;
+  width: fit-content;
+  border: 1px solid #e4e7eb;
+  border-radius: 999px;
+  padding: 0.22rem 0.5rem;
+  color: #6b7280;
+  background: #f8fafc;
 }
 
 .invoice-number-stack span,
@@ -3238,7 +3454,8 @@ tbody tr:last-child td {
   .operations-overview-grid,
   .common-actions-grid,
   .service-log-status-grid,
-  .invoice-status-grid {
+  .invoice-status-grid,
+  .participant-status-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -3447,11 +3664,13 @@ tbody tr:last-child td {
   .common-actions-grid,
   .dashboard-workbench-grid,
   .service-log-status-grid,
-  .invoice-status-grid {
+  .invoice-status-grid,
+  .participant-status-grid {
     grid-template-columns: 1fr;
   }
 
-  .invoice-filter-copy {
+  .invoice-filter-copy,
+  .participant-filter-copy {
     align-items: flex-start;
     flex-direction: column;
     gap: 0.18rem;

@@ -73,6 +73,12 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn("td.actions", css)
         self.assertIn("justify-content: flex-end;", css)
 
+    def test_participant_worker_tooltip_does_not_use_help_cursor(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+
+        self.assertIn(".participant-worker-avatar", css)
+        self.assertNotIn("cursor: help;", css)
+
     def test_admin_numeric_table_cells_use_alignment_hooks(self):
         invoice_list = Path("templates/invoices/invoice_list.html").read_text(encoding="utf-8")
         service_logs = Path("templates/service_logs/service_log_list.html").read_text(encoding="utf-8")

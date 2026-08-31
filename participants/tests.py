@@ -27,6 +27,20 @@ class ParticipantManagementTests(TestCase):
     def login_admin(self):
         self.client.login(username="admin", password="test-password-123")
 
+    def create_worker(self, username="wendy", first_name="Wendy", last_name="Worker"):
+        user = get_user_model().objects.create_user(
+            username=username,
+            email=f"{username}@example.com",
+            password="test-password-123",
+        )
+        return SupportWorker.objects.create(
+            user=user,
+            first_name=first_name,
+            last_name=last_name,
+            email=f"{username}@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+
     def participant_payload(self, **overrides):
         data = {
             "first_name": "Ava",
@@ -193,6 +207,164 @@ class ParticipantManagementTests(TestCase):
 
         self.assertContains(response, "Ava Nguyen")
         self.assertNotContains(response, "Ben Taylor")
+
+    def test_participant_initials_use_first_and_last_name(self):
+        participant = Participant(first_name="Ava", last_name="Nguyen")
+
+        self.assertEqual(participant.initials, "AN")
+
+    def test_participant_list_search_matches_phone_and_email(self):
+        Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            ndis_number="111111111",
+            phone="0400001111",
+            email="ava@example.com",
+            status=Participant.Status.ACTIVE,
+        )
+        Participant.objects.create(
+            first_name="Ben",
+            last_name="Taylor",
+            ndis_number="222222222",
+            phone="0400002222",
+            email="ben@example.com",
+            status=Participant.Status.ACTIVE,
+        )
+        self.login_admin()
+
+        phone_response = self.client.get(reverse("participant_list"), {"q": "0400001111"})
+        email_response = self.client.get(reverse("participant_list"), {"q": "ava@example.com"})
+
+        self.assertContains(phone_response, "Ava Nguyen")
+        self.assertNotContains(phone_response, "Ben Taylor")
+        self.assertContains(email_response, "Ava Nguyen")
+        self.assertNotContains(email_response, "Ben Taylor")
+
+    def test_participant_list_shows_workbench_overview_cards(self):
+        active_participant = Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            ndis_number="111111111",
+            status=Participant.Status.ACTIVE,
+        )
+        Participant.objects.create(
+            first_name="Inactive",
+            last_name="Participant",
+            ndis_number="222222222",
+            status=Participant.Status.INACTIVE,
+        )
+        Participant.objects.create(
+            first_name="Archived",
+            last_name="Participant",
+            ndis_number="333333333",
+            status=Participant.Status.ARCHIVED,
+        )
+        worker = self.create_worker()
+        ParticipantWorkerAssignment.objects.create(
+            participant=active_participant,
+            worker=worker,
+            start_date=date(2026, 1, 1),
+            is_active=True,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("participant_list"))
+
+        self.assertContains(response, 'class="participant-workbench"')
+        self.assertContains(response, "Participant workbench")
+        self.assertContains(response, "All participants")
+        self.assertContains(response, "3 records")
+        self.assertContains(response, "Active")
+        self.assertContains(response, "1 active")
+        self.assertContains(response, "Needs assignment")
+        self.assertContains(response, "0 without workers")
+        self.assertContains(response, "Inactive")
+        self.assertContains(response, "1 inactive")
+        self.assertContains(response, "Archived")
+        self.assertContains(response, "1 archived")
+
+    def test_participant_list_filters_by_worker_assignment(self):
+        assigned = Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            ndis_number="111111111",
+            status=Participant.Status.ACTIVE,
+        )
+        unassigned = Participant.objects.create(
+            first_name="Ben",
+            last_name="Taylor",
+            ndis_number="222222222",
+            status=Participant.Status.ACTIVE,
+        )
+        worker = self.create_worker()
+        ParticipantWorkerAssignment.objects.create(
+            participant=assigned,
+            worker=worker,
+            start_date=date(2026, 1, 1),
+            is_active=True,
+        )
+        self.login_admin()
+
+        assigned_response = self.client.get(reverse("participant_list"), {"assignment": "assigned"})
+        unassigned_response = self.client.get(reverse("participant_list"), {"assignment": "unassigned"})
+
+        self.assertContains(assigned_response, assigned.display_name)
+        self.assertNotContains(assigned_response, unassigned.display_name)
+        self.assertContains(unassigned_response, unassigned.display_name)
+        self.assertNotContains(unassigned_response, assigned.display_name)
+
+    def test_participant_list_uses_avatar_contact_and_assignment_cells(self):
+        participant = Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            ndis_number="111111111",
+            phone="0400000000",
+            email="ava@example.com",
+            status=Participant.Status.ACTIVE,
+        )
+        worker = self.create_worker(first_name="Maya", last_name="Singh")
+        ParticipantWorkerAssignment.objects.create(
+            participant=participant,
+            worker=worker,
+            start_date=date(2026, 1, 1),
+            is_active=True,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("participant_list"))
+
+        self.assertContains(response, 'class="participant-table"')
+        self.assertContains(response, 'class="participant-avatar"')
+        self.assertContains(response, "AN")
+        self.assertContains(response, 'class="participant-contact-stack"')
+        self.assertContains(response, "0400000000")
+        self.assertContains(response, "ava@example.com")
+        self.assertContains(response, 'class="participant-worker-avatars"')
+        self.assertContains(response, "MS")
+        self.assertContains(response, "1 active worker")
+
+    def test_participant_worker_initials_expose_full_name_tooltips(self):
+        participant = Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            ndis_number="111111111",
+            status=Participant.Status.ACTIVE,
+        )
+        worker = self.create_worker(first_name="Cristian", last_name="Caceres")
+        ParticipantWorkerAssignment.objects.create(
+            participant=participant,
+            worker=worker,
+            start_date=date(2026, 1, 1),
+            is_active=True,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("participant_list"))
+
+        self.assertContains(response, 'class="participant-worker-avatar"')
+        self.assertContains(response, 'data-worker-name="Cristian Caceres"')
+        self.assertContains(response, 'aria-label="Cristian Caceres"')
+        self.assertContains(response, 'tabindex="0"')
 
     def test_participant_list_renders_status_specific_class(self):
         Participant.objects.create(
