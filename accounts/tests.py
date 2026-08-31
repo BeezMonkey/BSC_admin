@@ -1,8 +1,33 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from .models import UserProfile
+
+
+class LoginBrandingTests(TestCase):
+    allowed_hosts = ["testserver", "admin.bscare.com.au", "sw.bscare.com.au"]
+
+    @override_settings(ALLOWED_HOSTS=allowed_hosts)
+    def test_admin_domain_shows_admin_portal_label(self):
+        response = self.client.get(reverse("login"), HTTP_HOST="admin.bscare.com.au")
+
+        self.assertContains(response, "NDIS Admin Portal")
+        self.assertContains(response, "Login to Admin Portal")
+
+    @override_settings(ALLOWED_HOSTS=allowed_hosts)
+    def test_support_worker_domain_shows_worker_portal_label(self):
+        response = self.client.get(reverse("login"), HTTP_HOST="sw.bscare.com.au")
+
+        self.assertContains(response, "Support Worker Portal")
+        self.assertContains(response, "Login to Worker Portal")
+
+    @override_settings(ALLOWED_HOSTS=allowed_hosts)
+    def test_default_host_keeps_existing_generic_label(self):
+        response = self.client.get(reverse("login"), HTTP_HOST="testserver")
+
+        self.assertContains(response, "NDIS Admin System")
+        self.assertContains(response, ">Login</button>")
 
 
 class RoleRoutingTests(TestCase):
