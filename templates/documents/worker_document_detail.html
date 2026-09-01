@@ -12,6 +12,9 @@
   </div>
   <dl class="detail-list">
     <dt>Category</dt><dd>{{ document.get_category_display }}</dd>
+    <dt>Status</dt><dd>{{ document.get_review_status_display }}</dd>
+    <dt>Issue date</dt><dd>{% if document.issue_date %}{{ document.issue_date|date:"d/m/Y" }}{% else %}-{% endif %}</dd>
+    <dt>Expiry date</dt><dd>{% if document.expiry_date %}{{ document.expiry_date|date:"d/m/Y" }}{% else %}-{% endif %}</dd>
     <dt>File</dt><dd>{{ document.filename }}</dd>
     <dt>Notes</dt><dd>{{ document.notes|default:"-" }}</dd>
   </dl>

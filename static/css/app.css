@@ -1791,7 +1791,8 @@ tbody tr:last-child td {
 
 .status-pill.status-published,
 .status-pill.status-submitted,
-.status-pill.status-pending {
+.status-pill.status-pending,
+.status-pill.status-pending_review {
   color: #92400e;
   background: #fef3c7;
 }
@@ -2161,11 +2162,50 @@ tbody tr:last-child td {
   overflow-x: auto;
 }
 
+.worker-detail-sections {
+  display: grid;
+  gap: 1.05rem;
+}
+
 .related-records-card h3 {
   margin: 0;
   color: var(--muted);
   font-size: 0.84rem;
   font-weight: var(--weight-label);
+}
+
+.section-note {
+  margin: 0.22rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.worker-record-status {
+  margin-top: 0.15rem;
+}
+
+.compact-record-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.compact-record-list a {
+  display: grid;
+  gap: 0.15rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 0.65rem 0.75rem;
+  background: #ffffff;
+}
+
+.compact-record-list a strong {
+  color: var(--ink);
+  font-weight: var(--weight-action);
+}
+
+.compact-record-list a span {
+  color: var(--muted);
+  font-size: 0.84rem;
 }
 
 .related-records-table {
@@ -2255,6 +2295,132 @@ tbody tr:last-child td {
   gap: 0.35rem;
   border-bottom: 1px solid var(--line);
   padding: 0.9rem 0;
+}
+
+.worker-document-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.15rem;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.85rem;
+}
+
+.worker-document-header h1 {
+  margin: 0;
+}
+
+.worker-document-header p,
+.worker-document-section h2 + p,
+.worker-document-file-field span,
+.worker-log-attachments p,
+.worker-log-attachments .field span {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 400;
+}
+
+.worker-document-section {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 1.15rem;
+}
+
+.worker-document-section h2,
+.worker-log-attachments h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: var(--weight-label);
+}
+
+.worker-required-document-list {
+  display: grid;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.worker-required-document {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  padding: 0.82rem 0.9rem;
+  background: #ffffff;
+}
+
+.worker-required-document:last-child {
+  border-bottom: 0;
+}
+
+.worker-required-document > div:first-child {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.worker-required-document strong {
+  color: var(--ink);
+  font-weight: var(--weight-action);
+}
+
+.worker-required-document-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.worker-required-document-meta > span:not(.status-pill) {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.worker-document-upload-page {
+  display: grid;
+}
+
+.worker-document-upload-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.worker-document-date-grid {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.worker-document-locked-type {
+  display: grid;
+  gap: 0.2rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 0.8rem 0.9rem;
+  background: #f8fafc;
+}
+
+.worker-document-locked-type span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.worker-document-locked-type strong {
+  color: var(--ink);
+  font-weight: var(--weight-action);
+}
+
+.worker-log-attachments {
+  display: grid;
+  gap: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 0.9rem;
+  background: #f8fafc;
 }
 
 .worker-shift-toolbar {
@@ -2473,6 +2639,18 @@ tbody tr:last-child td {
 .list-item-actions .primary-action:hover,
 .list-item-actions button:hover {
   background: var(--brand-dark);
+}
+
+.list-item-actions .quiet-action {
+  border-color: transparent;
+  color: var(--muted);
+  background: transparent;
+}
+
+.list-item-actions .quiet-action:hover {
+  border-color: #c8d4e3;
+  color: var(--brand-dark);
+  background: #ffffff;
 }
 
 .empty-state {
@@ -3867,6 +4045,22 @@ tbody tr:last-child td {
 
   .worker-log-form-actions button,
   .worker-log-form-actions .button {
+    width: 100%;
+  }
+
+  .worker-document-header,
+  .worker-required-document,
+  .worker-document-date-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .worker-document-header {
+    display: grid;
+  }
+
+  .worker-document-header .button,
+  .worker-required-document .list-item-actions,
+  .worker-required-document .list-item-actions a {
     width: 100%;
   }
 

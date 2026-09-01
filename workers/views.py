@@ -7,6 +7,8 @@ from accounts.decorators import admin_required, worker_required
 from core.navigation import get_safe_return_url
 from core.pagination import paginate_queryset
 from core.sorting import apply_sorting
+from documents.models import Document
+from service_logs.models import ServiceLog
 
 from .forms import SupportWorkerCreateForm, SupportWorkerEditForm
 from .models import SupportWorker
@@ -127,6 +129,29 @@ def worker_detail(request, worker_id):
             "is_ready": bool(active_assignments),
         },
     ]
+    documents_by_type = {}
+    for document in Document.objects.filter(
+        worker=worker,
+        category=Document.Category.COMPLIANCE,
+        required_document_type__gt="",
+    ).order_by("-created_at"):
+        documents_by_type.setdefault(document.required_document_type, document)
+    compliance_document_items = [
+        {
+            "value": value,
+            "label": label,
+            "document": documents_by_type.get(value),
+        }
+        for value, label in Document.RequiredDocumentType.choices
+    ]
+    other_compliance_documents = Document.objects.filter(
+        worker=worker,
+        category=Document.Category.COMPLIANCE,
+        required_document_type="",
+    ).order_by("-created_at")[:5]
+    recent_service_logs = ServiceLog.objects.filter(worker=worker).select_related(
+        "participant",
+    ).order_by("-service_date", "-submitted_at")[:5]
     return render(
         request,
         "workers/worker_detail.html",
@@ -134,6 +159,9 @@ def worker_detail(request, worker_id):
             "worker": worker,
             "readiness_items": readiness_items,
             "active_assignments": active_assignments,
+            "compliance_document_items": compliance_document_items,
+            "other_compliance_documents": other_compliance_documents,
+            "recent_service_logs": recent_service_logs,
             "return_url": get_safe_return_url(request, reverse("worker_list")),
         },
     )

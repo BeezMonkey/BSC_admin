@@ -17,6 +17,10 @@
 <section class="card">
   <dl class="detail-list">
     <dt>File</dt><dd>{{ document.filename }}</dd>
+    <dt>Status</dt><dd>{{ document.get_review_status_display }}</dd>
+    <dt>Required type</dt><dd>{{ document.get_required_document_type_display|default:"-" }}</dd>
+    <dt>Issue date</dt><dd>{% if document.issue_date %}{{ document.issue_date|date:"d/m/Y" }}{% else %}-{% endif %}</dd>
+    <dt>Expiry date</dt><dd>{% if document.expiry_date %}{{ document.expiry_date|date:"d/m/Y" }}{% else %}-{% endif %}</dd>
     <dt>Participant</dt><dd>{{ document.participant|default:"-" }}</dd>
     <dt>Worker</dt><dd>{{ document.worker|default:"-" }}</dd>
     <dt>Invoice</dt><dd>{{ document.invoice|default:"-" }}</dd>
@@ -25,4 +29,23 @@
     <dt>Uploaded by</dt><dd>{{ document.uploaded_by }}</dd>
   </dl>
 </section>
+
+{% if document.review_status == "pending_review" %}
+<section class="card">
+  <h2>Review</h2>
+  <div class="button-row">
+    <form method="post" action="{% url 'document_review' document.id %}">
+      {% csrf_token %}
+      <input type="hidden" name="review_status" value="approved">
+      <button type="submit">Approve</button>
+    </form>
+  </div>
+  <form method="post" action="{% url 'document_review' document.id %}" class="filter-bar">
+    {% csrf_token %}
+    <input type="hidden" name="review_status" value="rejected">
+    <label>Reason <input type="text" name="review_note"></label>
+    <button class="danger" type="submit">Reject</button>
+  </form>
+</section>
+{% endif %}
 {% endblock %}

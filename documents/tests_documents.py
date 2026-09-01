@@ -186,6 +186,44 @@ class DocumentManagementTests(TestCase):
 
         self.assertContains(response, 'class="card table-card"')
 
+    def test_admin_document_list_focuses_worker_compliance_documents(self):
+        worker_document = Document.objects.create(
+            title="Police Check",
+            category=Document.Category.COMPLIANCE,
+            worker=self.worker,
+            required_document_type=Document.RequiredDocumentType.POLICE_CHECK,
+            review_status=Document.ReviewStatus.PENDING_REVIEW,
+            file=self.upload_file("police-check.pdf"),
+            uploaded_by=self.worker_user,
+        )
+        Document.objects.create(
+            title="Service receipt",
+            category=Document.Category.SERVICE_LOG,
+            participant=self.participant,
+            worker=self.worker,
+            service_log=self.service_log,
+            file=self.upload_file("receipt.pdf"),
+            uploaded_by=self.worker_user,
+        )
+        Document.objects.create(
+            title="Participant plan",
+            category=Document.Category.PLAN,
+            participant=self.participant,
+            file=self.upload_file("plan.pdf"),
+            uploaded_by=self.admin_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("document_list"))
+
+        self.assertContains(response, "Compliance Documents")
+        self.assertContains(response, "Review worker compliance uploads")
+        self.assertContains(response, worker_document.title)
+        self.assertContains(response, "Wendy Worker")
+        self.assertContains(response, "Police Check")
+        self.assertNotContains(response, "Service receipt")
+        self.assertNotContains(response, "Participant plan")
+
     def test_document_create_uses_record_form_layout(self):
         self.login_admin()
 
@@ -292,3 +330,189 @@ class DocumentManagementTests(TestCase):
         response = self.client.get(reverse("worker_document_detail", args=[document.id]))
 
         self.assertEqual(response.status_code, 404)
+
+    def test_worker_document_list_shows_required_compliance_uploads(self):
+        self.login_worker()
+
+        response = self.client.get(reverse("worker_document_list"))
+
+        self.assertContains(response, "Required compliance documents")
+        self.assertContains(response, "Police Check")
+        self.assertContains(response, "NDIS Worker Screening Check")
+        self.assertContains(response, "Upload Other Document")
+        self.assertContains(response, reverse("worker_document_upload"))
+
+    def test_required_document_upload_locks_selected_type(self):
+        self.login_worker()
+
+        response = self.client.get(
+            reverse("worker_document_upload"),
+            {"type": Document.RequiredDocumentType.POLICE_CHECK},
+        )
+
+        self.assertContains(response, "Upload Police Check")
+        self.assertContains(
+            response,
+            '<input type="hidden" name="required_document_type" value="police_check"',
+        )
+        self.assertContains(response, "Document type")
+        self.assertContains(response, "Police Check")
+        self.assertNotContains(response, '<select name="required_document_type"')
+
+    def test_uploaded_required_document_uses_view_and_replace_actions(self):
+        Document.objects.create(
+            title="Police Check",
+            category=Document.Category.COMPLIANCE,
+            worker=self.worker,
+            required_document_type=Document.RequiredDocumentType.POLICE_CHECK,
+            review_status=Document.ReviewStatus.APPROVED,
+            file=self.upload_file("police-check.pdf"),
+            uploaded_by=self.worker_user,
+        )
+        self.login_worker()
+
+        response = self.client.get(reverse("worker_document_list"))
+
+        self.assertContains(response, "Approved")
+        self.assertContains(response, ">View<")
+        self.assertContains(response, ">Replace<")
+        self.assertNotContains(response, "?type=police_check\">Upload</a>")
+
+    def test_rejected_required_document_prompts_upload_again(self):
+        Document.objects.create(
+            title="Police Check",
+            category=Document.Category.COMPLIANCE,
+            worker=self.worker,
+            required_document_type=Document.RequiredDocumentType.POLICE_CHECK,
+            review_status=Document.ReviewStatus.REJECTED,
+            file=self.upload_file("police-check.pdf"),
+            uploaded_by=self.worker_user,
+        )
+        self.login_worker()
+
+        response = self.client.get(reverse("worker_document_list"))
+
+        self.assertContains(response, "Rejected")
+        self.assertContains(response, ">View<")
+        self.assertContains(response, ">Upload again<")
+
+    def test_worker_can_upload_own_compliance_document_for_review(self):
+        self.login_worker()
+
+        response = self.client.post(
+            reverse("worker_document_upload"),
+            {
+                "required_document_type": Document.RequiredDocumentType.POLICE_CHECK,
+                "issue_date": "2026-06-01",
+                "expiry_date": "2027-06-01",
+                "notes": "Updated police check.",
+                "file": self.upload_file("police-check.pdf", b"police-check"),
+            },
+        )
+
+        document = Document.objects.get(title="Police Check")
+        self.assertRedirects(response, reverse("worker_document_list"))
+        self.assertEqual(document.category, Document.Category.COMPLIANCE)
+        self.assertEqual(document.worker, self.worker)
+        self.assertIsNone(document.participant)
+        self.assertEqual(document.uploaded_by, self.worker_user)
+        self.assertEqual(document.required_document_type, Document.RequiredDocumentType.POLICE_CHECK)
+        self.assertEqual(document.review_status, Document.ReviewStatus.PENDING_REVIEW)
+        self.assertEqual(document.original_filename, "police-check.pdf")
+
+    def test_worker_can_upload_other_document_for_review(self):
+        self.login_worker()
+
+        response = self.client.post(
+            reverse("worker_document_upload"),
+            {
+                "title": "Medication certificate",
+                "notes": "Extra training record.",
+                "file": self.upload_file("medication.pdf", b"medication"),
+            },
+        )
+
+        document = Document.objects.get()
+        self.assertRedirects(response, reverse("worker_document_list"))
+        self.assertEqual(document.title, "Medication certificate")
+        self.assertEqual(document.category, Document.Category.COMPLIANCE)
+        self.assertEqual(document.worker, self.worker)
+        self.assertEqual(document.required_document_type, "")
+        self.assertEqual(document.review_status, Document.ReviewStatus.PENDING_REVIEW)
+
+    def test_worker_compliance_upload_rejects_unsupported_file(self):
+        self.login_worker()
+
+        response = self.client.post(
+            reverse("worker_document_upload"),
+            {
+                "required_document_type": Document.RequiredDocumentType.POLICE_CHECK,
+                "file": self.upload_file("malware.exe", b"not really"),
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Unsupported file type")
+        self.assertEqual(Document.objects.count(), 0)
+
+    def test_admin_document_list_shows_worker_upload_review_status(self):
+        Document.objects.create(
+            title="Police Check",
+            category=Document.Category.COMPLIANCE,
+            worker=self.worker,
+            required_document_type=Document.RequiredDocumentType.POLICE_CHECK,
+            review_status=Document.ReviewStatus.PENDING_REVIEW,
+            file=self.upload_file("police-check.pdf"),
+            uploaded_by=self.worker_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("document_list"))
+
+        self.assertContains(response, "Pending review")
+
+    def test_admin_can_approve_pending_worker_document(self):
+        document = Document.objects.create(
+            title="Police Check",
+            category=Document.Category.COMPLIANCE,
+            worker=self.worker,
+            required_document_type=Document.RequiredDocumentType.POLICE_CHECK,
+            review_status=Document.ReviewStatus.PENDING_REVIEW,
+            file=self.upload_file("police-check.pdf"),
+            uploaded_by=self.worker_user,
+        )
+        self.login_admin()
+
+        response = self.client.post(
+            reverse("document_review", args=[document.id]),
+            {"review_status": Document.ReviewStatus.APPROVED},
+        )
+
+        document.refresh_from_db()
+        self.assertRedirects(response, reverse("document_detail", args=[document.id]))
+        self.assertEqual(document.review_status, Document.ReviewStatus.APPROVED)
+
+    def test_admin_can_reject_pending_worker_document_with_note(self):
+        document = Document.objects.create(
+            title="Police Check",
+            category=Document.Category.COMPLIANCE,
+            worker=self.worker,
+            required_document_type=Document.RequiredDocumentType.POLICE_CHECK,
+            review_status=Document.ReviewStatus.PENDING_REVIEW,
+            file=self.upload_file("police-check.pdf"),
+            uploaded_by=self.worker_user,
+        )
+        self.login_admin()
+
+        response = self.client.post(
+            reverse("document_review", args=[document.id]),
+            {
+                "review_status": Document.ReviewStatus.REJECTED,
+                "review_note": "Please upload a clearer copy.",
+            },
+        )
+
+        document.refresh_from_db()
+        self.assertRedirects(response, reverse("document_detail", args=[document.id]))
+        self.assertEqual(document.review_status, Document.ReviewStatus.REJECTED)
+        self.assertIn("Review note: Please upload a clearer copy.", document.notes)

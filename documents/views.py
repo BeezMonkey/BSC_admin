@@ -1,11 +1,13 @@
+from django.contrib import messages
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from accounts.decorators import admin_required, worker_required
 from core.audit import write_audit_log
 from core.models import AuditLog
 
-from .forms import DocumentForm
+from .forms import DocumentForm, WorkerDocumentUploadForm
 from .models import Document
 
 
@@ -17,6 +19,9 @@ def document_list(request):
         "invoice",
         "service_log",
         "uploaded_by",
+    ).filter(
+        category=Document.Category.COMPLIANCE,
+        worker__isnull=False,
     )
     return render(
         request,
@@ -32,6 +37,7 @@ def document_create(request):
         if form.is_valid():
             document = form.save(commit=False)
             document.uploaded_by = request.user
+            document.original_filename = document.file.name
             document.save()
             write_audit_log(
                 request.user,
@@ -62,6 +68,40 @@ def document_detail(request, document_id):
 
 
 @admin_required
+@require_POST
+def document_review(request, document_id):
+    document = get_object_or_404(Document, id=document_id)
+    review_status = request.POST.get("review_status", "")
+    if review_status not in {
+        Document.ReviewStatus.APPROVED,
+        Document.ReviewStatus.REJECTED,
+    }:
+        messages.error(request, "Select a valid review action.")
+        return redirect("document_detail", document_id=document.id)
+
+    review_note = request.POST.get("review_note", "").strip()
+    document.review_status = review_status
+    if review_note:
+        note = f"Review note: {review_note}"
+        document.notes = f"{document.notes}\n\n{note}".strip()
+    document.save(update_fields=["review_status", "notes", "updated_at"])
+
+    action = (
+        AuditLog.Action.DOCUMENT_APPROVED
+        if review_status == Document.ReviewStatus.APPROVED
+        else AuditLog.Action.DOCUMENT_REJECTED
+    )
+    write_audit_log(
+        request.user,
+        action,
+        document,
+        f"{document.get_review_status_display()} document {document.id}: {document.title}.",
+    )
+    messages.success(request, f"Document marked {document.get_review_status_display().lower()}.")
+    return redirect("document_detail", document_id=document.id)
+
+
+@admin_required
 def document_download(request, document_id):
     document = get_object_or_404(Document, id=document_id)
     with document.file.open("rb") as file_handle:
@@ -83,13 +123,99 @@ def worker_documents_for_user(user):
     return Document.objects.filter(worker=worker)
 
 
+def required_compliance_items_for_worker(worker):
+    documents = {}
+    for document in Document.objects.filter(
+        worker=worker,
+        category=Document.Category.COMPLIANCE,
+        required_document_type__gt="",
+    ).order_by("-created_at"):
+        documents.setdefault(document.required_document_type, document)
+    return [
+        {
+            "value": value,
+            "label": label,
+            "document": documents.get(value),
+        }
+        for value, label in Document.RequiredDocumentType.choices
+    ]
+
+
+def valid_required_document_type(value):
+    valid_values = {choice_value for choice_value, _ in Document.RequiredDocumentType.choices}
+    return value if value in valid_values else ""
+
+
 @worker_required
 def worker_document_list(request):
-    documents = worker_documents_for_user(request.user)
+    worker = getattr(request.user, "supportworker", None)
+    documents = worker_documents_for_user(request.user).filter(required_document_type="").exclude(
+        category=Document.Category.SERVICE_LOG,
+    )
+    required_documents = required_compliance_items_for_worker(worker) if worker else []
     return render(
         request,
         "documents/worker_document_list.html",
-        {"documents": documents},
+        {
+            "documents": documents,
+            "required_documents": required_documents,
+        },
+    )
+
+
+@worker_required
+def worker_document_upload(request):
+    worker = getattr(request.user, "supportworker", None)
+    requested_type = request.POST.get("required_document_type") or request.GET.get("type", "")
+    locked_required_document_type = valid_required_document_type(requested_type)
+    if request.method == "POST":
+        form = WorkerDocumentUploadForm(
+            request.POST,
+            request.FILES,
+            locked_required_document_type=locked_required_document_type,
+        )
+        if form.is_valid():
+            required_document_type = form.cleaned_data.get("required_document_type", "")
+            title = (
+                Document.RequiredDocumentType(required_document_type).label
+                if required_document_type
+                else form.cleaned_data["title"]
+            )
+            uploaded_file = form.cleaned_data["file"]
+            document = Document.objects.create(
+                title=title,
+                category=Document.Category.COMPLIANCE,
+                worker=worker,
+                required_document_type=required_document_type,
+                review_status=Document.ReviewStatus.PENDING_REVIEW,
+                issue_date=form.cleaned_data["issue_date"],
+                expiry_date=form.cleaned_data["expiry_date"],
+                notes=form.cleaned_data["notes"],
+                file=uploaded_file,
+                original_filename=uploaded_file.name,
+                uploaded_by=request.user,
+            )
+            write_audit_log(
+                request.user,
+                AuditLog.Action.DOCUMENT_UPLOADED,
+                document,
+                f"Uploaded worker compliance document {document.id}: {document.title}.",
+            )
+            messages.success(request, "Document submitted for admin review.")
+            return redirect("worker_document_list")
+    else:
+        form = WorkerDocumentUploadForm(
+            locked_required_document_type=locked_required_document_type,
+        )
+
+    return render(
+        request,
+        "documents/worker_document_upload.html",
+        {
+            "form": form,
+            "is_required_upload": form.is_required_document,
+            "selected_required_document_label": form.selected_required_document_label,
+        },
     )
 
 

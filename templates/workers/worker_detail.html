@@ -67,49 +67,113 @@
   </section>
 </div>
 
-<section class="card">
-  <h2>Compliance</h2>
-  <dl class="detail-list">
-    <dt>Police check</dt>
-    <dd>{% if worker.police_check_status == "not_provided" %}<span class="detail-empty">{{ worker.get_police_check_status_display }}</span>{% else %}{{ worker.get_police_check_status_display }}{% endif %}{% if worker.police_check_expiry %} | expires {{ worker.police_check_expiry|date:"d/m/Y" }}{% endif %}</dd>
-    <dt>WWCC / Blue Card</dt>
-    <dd>{% if worker.wwcc_status == "not_provided" %}<span class="detail-empty">{{ worker.get_wwcc_status_display }}</span>{% else %}{{ worker.get_wwcc_status_display }}{% endif %}{% if worker.wwcc_expiry %} | expires {{ worker.wwcc_expiry|date:"d/m/Y" }}{% endif %}</dd>
-  </dl>
-</section>
-
-<section class="card related-records-card">
-  <h2>Related Records</h2>
-  <h3>Assigned Participants</h3>
-  <table class="related-records-table">
-    <thead>
-      <tr>
-        <th>Participant</th>
-        <th>Start</th>
-        <th>End</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for assignment in worker.participant_assignments.all %}
+<div class="worker-detail-sections">
+  <section class="card related-records-card worker-compliance-card">
+    <div>
+      <h2>Compliance Documents</h2>
+      <p class="section-note">Worker qualification and compliance upload status.</p>
+    </div>
+    <dl class="detail-list worker-record-status">
+      <dt>Police check</dt>
+      <dd>{% if worker.police_check_status == "not_provided" %}<span class="detail-empty">{{ worker.get_police_check_status_display }}</span>{% else %}{{ worker.get_police_check_status_display }}{% endif %}{% if worker.police_check_expiry %} | expires {{ worker.police_check_expiry|date:"d/m/Y" }}{% endif %}</dd>
+      <dt>WWCC / Blue Card</dt>
+      <dd>{% if worker.wwcc_status == "not_provided" %}<span class="detail-empty">{{ worker.get_wwcc_status_display }}</span>{% else %}{{ worker.get_wwcc_status_display }}{% endif %}{% if worker.wwcc_expiry %} | expires {{ worker.wwcc_expiry|date:"d/m/Y" }}{% endif %}</dd>
+    </dl>
+    <table class="related-records-table">
+      <thead>
         <tr>
-          <td>{{ assignment.participant.display_name }}</td>
-          <td>{{ assignment.start_date|date:"d/m/Y" }}</td>
-          <td>{% if assignment.end_date %}{{ assignment.end_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
-          <td><span class="status-pill {% if assignment.is_active %}status-active{% else %}status-inactive{% endif %}">{{ assignment.is_active|yesno:"Active,Ended" }}</span></td>
+          <th>Document</th>
+          <th>Status</th>
+          <th>Expiry</th>
+          <th>Actions</th>
         </tr>
+      </thead>
+      <tbody>
+        {% for item in compliance_document_items %}
+          <tr>
+            <td>{{ item.label }}</td>
+            {% if item.document %}
+              <td><span class="status-pill status-{{ item.document.review_status }}">{{ item.document.get_review_status_display }}</span></td>
+              <td>{% if item.document.expiry_date %}Expires {{ item.document.expiry_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
+              <td><a href="{% url 'document_detail' item.document.id %}">View</a></td>
+            {% else %}
+              <td><span class="status-pill status-not_provided">Not uploaded</span></td>
+              <td><span class="detail-empty">Not provided</span></td>
+              <td><a href="{% url 'document_create' %}?worker={{ worker.id }}">Upload</a></td>
+            {% endif %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <h3>Other documents</h3>
+    <div class="compact-record-list">
+      {% for document in other_compliance_documents %}
+        <a href="{% url 'document_detail' document.id %}">
+          <strong>{{ document.title }}</strong>
+          <span>{{ document.get_review_status_display }}{% if document.expiry_date %} | Expires {{ document.expiry_date|date:"d/m/Y" }}{% endif %}</span>
+        </a>
       {% empty %}
-        <tr>
-          <td colspan="4"><span class="detail-empty">No participants assigned.</span></td>
-        </tr>
+        <span class="detail-empty">No other compliance documents.</span>
       {% endfor %}
-    </tbody>
-  </table>
+    </div>
+  </section>
 
-  <div class="tabs-placeholder">
-    <span>Roster</span>
-    <span>Service Logs</span>
-    <span>Documents</span>
-    <span>Notes</span>
-  </div>
-</section>
+  <section class="card related-records-card">
+    <h2>Assigned Participants</h2>
+    <table class="related-records-table">
+      <thead>
+        <tr>
+          <th>Participant</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for assignment in worker.participant_assignments.all %}
+          <tr>
+            <td><a href="{% url 'participant_detail' assignment.participant.id %}">{{ assignment.participant.display_name }}</a></td>
+            <td>{{ assignment.start_date|date:"d/m/Y" }}</td>
+            <td>{% if assignment.end_date %}{{ assignment.end_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
+            <td><span class="status-pill {% if assignment.is_active %}status-active{% else %}status-inactive{% endif %}">{{ assignment.is_active|yesno:"Active,Ended" }}</span></td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="4"><span class="detail-empty">No participants assigned.</span></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card related-records-card">
+    <h2>Recent Service Logs</h2>
+    <table class="related-records-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Participant</th>
+          <th>Hours</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for service_log in recent_service_logs %}
+          <tr>
+            <td>{{ service_log.service_date|date:"d/m/Y" }}</td>
+            <td>{{ service_log.participant.display_name }}</td>
+            <td>{{ service_log.actual_hours }}</td>
+            <td><span class="status-pill status-{{ service_log.status }}">{{ service_log.get_status_display }}</span></td>
+            <td><a href="{% url 'service_log_detail' service_log.id %}">View log</a></td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5"><span class="detail-empty">No recent service logs yet.</span></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
 {% endblock %}

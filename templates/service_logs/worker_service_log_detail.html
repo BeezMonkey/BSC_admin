@@ -22,4 +22,19 @@
     <dt>Rejection reason</dt><dd>{{ service_log.rejection_reason|default:"-" }}</dd>
   </dl>
 </section>
+
+<section class="worker-card">
+  <h2>Attachments</h2>
+  {% for document in service_log.documents.all %}
+    <a class="list-item" href="{% url 'worker_document_detail' document.id %}">
+      <strong>{{ document.filename }}</strong>
+      <span>{{ document.get_review_status_display }}</span>
+    </a>
+  {% empty %}
+    <div class="empty-state">
+      <strong>No attachments.</strong>
+      <p>Any files submitted with this service log will appear here.</p>
+    </div>
+  {% endfor %}
+</section>
 {% endblock %}

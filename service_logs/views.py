@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
@@ -12,6 +13,8 @@ from core.models import AuditLog
 from core.navigation import get_safe_return_url
 from core.pagination import paginate_queryset
 from core.sorting import apply_sorting
+from documents.forms import validate_service_log_attachments
+from documents.models import Document
 from scheduling.models import Shift
 
 from .forms import ServiceLogForm
@@ -243,7 +246,18 @@ def worker_service_log_create(request, shift_id):
     }
     if request.method == "POST":
         form = ServiceLogForm(request.POST)
+        attachments = request.FILES.getlist("attachments")
         if form.is_valid():
+            try:
+                validate_service_log_attachments(attachments)
+            except ValidationError as error:
+                form.add_error(None, error)
+                return render(
+                    request,
+                    "service_logs/worker_service_log_form.html",
+                    {"form": form, "shift": shift},
+                )
+
             service_log = ServiceLog.objects.create_from_shift(
                 shift=shift,
                 actual_start_time=form.cleaned_data["actual_start_time"],
@@ -254,6 +268,24 @@ def worker_service_log_create(request, shift_id):
                 case_notes=form.cleaned_data["case_notes"],
                 worker_notes=form.cleaned_data["worker_notes"],
             )
+            for uploaded_file in attachments:
+                document = Document.objects.create(
+                    title=f"Service log attachment - {uploaded_file.name}",
+                    category=Document.Category.SERVICE_LOG,
+                    participant=shift.participant,
+                    worker=worker,
+                    service_log=service_log,
+                    review_status=Document.ReviewStatus.PENDING_REVIEW,
+                    file=uploaded_file,
+                    original_filename=uploaded_file.name,
+                    uploaded_by=request.user,
+                )
+                write_audit_log(
+                    request.user,
+                    AuditLog.Action.DOCUMENT_UPLOADED,
+                    document,
+                    f"Uploaded service log attachment {document.id} for service log {service_log.id}.",
+                )
             shift.status = Shift.Status.COMPLETED
             shift.completed_at = timezone.now()
             shift.save(update_fields=["status", "completed_at", "updated_at"])

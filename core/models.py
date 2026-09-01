@@ -13,6 +13,8 @@ class AuditLog(models.Model):
         INVOICE_CANCELLED = "invoice_cancelled", "Invoice cancelled"
         INVOICE_DELETED = "invoice_deleted", "Invoice deleted"
         DOCUMENT_UPLOADED = "document_uploaded", "Document uploaded"
+        DOCUMENT_APPROVED = "document_approved", "Document approved"
+        DOCUMENT_REJECTED = "document_rejected", "Document rejected"
         DOCUMENT_DOWNLOADED = "document_downloaded", "Document downloaded"
 
     actor = models.ForeignKey(
