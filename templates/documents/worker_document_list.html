@@ -4,18 +4,65 @@
 
 {% block content %}
 <section class="worker-card">
-  <h1>My Documents</h1>
-  {% for document in documents %}
-    <a class="list-item" href="{% url 'worker_document_detail' document.id %}">
-      <strong>{{ document.title }}</strong>
-      <span>{{ document.get_category_display }}</span>
-      <span>{{ document.filename }}</span>
-    </a>
-  {% empty %}
-    <div class="empty-state">
-      <strong>No documents yet.</strong>
-      <p>Documents shared with your worker account will appear here.</p>
+  <header class="worker-document-header">
+    <div>
+      <h1>My Documents</h1>
+      <p>Upload your compliance documents and access files shared with your worker account.</p>
     </div>
-  {% endfor %}
+    <a class="button" href="{% url 'worker_document_upload' %}">Upload Other Document</a>
+  </header>
+
+  <section class="worker-document-section">
+    <h2>Required compliance documents</h2>
+    <div class="worker-required-document-list">
+      {% for item in required_documents %}
+        <article class="worker-required-document">
+          <div>
+            <strong>{{ item.label }}</strong>
+            {% if item.document %}
+              <span class="worker-required-document-meta">
+                <span class="status-pill status-{{ item.document.review_status }}">{{ item.document.get_review_status_display }}</span>
+                {% if item.document.expiry_date %}
+                  <span>Expires {{ item.document.expiry_date|date:"d/m/Y" }}</span>
+                {% endif %}
+              </span>
+            {% else %}
+              <span class="worker-required-document-meta">
+                <span class="status-pill status-not_provided">Not uploaded</span>
+              </span>
+            {% endif %}
+          </div>
+          <div class="list-item-actions">
+            {% if item.document %}
+              <a href="{% url 'worker_document_detail' item.document.id %}">View</a>
+              {% if item.document.review_status == "rejected" %}
+                <a class="primary-action" href="{% url 'worker_document_upload' %}?type={{ item.value }}">Upload again</a>
+              {% else %}
+                <a class="quiet-action" href="{% url 'worker_document_upload' %}?type={{ item.value }}">Replace</a>
+              {% endif %}
+            {% else %}
+              <a class="primary-action" href="{% url 'worker_document_upload' %}?type={{ item.value }}">Upload</a>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="worker-document-section">
+    <h2>Other documents</h2>
+    {% for document in documents %}
+      <a class="list-item" href="{% url 'worker_document_detail' document.id %}">
+        <strong>{{ document.title }}</strong>
+        <span>{{ document.get_category_display }} | {{ document.get_review_status_display }}</span>
+        <span>{{ document.filename }}</span>
+      </a>
+    {% empty %}
+      <div class="empty-state">
+        <strong>No other documents yet.</strong>
+        <p>Extra compliance documents you submit will appear here.</p>
+      </div>
+    {% endfor %}
+  </section>
 </section>
 {% endblock %}

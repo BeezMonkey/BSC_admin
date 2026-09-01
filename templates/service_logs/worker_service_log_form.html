@@ -27,7 +27,7 @@
     </div>
   </dl>
 
-  <form class="worker-log-form" method="post">
+  <form class="worker-log-form" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.non_field_errors }}
 
@@ -66,6 +66,18 @@
         {{ form.worker_notes.errors }}
       </label>
     </div>
+
+    <section class="worker-log-attachments">
+      <div>
+        <h2>Attachments</h2>
+        <p>Add photos or supporting files for this service log.</p>
+      </div>
+      <label class="field" for="id_attachments">
+        Files
+        <input id="id_attachments" type="file" name="attachments" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+        <span>Up to 3 files, 5 MB each. PDF, JPG, PNG, DOC, or DOCX.</span>
+      </label>
+    </section>
 
     <div class="button-row worker-log-form-actions worker-bottom-actions">
       <button type="submit">Submit Service Log</button>

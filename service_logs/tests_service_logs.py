@@ -1,13 +1,16 @@
 from datetime import date, time
 from decimal import Decimal
+from tempfile import TemporaryDirectory
 
 from django.contrib.auth import get_user_model
 from django.core import mail
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.mail.backends.base import BaseEmailBackend
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from accounts.models import UserProfile
+from documents.models import Document
 from participants.models import Participant
 from scheduling.models import Shift, SupportItem
 from service_logs.models import ServiceLog
@@ -20,6 +23,19 @@ class FailingEmailBackend(BaseEmailBackend):
 
 
 class ServiceLogCompletionTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.media_dir = TemporaryDirectory()
+        cls.override = override_settings(MEDIA_ROOT=cls.media_dir.name)
+        cls.override.enable()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.override.disable()
+        cls.media_dir.cleanup()
+        super().tearDownClass()
+
     def create_user_with_role(self, username, role):
         user = get_user_model().objects.create_user(
             username=username,
@@ -132,6 +148,54 @@ class ServiceLogCompletionTests(TestCase):
         self.assertEqual(service_log.worker, self.worker)
         self.assertEqual(shift.status, Shift.Status.COMPLETED)
         self.assertIsNotNone(shift.completed_at)
+
+    def test_worker_service_log_submission_creates_attachment_documents(self):
+        shift = self.create_shift()
+        self.login_worker()
+
+        response = self.client.post(
+            reverse("worker_service_log_create", args=[shift.id]),
+            {
+                **self.log_payload(),
+                "attachments": [
+                    SimpleUploadedFile("progress-photo.jpg", b"photo", content_type="image/jpeg"),
+                    SimpleUploadedFile("receipt.pdf", b"receipt", content_type="application/pdf"),
+                ],
+            },
+        )
+
+        service_log = ServiceLog.objects.get()
+        attachments = list(Document.objects.filter(service_log=service_log).order_by("title"))
+        self.assertRedirects(
+            response,
+            reverse("worker_service_log_detail", args=[service_log.id]),
+        )
+        self.assertEqual(len(attachments), 2)
+        self.assertEqual({document.category for document in attachments}, {Document.Category.SERVICE_LOG})
+        self.assertEqual({document.worker for document in attachments}, {self.worker})
+        self.assertEqual({document.participant for document in attachments}, {self.participant})
+        self.assertEqual({document.uploaded_by for document in attachments}, {self.worker_user})
+        self.assertEqual({document.review_status for document in attachments}, {Document.ReviewStatus.PENDING_REVIEW})
+
+    def test_worker_service_log_submission_rejects_too_many_attachments(self):
+        shift = self.create_shift()
+        self.login_worker()
+
+        response = self.client.post(
+            reverse("worker_service_log_create", args=[shift.id]),
+            {
+                **self.log_payload(),
+                "attachments": [
+                    SimpleUploadedFile(f"attachment-{index}.pdf", b"file", content_type="application/pdf")
+                    for index in range(4)
+                ],
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Attach no more than 3 files")
+        self.assertEqual(ServiceLog.objects.count(), 0)
+        self.assertEqual(Document.objects.count(), 0)
 
     @override_settings(
         ADMIN_NOTIFICATION_EMAILS=["kun-bi@hotmail.com"],

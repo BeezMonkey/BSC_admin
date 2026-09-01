@@ -38,6 +38,25 @@
   </section>
 </div>
 
+<section class="card">
+  <h2>Attachments</h2>
+  {% for document in service_log.documents.all %}
+    <div class="list-item">
+      <strong>{{ document.filename }}</strong>
+      <span>{{ document.get_review_status_display }} | Uploaded by {{ document.uploaded_by }}</span>
+      <div class="list-item-actions">
+        <a href="{% url 'document_detail' document.id %}">View</a>
+        <a class="primary-action" href="{% url 'document_download' document.id %}">Download</a>
+      </div>
+    </div>
+  {% empty %}
+    <div class="empty-state">
+      <strong>No attachments.</strong>
+      <p>No files were submitted with this service log.</p>
+    </div>
+  {% endfor %}
+</section>
+
 {% if service_log.status == "submitted" %}
 <section class="card">
   <h2>Review</h2>

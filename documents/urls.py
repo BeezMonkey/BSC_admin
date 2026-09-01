@@ -5,21 +5,25 @@ from .views import (
     document_detail,
     document_download,
     document_list,
+    document_review,
     worker_document_detail,
     worker_document_download,
     worker_document_list,
+    worker_document_upload,
 )
 
 urlpatterns = [
     path("documents/", document_list, name="document_list"),
     path("documents/new/", document_create, name="document_create"),
     path("documents/<int:document_id>/", document_detail, name="document_detail"),
+    path("documents/<int:document_id>/review/", document_review, name="document_review"),
     path(
         "documents/<int:document_id>/download/",
         document_download,
         name="document_download",
     ),
     path("sw/documents/", worker_document_list, name="worker_document_list"),
+    path("sw/documents/upload/", worker_document_upload, name="worker_document_upload"),
     path(
         "sw/documents/<int:document_id>/",
         worker_document_detail,

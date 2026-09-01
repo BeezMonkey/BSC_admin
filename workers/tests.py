@@ -1,11 +1,15 @@
-from datetime import date
+from datetime import date, time
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import UserProfile
+from documents.models import Document
 from participants.models import Participant, ParticipantWorkerAssignment
+from scheduling.models import Shift, SupportItem
+from service_logs.models import ServiceLog
 
 from .models import SupportWorker
 
@@ -453,6 +457,183 @@ class SupportWorkerManagementTests(TestCase):
         self.assertContains(response, "Upload Document")
         self.assertContains(response, "Create Shift")
 
+    def test_worker_detail_shows_compliance_document_upload_statuses(self):
+        user = get_user_model().objects.create_user(
+            username="maya-docs",
+            email="maya.docs@example.com",
+            password="test-password-123",
+        )
+        worker = SupportWorker.objects.create(
+            user=user,
+            first_name="Maya",
+            last_name="Singh",
+            email="maya.docs@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        other_user = get_user_model().objects.create_user(
+            username="other-docs",
+            email="other.docs@example.com",
+            password="test-password-123",
+        )
+        other_worker = SupportWorker.objects.create(
+            user=other_user,
+            first_name="Oscar",
+            last_name="Other",
+            email="other.docs@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        Document.objects.create(
+            title="Police Check",
+            category=Document.Category.COMPLIANCE,
+            worker=worker,
+            required_document_type=Document.RequiredDocumentType.POLICE_CHECK,
+            review_status=Document.ReviewStatus.PENDING_REVIEW,
+            file="documents/police-check.pdf",
+            uploaded_by=user,
+        )
+        Document.objects.create(
+            title="First Aid Certificate",
+            category=Document.Category.COMPLIANCE,
+            worker=worker,
+            required_document_type=Document.RequiredDocumentType.FIRST_AID,
+            review_status=Document.ReviewStatus.APPROVED,
+            expiry_date=date(2027, 6, 1),
+            file="documents/first-aid.pdf",
+            uploaded_by=user,
+        )
+        Document.objects.create(
+            title="Other worker Police Check",
+            category=Document.Category.COMPLIANCE,
+            worker=other_worker,
+            required_document_type=Document.RequiredDocumentType.POLICE_CHECK,
+            review_status=Document.ReviewStatus.APPROVED,
+            file="documents/other-police-check.pdf",
+            uploaded_by=other_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("worker_detail", args=[worker.id]))
+
+        self.assertContains(response, "Compliance Documents")
+        self.assertContains(response, "Police Check")
+        self.assertContains(response, "Pending review")
+        self.assertContains(response, "First Aid Certificate")
+        self.assertContains(response, "Approved")
+        self.assertContains(response, "Expires 01/06/2027")
+        self.assertContains(response, "Not uploaded")
+        self.assertContains(response, "Other documents")
+        self.assertNotContains(response, "Other worker Police Check")
+
+    def test_worker_detail_shows_active_participants_and_recent_service_logs(self):
+        user = get_user_model().objects.create_user(
+            username="maya-activity",
+            email="maya.activity@example.com",
+            password="test-password-123",
+        )
+        worker = SupportWorker.objects.create(
+            user=user,
+            first_name="Maya",
+            last_name="Singh",
+            email="maya.activity@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        other_user = get_user_model().objects.create_user(
+            username="other-activity",
+            email="other.activity@example.com",
+            password="test-password-123",
+        )
+        other_worker = SupportWorker.objects.create(
+            user=other_user,
+            first_name="Oscar",
+            last_name="Other",
+            email="other.activity@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        participant = Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            status=Participant.Status.ACTIVE,
+        )
+        other_participant = Participant.objects.create(
+            first_name="Ben",
+            last_name="Taylor",
+            status=Participant.Status.ACTIVE,
+        )
+        ParticipantWorkerAssignment.objects.create(
+            participant=participant,
+            worker=worker,
+            start_date=date(2026, 1, 1),
+            is_active=True,
+        )
+        support_item = SupportItem.objects.create(
+            item_number="01_011_0107_1_1",
+            name="Assistance with self-care activities",
+            unit=SupportItem.Unit.HOUR,
+            price_limit=Decimal("65.47"),
+            gst_code=SupportItem.GSTCode.GST_FREE,
+            is_active=True,
+        )
+        shift = Shift.objects.create(
+            participant=participant,
+            worker=worker,
+            service_date=date(2026, 6, 1),
+            start_time=time(9, 0),
+            end_time=time(11, 0),
+            break_minutes=0,
+            planned_hours=Decimal("2.00"),
+            support_item=support_item,
+            service_type=Shift.ServiceType.PERSONAL_CARE,
+            status=Shift.Status.COMPLETED,
+            created_by=self.worker_user,
+        )
+        other_shift = Shift.objects.create(
+            participant=other_participant,
+            worker=other_worker,
+            service_date=date(2026, 6, 2),
+            start_time=time(9, 0),
+            end_time=time(11, 0),
+            break_minutes=0,
+            planned_hours=Decimal("2.00"),
+            support_item=support_item,
+            service_type=Shift.ServiceType.PERSONAL_CARE,
+            status=Shift.Status.COMPLETED,
+            created_by=self.worker_user,
+        )
+        service_log = ServiceLog.objects.create_from_shift(
+            shift=shift,
+            actual_start_time=time(9, 0),
+            actual_end_time=time(11, 0),
+            break_minutes=0,
+            actual_hours=Decimal("2.00"),
+            kilometres=Decimal("0.00"),
+            case_notes="Worker detail log.",
+            status=ServiceLog.Status.SUBMITTED,
+        )
+        ServiceLog.objects.create_from_shift(
+            shift=other_shift,
+            actual_start_time=time(9, 0),
+            actual_end_time=time(11, 0),
+            break_minutes=0,
+            actual_hours=Decimal("2.00"),
+            kilometres=Decimal("0.00"),
+            case_notes="Other worker log.",
+            status=ServiceLog.Status.APPROVED,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("worker_detail", args=[worker.id]))
+
+        self.assertContains(response, "Assigned Participants")
+        self.assertContains(response, "Ava Nguyen")
+        self.assertContains(response, reverse("participant_detail", args=[participant.id]))
+        self.assertContains(response, "Recent Service Logs")
+        self.assertContains(response, "01/06/2026")
+        self.assertContains(response, "2.00")
+        self.assertContains(response, "Submitted")
+        self.assertContains(response, reverse("service_log_detail", args=[service_log.id]))
+        self.assertNotContains(response, "Ben Taylor")
+        self.assertNotContains(response, "Other worker log")
+
     def test_worker_list_omits_compliance_summary_but_detail_retains_it(self):
         user = get_user_model().objects.create_user(
             username="maya-list",
@@ -476,7 +657,7 @@ class SupportWorkerManagementTests(TestCase):
         self.assertNotContains(list_response, "<th>Compliance</th>", html=True)
         self.assertNotContains(list_response, "Police: Current")
         self.assertNotContains(list_response, "WWCC: Pending")
-        self.assertContains(detail_response, "<h2>Compliance</h2>", html=True)
+        self.assertContains(detail_response, "<h2>Compliance Documents</h2>", html=True)
         self.assertContains(detail_response, "Police check")
         self.assertContains(detail_response, "WWCC / Blue Card")
 

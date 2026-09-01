@@ -1,12 +1,12 @@
 {% extends "admin_base.html" %}
 
-{% block title %}Documents - Brisbane Star Care{% endblock %}
+{% block title %}Compliance Documents - Brisbane Star Care{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1>Documents</h1>
-    <p>Uploaded files linked to participants, workers, invoices, and service logs.</p>
+    <h1>Compliance Documents</h1>
+    <p>Review worker compliance uploads and keep qualification records current.</p>
   </div>
   <a class="button" href="{% url 'document_create' %}">Upload Document</a>
 </div>
@@ -16,30 +16,31 @@
     <thead>
       <tr>
         <th>Title</th>
-        <th>Category</th>
-        <th>Linked record</th>
+        <th>Worker</th>
+        <th>Type</th>
+        <th>Status</th>
+        <th>Expiry</th>
         <th>Uploaded by</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for document in documents %}
         <tr>
           <td><a href="{% url 'document_detail' document.id %}">{{ document.title }}</a></td>
-          <td>{{ document.get_category_display }}</td>
-          <td>
-            {% if document.participant %}Participant: {{ document.participant.display_name }}{% endif %}
-            {% if document.worker %}Worker: {{ document.worker.display_name }}{% endif %}
-            {% if document.invoice %}Invoice: {{ document.invoice.invoice_number }}{% endif %}
-            {% if document.service_log %}Service log: {{ document.service_log.id }}{% endif %}
-          </td>
+          <td>{{ document.worker.display_name }}</td>
+          <td>{{ document.get_required_document_type_display|default:"Other document" }}</td>
+          <td><span class="status-pill status-{{ document.review_status }}">{{ document.get_review_status_display }}</span></td>
+          <td>{% if document.expiry_date %}{{ document.expiry_date|date:"d/m/Y" }}{% else %}-{% endif %}</td>
           <td>{{ document.uploaded_by }}</td>
+          <td><a href="{% url 'document_detail' document.id %}">View</a></td>
         </tr>
       {% empty %}
         <tr>
-          <td colspan="4">
+          <td colspan="7">
             <div class="empty-state">
-              <strong>No documents yet.</strong>
-              <p>Upload documents to share participant, worker, invoice, or service log files.</p>
+              <strong>No compliance documents yet.</strong>
+              <p>Worker compliance uploads will appear here for admin review.</p>
               <div class="empty-state-actions">
                 <a class="button" href="{% url 'document_create' %}">Upload Document</a>
               </div>
