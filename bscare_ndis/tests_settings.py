@@ -1,9 +1,15 @@
 from unittest.mock import patch
 
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.test import SimpleTestCase
 
-from bscare_ndis.settings import env_bool, env_list, render_external_hostname
+from bscare_ndis.settings import (
+    document_storage_config,
+    env_bool,
+    env_list,
+    render_external_hostname,
+)
 
 
 class EnvironmentSettingsTests(SimpleTestCase):
@@ -61,3 +67,53 @@ class EnvironmentSettingsTests(SimpleTestCase):
             settings.STORAGES["staticfiles"]["BACKEND"],
             "whitenoise.storage.CompressedManifestStaticFilesStorage",
         )
+
+    def test_default_document_storage_uses_local_filesystem(self):
+        with patch.dict("os.environ", {}, clear=True):
+            self.assertEqual(
+                document_storage_config(),
+                {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+            )
+
+    def test_ftps_document_storage_reads_required_environment(self):
+        with patch.dict(
+            "os.environ",
+            {
+                "DOCUMENT_STORAGE_BACKEND": "ftps",
+                "DOCUMENT_FTPS_HOST": "ftp.example.com",
+                "DOCUMENT_FTPS_PORT": "21",
+                "DOCUMENT_FTPS_USERNAME": "bscfiles@example.com",
+                "DOCUMENT_FTPS_PASSWORD": "secret",
+                "DOCUMENT_FTPS_ROOT": "/",
+            },
+            clear=True,
+        ):
+            self.assertEqual(
+                document_storage_config(),
+                {
+                    "BACKEND": "documents.storage.FTPSStorage",
+                    "OPTIONS": {
+                        "host": "ftp.example.com",
+                        "port": 21,
+                        "username": "bscfiles@example.com",
+                        "password": "secret",
+                        "root_path": "/",
+                    },
+                },
+            )
+
+    def test_ftps_document_storage_requires_credentials(self):
+        with patch.dict(
+            "os.environ",
+            {
+                "DOCUMENT_STORAGE_BACKEND": "ftps",
+                "DOCUMENT_FTPS_HOST": "ftp.example.com",
+                "DOCUMENT_FTPS_USERNAME": "bscfiles@example.com",
+            },
+            clear=True,
+        ):
+            with self.assertRaisesMessage(
+                ImproperlyConfigured,
+                "DOCUMENT_FTPS_PASSWORD is required",
+            ):
+                document_storage_config()
