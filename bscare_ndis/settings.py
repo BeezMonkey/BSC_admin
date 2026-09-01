@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 from .database import database_config_from_url
@@ -36,6 +37,39 @@ def env_list(name, default=""):
 
 def render_external_hostname():
     return os.getenv("RENDER_EXTERNAL_HOSTNAME", "").strip()
+
+
+def required_env(name):
+    value = os.getenv(name, "").strip()
+    if not value:
+        raise ImproperlyConfigured(f"{name} is required for DOCUMENT_STORAGE_BACKEND=ftps")
+    return value
+
+
+def document_storage_config():
+    backend = os.getenv("DOCUMENT_STORAGE_BACKEND", "filesystem").strip().lower()
+    if backend in {"", "filesystem", "local"}:
+        return {"BACKEND": "django.core.files.storage.FileSystemStorage"}
+
+    if backend == "ftps":
+        try:
+            port = int(os.getenv("DOCUMENT_FTPS_PORT", "21"))
+        except ValueError as exc:
+            raise ImproperlyConfigured("DOCUMENT_FTPS_PORT must be an integer") from exc
+        return {
+            "BACKEND": "documents.storage.FTPSStorage",
+            "OPTIONS": {
+                "host": required_env("DOCUMENT_FTPS_HOST"),
+                "port": port,
+                "username": required_env("DOCUMENT_FTPS_USERNAME"),
+                "password": required_env("DOCUMENT_FTPS_PASSWORD"),
+                "root_path": os.getenv("DOCUMENT_FTPS_ROOT", "/").strip() or "/",
+            },
+        }
+
+    raise ImproperlyConfigured(
+        "DOCUMENT_STORAGE_BACKEND must be either filesystem or ftps"
+    )
 
 
 # Quick-start development settings - unsuitable for production
@@ -156,9 +190,7 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
+    "default": document_storage_config(),
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },

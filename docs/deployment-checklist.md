@@ -42,7 +42,16 @@ DATABASE_URL=postgres://bsc_user:password@db-host:5432/bsc_admin
 - Run `python manage.py collectstatic` for production static assets.
 - Confirm collected static files are served from `STATIC_ROOT`.
 - Confirm WhiteNoise serves static assets in the target environment.
-- Back up `MEDIA_ROOT` because uploaded documents live there.
+- For local development, uploaded documents live in `MEDIA_ROOT` and should be backed up if needed.
+- For Render production document uploads, configure private FTPS storage before accepting real worker documents:
+  - `DOCUMENT_STORAGE_BACKEND=ftps`
+  - `DOCUMENT_FTPS_HOST=ftp.duratechequip.com`
+  - `DOCUMENT_FTPS_PORT=21`
+  - `DOCUMENT_FTPS_USERNAME=bscfiles@duratechequip.com`
+  - `DOCUMENT_FTPS_PASSWORD=<dedicated FTP password>`
+  - `DOCUMENT_FTPS_ROOT=/`
+- Keep the FTPS account restricted to `/home4/duratech/bsc_private_uploads` in cPanel.
+- Rotate the dedicated FTPS password before uploading real compliance or service log documents.
 - Confirm document downloads are protected by application permissions.
 
 ## Security Checks
