@@ -118,3 +118,55 @@ class EnvironmentSettingsTests(SimpleTestCase):
                 "DOCUMENT_FTPS_PASSWORD is required",
             ):
                 document_storage_config()
+
+    def test_sftp_document_storage_reads_required_environment(self):
+        private_key = "-----BEGIN RSA PRIVATE KEY-----\\nkey-body\\n-----END RSA PRIVATE KEY-----"
+        with patch.dict(
+            "os.environ",
+            {
+                "DOCUMENT_STORAGE_BACKEND": "sftp",
+                "DOCUMENT_SFTP_HOST": "ftp.example.com",
+                "DOCUMENT_SFTP_PORT": "22",
+                "DOCUMENT_SFTP_USERNAME": "duratech",
+                "DOCUMENT_SFTP_PRIVATE_KEY": private_key,
+                "DOCUMENT_SFTP_KEY_PASSPHRASE": "key-secret",
+                "DOCUMENT_SFTP_ROOT": "/home4/duratech/bsc_private_uploads",
+                "DOCUMENT_SFTP_TIMEOUT": "10",
+            },
+            clear=True,
+        ):
+            self.assertEqual(
+                document_storage_config(),
+                {
+                    "BACKEND": "documents.storage.SFTPStorage",
+                    "OPTIONS": {
+                        "host": "ftp.example.com",
+                        "port": 22,
+                        "username": "duratech",
+                        "private_key": (
+                            "-----BEGIN RSA PRIVATE KEY-----\n"
+                            "key-body\n"
+                            "-----END RSA PRIVATE KEY-----"
+                        ),
+                        "key_passphrase": "key-secret",
+                        "root_path": "/home4/duratech/bsc_private_uploads",
+                        "timeout": 10,
+                    },
+                },
+            )
+
+    def test_sftp_document_storage_requires_private_key(self):
+        with patch.dict(
+            "os.environ",
+            {
+                "DOCUMENT_STORAGE_BACKEND": "sftp",
+                "DOCUMENT_SFTP_HOST": "ftp.example.com",
+                "DOCUMENT_SFTP_USERNAME": "duratech",
+            },
+            clear=True,
+        ):
+            with self.assertRaisesMessage(
+                ImproperlyConfigured,
+                "DOCUMENT_SFTP_PRIVATE_KEY is required",
+            ):
+                document_storage_config()

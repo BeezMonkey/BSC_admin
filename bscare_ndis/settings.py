@@ -46,6 +46,17 @@ def required_env(name):
     return value
 
 
+def required_document_storage_env(name, backend):
+    value = os.getenv(name, "").strip()
+    if not value:
+        raise ImproperlyConfigured(f"{name} is required for DOCUMENT_STORAGE_BACKEND={backend}")
+    return value
+
+
+def multiline_env(name, backend):
+    return required_document_storage_env(name, backend).replace("\\n", "\n")
+
+
 def document_storage_config():
     backend = os.getenv("DOCUMENT_STORAGE_BACKEND", "filesystem").strip().lower()
     if backend in {"", "filesystem", "local"}:
@@ -71,8 +82,29 @@ def document_storage_config():
             },
         }
 
+    if backend == "sftp":
+        try:
+            port = int(os.getenv("DOCUMENT_SFTP_PORT", "22"))
+            timeout = int(os.getenv("DOCUMENT_SFTP_TIMEOUT", "10"))
+        except ValueError as exc:
+            raise ImproperlyConfigured(
+                "DOCUMENT_SFTP_PORT and DOCUMENT_SFTP_TIMEOUT must be integers"
+            ) from exc
+        return {
+            "BACKEND": "documents.storage.SFTPStorage",
+            "OPTIONS": {
+                "host": required_document_storage_env("DOCUMENT_SFTP_HOST", "sftp"),
+                "port": port,
+                "username": required_document_storage_env("DOCUMENT_SFTP_USERNAME", "sftp"),
+                "private_key": multiline_env("DOCUMENT_SFTP_PRIVATE_KEY", "sftp"),
+                "key_passphrase": os.getenv("DOCUMENT_SFTP_KEY_PASSPHRASE", ""),
+                "root_path": os.getenv("DOCUMENT_SFTP_ROOT", "/").strip() or "/",
+                "timeout": timeout,
+            },
+        }
+
     raise ImproperlyConfigured(
-        "DOCUMENT_STORAGE_BACKEND must be either filesystem or ftps"
+        "DOCUMENT_STORAGE_BACKEND must be filesystem, ftps, or sftp"
     )
 
 
