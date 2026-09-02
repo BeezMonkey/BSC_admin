@@ -43,16 +43,17 @@ DATABASE_URL=postgres://bsc_user:password@db-host:5432/bsc_admin
 - Confirm collected static files are served from `STATIC_ROOT`.
 - Confirm WhiteNoise serves static assets in the target environment.
 - For local development, uploaded documents live in `MEDIA_ROOT` and should be backed up if needed.
-- For Render production document uploads, configure private FTPS storage before accepting real worker documents:
-  - `DOCUMENT_STORAGE_BACKEND=ftps`
-  - `DOCUMENT_FTPS_HOST=ftp.duratechequip.com`
-  - `DOCUMENT_FTPS_PORT=21`
-  - `DOCUMENT_FTPS_USERNAME=bscfiles@duratechequip.com`
-  - `DOCUMENT_FTPS_PASSWORD=<dedicated FTP password>`
-  - `DOCUMENT_FTPS_ROOT=/`
-  - `DOCUMENT_FTPS_TIMEOUT=10`
-- Keep the FTPS account restricted to `/home4/duratech/bsc_private_uploads` in cPanel.
-- Rotate the dedicated FTPS password before uploading real compliance or service log documents.
+- For Render production document uploads, configure private SFTP storage before accepting real worker documents:
+  - `DOCUMENT_STORAGE_BACKEND=sftp`
+  - `DOCUMENT_SFTP_HOST=ftp.duratechequip.com`
+  - `DOCUMENT_SFTP_PORT=22`
+  - `DOCUMENT_SFTP_USERNAME=duratech`
+  - `DOCUMENT_SFTP_PRIVATE_KEY=<complete private key including BEGIN/END lines>`
+  - `DOCUMENT_SFTP_KEY_PASSPHRASE=<private key passphrase>`
+  - `DOCUMENT_SFTP_ROOT=/home4/duratech/bsc_private_uploads`
+  - `DOCUMENT_SFTP_TIMEOUT=10`
+- Keep the SFTP key restricted to the hosting account and store uploaded documents under `/home4/duratech/bsc_private_uploads`.
+- Rotate the SFTP key passphrase before uploading real compliance or service log documents.
 - Confirm document downloads are protected by application permissions.
 
 ## Security Checks
