@@ -2,10 +2,12 @@ from datetime import date, datetime, time, timezone as datetime_timezone
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import UserProfile
+from documents.models import Document
 from participants.models import Participant
 from scheduling.models import Shift, SupportItem
 from service_logs.models import ServiceLog
@@ -238,6 +240,66 @@ class ServiceLogReviewTests(TestCase):
         self.assertContains(response, "<dt>Reviewed at</dt><dd>04/06/2026 09:30</dd>", html=True)
         self.assertContains(response, "<dt>Submitted</dt><dd>04/06/2026 08:15</dd>", html=True)
         self.assertNotContains(response, "June 4, 2026")
+
+    def test_admin_can_download_service_log_pdf(self):
+        self.service_log.worker_notes = "Worker confirms support was completed."
+        self.service_log.save(update_fields=["worker_notes", "updated_at"])
+        Document.objects.create(
+            title="Service log attachment - progress-photo.jpg",
+            category=Document.Category.SERVICE_LOG,
+            participant=self.participant,
+            worker=self.worker,
+            service_log=self.service_log,
+            file=SimpleUploadedFile(
+                "progress-photo.jpg",
+                b"photo",
+                content_type="image/jpeg",
+            ),
+            original_filename="progress-photo.jpg",
+            uploaded_by=self.worker_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_pdf", args=[self.service_log.id]))
+
+        content = response.content.decode("latin-1")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertIn("attachment;", response["Content-Disposition"])
+        self.assertTrue(response.content.startswith(b"%PDF"))
+        self.assertIn("SERVICE LOG", content)
+        self.assertIn("Ava Nguyen", content)
+        self.assertIn("Wendy Worker", content)
+        self.assertIn("01/06/2026", content)
+        self.assertIn("01_011_0107_1_1", content)
+        self.assertIn("Submitted for review.", content)
+        self.assertIn("Worker confirms support was completed.", content)
+        self.assertIn("progress-photo.jpg", content)
+
+    def test_service_log_pdf_uses_clear_download_filename(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_pdf", args=[self.service_log.id]))
+
+        self.assertIn(
+            f'filename="ServiceLog_20260601_{self.service_log.id}_Ava_Nguyen.pdf"',
+            response["Content-Disposition"],
+        )
+
+    def test_admin_service_log_detail_links_to_pdf(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_detail", args=[self.service_log.id]))
+
+        self.assertContains(response, "Download PDF")
+        self.assertContains(response, reverse("service_log_pdf", args=[self.service_log.id]))
+
+    def test_worker_cannot_download_admin_service_log_pdf(self):
+        self.login_worker()
+
+        response = self.client.get(reverse("service_log_pdf", args=[self.service_log.id]))
+
+        self.assertEqual(response.status_code, 403)
 
     def test_service_log_list_shows_status_filter_summary(self):
         self.service_log.status = ServiceLog.Status.APPROVED
