@@ -98,6 +98,7 @@ class EnvironmentSettingsTests(SimpleTestCase):
                         "username": "bscfiles@example.com",
                         "password": "secret",
                         "root_path": "/",
+                        "timeout": 10,
                     },
                 },
             )

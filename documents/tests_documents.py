@@ -1,6 +1,7 @@
 from datetime import date, time
 from decimal import Decimal
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -10,6 +11,7 @@ from django.urls import reverse
 
 from accounts.models import UserProfile
 from documents.models import Document
+from documents.storage import StorageOperationError
 from invoices.models import Invoice
 from participants.models import Participant
 from scheduling.models import Shift, SupportItem
@@ -250,6 +252,19 @@ class DocumentManagementTests(TestCase):
         self.assertEqual(download_response.status_code, 200)
         self.assertEqual(download_response.content, b"file-content")
 
+    def test_admin_upload_shows_error_when_private_storage_fails(self):
+        self.login_admin()
+
+        with patch(
+            "documents.views.Document.save",
+            side_effect=StorageOperationError("Could not upload document to private storage."),
+        ):
+            response = self.client.post(reverse("document_create"), self.document_payload())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Could not upload document to private storage")
+        self.assertEqual(Document.objects.count(), 0)
+
     def test_upload_requires_linked_object(self):
         self.login_admin()
 
@@ -453,6 +468,25 @@ class DocumentManagementTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Unsupported file type")
+        self.assertEqual(Document.objects.count(), 0)
+
+    def test_worker_compliance_upload_shows_error_when_private_storage_fails(self):
+        self.login_worker()
+
+        with patch(
+            "documents.views.Document.objects.create",
+            side_effect=StorageOperationError("Could not upload document to private storage."),
+        ):
+            response = self.client.post(
+                reverse("worker_document_upload"),
+                {
+                    "required_document_type": Document.RequiredDocumentType.POLICE_CHECK,
+                    "file": self.upload_file("police-check.pdf", b"police-check"),
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Could not upload document to private storage")
         self.assertEqual(Document.objects.count(), 0)
 
     def test_admin_document_list_shows_worker_upload_review_status(self):
