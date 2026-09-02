@@ -1,5 +1,8 @@
+from contextlib import suppress
+
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
@@ -15,6 +18,7 @@ from core.pagination import paginate_queryset
 from core.sorting import apply_sorting
 from documents.forms import validate_service_log_attachments
 from documents.models import Document
+from documents.storage import StorageOperationError
 from scheduling.models import Shift
 
 from .forms import ServiceLogForm
@@ -258,37 +262,53 @@ def worker_service_log_create(request, shift_id):
                     {"form": form, "shift": shift},
                 )
 
-            service_log = ServiceLog.objects.create_from_shift(
-                shift=shift,
-                actual_start_time=form.cleaned_data["actual_start_time"],
-                actual_end_time=form.cleaned_data["actual_end_time"],
-                break_minutes=form.cleaned_data["break_minutes"],
-                actual_hours=form.cleaned_data["actual_hours"],
-                kilometres=form.cleaned_data["kilometres"],
-                case_notes=form.cleaned_data["case_notes"],
-                worker_notes=form.cleaned_data["worker_notes"],
-            )
-            for uploaded_file in attachments:
-                document = Document.objects.create(
-                    title=f"Service log attachment - {uploaded_file.name}",
-                    category=Document.Category.SERVICE_LOG,
-                    participant=shift.participant,
-                    worker=worker,
-                    service_log=service_log,
-                    review_status=Document.ReviewStatus.PENDING_REVIEW,
-                    file=uploaded_file,
-                    original_filename=uploaded_file.name,
-                    uploaded_by=request.user,
+            stored_attachment_documents = []
+            try:
+                with transaction.atomic():
+                    service_log = ServiceLog.objects.create_from_shift(
+                        shift=shift,
+                        actual_start_time=form.cleaned_data["actual_start_time"],
+                        actual_end_time=form.cleaned_data["actual_end_time"],
+                        break_minutes=form.cleaned_data["break_minutes"],
+                        actual_hours=form.cleaned_data["actual_hours"],
+                        kilometres=form.cleaned_data["kilometres"],
+                        case_notes=form.cleaned_data["case_notes"],
+                        worker_notes=form.cleaned_data["worker_notes"],
+                    )
+                    for uploaded_file in attachments:
+                        document = Document.objects.create(
+                            title=f"Service log attachment - {uploaded_file.name}",
+                            category=Document.Category.SERVICE_LOG,
+                            participant=shift.participant,
+                            worker=worker,
+                            service_log=service_log,
+                            review_status=Document.ReviewStatus.PENDING_REVIEW,
+                            file=uploaded_file,
+                            original_filename=uploaded_file.name,
+                            uploaded_by=request.user,
+                        )
+                        stored_attachment_documents.append(document)
+                        write_audit_log(
+                            request.user,
+                            AuditLog.Action.DOCUMENT_UPLOADED,
+                            document,
+                            f"Uploaded service log attachment {document.id} for service log {service_log.id}.",
+                        )
+                    shift.status = Shift.Status.COMPLETED
+                    shift.completed_at = timezone.now()
+                    shift.save(update_fields=["status", "completed_at", "updated_at"])
+            except StorageOperationError as exc:
+                for document in stored_attachment_documents:
+                    if document.file:
+                        with suppress(Exception):
+                            document.file.delete(save=False)
+                form.add_error(None, exc)
+                return render(
+                    request,
+                    "service_logs/worker_service_log_form.html",
+                    {"form": form, "shift": shift},
                 )
-                write_audit_log(
-                    request.user,
-                    AuditLog.Action.DOCUMENT_UPLOADED,
-                    document,
-                    f"Uploaded service log attachment {document.id} for service log {service_log.id}.",
-                )
-            shift.status = Shift.Status.COMPLETED
-            shift.completed_at = timezone.now()
-            shift.save(update_fields=["status", "completed_at", "updated_at"])
+
             notify_admin_service_log_submitted(service_log, request=request)
             messages.success(request, "Service log submitted.")
             return redirect("worker_service_log_detail", service_log_id=service_log.id)
