@@ -43,22 +43,118 @@
 
 <section class="card">
   <h2>Attachments</h2>
+  <div class="service-log-attachment-grid">
   {% for document in service_log.documents.all %}
-    <div class="list-item">
-      <strong>{{ document.filename }}</strong>
-      <span>{{ document.get_review_status_display }} | Uploaded by {{ document.uploaded_by }}</span>
-      <div class="list-item-actions">
-        <a href="{% url 'document_detail' document.id %}">View</a>
+    <article class="service-log-attachment-card">
+      {% if document.is_image %}
+        <button
+          class="attachment-preview-trigger"
+          type="button"
+          data-preview-kind="image"
+          data-preview-title="{{ document.filename }}"
+          data-preview-url="{% url 'document_preview' document.id %}"
+          data-download-url="{% url 'document_download' document.id %}"
+        >
+          <img src="{% url 'document_preview' document.id %}" alt="Preview of {{ document.filename }}" loading="lazy">
+        </button>
+      {% elif document.is_pdf %}
+        <button
+          class="attachment-preview-trigger attachment-preview-file"
+          type="button"
+          data-preview-kind="pdf"
+          data-preview-title="{{ document.filename }}"
+          data-preview-url="{% url 'document_preview' document.id %}"
+          data-download-url="{% url 'document_download' document.id %}"
+        >
+          <span>PDF</span>
+        </button>
+      {% else %}
+        <div class="attachment-preview-static" aria-label="No preview available">
+          <span>DOC</span>
+          <small>No preview</small>
+        </div>
+      {% endif %}
+      <div class="service-log-attachment-summary">
+        <strong>{{ document.filename }}</strong>
+        <span>{{ document.get_review_status_display }} | Uploaded by {{ document.uploaded_by }}</span>
+      </div>
+      <div class="list-item-actions service-log-attachment-actions">
         <a class="primary-action" href="{% url 'document_download' document.id %}">Download</a>
       </div>
-    </div>
+    </article>
   {% empty %}
     <div class="empty-state">
       <strong>No attachments.</strong>
       <p>No files were submitted with this service log.</p>
     </div>
   {% endfor %}
+  </div>
 </section>
+
+<div class="attachment-preview-modal" id="attachment-preview-modal" hidden>
+  <div class="attachment-preview-backdrop" data-preview-close></div>
+  <div class="attachment-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="attachment-preview-title">
+    <div class="attachment-preview-header">
+      <h3 id="attachment-preview-title">Attachment preview</h3>
+      <div class="button-row">
+        <a class="button" id="attachment-preview-download" href="#">Download</a>
+        <button class="button secondary" type="button" data-preview-close>Close</button>
+      </div>
+    </div>
+    <div class="attachment-preview-body" id="attachment-preview-body"></div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var modal = document.getElementById("attachment-preview-modal");
+    var title = document.getElementById("attachment-preview-title");
+    var body = document.getElementById("attachment-preview-body");
+    var download = document.getElementById("attachment-preview-download");
+    var closeButtons = document.querySelectorAll("[data-preview-close]");
+
+    function closePreview() {
+      modal.hidden = true;
+      body.replaceChildren();
+    }
+
+    document.querySelectorAll(".attachment-preview-trigger").forEach(function (trigger) {
+      trigger.addEventListener("click", function () {
+        var previewTitle = trigger.dataset.previewTitle || "Attachment preview";
+        var previewUrl = trigger.dataset.previewUrl;
+        var previewKind = trigger.dataset.previewKind;
+
+        title.textContent = previewTitle;
+        download.href = trigger.dataset.downloadUrl;
+        body.replaceChildren();
+
+        if (previewKind === "image") {
+          var image = document.createElement("img");
+          image.src = previewUrl;
+          image.alt = previewTitle;
+          body.appendChild(image);
+        } else if (previewKind === "pdf") {
+          var frame = document.createElement("iframe");
+          frame.src = previewUrl;
+          frame.title = previewTitle;
+          body.appendChild(frame);
+        }
+
+        modal.hidden = false;
+      });
+    });
+
+    closeButtons.forEach(function (button) {
+      button.addEventListener("click", closePreview);
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !modal.hidden) {
+        closePreview();
+      }
+    });
+  })();
+</script>
 
 {% if service_log.status == "submitted" %}
 <section class="card">

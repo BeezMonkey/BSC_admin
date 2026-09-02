@@ -252,6 +252,101 @@ class DocumentManagementTests(TestCase):
         self.assertEqual(download_response.status_code, 200)
         self.assertEqual(download_response.content, b"file-content")
 
+    def test_admin_can_preview_image_document_inline(self):
+        document = Document.objects.create(
+            title="Progress photo",
+            category=Document.Category.SERVICE_LOG,
+            participant=self.participant,
+            worker=self.worker,
+            service_log=self.service_log,
+            file=SimpleUploadedFile(
+                "progress-photo.jpg",
+                b"image-bytes",
+                content_type="image/jpeg",
+            ),
+            original_filename="progress-photo.jpg",
+            uploaded_by=self.worker_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("document_preview", args=[document.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "image/jpeg")
+        self.assertEqual(
+            response["Content-Disposition"],
+            'inline; filename="progress-photo.jpg"',
+        )
+        self.assertEqual(response.content, b"image-bytes")
+
+    def test_admin_can_preview_pdf_document_inline(self):
+        document = Document.objects.create(
+            title="Progress PDF",
+            category=Document.Category.SERVICE_LOG,
+            participant=self.participant,
+            worker=self.worker,
+            service_log=self.service_log,
+            file=SimpleUploadedFile(
+                "progress-summary.pdf",
+                b"%PDF-1.4",
+                content_type="application/pdf",
+            ),
+            original_filename="progress-summary.pdf",
+            uploaded_by=self.worker_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("document_preview", args=[document.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertEqual(
+            response["Content-Disposition"],
+            'inline; filename="progress-summary.pdf"',
+        )
+
+    def test_admin_preview_returns_not_found_for_unpreviewable_documents(self):
+        document = Document.objects.create(
+            title="Worker notes",
+            category=Document.Category.SERVICE_LOG,
+            participant=self.participant,
+            worker=self.worker,
+            service_log=self.service_log,
+            file=SimpleUploadedFile(
+                "worker-notes.docx",
+                b"docx-bytes",
+                content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ),
+            original_filename="worker-notes.docx",
+            uploaded_by=self.worker_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("document_preview", args=[document.id]))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_worker_cannot_use_admin_document_preview(self):
+        document = Document.objects.create(
+            title="Progress photo",
+            category=Document.Category.SERVICE_LOG,
+            participant=self.participant,
+            worker=self.worker,
+            service_log=self.service_log,
+            file=SimpleUploadedFile(
+                "progress-photo.jpg",
+                b"image-bytes",
+                content_type="image/jpeg",
+            ),
+            original_filename="progress-photo.jpg",
+            uploaded_by=self.worker_user,
+        )
+        self.login_worker()
+
+        response = self.client.get(reverse("document_preview", args=[document.id]))
+
+        self.assertEqual(response.status_code, 403)
+
     def test_admin_upload_shows_error_when_private_storage_fails(self):
         self.login_admin()
 
