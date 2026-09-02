@@ -1,6 +1,8 @@
 from datetime import date, time
 from decimal import Decimal
+from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core import mail
@@ -11,6 +13,7 @@ from django.urls import reverse
 
 from accounts.models import UserProfile
 from documents.models import Document
+from documents.storage import StorageOperationError
 from participants.models import Participant
 from scheduling.models import Shift, SupportItem
 from service_logs.models import ServiceLog
@@ -176,6 +179,56 @@ class ServiceLogCompletionTests(TestCase):
         self.assertEqual({document.participant for document in attachments}, {self.participant})
         self.assertEqual({document.uploaded_by for document in attachments}, {self.worker_user})
         self.assertEqual({document.review_status for document in attachments}, {Document.ReviewStatus.PENDING_REVIEW})
+
+    def test_attachment_storage_failure_rolls_back_service_log_submission(self):
+        shift = self.create_shift()
+        self.login_worker()
+        real_document_save = Document.save
+        service_log_attachment_save_count = 0
+
+        def fail_second_attachment_save(document, *args, **kwargs):
+            nonlocal service_log_attachment_save_count
+            if document.category == Document.Category.SERVICE_LOG:
+                service_log_attachment_save_count += 1
+                if service_log_attachment_save_count == 2:
+                    raise StorageOperationError(
+                        "Could not upload document to private storage. Please try again later or contact admin."
+                    )
+            return real_document_save(document, *args, **kwargs)
+
+        with patch("documents.models.Document.save", fail_second_attachment_save):
+            response = self.client.post(
+                reverse("worker_service_log_create", args=[shift.id]),
+                {
+                    **self.log_payload(),
+                    "attachments": [
+                        SimpleUploadedFile(
+                            "progress-photo.jpg",
+                            b"photo",
+                            content_type="image/jpeg",
+                        ),
+                        SimpleUploadedFile(
+                            "receipt.pdf",
+                            b"receipt",
+                            content_type="application/pdf",
+                        ),
+                    ],
+                },
+            )
+
+        shift.refresh_from_db()
+        stored_files = [
+            path
+            for path in Path(self.media_dir.name).rglob("*")
+            if path.is_file()
+        ]
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Could not upload document to private storage")
+        self.assertEqual(ServiceLog.objects.count(), 0)
+        self.assertEqual(Document.objects.count(), 0)
+        self.assertEqual(shift.status, Shift.Status.PUBLISHED)
+        self.assertIsNone(shift.completed_at)
+        self.assertEqual(stored_files, [])
 
     def test_worker_service_log_submission_rejects_too_many_attachments(self):
         shift = self.create_shift()
