@@ -50,6 +50,7 @@ DATABASE_URL=postgres://bsc_user:password@db-host:5432/bsc_admin
   - `DOCUMENT_FTPS_USERNAME=bscfiles@duratechequip.com`
   - `DOCUMENT_FTPS_PASSWORD=<dedicated FTP password>`
   - `DOCUMENT_FTPS_ROOT=/`
+  - `DOCUMENT_FTPS_TIMEOUT=10`
 - Keep the FTPS account restricted to `/home4/duratech/bsc_private_uploads` in cPanel.
 - Rotate the dedicated FTPS password before uploading real compliance or service log documents.
 - Confirm document downloads are protected by application permissions.

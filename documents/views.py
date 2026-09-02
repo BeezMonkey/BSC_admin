@@ -9,6 +9,7 @@ from core.models import AuditLog
 
 from .forms import DocumentForm, WorkerDocumentUploadForm
 from .models import Document
+from .storage import StorageOperationError
 
 
 @admin_required
@@ -38,7 +39,15 @@ def document_create(request):
             document = form.save(commit=False)
             document.uploaded_by = request.user
             document.original_filename = document.file.name
-            document.save()
+            try:
+                document.save()
+            except StorageOperationError as exc:
+                messages.error(request, str(exc))
+                return render(
+                    request,
+                    "documents/document_form.html",
+                    {"form": form},
+                )
             write_audit_log(
                 request.user,
                 AuditLog.Action.DOCUMENT_UPLOADED,
@@ -182,19 +191,31 @@ def worker_document_upload(request):
                 else form.cleaned_data["title"]
             )
             uploaded_file = form.cleaned_data["file"]
-            document = Document.objects.create(
-                title=title,
-                category=Document.Category.COMPLIANCE,
-                worker=worker,
-                required_document_type=required_document_type,
-                review_status=Document.ReviewStatus.PENDING_REVIEW,
-                issue_date=form.cleaned_data["issue_date"],
-                expiry_date=form.cleaned_data["expiry_date"],
-                notes=form.cleaned_data["notes"],
-                file=uploaded_file,
-                original_filename=uploaded_file.name,
-                uploaded_by=request.user,
-            )
+            try:
+                document = Document.objects.create(
+                    title=title,
+                    category=Document.Category.COMPLIANCE,
+                    worker=worker,
+                    required_document_type=required_document_type,
+                    review_status=Document.ReviewStatus.PENDING_REVIEW,
+                    issue_date=form.cleaned_data["issue_date"],
+                    expiry_date=form.cleaned_data["expiry_date"],
+                    notes=form.cleaned_data["notes"],
+                    file=uploaded_file,
+                    original_filename=uploaded_file.name,
+                    uploaded_by=request.user,
+                )
+            except StorageOperationError as exc:
+                messages.error(request, str(exc))
+                return render(
+                    request,
+                    "documents/worker_document_upload.html",
+                    {
+                        "form": form,
+                        "is_required_upload": form.is_required_document,
+                        "selected_required_document_label": form.selected_required_document_label,
+                    },
+                )
             write_audit_log(
                 request.user,
                 AuditLog.Action.DOCUMENT_UPLOADED,

@@ -4,7 +4,7 @@ from django.core.exceptions import SuspiciousFileOperation
 from django.core.files.base import ContentFile
 from django.test import SimpleTestCase
 
-from documents.storage import FTPSStorage
+from documents.storage import FTPSStorage, StorageOperationError
 
 
 class FakeFTP_TLS:
@@ -54,6 +54,11 @@ class FakeFTP_TLS:
         self.commands.append(("quit",))
 
 
+class TimeoutFTP_TLS(FakeFTP_TLS):
+    def storbinary(self, command, file_handle):
+        raise TimeoutError("timed out")
+
+
 class FTPSStorageTests(SimpleTestCase):
     def setUp(self):
         FakeFTP_TLS.instances = []
@@ -80,7 +85,7 @@ class FTPSStorageTests(SimpleTestCase):
         self.assertEqual(
             FakeFTP_TLS.instances[0].commands[:3],
             [
-                ("connect", "ftp.example.com", 21, 30),
+                ("connect", "ftp.example.com", 21, 10),
                 ("login", "bscfiles@example.com", "secret"),
                 ("prot_p",),
             ],
@@ -114,3 +119,22 @@ class FTPSStorageTests(SimpleTestCase):
     def test_path_traversal_is_rejected(self):
         with self.assertRaises(SuspiciousFileOperation):
             self.storage().save("../public_html/leak.pdf", ContentFile(b"leak"))
+
+    def test_save_wraps_network_timeout_as_storage_error(self):
+        storage = FTPSStorage(
+            host="ftp.example.com",
+            port=21,
+            username="bscfiles@example.com",
+            password="secret",
+            root_path="/",
+            timeout=8,
+            ftp_class=TimeoutFTP_TLS,
+        )
+
+        with self.assertRaisesMessage(
+            StorageOperationError,
+            "Could not upload document to private storage",
+        ):
+            storage.save("documents/workers/police-check.pdf", ContentFile(b"police-check"))
+
+        self.assertEqual(TimeoutFTP_TLS.instances[0].commands[0][3], 8)

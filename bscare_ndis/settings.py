@@ -54,8 +54,11 @@ def document_storage_config():
     if backend == "ftps":
         try:
             port = int(os.getenv("DOCUMENT_FTPS_PORT", "21"))
+            timeout = int(os.getenv("DOCUMENT_FTPS_TIMEOUT", "10"))
         except ValueError as exc:
-            raise ImproperlyConfigured("DOCUMENT_FTPS_PORT must be an integer") from exc
+            raise ImproperlyConfigured(
+                "DOCUMENT_FTPS_PORT and DOCUMENT_FTPS_TIMEOUT must be integers"
+            ) from exc
         return {
             "BACKEND": "documents.storage.FTPSStorage",
             "OPTIONS": {
@@ -64,6 +67,7 @@ def document_storage_config():
                 "username": required_env("DOCUMENT_FTPS_USERNAME"),
                 "password": required_env("DOCUMENT_FTPS_PASSWORD"),
                 "root_path": os.getenv("DOCUMENT_FTPS_ROOT", "/").strip() or "/",
+                "timeout": timeout,
             },
         }
 

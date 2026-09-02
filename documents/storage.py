@@ -1,11 +1,16 @@
 from contextlib import contextmanager
-from ftplib import FTP_TLS, error_perm
+from contextlib import suppress
+from ftplib import FTP_TLS, all_errors, error_perm
 from io import BytesIO
 import posixpath
 
 from django.core.exceptions import SuspiciousFileOperation
 from django.core.files.base import File
 from django.core.files.storage import Storage
+
+
+class StorageOperationError(Exception):
+    pass
 
 
 class FTPSStorage(Storage):
@@ -16,7 +21,7 @@ class FTPSStorage(Storage):
         password,
         port=21,
         root_path="/",
-        timeout=30,
+        timeout=10,
         ftp_class=FTP_TLS,
     ):
         self.host = host
@@ -66,7 +71,8 @@ class FTPSStorage(Storage):
         try:
             yield ftp
         finally:
-            ftp.quit()
+            with suppress(*all_errors):
+                ftp.quit()
 
     def _ensure_directories(self, ftp, remote_path):
         directory = posixpath.dirname(remote_path)
@@ -98,9 +104,14 @@ class FTPSStorage(Storage):
         if hasattr(content, "seek"):
             content.seek(0)
 
-        with self._connection() as ftp:
-            self._ensure_directories(ftp, remote_path)
-            ftp.storbinary(f"STOR {remote_path}", content)
+        try:
+            with self._connection() as ftp:
+                self._ensure_directories(ftp, remote_path)
+                ftp.storbinary(f"STOR {remote_path}", content)
+        except all_errors as exc:
+            raise StorageOperationError(
+                "Could not upload document to private storage. Please try again later or contact admin."
+            ) from exc
         return self._normalize_name(name)
 
     def delete(self, name):
