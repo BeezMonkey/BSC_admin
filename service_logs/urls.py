@@ -4,6 +4,7 @@ from .views import (
     service_log_approve,
     service_log_detail,
     service_log_list,
+    service_log_pdf,
     service_log_reject,
     worker_log_list,
     worker_service_log_create,
@@ -13,6 +14,11 @@ from .views import (
 urlpatterns = [
     path("service-logs/", service_log_list, name="service_log_list"),
     path("service-logs/<int:service_log_id>/", service_log_detail, name="service_log_detail"),
+    path(
+        "service-logs/<int:service_log_id>/pdf/",
+        service_log_pdf,
+        name="service_log_pdf",
+    ),
     path(
         "service-logs/<int:service_log_id>/approve/",
         service_log_approve,
