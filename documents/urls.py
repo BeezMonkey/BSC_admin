@@ -5,6 +5,7 @@ from .views import (
     document_detail,
     document_download,
     document_list,
+    document_preview,
     document_review,
     worker_document_detail,
     worker_document_download,
@@ -16,6 +17,7 @@ urlpatterns = [
     path("documents/", document_list, name="document_list"),
     path("documents/new/", document_create, name="document_create"),
     path("documents/<int:document_id>/", document_detail, name="document_detail"),
+    path("documents/<int:document_id>/preview/", document_preview, name="document_preview"),
     path("documents/<int:document_id>/review/", document_review, name="document_review"),
     path(
         "documents/<int:document_id>/download/",

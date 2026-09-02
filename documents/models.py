@@ -103,5 +103,31 @@ class Document(models.Model):
     def filename(self):
         return self.original_filename or Path(self.file.name).name
 
+    @property
+    def extension(self):
+        return Path(self.filename).suffix.lower()
+
+    @property
+    def is_image(self):
+        return self.extension in {".jpg", ".jpeg", ".png"}
+
+    @property
+    def is_pdf(self):
+        return self.extension == ".pdf"
+
+    @property
+    def is_previewable(self):
+        return self.is_image or self.is_pdf
+
+    @property
+    def preview_content_type(self):
+        content_types = {
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".png": "image/png",
+            ".pdf": "application/pdf",
+        }
+        return content_types.get(self.extension, "")
+
     def get_absolute_url(self):
         return reverse("document_detail", args=[self.id])

@@ -294,6 +294,61 @@ class ServiceLogReviewTests(TestCase):
         self.assertContains(response, "Download PDF")
         self.assertContains(response, reverse("service_log_pdf", args=[self.service_log.id]))
 
+    def test_admin_service_log_detail_uses_preview_cards_for_image_attachments(self):
+        document = Document.objects.create(
+            title="Service log attachment - progress-photo.jpg",
+            category=Document.Category.SERVICE_LOG,
+            participant=self.participant,
+            worker=self.worker,
+            service_log=self.service_log,
+            file="documents/progress-photo.jpg",
+            original_filename="progress-photo.jpg",
+            uploaded_by=self.worker_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_detail", args=[self.service_log.id]))
+
+        self.assertContains(response, 'class="service-log-attachment-card"')
+        self.assertContains(response, 'data-preview-kind="image"')
+        self.assertContains(response, reverse("document_preview", args=[document.id]))
+        self.assertContains(response, "Download")
+        self.assertNotContains(
+            response,
+            f'href="{reverse("document_detail", args=[document.id])}"',
+        )
+
+    def test_admin_service_log_detail_uses_pdf_preview_and_doc_download_only(self):
+        pdf_document = Document.objects.create(
+            title="Service log attachment - incident-summary.pdf",
+            category=Document.Category.SERVICE_LOG,
+            participant=self.participant,
+            worker=self.worker,
+            service_log=self.service_log,
+            file="documents/incident-summary.pdf",
+            original_filename="incident-summary.pdf",
+            uploaded_by=self.worker_user,
+        )
+        doc_document = Document.objects.create(
+            title="Service log attachment - worker-notes.docx",
+            category=Document.Category.SERVICE_LOG,
+            participant=self.participant,
+            worker=self.worker,
+            service_log=self.service_log,
+            file="documents/worker-notes.docx",
+            original_filename="worker-notes.docx",
+            uploaded_by=self.worker_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_detail", args=[self.service_log.id]))
+
+        self.assertContains(response, 'data-preview-kind="pdf"')
+        self.assertContains(response, reverse("document_preview", args=[pdf_document.id]))
+        self.assertContains(response, "No preview")
+        self.assertContains(response, reverse("document_download", args=[doc_document.id]))
+        self.assertNotContains(response, reverse("document_preview", args=[doc_document.id]))
+
     def test_worker_cannot_download_admin_service_log_pdf(self):
         self.login_worker()
 

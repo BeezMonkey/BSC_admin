@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -122,6 +122,18 @@ def document_download(request, document_id):
         document,
         f"Downloaded document {document.id}: {document.title}.",
     )
+    return response
+
+
+@admin_required
+def document_preview(request, document_id):
+    document = get_object_or_404(Document, id=document_id)
+    if not document.is_previewable:
+        raise Http404("Document type cannot be previewed.")
+
+    with document.file.open("rb") as file_handle:
+        response = HttpResponse(file_handle.read(), content_type=document.preview_content_type)
+    response["Content-Disposition"] = f'inline; filename="{document.filename}"'
     return response
 
 
