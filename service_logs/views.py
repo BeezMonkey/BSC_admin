@@ -444,7 +444,7 @@ def worker_service_log_create(request, shift_id):
                 )
 
             notify_admin_service_log_submitted(service_log, request=request)
-            messages.success(request, "Service log submitted.")
+            messages.success(request, "Service log submitted for admin review.")
             return redirect("worker_service_log_detail", service_log_id=service_log.id)
     else:
         form = ServiceLogForm(initial=initial)

@@ -304,6 +304,7 @@ class DocumentManagementTests(TestCase):
             response["Content-Disposition"],
             'inline; filename="progress-summary.pdf"',
         )
+        self.assertEqual(response["X-Frame-Options"], "SAMEORIGIN")
 
     def test_admin_preview_returns_not_found_for_unpreviewable_documents(self):
         document = Document.objects.create(
