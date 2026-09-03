@@ -3,6 +3,7 @@
 Use this guide for the first private Render beta deployment. This is not a production go-live plan. Use test or anonymized data only.
 
 For the click-by-click setup checklist, use `docs/render-beta-handoff-checklist.md`.
+For document storage configuration, use `docs/render-storage-configuration.md`.
 
 ## Purpose
 - Prove the Django app can run online from GitHub.
@@ -68,7 +69,7 @@ Notes:
 ## Static And Media Files
 - Static files are collected by `build.sh`.
 - WhiteNoise serves collected static assets from the app.
-- Uploaded media files still need a persistence decision before serious staff trial.
+- Uploaded documents should use the private SFTP backend documented in `docs/render-storage-configuration.md`.
 - Do not rely on ephemeral instance storage for important uploaded documents.
 
 ## First Beta Smoke Test
@@ -83,7 +84,7 @@ Notes:
 - Admin can approve a service log.
 - Admin can create an invoice from approved logs.
 - Invoice CSV/PDF downloads work.
-- Document upload/download behavior is reviewed.
+- Document upload/download behavior is tested through private SFTP storage.
 - Audit logs record key actions.
 
 ## Go / No-Go
@@ -96,6 +97,6 @@ Go only if:
 - Backup and media-file responsibilities are clear.
 
 No-go if:
-- Real participant or NDIS data is required before backup/media handling is solved.
+- Real participant or NDIS data is required before backup and restore handling is confirmed.
 - Staff will rely on the beta for official attendance or billing.
 - Login, permissions, service logs, or invoice generation fail the smoke test.

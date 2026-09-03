@@ -73,6 +73,7 @@ python -m gunicorn bscare_ndis.wsgi:application --bind 0.0.0.0:$PORT
 
 ## 5. Environment variables
 Add these in the Render web service environment tab.
+For document storage variables, use `docs/render-storage-configuration.md`.
 
 ```text
 DJANGO_SECRET_KEY=<generate-a-long-random-secret>
@@ -166,15 +167,15 @@ Run this Smoke test before inviting staff:
 - Admin can create an invoice from approved logs.
 - Invoice CSV downloads.
 - Invoice PDF downloads.
-- Document upload/download is tested with a fake file only.
+- Document upload/download is tested with a fake file only through private SFTP storage.
 - Audit logs record the major actions.
 
 ## 10. Known Beta Limits
-- Uploaded media still needs a durable storage and backup decision.
+- Uploaded documents use the private SFTP backend documented in `docs/render-storage-configuration.md`.
 - Do not rely on Render instance storage for important uploaded documents.
 - HSTS is intentionally off for early beta.
 - Staff feedback should focus on workflow, layout, wording, and missing fields.
-- Any serious business use needs a backup/restore test first.
+- Any serious business use needs a document backup/restore test first.
 
 ## 11. If Deploy Fails
 Check in this order:
