@@ -15,6 +15,7 @@
   </div>
 </div>
 
+<div class="service-log-detail-page">
 <div class="detail-grid">
   <section class="card">
     <h2>Service Log</h2>
@@ -75,9 +76,8 @@
           <span>PDF</span>
         </button>
       {% else %}
-        <div class="attachment-preview-static" aria-label="Download this file to review it">
+        <div class="attachment-preview-static" aria-label="{{ document.filename }}">
           <span>DOC</span>
-          <small>Download to review</small>
         </div>
       {% endif %}
       <div class="service-log-attachment-summary">
@@ -183,4 +183,5 @@
   </div>
 </section>
 {% endif %}
+</div>
 {% endblock %}
