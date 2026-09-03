@@ -2060,6 +2060,15 @@ tbody tr:last-child td {
   gap: 1rem;
 }
 
+.service-log-detail-page {
+  display: grid;
+  gap: 1.05rem;
+}
+
+.service-log-detail-page .detail-grid {
+  margin-bottom: 0;
+}
+
 .shift-detail-page {
   display: grid;
   gap: 1.15rem;

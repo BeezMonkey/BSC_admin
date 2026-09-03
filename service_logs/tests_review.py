@@ -378,7 +378,7 @@ class ServiceLogReviewTests(TestCase):
 
         self.assertContains(response, 'data-preview-kind="pdf"')
         self.assertContains(response, reverse("document_preview", args=[pdf_document.id]))
-        self.assertContains(response, "Download to review")
+        self.assertNotContains(response, "Download to review")
         self.assertContains(response, reverse("document_download", args=[doc_document.id]))
         self.assertNotContains(response, reverse("document_preview", args=[doc_document.id]))
 
@@ -387,6 +387,7 @@ class ServiceLogReviewTests(TestCase):
 
         response = self.client.get(reverse("service_log_detail", args=[self.service_log.id]))
 
+        self.assertContains(response, 'class="service-log-detail-page"')
         self.assertContains(response, 'class="service-log-review-actions"')
         self.assertContains(response, '<summary class="button danger-outline">Reject</summary>', html=True)
         self.assertContains(response, "Reject with reason")
