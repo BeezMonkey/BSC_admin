@@ -487,6 +487,7 @@ class ParticipantManagementTests(TestCase):
 
         self.assertContains(response, "Ava Nguyen")
         self.assertContains(response, "111111111")
+        self.assertContains(response, 'class="participant-detail-page"')
         self.assertContains(response, "Roster")
         self.assertContains(response, "Service Logs")
 

@@ -2069,6 +2069,15 @@ tbody tr:last-child td {
   margin-bottom: 0;
 }
 
+.participant-detail-page {
+  display: grid;
+  gap: 1.05rem;
+}
+
+.participant-detail-page .detail-grid {
+  margin-bottom: 0;
+}
+
 .shift-detail-page {
   display: grid;
   gap: 1.15rem;
