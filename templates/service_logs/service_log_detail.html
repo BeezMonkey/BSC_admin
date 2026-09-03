@@ -26,8 +26,12 @@
       <dt>Break</dt><dd>{{ service_log.break_minutes }} minutes</dd>
       <dt>Actual hours</dt><dd>{{ service_log.actual_hours }}</dd>
       <dt>Kilometres</dt><dd>{{ service_log.kilometres }}</dd>
-      <dt>Reviewed by</dt><dd>{{ service_log.reviewed_by|default:"-" }}</dd>
-      <dt>Reviewed at</dt><dd>{% if service_log.reviewed_at %}{{ service_log.reviewed_at|date:"d/m/Y H:i" }}{% else %}-{% endif %}</dd>
+      {% if service_log.reviewed_by %}
+        <dt>Reviewed by</dt><dd>{{ service_log.reviewed_by }}</dd>
+      {% endif %}
+      {% if service_log.reviewed_at %}
+        <dt>Reviewed at</dt><dd>{{ service_log.reviewed_at|date:"d/m/Y H:i" }}</dd>
+      {% endif %}
     </dl>
   </section>
   <section class="card">
@@ -35,7 +39,9 @@
     <dl class="detail-list">
       <dt>Case notes</dt><dd>{{ service_log.case_notes }}</dd>
       <dt>Worker notes</dt><dd>{{ service_log.worker_notes|default:"-" }}</dd>
-      <dt>Rejection reason</dt><dd>{{ service_log.rejection_reason|default:"-" }}</dd>
+      {% if service_log.rejection_reason %}
+        <dt>Rejection reason</dt><dd>{{ service_log.rejection_reason }}</dd>
+      {% endif %}
       <dt>Submitted</dt><dd>{{ service_log.submitted_at|date:"d/m/Y H:i" }}</dd>
     </dl>
   </section>
@@ -69,9 +75,9 @@
           <span>PDF</span>
         </button>
       {% else %}
-        <div class="attachment-preview-static" aria-label="No preview available">
+        <div class="attachment-preview-static" aria-label="Download this file to review it">
           <span>DOC</span>
-          <small>No preview</small>
+          <small>Download to review</small>
         </div>
       {% endif %}
       <div class="service-log-attachment-summary">
@@ -157,19 +163,24 @@
 </script>
 
 {% if service_log.status == "submitted" %}
-<section class="card">
+<section class="card service-log-review-card">
   <h2>Review</h2>
-  <div class="button-row">
+  <div class="service-log-review-actions">
     <form method="post" action="{% url 'service_log_approve' service_log.id %}">
       {% csrf_token %}
       <button type="submit">Approve</button>
     </form>
+    <details class="service-log-reject-disclosure">
+      <summary class="button danger-outline">Reject</summary>
+      <form method="post" action="{% url 'service_log_reject' service_log.id %}" class="service-log-reject-form">
+        {% csrf_token %}
+        <label>Reject with reason
+          <input type="text" name="rejection_reason" required>
+        </label>
+        <button class="danger" type="submit">Submit rejection</button>
+      </form>
+    </details>
   </div>
-  <form method="post" action="{% url 'service_log_reject' service_log.id %}" class="filter-bar">
-    {% csrf_token %}
-    <label>Reason <input type="text" name="rejection_reason"></label>
-    <button class="danger" type="submit">Reject</button>
-  </form>
 </section>
 {% endif %}
 {% endblock %}

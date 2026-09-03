@@ -117,6 +117,19 @@ button.danger:hover {
   background: #991b1b;
 }
 
+.button.danger-outline {
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.button.danger-outline:hover,
+.button.danger-outline:focus {
+  color: #991b1b;
+  background: #fef2f2;
+}
+
 .page {
   min-height: 100vh;
 }
@@ -2362,7 +2375,7 @@ tbody tr:last-child td {
 .attachment-preview-static small {
   color: var(--muted);
   font-size: 0.76rem;
-  font-weight: var(--weight-body);
+  font-weight: 500;
 }
 
 .service-log-attachment-summary {
@@ -2383,6 +2396,61 @@ tbody tr:last-child td {
 
 .service-log-attachment-actions {
   justify-content: flex-end;
+}
+
+.service-log-review-card {
+  gap: 0.9rem;
+}
+
+.service-log-review-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.service-log-review-actions form {
+  margin: 0;
+}
+
+.service-log-reject-disclosure {
+  display: grid;
+  gap: 0.65rem;
+  width: min(100%, 28rem);
+}
+
+.service-log-reject-disclosure summary {
+  justify-self: start;
+  list-style: none;
+}
+
+.service-log-reject-disclosure summary::-webkit-details-marker {
+  display: none;
+}
+
+.service-log-reject-form {
+  display: grid;
+  gap: 0.65rem;
+  width: min(100%, 28rem);
+  border: 1px solid #fecaca;
+  border-radius: 7px;
+  padding: 0.75rem;
+  background: #fffafa;
+}
+
+.service-log-reject-form label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--ink);
+  font-weight: var(--weight-label);
+}
+
+.service-log-reject-form input {
+  border-color: #f5c2c7;
+}
+
+.service-log-reject-form button {
+  justify-self: start;
 }
 
 .attachment-preview-modal[hidden] {
@@ -4451,6 +4519,15 @@ tbody tr:last-child td {
 
   .service-log-attachment-actions,
   .service-log-attachment-actions a {
+    width: 100%;
+  }
+
+  .service-log-review-actions,
+  .service-log-review-actions form,
+  .service-log-review-actions button,
+  .service-log-review-actions .button,
+  .service-log-reject-disclosure,
+  .service-log-reject-form {
     width: 100%;
   }
 

@@ -241,6 +241,39 @@ class ServiceLogReviewTests(TestCase):
         self.assertContains(response, "<dt>Submitted</dt><dd>04/06/2026 08:15</dd>", html=True)
         self.assertNotContains(response, "June 4, 2026")
 
+    def test_submitted_service_log_detail_hides_empty_review_metadata(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_detail", args=[self.service_log.id]))
+
+        self.assertNotContains(response, "<dt>Reviewed by</dt>")
+        self.assertNotContains(response, "<dt>Reviewed at</dt>")
+        self.assertNotContains(response, "<dt>Rejection reason</dt>")
+
+    def test_rejected_service_log_detail_shows_rejection_reason(self):
+        self.service_log.status = ServiceLog.Status.REJECTED
+        self.service_log.rejection_reason = "Please clarify case notes."
+        self.service_log.reviewed_by = self.admin_user
+        self.service_log.reviewed_at = datetime(2026, 6, 3, 23, 30, tzinfo=datetime_timezone.utc)
+        self.service_log.save(
+            update_fields=[
+                "status",
+                "rejection_reason",
+                "reviewed_by",
+                "reviewed_at",
+                "updated_at",
+            ],
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_detail", args=[self.service_log.id]))
+
+        self.assertContains(
+            response,
+            "<dt>Rejection reason</dt><dd>Please clarify case notes.</dd>",
+            html=True,
+        )
+
     def test_admin_can_download_service_log_pdf(self):
         self.service_log.worker_notes = "Worker confirms support was completed."
         self.service_log.save(update_fields=["worker_notes", "updated_at"])
@@ -345,9 +378,19 @@ class ServiceLogReviewTests(TestCase):
 
         self.assertContains(response, 'data-preview-kind="pdf"')
         self.assertContains(response, reverse("document_preview", args=[pdf_document.id]))
-        self.assertContains(response, "No preview")
+        self.assertContains(response, "Download to review")
         self.assertContains(response, reverse("document_download", args=[doc_document.id]))
         self.assertNotContains(response, reverse("document_preview", args=[doc_document.id]))
+
+    def test_submitted_service_log_detail_uses_reject_disclosure(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_detail", args=[self.service_log.id]))
+
+        self.assertContains(response, 'class="service-log-review-actions"')
+        self.assertContains(response, '<summary class="button danger-outline">Reject</summary>', html=True)
+        self.assertContains(response, "Reject with reason")
+        self.assertContains(response, 'name="rejection_reason"')
 
     def test_worker_cannot_download_admin_service_log_pdf(self):
         self.login_worker()
