@@ -9,6 +9,7 @@ docs/pre-deployment-review.md
 docs/render-beta-deployment.md
 docs/staging-deployment-plan.md
 docs/staging-runbook.md
+docs/render-storage-configuration.md
 ```
 
 ## Environment
@@ -43,7 +44,7 @@ DATABASE_URL=postgres://bsc_user:password@db-host:5432/bsc_admin
 - Confirm collected static files are served from `STATIC_ROOT`.
 - Confirm WhiteNoise serves static assets in the target environment.
 - For local development, uploaded documents live in `MEDIA_ROOT` and should be backed up if needed.
-- For Render production document uploads, configure private SFTP storage before accepting real worker documents:
+- For Render document uploads, configure private SFTP storage before accepting real worker documents. Use `docs/render-storage-configuration.md` as the source of truth:
   - `DOCUMENT_STORAGE_BACKEND=sftp`
   - `DOCUMENT_SFTP_HOST=ftp.duratechequip.com`
   - `DOCUMENT_SFTP_PORT=22`
