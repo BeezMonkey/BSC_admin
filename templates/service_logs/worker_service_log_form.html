@@ -72,11 +72,36 @@
         <h2>Attachments</h2>
         <p>Add photos or supporting files for this service log.</p>
       </div>
-      <label class="field" for="id_attachments">
-        Files
-        <input id="id_attachments" type="file" name="attachments" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
-        <span>Up to 3 files, 5 MB each. PDF, JPG, PNG, DOC, or DOCX.</span>
-      </label>
+      <div
+        class="worker-attachment-picker"
+        data-worker-attachment-picker
+        data-max-files="3"
+        data-max-size="5242880"
+      >
+        <label class="field worker-attachment-native-field" for="id_attachments">
+          Files
+          <input
+            id="id_attachments"
+            type="file"
+            name="attachments"
+            multiple
+            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+            data-attachment-input
+          >
+          <span>Up to 3 files, 5 MB each. PDF, JPG, PNG, DOC, or DOCX.</span>
+        </label>
+        <button class="button secondary worker-attachment-add" type="button" data-attachment-add>
+          Add file
+        </button>
+        <div class="worker-attachment-status">
+          <span data-attachment-count>No files selected</span>
+          <span class="worker-attachment-limit" data-attachment-limit hidden>
+            3 of 3 files selected. Remove a file to add another.
+          </span>
+        </div>
+        <p class="worker-attachment-feedback" data-attachment-feedback aria-live="polite"></p>
+        <ul class="worker-attachment-list" data-attachment-list aria-live="polite" aria-label="Selected attachments"></ul>
+      </div>
     </section>
 
     <div class="button-row worker-log-form-actions worker-bottom-actions">
@@ -85,4 +110,127 @@
     </div>
   </form>
 </section>
+
+<script>
+  (function () {
+    var picker = document.querySelector("[data-worker-attachment-picker]");
+    if (!picker || !window.DataTransfer) {
+      return;
+    }
+
+    var input = picker.querySelector("[data-attachment-input]");
+    var addButton = picker.querySelector("[data-attachment-add]");
+    var countLabel = picker.querySelector("[data-attachment-count]");
+    var limitLabel = picker.querySelector("[data-attachment-limit]");
+    var feedback = picker.querySelector("[data-attachment-feedback]");
+    var list = picker.querySelector("[data-attachment-list]");
+    var maxFiles = Number(picker.dataset.maxFiles || 3);
+    var maxSize = Number(picker.dataset.maxSize || 5242880);
+    var allowedExtensions = [".pdf", ".jpg", ".jpeg", ".png", ".doc", ".docx"];
+    var selectedFiles = [];
+    var readyText = "Ready to upload";
+    var removeText = "Remove";
+    var limitText = "3 of 3 files selected. Remove a file to add another.";
+
+    picker.classList.add("attachment-picker-ready");
+
+    function formatFileSize(bytes) {
+      if (bytes >= 1024 * 1024) {
+        return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+      }
+      return Math.max(1, Math.round(bytes / 1024)) + " KB";
+    }
+
+    function hasAllowedExtension(file) {
+      var name = file.name.toLowerCase();
+      return allowedExtensions.some(function (extension) {
+        return name.endsWith(extension);
+      });
+    }
+
+    function isDuplicate(file) {
+      return selectedFiles.some(function (selectedFile) {
+        return selectedFile.name === file.name
+          && selectedFile.size === file.size
+          && selectedFile.lastModified === file.lastModified;
+      });
+    }
+
+    function syncInputFiles() {
+      var transfer = new DataTransfer();
+      selectedFiles.forEach(function (file) {
+        transfer.items.add(file);
+      });
+      input.files = transfer.files;
+    }
+
+    function render() {
+      list.replaceChildren();
+      selectedFiles.forEach(function (file, index) {
+        var item = document.createElement("li");
+
+        var detail = document.createElement("div");
+        var name = document.createElement("strong");
+        var meta = document.createElement("span");
+        name.textContent = file.name;
+        meta.textContent = formatFileSize(file.size) + " | " + readyText;
+        detail.append(name, meta);
+
+        var removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.className = "quiet-action";
+        removeButton.textContent = removeText;
+        removeButton.addEventListener("click", function () {
+          selectedFiles.splice(index, 1);
+          feedback.textContent = "";
+          syncInputFiles();
+          render();
+        });
+
+        item.append(detail, removeButton);
+        list.appendChild(item);
+      });
+
+      var countText = selectedFiles.length === 1
+        ? "1 of " + maxFiles + " file selected"
+        : selectedFiles.length + " of " + maxFiles + " files selected";
+      countLabel.textContent = selectedFiles.length ? countText : "No files selected";
+      var isFull = selectedFiles.length >= maxFiles;
+      addButton.disabled = isFull;
+      limitLabel.hidden = !isFull;
+      if (isFull) {
+        limitLabel.textContent = limitText;
+      }
+    }
+
+    addButton.addEventListener("click", function () {
+      input.click();
+    });
+
+    input.addEventListener("change", function () {
+      var incomingFiles = Array.from(input.files);
+      var messages = [];
+
+      incomingFiles.forEach(function (file) {
+        if (selectedFiles.length >= maxFiles) {
+          messages.push(limitText);
+        } else if (!hasAllowedExtension(file)) {
+          messages.push(file.name + " is not a supported file type.");
+        } else if (file.size > maxSize) {
+          messages.push(file.name + " is larger than 5 MB.");
+        } else if (isDuplicate(file)) {
+          messages.push(file.name + " has already been added.");
+        } else {
+          selectedFiles.push(file);
+        }
+      });
+
+      feedback.textContent = messages.join(" ");
+      syncInputFiles();
+      render();
+    });
+
+    render();
+  })();
+</script>
 {% endblock %}

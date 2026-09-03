@@ -347,6 +347,26 @@ class ServiceLogCompletionTests(TestCase):
         self.assertContains(response, 'name="case_notes"')
         self.assertContains(response, "Submit Service Log")
 
+    def test_worker_complete_form_uses_progressive_attachment_picker(self):
+        shift = self.create_shift(status=Shift.Status.CONFIRMED)
+        self.login_worker()
+
+        response = self.client.get(reverse("worker_service_log_create", args=[shift.id]))
+
+        self.assertContains(response, 'data-worker-attachment-picker')
+        self.assertContains(response, 'data-max-files="3"')
+        self.assertContains(response, 'data-max-size="5242880"')
+        self.assertContains(response, 'data-attachment-input')
+        self.assertContains(response, 'data-attachment-add')
+        self.assertContains(response, "Add file")
+        self.assertContains(response, "No files selected")
+        self.assertContains(response, "Ready to upload")
+        self.assertContains(response, "Remove")
+        self.assertContains(response, "3 of 3 files selected")
+        self.assertContains(response, 'aria-live="polite"')
+        self.assertContains(response, 'name="attachments"')
+        self.assertContains(response, "Up to 3 files, 5 MB each")
+
     def test_shift_can_only_have_one_service_log(self):
         shift = self.create_shift()
         ServiceLog.objects.create_from_shift(
