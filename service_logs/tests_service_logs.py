@@ -180,6 +180,29 @@ class ServiceLogCompletionTests(TestCase):
         self.assertEqual({document.uploaded_by for document in attachments}, {self.worker_user})
         self.assertEqual({document.review_status for document in attachments}, {Document.ReviewStatus.PENDING_REVIEW})
 
+    def test_worker_service_log_submission_with_attachments_shows_success_message(self):
+        shift = self.create_shift()
+        self.login_worker()
+
+        response = self.client.post(
+            reverse("worker_service_log_create", args=[shift.id]),
+            {
+                **self.log_payload(),
+                "attachments": [
+                    SimpleUploadedFile("sample.doc", b"doc", content_type="application/msword"),
+                    SimpleUploadedFile("sample-local-pdf.pdf", b"%PDF-1.4", content_type="application/pdf"),
+                    SimpleUploadedFile("progress-photo.jpg", b"photo", content_type="image/jpeg"),
+                ],
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Service log submitted for admin review.")
+        self.assertContains(response, "sample.doc")
+        self.assertContains(response, "sample-local-pdf.pdf")
+        self.assertContains(response, "progress-photo.jpg")
+
     def test_attachment_storage_failure_rolls_back_service_log_submission(self):
         shift = self.create_shift()
         self.login_worker()

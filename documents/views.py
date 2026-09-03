@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_POST
 
 from accounts.decorators import admin_required, worker_required
@@ -126,6 +127,7 @@ def document_download(request, document_id):
 
 
 @admin_required
+@xframe_options_sameorigin
 def document_preview(request, document_id):
     document = get_object_or_404(Document, id=document_id)
     if not document.is_previewable:
