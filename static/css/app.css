@@ -1299,6 +1299,10 @@ table {
   white-space: nowrap;
 }
 
+.service-log-table .service-log-status-cell {
+  width: 1%;
+}
+
 .service-log-table .service-log-person-cell {
   min-width: 8.5rem;
   overflow-wrap: anywhere;
@@ -1641,6 +1645,11 @@ table {
   overflow-wrap: anywhere;
 }
 
+.roster-table .roster-status-cell {
+  width: 1%;
+  white-space: nowrap;
+}
+
 .roster-table .roster-next-action-cell {
   min-width: 10rem;
   color: var(--muted);
@@ -1774,13 +1783,21 @@ tbody tr:last-child td {
   justify-content: center;
   min-height: 1.5rem;
   border-radius: 999px;
-  padding: 0.2rem 0.48rem;
+  border: 1px solid transparent;
+  padding: 0.18rem 0.48rem;
   background: #e0f2fe;
   color: #075985;
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   font-weight: var(--weight-action);
   line-height: 1;
   white-space: nowrap;
+}
+
+.status-source-stack {
+  display: inline-grid;
+  gap: 0.25rem;
+  justify-items: start;
+  align-content: center;
 }
 
 .status-pill.status-active,
@@ -1791,6 +1808,7 @@ tbody tr:last-child td {
 .status-pill.status-current {
   color: #065f46;
   background: #d1fae5;
+  border-color: #a7f3d0;
 }
 
 .status-pill.status-draft,
@@ -1800,6 +1818,7 @@ tbody tr:last-child td {
 .status-pill.status-completed {
   color: #475467;
   background: #eef2f6;
+  border-color: #dde5ee;
 }
 
 .status-pill.status-published,
@@ -1808,6 +1827,7 @@ tbody tr:last-child td {
 .status-pill.status-pending_review {
   color: #92400e;
   background: #fef3c7;
+  border-color: #fde68a;
 }
 
 .status-pill.status-rejected,
@@ -1816,21 +1836,24 @@ tbody tr:last-child td {
 .status-pill.status-expired {
   color: #991b1b;
   background: #fee2e2;
+  border-color: #fecaca;
 }
 
 .status-pill.status-invoiced {
   color: var(--brand-dark);
   background: #ccfbf1;
+  border-color: #99f6e4;
 }
 
 .source-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 1.45rem;
+  min-height: 1.28rem;
   border-radius: 999px;
-  padding: 0.18rem 0.46rem;
-  font-size: 0.76rem;
+  border: 1px solid transparent;
+  padding: 0.14rem 0.42rem;
+  font-size: 0.7rem;
   font-weight: var(--weight-action);
   line-height: 1;
   white-space: nowrap;
@@ -1838,7 +1861,8 @@ tbody tr:last-child td {
 
 .source-pill.source-unscheduled {
   color: #0f766e;
-  background: #dff8f4;
+  background: #ecfdf5;
+  border-color: #bde8e3;
 }
 
 .record-form {

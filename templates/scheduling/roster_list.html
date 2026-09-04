@@ -93,11 +93,13 @@
           <td class="roster-person-cell">{{ shift.participant.display_name }}</td>
           <td class="roster-person-cell">{{ shift.worker.display_name }}</td>
           <td class="roster-service-cell">{{ shift.get_service_type_display }}</td>
-          <td>
-            <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
-            {% if shift.source == "unscheduled" %}
-              <span class="source-pill source-unscheduled">Unscheduled</span>
-            {% endif %}
+          <td class="roster-status-cell">
+            <div class="status-source-stack">
+              <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
+              {% if shift.source == "unscheduled" %}
+                <span class="source-pill source-unscheduled">Unscheduled</span>
+              {% endif %}
+            </div>
           </td>
           <td class="roster-next-action-cell">{{ shift.next_action }}</td>
           <td class="actions">
