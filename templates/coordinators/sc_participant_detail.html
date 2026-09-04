@@ -1,0 +1,70 @@
+{% extends "coordinator_base.html" %}
+
+{% block title %}{{ participant.display_name }} - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<section class="worker-content">
+  <header class="page-header">
+    <div>
+      <h1>{{ participant.display_name }}</h1>
+      <p>{{ participant.get_status_display }}{% if participant.ndis_number %} | NDIS {{ participant.ndis_number }}{% endif %}</p>
+    </div>
+    <div class="button-row">
+      <a class="button secondary" href="{% url 'coordinator_participant_list' %}">Back to Participants</a>
+    </div>
+  </header>
+
+  <div class="detail-grid">
+    <section class="card">
+      <h2>Contact</h2>
+      <dl class="detail-list">
+        <dt>Preferred name</dt>
+        <dd>{% if participant.preferred_name %}{{ participant.preferred_name }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
+        <dt>Phone</dt>
+        <dd>{% if participant.phone %}{{ participant.phone }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
+        <dt>Email</dt>
+        <dd>{% if participant.email %}{{ participant.email }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
+        <dt>Emergency contact</dt>
+        <dd>
+          {% if participant.emergency_contact_name %}
+            {{ participant.emergency_contact_name }}
+            {% if participant.emergency_contact_relationship %}<br>{{ participant.emergency_contact_relationship }}{% endif %}
+            {% if participant.emergency_contact_phone %}<br>{{ participant.emergency_contact_phone }}{% endif %}
+            {% if participant.emergency_contact_email %}<br>{{ participant.emergency_contact_email }}{% endif %}
+          {% else %}
+            <span class="detail-empty">Not provided</span>
+          {% endif %}
+        </dd>
+      </dl>
+    </section>
+
+    <section class="card">
+      <h2>Address</h2>
+      <dl class="detail-list">
+        <dt>Address line 1</dt>
+        <dd>{% if participant.address_line_1 %}{{ participant.address_line_1 }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
+        <dt>Address line 2</dt>
+        <dd>{% if participant.address_line_2 %}{{ participant.address_line_2 }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
+        <dt>Suburb</dt>
+        <dd>{% if participant.suburb %}{{ participant.suburb }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
+        <dt>State</dt>
+        <dd>{% if participant.state %}{{ participant.state }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
+        <dt>Postcode</dt>
+        <dd>{% if participant.postcode %}{{ participant.postcode }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
+      </dl>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Support Notes</h2>
+    <dl class="detail-list">
+      <dt>Worker visible notes</dt>
+      <dd>{% if participant.worker_visible_notes %}{{ participant.worker_visible_notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
+      <dt>Address access instructions</dt>
+      <dd>{% if participant.address_access_instructions %}{{ participant.address_access_instructions }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
+      <dt>Risk/safety notes</dt>
+      <dd>{% if participant.risk_safety_notes %}{{ participant.risk_safety_notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
+    </dl>
+  </section>
+</section>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "coordinator_base.html" %}
+
+{% block title %}My Participants - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<section class="worker-content">
+  <header class="page-header">
+    <div>
+      <h1>My Participants</h1>
+      <p>View active participants assigned to your support coordination caseload.</p>
+    </div>
+  </header>
+
+  <section class="card table-card participant-table-card">
+    <table class="participant-table">
+      <thead>
+        <tr>
+          <th>Participant</th>
+          <th>Contact</th>
+          <th>Address</th>
+          <th class="actions-heading">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for participant in participants %}
+          <tr>
+            <td class="participant-identity-cell">
+              <div class="participant-identity">
+                <span class="participant-avatar" aria-hidden="true">{{ participant.initials }}</span>
+                <div class="participant-name-stack">
+                  <a href="{% url 'coordinator_participant_detail' participant.id %}">{{ participant.display_name }}</a>
+                  <span>NDIS {{ participant.ndis_number|default:"not recorded" }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="participant-contact-cell">
+              <div class="participant-contact-stack">
+                <strong>{{ participant.phone|default:"No phone" }}</strong>
+                <span>{{ participant.email|default:"No email" }}</span>
+              </div>
+            </td>
+            <td>
+              {% if participant.address_line_1 %}
+                {{ participant.address_line_1 }}
+                {% if participant.suburb %}<br>{{ participant.suburb }} {{ participant.state }} {{ participant.postcode }}{% endif %}
+              {% else %}
+                <span class="detail-empty">No address</span>
+              {% endif %}
+            </td>
+            <td class="actions">
+              <a href="{% url 'coordinator_participant_detail' participant.id %}">View</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="4">
+              <div class="empty-state">
+                <strong>No assigned participants yet.</strong>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</section>
+{% endblock %}

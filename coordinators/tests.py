@@ -91,6 +91,51 @@ class CoordinatorRoleAccessTests(TestCase):
         self.assertEqual(response.status_code, 403)
 
 
+class CoordinatorPortalParticipantTests(TestCase):
+    def setUp(self):
+        self.coordinator = create_coordinator("coord-portal")
+        self.assigned = Participant.objects.create(
+            first_name="Assigned",
+            last_name="Participant",
+            status=Participant.Status.ACTIVE,
+            worker_visible_notes="Use side entrance.",
+            internal_notes="Admin only.",
+        )
+        self.unassigned = Participant.objects.create(
+            first_name="Hidden",
+            last_name="Participant",
+            status=Participant.Status.ACTIVE,
+        )
+        ParticipantCoordinatorAssignment.objects.create(
+            participant=self.assigned,
+            coordinator=self.coordinator,
+            start_date=date(2026, 9, 4),
+        )
+        self.client.force_login(self.coordinator.user)
+
+    def test_sc_participant_list_shows_only_assigned_participants(self):
+        response = self.client.get(reverse("coordinator_participant_list"))
+
+        self.assertContains(response, "Assigned Participant")
+        self.assertNotContains(response, "Hidden Participant")
+
+    def test_sc_participant_detail_hides_internal_notes(self):
+        response = self.client.get(
+            reverse("coordinator_participant_detail", args=[self.assigned.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Use side entrance.")
+        self.assertNotContains(response, "Admin only.")
+
+    def test_sc_cannot_view_unassigned_participant_detail(self):
+        response = self.client.get(
+            reverse("coordinator_participant_detail", args=[self.unassigned.id])
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+
 class CoordinatorAdminManagementTests(TestCase):
     def create_user_with_role(self, username, role):
         user = get_user_model().objects.create_user(

@@ -15,11 +15,49 @@ from .forms import (
     SupportCoordinatorEditForm,
 )
 from .models import SupportCoordinator
+from .querysets import assigned_participants_for
+
+
+def get_current_coordinator(user):
+    return getattr(user, "supportcoordinator", None)
 
 
 @coordinator_required
 def coordinator_dashboard(request):
-    return render(request, "coordinators/sc_dashboard.html")
+    coordinator = get_current_coordinator(request.user)
+    assigned_participant_count = assigned_participants_for(coordinator).count()
+    return render(
+        request,
+        "coordinators/sc_dashboard.html",
+        {"assigned_participant_count": assigned_participant_count},
+    )
+
+
+@coordinator_required
+def coordinator_participant_list(request):
+    coordinator = get_current_coordinator(request.user)
+    participants = Participant.objects.none()
+    if coordinator:
+        participants = assigned_participants_for(coordinator)
+    return render(
+        request,
+        "coordinators/sc_participant_list.html",
+        {"participants": participants},
+    )
+
+
+@coordinator_required
+def coordinator_participant_detail(request, participant_id):
+    coordinator = get_current_coordinator(request.user)
+    participant = get_object_or_404(
+        assigned_participants_for(coordinator),
+        id=participant_id,
+    )
+    return render(
+        request,
+        "coordinators/sc_participant_detail.html",
+        {"participant": participant},
+    )
 
 
 @admin_required

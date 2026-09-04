@@ -21,4 +21,14 @@ urlpatterns = [
         name="coordinator_assign_participant",
     ),
     path("sc/dashboard/", views.coordinator_dashboard, name="coordinator_dashboard"),
+    path(
+        "sc/participants/",
+        views.coordinator_participant_list,
+        name="coordinator_participant_list",
+    ),
+    path(
+        "sc/participants/<int:participant_id>/",
+        views.coordinator_participant_detail,
+        name="coordinator_participant_detail",
+    ),
 ]
