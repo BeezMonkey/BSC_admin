@@ -1,6 +1,7 @@
 import csv
 import re
 import zlib
+from collections import OrderedDict
 from decimal import Decimal
 from io import StringIO
 from pathlib import Path
@@ -207,7 +208,7 @@ def get_billable_logs(participant, period_start, period_end):
     ).select_related("participant", "worker", "support_item")
 
 
-def get_selected_billable_logs(service_log_ids):
+def get_selected_billable_logs(service_log_ids, require_single_participant=True):
     try:
         unique_ids = [
             int(service_log_id) for service_log_id in dict.fromkeys(service_log_ids)
@@ -223,7 +224,7 @@ def get_selected_billable_logs(service_log_ids):
     if len(service_logs) != len(unique_ids):
         return [], "Selected service logs are no longer available for invoicing."
     participant_ids = {service_log.participant_id for service_log in service_logs}
-    if len(participant_ids) > 1:
+    if require_single_participant and len(participant_ids) > 1:
         return [], "Selected service logs must belong to one participant."
     return service_logs, ""
 
@@ -250,6 +251,49 @@ def build_invoice_rows(service_logs, data=None):
     ]
 
 
+def build_selected_invoice_groups(service_logs):
+    groups = OrderedDict()
+    ordered_logs = sorted(
+        service_logs,
+        key=lambda log: (
+            log.participant.display_name,
+            log.service_date,
+            log.id,
+        ),
+    )
+    for service_log in ordered_logs:
+        group = groups.setdefault(
+            service_log.participant_id,
+            {
+                "participant": service_log.participant,
+                "service_logs": [],
+            },
+        )
+        group["service_logs"].append(service_log)
+
+    invoice_groups = []
+    for group in groups.values():
+        logs = group["service_logs"]
+        period_start = min(log.service_date for log in logs)
+        period_end = max(log.service_date for log in logs)
+        period_label = format_au_date(period_start)
+        if period_start != period_end:
+            period_label = f"{period_label} - {format_au_date(period_end)}"
+        invoice_groups.append(
+            {
+                "participant": group["participant"],
+                "period_start": period_start,
+                "period_end": period_end,
+                "period_label": period_label,
+                "total_hours": sum((log.actual_hours for log in logs), Decimal("0.00")),
+                "count": len(logs),
+                "selected_service_log_ids": [log.id for log in logs],
+                "invoice_rows": build_invoice_rows(logs),
+            }
+        )
+    return invoice_groups
+
+
 @finance_required
 def invoice_create(request):
     selected_ids = request.GET.getlist("service_log_ids")
@@ -258,15 +302,25 @@ def invoice_create(request):
     selected_service_logs = []
     selected_error = ""
     active_selected_ids = selected_ids
+    selected_invoice_groups = []
 
     if selected_ids:
-        selected_service_logs, selected_error = get_selected_billable_logs(selected_ids)
+        selected_service_logs, selected_error = get_selected_billable_logs(
+            selected_ids,
+            require_single_participant=request.method == "POST",
+        )
 
-    if request.method == "GET" and selected_service_logs:
+    if (
+        request.method == "GET"
+        and selected_service_logs
+        and len({log.participant_id for log in selected_service_logs}) == 1
+    ):
         form = InvoiceCreateForm(build_selected_invoice_form_data(selected_service_logs))
         form.is_valid()
     elif request.method == "POST":
         form = InvoiceCreateForm(request.POST)
+    elif request.method == "GET" and selected_service_logs:
+        form = InvoiceCreateForm()
     else:
         form = InvoiceCreateForm(request.GET or None)
 
@@ -282,6 +336,8 @@ def invoice_create(request):
             )
     elif selected_service_logs:
         service_logs = selected_service_logs
+        if request.method == "GET":
+            selected_invoice_groups = build_selected_invoice_groups(selected_service_logs)
     elif form.is_valid():
         service_logs = get_billable_logs(
             form.cleaned_data["participant"],
@@ -378,6 +434,7 @@ def invoice_create(request):
             "form": form,
             "service_logs": service_logs,
             "invoice_rows": invoice_rows,
+            "selected_invoice_groups": selected_invoice_groups,
             "selected_error": selected_error,
             "selected_service_log_ids": active_selected_ids,
         },
