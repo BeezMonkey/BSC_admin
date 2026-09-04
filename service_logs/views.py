@@ -33,7 +33,7 @@ from invoices.views import (
 )
 from scheduling.models import Shift
 
-from .forms import ServiceLogForm
+from .forms import ServiceLogForm, UnscheduledServiceLogForm
 from .models import ServiceLog
 from .notifications import notify_admin_service_log_submitted
 
@@ -213,6 +213,7 @@ def service_log_pdf_pages(service_log):
     left_y = append_service_log_pdf_row(lines, "Participant", service_log.participant.display_name, left_x, left_y)
     left_y = append_service_log_pdf_row(lines, "Worker", service_log.worker.display_name, left_x, left_y)
     left_y = append_service_log_pdf_row(lines, "Shift ID", service_log.shift_id, left_x, left_y)
+    left_y = append_service_log_pdf_row(lines, "Service type", service_log.get_source_display(), left_x, left_y)
     left_y = append_service_log_pdf_row(lines, "Support item", service_log.support_item, left_x, left_y)
     left_y = append_service_log_pdf_row(
         lines,
@@ -233,6 +234,15 @@ def service_log_pdf_pages(service_log):
 
     notes_y = min(left_y, right_y) - 44
     y = append_service_log_pdf_section(lines, "Notes", page_left, notes_y, page_right - page_left)
+    if service_log.source == ServiceLog.Source.UNSCHEDULED:
+        y = append_service_log_pdf_row(
+            lines,
+            "Reason",
+            service_log.unscheduled_reason,
+            page_left,
+            y,
+            max_width=410,
+        )
     y = append_service_log_pdf_row(lines, "Case notes", service_log.case_notes, page_left, y, max_width=410)
     y = append_service_log_pdf_row(lines, "Worker notes", service_log.worker_notes, page_left, y, max_width=410)
 
@@ -365,6 +375,40 @@ def worker_service_log_detail(request, service_log_id):
     )
 
 
+def append_service_log_attachments(request, service_log, attachments, stored_attachment_documents):
+    for uploaded_file in attachments:
+        document = Document.objects.create(
+            title=f"Service log attachment - {uploaded_file.name}",
+            category=Document.Category.SERVICE_LOG,
+            participant=service_log.participant,
+            worker=service_log.worker,
+            service_log=service_log,
+            review_status=Document.ReviewStatus.PENDING_REVIEW,
+            file=uploaded_file,
+            original_filename=uploaded_file.name,
+            uploaded_by=request.user,
+        )
+        stored_attachment_documents.append(document)
+        write_audit_log(
+            request.user,
+            AuditLog.Action.DOCUMENT_UPLOADED,
+            document,
+            f"Uploaded service log attachment {document.id} for service log {service_log.id}.",
+        )
+
+
+def render_worker_service_log_form(request, form, shift=None, is_unscheduled=False):
+    return render(
+        request,
+        "service_logs/worker_service_log_form.html",
+        {
+            "form": form,
+            "shift": shift,
+            "is_unscheduled": is_unscheduled,
+        },
+    )
+
+
 @worker_required
 def worker_service_log_create(request, shift_id):
     worker = getattr(request.user, "supportworker", None)
@@ -390,11 +434,7 @@ def worker_service_log_create(request, shift_id):
                 validate_service_log_attachments(attachments)
             except ValidationError as error:
                 form.add_error(None, error)
-                return render(
-                    request,
-                    "service_logs/worker_service_log_form.html",
-                    {"form": form, "shift": shift},
-                )
+                return render_worker_service_log_form(request, form, shift=shift)
 
             stored_attachment_documents = []
             try:
@@ -409,25 +449,12 @@ def worker_service_log_create(request, shift_id):
                         case_notes=form.cleaned_data["case_notes"],
                         worker_notes=form.cleaned_data["worker_notes"],
                     )
-                    for uploaded_file in attachments:
-                        document = Document.objects.create(
-                            title=f"Service log attachment - {uploaded_file.name}",
-                            category=Document.Category.SERVICE_LOG,
-                            participant=shift.participant,
-                            worker=worker,
-                            service_log=service_log,
-                            review_status=Document.ReviewStatus.PENDING_REVIEW,
-                            file=uploaded_file,
-                            original_filename=uploaded_file.name,
-                            uploaded_by=request.user,
-                        )
-                        stored_attachment_documents.append(document)
-                        write_audit_log(
-                            request.user,
-                            AuditLog.Action.DOCUMENT_UPLOADED,
-                            document,
-                            f"Uploaded service log attachment {document.id} for service log {service_log.id}.",
-                        )
+                    append_service_log_attachments(
+                        request,
+                        service_log,
+                        attachments,
+                        stored_attachment_documents,
+                    )
                     shift.status = Shift.Status.COMPLETED
                     shift.completed_at = timezone.now()
                     shift.save(update_fields=["status", "completed_at", "updated_at"])
@@ -437,11 +464,7 @@ def worker_service_log_create(request, shift_id):
                         with suppress(Exception):
                             document.file.delete(save=False)
                 form.add_error(None, exc)
-                return render(
-                    request,
-                    "service_logs/worker_service_log_form.html",
-                    {"form": form, "shift": shift},
-                )
+                return render_worker_service_log_form(request, form, shift=shift)
 
             notify_admin_service_log_submitted(service_log, request=request)
             messages.success(request, "Service log submitted for admin review.")
@@ -449,8 +472,86 @@ def worker_service_log_create(request, shift_id):
     else:
         form = ServiceLogForm(initial=initial)
 
-    return render(
+    return render_worker_service_log_form(request, form, shift=shift)
+
+
+@worker_required
+def worker_unscheduled_service_log_create(request):
+    worker = getattr(request.user, "supportworker", None)
+    if worker is None:
+        raise Http404("Worker profile is required.")
+
+    if request.method == "POST":
+        form = UnscheduledServiceLogForm(request.POST, worker=worker)
+        attachments = request.FILES.getlist("attachments")
+        if form.is_valid():
+            try:
+                validate_service_log_attachments(attachments)
+            except ValidationError as error:
+                form.add_error(None, error)
+                return render_worker_service_log_form(
+                    request,
+                    form,
+                    is_unscheduled=True,
+                )
+
+            stored_attachment_documents = []
+            try:
+                with transaction.atomic():
+                    completed_at = timezone.now()
+                    shift = Shift.objects.create(
+                        participant=form.cleaned_data["participant"],
+                        worker=worker,
+                        service_date=form.cleaned_data["service_date"],
+                        start_time=form.cleaned_data["actual_start_time"],
+                        end_time=form.cleaned_data["actual_end_time"],
+                        break_minutes=form.cleaned_data["break_minutes"],
+                        planned_hours=form.cleaned_data["actual_hours"],
+                        support_item=form.cleaned_data["support_item"],
+                        service_type=form.cleaned_data["service_type"],
+                        source=Shift.Source.UNSCHEDULED,
+                        status=Shift.Status.COMPLETED,
+                        completed_at=completed_at,
+                        created_by=request.user,
+                    )
+                    service_log = ServiceLog.objects.create_from_shift(
+                        shift=shift,
+                        source=ServiceLog.Source.UNSCHEDULED,
+                        actual_start_time=form.cleaned_data["actual_start_time"],
+                        actual_end_time=form.cleaned_data["actual_end_time"],
+                        break_minutes=form.cleaned_data["break_minutes"],
+                        actual_hours=form.cleaned_data["actual_hours"],
+                        kilometres=form.cleaned_data["kilometres"],
+                        case_notes=form.cleaned_data["case_notes"],
+                        worker_notes=form.cleaned_data["worker_notes"],
+                        unscheduled_reason=form.cleaned_data["unscheduled_reason"],
+                    )
+                    append_service_log_attachments(
+                        request,
+                        service_log,
+                        attachments,
+                        stored_attachment_documents,
+                    )
+            except StorageOperationError as exc:
+                for document in stored_attachment_documents:
+                    if document.file:
+                        with suppress(Exception):
+                            document.file.delete(save=False)
+                form.add_error(None, exc)
+                return render_worker_service_log_form(
+                    request,
+                    form,
+                    is_unscheduled=True,
+                )
+
+            notify_admin_service_log_submitted(service_log, request=request)
+            messages.success(request, "Unscheduled service submitted for admin review.")
+            return redirect("worker_service_log_detail", service_log_id=service_log.id)
+    else:
+        form = UnscheduledServiceLogForm(worker=worker)
+
+    return render_worker_service_log_form(
         request,
-        "service_logs/worker_service_log_form.html",
-        {"form": form, "shift": shift},
+        form,
+        is_unscheduled=True,
     )

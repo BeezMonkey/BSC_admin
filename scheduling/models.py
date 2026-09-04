@@ -51,6 +51,10 @@ class Shift(models.Model):
         CANCELLED = "cancelled", "Cancelled"
         NO_SHOW = "no_show", "No show"
 
+    class Source(models.TextChoices):
+        SCHEDULED = "scheduled", "Scheduled"
+        UNSCHEDULED = "unscheduled", "Unscheduled"
+
     class ServiceType(models.TextChoices):
         COMMUNITY_ACCESS = "community_access", "Community access"
         PERSONAL_CARE = "personal_care", "Personal care"
@@ -89,6 +93,11 @@ class Shift(models.Model):
         related_name="shifts",
     )
     service_type = models.CharField(max_length=40, choices=ServiceType.choices)
+    source = models.CharField(
+        max_length=20,
+        choices=Source.choices,
+        default=Source.SCHEDULED,
+    )
     location = models.CharField(max_length=150, blank=True)
     address = models.TextField(blank=True)
     instructions = models.TextField(blank=True)

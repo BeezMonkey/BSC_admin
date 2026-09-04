@@ -1467,6 +1467,18 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, '?view=upcoming')
         self.assertContains(response, '?view=completed')
 
+    def test_roster_list_marks_unscheduled_service_shift(self):
+        self.create_shift(
+            service_date=date(2026, 6, 4),
+            status=Shift.Status.COMPLETED,
+            source="unscheduled",
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("roster_list"))
+
+        self.assertContains(response, '<span class="source-pill source-unscheduled">Unscheduled</span>')
+
     def test_worker_shift_list_marks_sidebar_link_as_active(self):
         self.client.login(username="worker", password="test-password-123")
 

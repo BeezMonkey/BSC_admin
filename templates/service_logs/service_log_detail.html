@@ -21,6 +21,7 @@
     <h2>Service Log</h2>
     <dl class="detail-list">
       <dt>Shift ID</dt><dd>{{ service_log.shift.id }}</dd>
+      <dt>Service type</dt><dd>{{ service_log.get_source_display }}</dd>
       <dt>Worker</dt><dd>{{ service_log.worker.display_name }}</dd>
       <dt>Support item</dt><dd>{{ service_log.support_item }}</dd>
       <dt>Actual time</dt><dd>{{ service_log.actual_start_time|display_time }} - {{ service_log.actual_end_time|display_time }}</dd>
@@ -42,6 +43,9 @@
       <dt>Worker notes</dt><dd>{{ service_log.worker_notes|default:"-" }}</dd>
       {% if service_log.rejection_reason %}
         <dt>Rejection reason</dt><dd>{{ service_log.rejection_reason }}</dd>
+      {% endif %}
+      {% if service_log.source == "unscheduled" %}
+        <dt>Unscheduled reason</dt><dd>{{ service_log.unscheduled_reason }}</dd>
       {% endif %}
       <dt>Submitted</dt><dd>{{ service_log.submitted_at|date:"d/m/Y H:i" }}</dd>
     </dl>

@@ -12,6 +12,9 @@
   </div>
   <div class="shift-list-status-row">
     <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
+    {% if shift.source == "unscheduled" %}
+      <span class="source-pill source-unscheduled">Unscheduled</span>
+    {% endif %}
   </div>
   <div class="list-item-actions shift-list-actions shift-list-primary-action">
     {% if shift.status == "published" %}

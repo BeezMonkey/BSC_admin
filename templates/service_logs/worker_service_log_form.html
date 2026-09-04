@@ -1,17 +1,23 @@
 {% extends "worker_base.html" %}
 {% load bsc_formatting %}
 
-{% block title %}Complete Service Log - Brisbane Star Care{% endblock %}
+{% block title %}{% if is_unscheduled %}Submit Unscheduled Service{% else %}Complete Service Log{% endif %} - Brisbane Star Care{% endblock %}
 
 {% block content %}
 <section class="worker-card worker-service-log-form-page">
   <header class="worker-log-form-header">
     <div>
-      <h1>Complete Service Log</h1>
-      <p>{{ shift.participant.display_name }}</p>
+      <h1>{% if is_unscheduled %}Submit Unscheduled Service{% else %}Complete Service Log{% endif %}</h1>
+      <p>{% if is_unscheduled %}Record completed support that was not already on your roster.{% else %}{{ shift.participant.display_name }}{% endif %}</p>
     </div>
   </header>
 
+  {% if is_unscheduled %}
+  <div class="worker-unscheduled-banner">
+    <strong>Unscheduled service</strong>
+    <span>This will be sent to admin for review and marked separately from rostered shifts.</span>
+  </div>
+  {% else %}
   <dl class="worker-log-shift-summary">
     <div>
       <dt>Date</dt>
@@ -26,10 +32,36 @@
       <dd>{{ shift.get_service_type_display }}</dd>
     </div>
   </dl>
+  {% endif %}
 
   <form class="worker-log-form" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.non_field_errors }}
+
+    {% if is_unscheduled %}
+    <div class="worker-log-field-grid worker-unscheduled-detail-grid">
+      <label class="field" for="{{ form.participant.id_for_label }}">
+        {{ form.participant.label }}
+        {{ form.participant }}
+        {{ form.participant.errors }}
+      </label>
+      <label class="field" for="{{ form.service_date.id_for_label }}">
+        {{ form.service_date.label }}
+        {{ form.service_date }}
+        {{ form.service_date.errors }}
+      </label>
+      <label class="field" for="{{ form.support_item.id_for_label }}">
+        {{ form.support_item.label }}
+        {{ form.support_item }}
+        {{ form.support_item.errors }}
+      </label>
+      <label class="field" for="{{ form.service_type.id_for_label }}">
+        {{ form.service_type.label }}
+        {{ form.service_type }}
+        {{ form.service_type.errors }}
+      </label>
+    </div>
+    {% endif %}
 
     <div class="worker-log-field-grid">
       <label class="field" for="{{ form.actual_start_time.id_for_label }}">
@@ -66,6 +98,14 @@
         {{ form.worker_notes.errors }}
       </label>
     </div>
+
+    {% if is_unscheduled %}
+    <label class="field worker-unscheduled-reason" for="{{ form.unscheduled_reason.id_for_label }}">
+      {{ form.unscheduled_reason.label }}
+      {{ form.unscheduled_reason }}
+      {{ form.unscheduled_reason.errors }}
+    </label>
+    {% endif %}
 
     <section class="worker-log-attachments">
       <div>
@@ -105,8 +145,12 @@
     </section>
 
     <div class="button-row worker-log-form-actions worker-bottom-actions">
-      <button type="submit">Submit Service Log</button>
-      <a class="button secondary" href="{% url 'worker_shift_detail' shift.id %}">Cancel</a>
+      <button type="submit">{% if is_unscheduled %}Submit Unscheduled Service{% else %}Submit Service Log{% endif %}</button>
+      {% if is_unscheduled %}
+        <a class="button secondary" href="{% url 'worker_log_list' %}">Cancel</a>
+      {% else %}
+        <a class="button secondary" href="{% url 'worker_shift_detail' shift.id %}">Cancel</a>
+      {% endif %}
     </div>
   </form>
 </section>

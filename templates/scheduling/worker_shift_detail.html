@@ -15,6 +15,7 @@
     <dt>Date</dt><dd>{{ shift.service_date|date:"d/m/Y" }}</dd>
     <dt>Time</dt><dd>{{ shift.start_time|display_time }} - {{ shift.end_time|display_time }}</dd>
     <dt>Status</dt><dd><span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span></dd>
+    <dt>Source</dt><dd>{{ shift.get_source_display }}</dd>
     <dt>Address</dt><dd>{{ shift.address|default:"-" }}</dd>
     <dt>Instructions</dt><dd>{{ shift.instructions|default:"-" }}</dd>
     <dt>Service</dt><dd>{{ shift.get_service_type_display }}</dd>

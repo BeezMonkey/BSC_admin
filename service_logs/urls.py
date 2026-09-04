@@ -9,6 +9,7 @@ from .views import (
     worker_log_list,
     worker_service_log_create,
     worker_service_log_detail,
+    worker_unscheduled_service_log_create,
 )
 
 urlpatterns = [
@@ -30,6 +31,11 @@ urlpatterns = [
         name="service_log_reject",
     ),
     path("sw/logs/", worker_log_list, name="worker_log_list"),
+    path(
+        "sw/logs/unscheduled/new/",
+        worker_unscheduled_service_log_create,
+        name="worker_unscheduled_service_log_create",
+    ),
     path(
         "sw/logs/<int:service_log_id>/",
         worker_service_log_detail,
