@@ -10,11 +10,12 @@ from core.sorting import apply_sorting
 from participants.models import Participant
 
 from .forms import (
+    CoordinationLogForm,
     ParticipantCoordinatorAssignmentForm,
     SupportCoordinatorCreateForm,
     SupportCoordinatorEditForm,
 )
-from .models import SupportCoordinator
+from .models import CoordinationLog, SupportCoordinator
 from .querysets import assigned_participants_for
 
 
@@ -57,6 +58,61 @@ def coordinator_participant_detail(request, participant_id):
         request,
         "coordinators/sc_participant_detail.html",
         {"participant": participant},
+    )
+
+
+@coordinator_required
+def coordinator_log_list(request):
+    coordinator = get_current_coordinator(request.user)
+    logs = CoordinationLog.objects.none()
+    if coordinator:
+        logs = CoordinationLog.objects.filter(coordinator=coordinator).select_related(
+            "participant",
+        )
+    return render(
+        request,
+        "coordinators/sc_coordination_log_list.html",
+        {"logs": logs},
+    )
+
+
+@coordinator_required
+def coordinator_log_detail(request, log_id):
+    coordinator = get_current_coordinator(request.user)
+    log = get_object_or_404(
+        CoordinationLog.objects.select_related("participant", "coordinator"),
+        id=log_id,
+        coordinator=coordinator,
+    )
+    return render(
+        request,
+        "coordinators/sc_coordination_log_detail.html",
+        {"log": log},
+    )
+
+
+@coordinator_required
+def coordinator_log_create(request):
+    coordinator = get_current_coordinator(request.user)
+    if request.method == "POST":
+        form = CoordinationLogForm(request.POST, coordinator=coordinator)
+        if form.is_valid():
+            log = form.save(commit=False)
+            log.coordinator = coordinator
+            log.status = CoordinationLog.Status.SUBMITTED
+            log.save()
+            messages.success(
+                request,
+                "Coordination log submitted for admin review.",
+            )
+            return redirect("coordinator_log_detail", log_id=log.id)
+    else:
+        form = CoordinationLogForm(coordinator=coordinator)
+
+    return render(
+        request,
+        "coordinators/sc_coordination_log_form.html",
+        {"form": form},
     )
 
 

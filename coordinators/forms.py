@@ -6,7 +6,8 @@ from django.db import transaction
 from accounts.models import UserProfile
 from participants.models import Participant
 
-from .models import ParticipantCoordinatorAssignment, SupportCoordinator
+from .models import CoordinationLog, ParticipantCoordinatorAssignment, SupportCoordinator
+from .querysets import assigned_participants_for
 
 
 class SupportCoordinatorCreateForm(forms.Form):
@@ -178,3 +179,33 @@ class ParticipantCoordinatorAssignmentForm(forms.ModelForm):
         if commit:
             assignment.save()
         return assignment
+
+
+class CoordinationLogForm(forms.ModelForm):
+    class Meta:
+        model = CoordinationLog
+        fields = [
+            "participant",
+            "service_date",
+            "start_time",
+            "end_time",
+            "break_minutes",
+            "actual_hours",
+            "coordination_type",
+            "case_notes",
+            "coordinator_notes",
+        ]
+        widgets = {
+            "service_date": forms.DateInput(attrs={"type": "date"}),
+            "start_time": forms.TimeInput(attrs={"type": "time"}),
+            "end_time": forms.TimeInput(attrs={"type": "time"}),
+            "case_notes": forms.Textarea(attrs={"rows": 5}),
+            "coordinator_notes": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        coordinator = kwargs.pop("coordinator", None)
+        super().__init__(*args, **kwargs)
+        self.fields["participant"].queryset = assigned_participants_for(
+            coordinator,
+        ).order_by("last_name", "first_name")

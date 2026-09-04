@@ -136,6 +136,105 @@ class CoordinatorPortalParticipantTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
+class CoordinatorLogSubmissionTests(TestCase):
+    def setUp(self):
+        self.coordinator = create_coordinator("coord-log")
+        self.other_coordinator = create_coordinator("coord-other")
+        self.assigned = Participant.objects.create(
+            first_name="Assigned",
+            last_name="Participant",
+            status=Participant.Status.ACTIVE,
+        )
+        self.unassigned = Participant.objects.create(
+            first_name="Hidden",
+            last_name="Participant",
+            status=Participant.Status.ACTIVE,
+        )
+        ParticipantCoordinatorAssignment.objects.create(
+            participant=self.assigned,
+            coordinator=self.coordinator,
+            start_date=date(2026, 9, 4),
+        )
+        self.client.force_login(self.coordinator.user)
+
+    def valid_payload(self, participant):
+        return {
+            "participant": participant.id,
+            "service_date": "2026-09-04",
+            "start_time": "09:00",
+            "end_time": "10:30",
+            "break_minutes": "0",
+            "actual_hours": "1.50",
+            "coordination_type": CoordinationLog.CoordinationType.GENERAL,
+            "case_notes": "Called provider and updated the participant plan notes.",
+            "coordinator_notes": "Follow up again next week.",
+        }
+
+    def create_log(self, coordinator, participant, case_notes="Called provider."):
+        return CoordinationLog.objects.create(
+            participant=participant,
+            coordinator=coordinator,
+            service_date=date(2026, 9, 4),
+            start_time=time(9, 0),
+            end_time=time(10, 30),
+            break_minutes=0,
+            actual_hours=Decimal("1.50"),
+            coordination_type=CoordinationLog.CoordinationType.GENERAL,
+            case_notes=case_notes,
+        )
+
+    def test_sc_can_submit_log_for_assigned_participant(self):
+        response = self.client.post(
+            reverse("coordinator_log_create"),
+            self.valid_payload(self.assigned),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        log = CoordinationLog.objects.get(participant=self.assigned)
+        self.assertEqual(log.coordinator, self.coordinator)
+        self.assertEqual(log.status, CoordinationLog.Status.SUBMITTED)
+        self.assertContains(response, "Coordination log submitted for admin review.")
+
+    def test_sc_cannot_submit_log_for_unassigned_participant(self):
+        response = self.client.post(
+            reverse("coordinator_log_create"),
+            self.valid_payload(self.unassigned),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(CoordinationLog.objects.exists())
+        self.assertContains(response, "Select a valid choice")
+
+    def test_sc_log_list_shows_only_current_coordinators_logs(self):
+        own_log = self.create_log(
+            self.coordinator,
+            self.assigned,
+            case_notes="Visible coordination note.",
+        )
+        self.create_log(
+            self.other_coordinator,
+            self.unassigned,
+            case_notes="Hidden coordination note.",
+        )
+
+        response = self.client.get(reverse("coordinator_log_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, own_log.participant.display_name)
+        self.assertContains(response, "Visible coordination note.")
+        self.assertNotContains(response, "Hidden coordination note.")
+
+    def test_sc_log_detail_404s_for_another_coordinators_log(self):
+        other_log = self.create_log(self.other_coordinator, self.unassigned)
+
+        response = self.client.get(
+            reverse("coordinator_log_detail", args=[other_log.id])
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+
 class CoordinatorAdminManagementTests(TestCase):
     def create_user_with_role(self, username, role):
         user = get_user_model().objects.create_user(
