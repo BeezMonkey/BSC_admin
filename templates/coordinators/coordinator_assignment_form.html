@@ -1,0 +1,42 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Assign Participant - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Assign Participant</h1>
+    <p>{{ coordinator.display_name }}</p>
+  </div>
+  <a class="button secondary" href="{% url 'coordinator_detail' coordinator.id %}">Back</a>
+</div>
+
+<form class="record-form" method="post" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+    <div class="error">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <section class="card form-section">
+    <h2>Assignment Details</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.participant %}
+      {% include "participants/partials/field.html" with field=form.start_date %}
+      {% include "participants/partials/field.html" with field=form.end_date %}
+      {% include "participants/partials/field.html" with field=form.is_active %}
+    </div>
+  </section>
+
+  <section class="card form-section">
+    <h2>Notes</h2>
+    <div class="form-grid single">
+      {% include "participants/partials/field.html" with field=form.notes %}
+    </div>
+  </section>
+
+  <div class="form-actions">
+    <button type="submit">Save</button>
+    <a class="button secondary" href="{% url 'coordinator_detail' coordinator.id %}">Back</a>
+  </div>
+</form>
+{% endblock %}

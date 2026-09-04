@@ -1,0 +1,70 @@
+{% extends "admin_base.html" %}
+
+{% block title %}{{ title }} - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ title }}</h1>
+    <p>Create and maintain coordinator account, contact, and availability information.</p>
+  </div>
+  <a class="button secondary" href="{% if return_url %}{{ return_url }}{% elif coordinator %}{% url 'coordinator_detail' coordinator.id %}{% else %}{% url 'coordinator_list' %}{% endif %}">Back</a>
+</div>
+
+<form class="record-form" method="post" novalidate>
+  {% csrf_token %}
+  {% if return_url %}
+    <input type="hidden" name="next" value="{{ return_url }}">
+  {% endif %}
+  {% if form.non_field_errors %}
+    <div class="error">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <section class="card form-section">
+    <h2>Login Account</h2>
+    <div class="form-grid">
+      {% if form.username %}
+        {% include "participants/partials/field.html" with field=form.username %}
+      {% endif %}
+      {% include "participants/partials/field.html" with field=form.email %}
+      {% if form.password1 %}
+        {% include "participants/partials/field.html" with field=form.password1 %}
+        {% include "participants/partials/field.html" with field=form.password2 %}
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="card form-section">
+    <h2>Coordinator Details</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.first_name %}
+      {% include "participants/partials/field.html" with field=form.last_name %}
+      {% include "participants/partials/field.html" with field=form.phone %}
+      {% include "participants/partials/field.html" with field=form.status %}
+    </div>
+  </section>
+
+  <section class="card form-section">
+    <h2>Internal Notes</h2>
+    <div class="form-grid single">
+      {% include "participants/partials/field.html" with field=form.notes %}
+    </div>
+  </section>
+
+  <section class="card form-section worker-access-section">
+    <h2>Account Access</h2>
+    <label class="field worker-access-toggle">
+      {{ form.account_active }}
+      <span>{{ form.account_active.label }}</span>
+      {% if form.account_active.errors %}
+        <span class="field-error">{{ form.account_active.errors|striptags }}</span>
+      {% endif %}
+    </label>
+  </section>
+
+  <div class="form-actions">
+    <button type="submit">Save</button>
+    <a class="button secondary" href="{% if return_url %}{{ return_url }}{% elif coordinator %}{% url 'coordinator_detail' coordinator.id %}{% else %}{% url 'coordinator_list' %}{% endif %}">Back</a>
+  </div>
+</form>
+{% endblock %}

@@ -91,6 +91,128 @@ class CoordinatorRoleAccessTests(TestCase):
         self.assertEqual(response.status_code, 403)
 
 
+class CoordinatorAdminManagementTests(TestCase):
+    def create_user_with_role(self, username, role):
+        user = get_user_model().objects.create_user(
+            username=username,
+            password="test-password-123",
+            email=f"{username}@example.com",
+        )
+        UserProfile.objects.create(user=user, role=role)
+        return user
+
+    def setUp(self):
+        self.create_user_with_role("admin", UserProfile.Role.ADMIN)
+        self.worker_user = self.create_user_with_role(
+            "worker",
+            UserProfile.Role.SUPPORT_WORKER,
+        )
+
+    def login_admin(self):
+        self.client.login(username="admin", password="test-password-123")
+
+    def coordinator_payload(self, **overrides):
+        data = {
+            "username": "newcoord",
+            "email": "newcoord@example.com",
+            "password1": "CoordinatorPass123!",
+            "password2": "CoordinatorPass123!",
+            "account_active": "on",
+            "first_name": "Nina",
+            "last_name": "Patel",
+            "phone": "0400000000",
+            "status": SupportCoordinator.Status.ACTIVE,
+            "notes": "Primary coordinator for complex plans.",
+        }
+        data.update(overrides)
+        return data
+
+    def test_admin_can_create_support_coordinator(self):
+        self.login_admin()
+
+        response = self.client.post(
+            reverse("coordinator_create"),
+            self.coordinator_payload(),
+            follow=True,
+        )
+
+        coordinator = SupportCoordinator.objects.get(user__username="newcoord")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            coordinator.user.userprofile.role,
+            UserProfile.Role.SUPPORT_COORDINATOR,
+        )
+        self.assertTrue(coordinator.user.check_password("CoordinatorPass123!"))
+        self.assertTrue(coordinator.user.is_active)
+        self.assertContains(response, "Support coordinator created.")
+
+    def test_admin_can_assign_participant_to_coordinator(self):
+        coordinator = create_coordinator()
+        participant = create_participant()
+        self.login_admin()
+
+        response = self.client.post(
+            reverse("coordinator_assign_participant", args=[coordinator.id]),
+            {
+                "participant": participant.id,
+                "start_date": "2026-09-04",
+                "end_date": "",
+                "is_active": "on",
+                "notes": "Coordinate plan review and provider introductions.",
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(
+            ParticipantCoordinatorAssignment.objects.filter(
+                coordinator=coordinator,
+                participant=participant,
+                start_date=date(2026, 9, 4),
+                is_active=True,
+            ).exists()
+        )
+        self.assertContains(
+            response,
+            "Participant assigned to support coordinator.",
+        )
+
+    def test_admin_can_update_support_coordinator(self):
+        coordinator = create_coordinator()
+        self.login_admin()
+
+        response = self.client.post(
+            reverse("coordinator_edit", args=[coordinator.id]),
+            {
+                "email": "casey.updated@example.com",
+                "first_name": "Casey",
+                "last_name": "Jordan",
+                "phone": "0499999999",
+                "status": SupportCoordinator.Status.INACTIVE,
+                "notes": "No longer taking new participants.",
+            },
+            follow=True,
+        )
+
+        coordinator.refresh_from_db()
+        coordinator.user.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(coordinator.email, "casey.updated@example.com")
+        self.assertEqual(coordinator.last_name, "Jordan")
+        self.assertEqual(coordinator.phone, "0499999999")
+        self.assertEqual(coordinator.status, SupportCoordinator.Status.INACTIVE)
+        self.assertEqual(coordinator.notes, "No longer taking new participants.")
+        self.assertFalse(coordinator.user.is_active)
+        self.assertContains(response, "Support coordinator updated.")
+
+    def test_support_worker_cannot_access_coordinator_admin_list(self):
+        self.client.force_login(self.worker_user)
+
+        response = self.client.get(reverse("coordinator_list"))
+
+        self.assertEqual(response.status_code, 403)
+
+
 class CoordinatorModelTests(TestCase):
 
     def test_coordination_type_choices_use_plan_labels(self):
