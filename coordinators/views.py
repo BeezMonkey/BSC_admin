@@ -7,6 +7,7 @@ from accounts.decorators import admin_required, coordinator_required
 from core.navigation import get_safe_return_url
 from core.pagination import paginate_queryset
 from core.sorting import apply_sorting
+from participants.models import Participant
 
 from .forms import (
     ParticipantCoordinatorAssignmentForm,
@@ -26,7 +27,10 @@ def coordinator_list(request):
     coordinators = SupportCoordinator.objects.select_related("user").annotate(
         active_assignment_count=Count(
             "participant_assignments",
-            filter=Q(participant_assignments__is_active=True),
+            filter=Q(
+                participant_assignments__is_active=True,
+                participant_assignments__participant__status=Participant.Status.ACTIVE,
+            ),
             distinct=True,
         ),
     )
@@ -51,6 +55,7 @@ def coordinator_list(request):
             "name": ("last_name", "first_name"),
             "status": ("status", "last_name", "first_name"),
         },
+        default_sort="name",
     )
     coordinators, pagination = paginate_queryset(request, coordinators)
 
@@ -153,6 +158,13 @@ def coordinator_edit(request, coordinator_id):
 @admin_required
 def coordinator_assign_participant(request, coordinator_id):
     coordinator = get_object_or_404(SupportCoordinator, id=coordinator_id)
+    if coordinator.status != SupportCoordinator.Status.ACTIVE:
+        messages.error(
+            request,
+            "Inactive support coordinators cannot receive new active participant assignments.",
+        )
+        return redirect(coordinator)
+
     if request.method == "POST":
         form = ParticipantCoordinatorAssignmentForm(
             request.POST,

@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 
 from accounts.models import UserProfile
@@ -37,8 +38,15 @@ class SupportCoordinatorCreateForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        if cleaned_data.get("password1") != cleaned_data.get("password2"):
+        password1 = cleaned_data.get("password1")
+        password2 = cleaned_data.get("password2")
+        if password1 != password2:
             self.add_error("password2", "Passwords do not match.")
+        if password1:
+            try:
+                validate_password(password1)
+            except forms.ValidationError as error:
+                self.add_error("password1", error)
         return cleaned_data
 
     @transaction.atomic
