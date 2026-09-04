@@ -20,7 +20,7 @@ from .forms import (
     SupportCoordinatorEditForm,
 )
 from .models import CoordinationLog, SupportCoordinator
-from .querysets import assigned_participants_for
+from .querysets import assigned_participants_for, coordination_logs_for
 
 
 def get_current_coordinator(user):
@@ -68,11 +68,7 @@ def coordinator_participant_detail(request, participant_id):
 @coordinator_required
 def coordinator_log_list(request):
     coordinator = get_current_coordinator(request.user)
-    logs = CoordinationLog.objects.none()
-    if coordinator:
-        logs = CoordinationLog.objects.filter(coordinator=coordinator).select_related(
-            "participant",
-        )
+    logs = coordination_logs_for(coordinator)
     return render(
         request,
         "coordinators/sc_coordination_log_list.html",
@@ -84,9 +80,8 @@ def coordinator_log_list(request):
 def coordinator_log_detail(request, log_id):
     coordinator = get_current_coordinator(request.user)
     log = get_object_or_404(
-        CoordinationLog.objects.select_related("participant", "coordinator"),
+        coordination_logs_for(coordinator),
         id=log_id,
-        coordinator=coordinator,
     )
     return render(
         request,

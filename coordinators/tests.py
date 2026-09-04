@@ -281,6 +281,82 @@ class CoordinatorLogSubmissionTests(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
+    def test_sc_log_list_hides_log_when_assignment_is_inactive(self):
+        log = self.create_log(
+            self.coordinator,
+            self.assigned,
+            case_notes="Inactive assignment note.",
+        )
+        ParticipantCoordinatorAssignment.objects.filter(
+            participant=self.assigned,
+            coordinator=self.coordinator,
+        ).update(is_active=False)
+
+        response = self.client.get(reverse("coordinator_log_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, log.participant.display_name)
+        self.assertNotContains(response, "Inactive assignment note.")
+
+    def test_sc_log_detail_404s_when_assignment_is_inactive(self):
+        log = self.create_log(self.coordinator, self.assigned)
+        ParticipantCoordinatorAssignment.objects.filter(
+            participant=self.assigned,
+            coordinator=self.coordinator,
+        ).update(is_active=False)
+
+        response = self.client.get(reverse("coordinator_log_detail", args=[log.id]))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_sc_log_list_hides_log_when_participant_is_inactive(self):
+        log = self.create_log(
+            self.coordinator,
+            self.assigned,
+            case_notes="Inactive participant note.",
+        )
+        self.assigned.status = Participant.Status.INACTIVE
+        self.assigned.save(update_fields=["status", "updated_at"])
+
+        response = self.client.get(reverse("coordinator_log_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, log.participant.display_name)
+        self.assertNotContains(response, "Inactive participant note.")
+
+    def test_sc_log_detail_404s_when_participant_is_inactive(self):
+        log = self.create_log(self.coordinator, self.assigned)
+        self.assigned.status = Participant.Status.INACTIVE
+        self.assigned.save(update_fields=["status", "updated_at"])
+
+        response = self.client.get(reverse("coordinator_log_detail", args=[log.id]))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_sc_log_list_hides_log_when_coordinator_is_inactive(self):
+        log = self.create_log(
+            self.coordinator,
+            self.assigned,
+            case_notes="Inactive coordinator note.",
+        )
+        self.coordinator.status = SupportCoordinator.Status.INACTIVE
+        self.coordinator.save(update_fields=["status", "updated_at"])
+
+        response = self.client.get(reverse("coordinator_log_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, log.participant.display_name)
+        self.assertNotContains(response, "Inactive coordinator note.")
+
+    def test_sc_log_detail_404s_when_coordinator_is_inactive(self):
+        log = self.create_log(self.coordinator, self.assigned)
+        self.coordinator.status = SupportCoordinator.Status.INACTIVE
+        self.coordinator.save(update_fields=["status", "updated_at"])
+
+        response = self.client.get(reverse("coordinator_log_detail", args=[log.id]))
+
+        self.assertEqual(response.status_code, 404)
+
 
 class CoordinationLogAdminReviewTests(TestCase):
     def setUp(self):
