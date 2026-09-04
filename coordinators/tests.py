@@ -6,6 +6,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import UserProfile
+from core.models import AuditLog
 from participants.models import Participant
 
 from .models import CoordinationLog, ParticipantCoordinatorAssignment, SupportCoordinator
@@ -506,6 +507,177 @@ class CoordinationLogAdminReviewTests(TestCase):
 
         self.assertEqual(approve_response.status_code, 404)
         self.assertEqual(reject_response.status_code, 404)
+
+
+class CoordinatorAuditTests(TestCase):
+    def setUp(self):
+        self.admin_user = get_user_model().objects.create_user(
+            username="admin-audit",
+            password="pass12345",
+        )
+        UserProfile.objects.create(
+            user=self.admin_user,
+            role=UserProfile.Role.ADMIN,
+        )
+        self.coordinator = create_coordinator("coord-audit")
+        self.participant = create_participant(first_name="Audit")
+
+    def valid_log_payload(self):
+        return {
+            "participant": self.participant.id,
+            "service_date": "2026-09-04",
+            "start_time": "09:00",
+            "end_time": "10:30",
+            "break_minutes": "0",
+            "actual_hours": "1.50",
+            "coordination_type": CoordinationLog.CoordinationType.GENERAL,
+            "case_notes": "Audit-covered coordination work.",
+            "coordinator_notes": "",
+        }
+
+    def coordinator_payload(self, **overrides):
+        data = {
+            "username": "audit-newcoord",
+            "email": "audit-newcoord@example.com",
+            "password1": "CoordinatorPass123!",
+            "password2": "CoordinatorPass123!",
+            "account_active": "on",
+            "first_name": "Nina",
+            "last_name": "Patel",
+            "phone": "0400000000",
+            "status": SupportCoordinator.Status.ACTIVE,
+            "notes": "Primary coordinator for complex plans.",
+        }
+        data.update(overrides)
+        return data
+
+    def create_submitted_log(self):
+        return CoordinationLog.objects.create(
+            participant=self.participant,
+            coordinator=self.coordinator,
+            service_date=date(2026, 9, 4),
+            start_time=time(9, 0),
+            end_time=time(10, 30),
+            break_minutes=0,
+            actual_hours=Decimal("1.50"),
+            coordination_type=CoordinationLog.CoordinationType.GENERAL,
+            case_notes="Submitted coordination work.",
+        )
+
+    def assert_audit_log(self, *, actor, action, obj, summary_fragment):
+        audit_log = AuditLog.objects.get(action=action)
+        self.assertEqual(audit_log.actor, actor)
+        self.assertEqual(audit_log.object_type, obj.__class__.__name__)
+        self.assertEqual(audit_log.object_id, str(obj.id))
+        self.assertIn(summary_fragment, audit_log.summary)
+
+    def test_coordination_log_submission_writes_audit_log(self):
+        ParticipantCoordinatorAssignment.objects.create(
+            participant=self.participant,
+            coordinator=self.coordinator,
+            start_date=date(2026, 9, 4),
+        )
+        self.client.force_login(self.coordinator.user)
+
+        self.client.post(reverse("coordinator_log_create"), self.valid_log_payload())
+
+        log = CoordinationLog.objects.get(participant=self.participant)
+        self.assert_audit_log(
+            actor=self.coordinator.user,
+            action="coordination_log_submitted",
+            obj=log,
+            summary_fragment=f"Submitted coordination log {log.id}.",
+        )
+
+    def test_admin_create_support_coordinator_writes_audit_log(self):
+        self.client.force_login(self.admin_user)
+
+        self.client.post(reverse("coordinator_create"), self.coordinator_payload())
+
+        coordinator = SupportCoordinator.objects.get(user__username="audit-newcoord")
+        self.assert_audit_log(
+            actor=self.admin_user,
+            action="support_coordinator_created",
+            obj=coordinator,
+            summary_fragment=f"Created support coordinator {coordinator.id}.",
+        )
+
+    def test_admin_update_support_coordinator_writes_audit_log(self):
+        self.client.force_login(self.admin_user)
+
+        self.client.post(
+            reverse("coordinator_edit", args=[self.coordinator.id]),
+            {
+                "email": "casey.audit.updated@example.com",
+                "first_name": "Casey",
+                "last_name": "Jordan",
+                "phone": "0499999999",
+                "status": SupportCoordinator.Status.INACTIVE,
+                "notes": "No longer taking new participants.",
+            },
+        )
+
+        self.coordinator.refresh_from_db()
+        self.assert_audit_log(
+            actor=self.admin_user,
+            action="support_coordinator_updated",
+            obj=self.coordinator,
+            summary_fragment=f"Updated support coordinator {self.coordinator.id}.",
+        )
+
+    def test_admin_assign_participant_to_coordinator_writes_audit_log(self):
+        self.client.force_login(self.admin_user)
+
+        self.client.post(
+            reverse("coordinator_assign_participant", args=[self.coordinator.id]),
+            {
+                "participant": self.participant.id,
+                "start_date": "2026-09-04",
+                "end_date": "",
+                "is_active": "on",
+                "notes": "Coordinate plan review and provider introductions.",
+            },
+        )
+
+        assignment = ParticipantCoordinatorAssignment.objects.get(
+            coordinator=self.coordinator,
+            participant=self.participant,
+        )
+        self.assert_audit_log(
+            actor=self.admin_user,
+            action="participant_coordinator_assigned",
+            obj=assignment,
+            summary_fragment=f"Assigned participant {self.participant.id}",
+        )
+
+    def test_admin_approve_coordination_log_writes_audit_log(self):
+        log = self.create_submitted_log()
+        self.client.force_login(self.admin_user)
+
+        self.client.post(reverse("coordination_log_approve", args=[log.id]))
+
+        self.assert_audit_log(
+            actor=self.admin_user,
+            action="coordination_log_approved",
+            obj=log,
+            summary_fragment=f"Approved coordination log {log.id}.",
+        )
+
+    def test_admin_reject_coordination_log_writes_audit_log(self):
+        log = self.create_submitted_log()
+        self.client.force_login(self.admin_user)
+
+        self.client.post(
+            reverse("coordination_log_reject", args=[log.id]),
+            {"rejection_reason": "Needs more detail."},
+        )
+
+        self.assert_audit_log(
+            actor=self.admin_user,
+            action="coordination_log_rejected",
+            obj=log,
+            summary_fragment=f"Rejected coordination log {log.id}.",
+        )
 
 
 class CoordinatorAdminManagementTests(TestCase):

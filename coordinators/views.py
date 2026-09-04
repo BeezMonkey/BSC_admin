@@ -6,6 +6,8 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from accounts.decorators import admin_required, coordinator_required
+from core.audit import write_audit_log
+from core.models import AuditLog
 from core.navigation import get_safe_return_url
 from core.pagination import paginate_queryset
 from core.sorting import apply_sorting
@@ -103,6 +105,12 @@ def coordinator_log_create(request):
             log.coordinator = coordinator
             log.status = CoordinationLog.Status.SUBMITTED
             log.save()
+            write_audit_log(
+                request.user,
+                AuditLog.Action.COORDINATION_LOG_SUBMITTED,
+                log,
+                f"Submitted coordination log {log.id}.",
+            )
             messages.success(
                 request,
                 "Coordination log submitted for admin review.",
@@ -185,6 +193,13 @@ def coordination_log_approve(request, log_id):
     if updated_count != 1:
         return redirect_existing_coordination_log_after_stale_review(request, log_id)
 
+    log = CoordinationLog.objects.get(id=log_id)
+    write_audit_log(
+        request.user,
+        AuditLog.Action.COORDINATION_LOG_APPROVED,
+        log,
+        f"Approved coordination log {log.id}.",
+    )
     messages.success(request, "Coordination log approved.")
     return redirect("coordination_log_detail", log_id=log_id)
 
@@ -212,6 +227,13 @@ def coordination_log_reject(request, log_id):
     if updated_count != 1:
         return redirect_existing_coordination_log_after_stale_review(request, log_id)
 
+    log = CoordinationLog.objects.get(id=log_id)
+    write_audit_log(
+        request.user,
+        AuditLog.Action.COORDINATION_LOG_REJECTED,
+        log,
+        f"Rejected coordination log {log.id}.",
+    )
     messages.success(request, "Coordination log rejected.")
     return redirect("coordination_log_detail", log_id=log_id)
 
@@ -276,6 +298,12 @@ def coordinator_create(request):
         form = SupportCoordinatorCreateForm(request.POST)
         if form.is_valid():
             coordinator = form.save()
+            write_audit_log(
+                request.user,
+                AuditLog.Action.SUPPORT_COORDINATOR_CREATED,
+                coordinator,
+                f"Created support coordinator {coordinator.id}.",
+            )
             messages.success(request, "Support coordinator created.")
             if return_url:
                 return redirect(return_url)
@@ -332,6 +360,12 @@ def coordinator_edit(request, coordinator_id):
         form = SupportCoordinatorEditForm(request.POST, instance=coordinator)
         if form.is_valid():
             coordinator = form.save()
+            write_audit_log(
+                request.user,
+                AuditLog.Action.SUPPORT_COORDINATOR_UPDATED,
+                coordinator,
+                f"Updated support coordinator {coordinator.id}.",
+            )
             messages.success(request, "Support coordinator updated.")
             return redirect(return_url)
     else:
@@ -365,7 +399,16 @@ def coordinator_assign_participant(request, coordinator_id):
             coordinator=coordinator,
         )
         if form.is_valid():
-            form.save()
+            assignment = form.save()
+            write_audit_log(
+                request.user,
+                AuditLog.Action.PARTICIPANT_COORDINATOR_ASSIGNED,
+                assignment,
+                (
+                    f"Assigned participant {assignment.participant_id} "
+                    f"to support coordinator {assignment.coordinator_id}."
+                ),
+            )
             messages.success(
                 request,
                 "Participant assigned to support coordinator.",

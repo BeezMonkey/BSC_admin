@@ -48,7 +48,7 @@
 {% if log.status == "submitted" %}
 <section class="card service-log-review-card">
   <h2>Review</h2>
-  <div class="service-log-review-actions">
+  <div class="service-log-review-actions coordinator-log-actions">
     <form method="post" action="{% url 'coordination_log_approve' log.id %}">
       {% csrf_token %}
       <button type="submit">Approve</button>
