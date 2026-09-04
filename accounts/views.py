@@ -2,7 +2,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from django.shortcuts import redirect
 
-from .permissions import ACCOUNTANT, ADMIN_ROLES, SUPPORT_WORKER, get_role
+from .permissions import (
+    ACCOUNTANT,
+    ADMIN_ROLES,
+    SUPPORT_COORDINATOR,
+    SUPPORT_WORKER,
+    get_role,
+)
 
 
 LOGIN_PORTAL_CONTEXT = {
@@ -49,6 +55,8 @@ def role_redirect(request):
         return redirect("admin_dashboard")
     if role == SUPPORT_WORKER:
         return redirect("worker_dashboard")
+    if role == SUPPORT_COORDINATOR:
+        return redirect("coordinator_dashboard")
     if role == ACCOUNTANT:
         return redirect("invoice_placeholder")
     return redirect("login")

@@ -1,0 +1,69 @@
+{% extends "coordinator_base.html" %}
+
+{% block title %}Coordination Log - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<section class="worker-content">
+  <header class="page-header">
+    <div>
+      <h1>Coordination Log</h1>
+      <p>{{ log.service_date|date:"d/m/Y" }} | {{ log.participant.display_name }}</p>
+    </div>
+    <div class="button-row">
+      <a class="button secondary" href="{% url 'coordinator_log_list' %}">Back to Logs</a>
+    </div>
+  </header>
+
+  <div class="detail-grid">
+    <section class="card">
+      <h2>Service Details</h2>
+      <dl class="detail-list">
+        <dt>Status</dt>
+        <dd><span class="status-pill status-{{ log.status }}">{{ log.get_status_display }}</span></dd>
+        <dt>Participant</dt>
+        <dd>{{ log.participant.display_name }}</dd>
+        <dt>Date</dt>
+        <dd>{{ log.service_date|date:"d/m/Y" }}</dd>
+        <dt>Time</dt>
+        <dd>{{ log.start_time|time:"g:i A" }} - {{ log.end_time|time:"g:i A" }}</dd>
+        <dt>Break</dt>
+        <dd>{{ log.break_minutes }} minute{{ log.break_minutes|pluralize }}</dd>
+        <dt>Actual hours</dt>
+        <dd>{{ log.actual_hours }}</dd>
+        <dt>Coordination type</dt>
+        <dd>{{ log.get_coordination_type_display }}</dd>
+      </dl>
+    </section>
+
+    <section class="card">
+      <h2>Review</h2>
+      <dl class="detail-list">
+        <dt>Submitted</dt>
+        <dd>{{ log.submitted_at|date:"d/m/Y g:i A" }}</dd>
+        {% if log.reviewed_at %}
+          <dt>Reviewed</dt>
+          <dd>{{ log.reviewed_at|date:"d/m/Y g:i A" }}</dd>
+        {% endif %}
+        {% if log.status == "rejected" %}
+          <dt>Rejection reason</dt>
+          <dd>{{ log.rejection_reason|linebreaksbr }}</dd>
+        {% endif %}
+      </dl>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Case Notes</h2>
+    <p>{{ log.case_notes|linebreaksbr }}</p>
+  </section>
+
+  <section class="card">
+    <h2>Coordinator Notes</h2>
+    {% if log.coordinator_notes %}
+      <p>{{ log.coordinator_notes|linebreaksbr }}</p>
+    {% else %}
+      <p class="detail-empty">No coordinator notes provided.</p>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

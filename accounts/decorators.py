@@ -3,7 +3,13 @@ from functools import wraps
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 
-from .permissions import ADMIN_ROLES, FINANCE_ROLES, WORKER_ROLES, has_role
+from .permissions import (
+    ADMIN_ROLES,
+    COORDINATOR_ROLES,
+    FINANCE_ROLES,
+    WORKER_ROLES,
+    has_role,
+)
 
 
 def role_required(*roles):
@@ -22,4 +28,5 @@ def role_required(*roles):
 
 admin_required = role_required(*ADMIN_ROLES)
 worker_required = role_required(*WORKER_ROLES)
+coordinator_required = role_required(*COORDINATOR_ROLES)
 finance_required = role_required(*FINANCE_ROLES)

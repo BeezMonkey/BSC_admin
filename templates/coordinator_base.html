@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body %}
+<div class="app-shell worker-app-shell">
+  <header class="worker-mobile-header">
+    <button class="worker-mobile-menu-button" type="button" aria-label="Open Support Coordinator menu" aria-controls="coordinator-mobile-drawer" aria-expanded="false">
+      <span class="worker-mobile-menu-icon" aria-hidden="true"></span>
+    </button>
+    <div>
+      <div class="worker-mobile-brand">Brisbane Star Care</div>
+      <div class="worker-mobile-role">Support Coordinator</div>
+    </div>
+  </header>
+  <aside class="sidebar worker-sidebar">
+    <div class="brand">Brisbane Star Care</div>
+    <nav class="sidebar-nav worker-sidebar-nav" aria-label="Support Coordinator navigation">
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_dashboard' %} active{% endif %}" href="{% url 'coordinator_dashboard' %}">Dashboard</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_participant_list' or request.resolver_match.url_name == 'coordinator_participant_detail' %} active{% endif %}" href="{% url 'coordinator_participant_list' %}">My Participants</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_log_list' or request.resolver_match.url_name == 'coordinator_log_detail' or request.resolver_match.url_name == 'coordinator_log_create' %} active{% endif %}" href="{% url 'coordinator_log_list' %}">My Coordination Logs</a>
+    </nav>
+  </aside>
+  <div class="worker-mobile-drawer-backdrop" data-worker-menu-close hidden></div>
+  <aside class="worker-mobile-drawer" id="coordinator-mobile-drawer" aria-label="Support Coordinator menu" hidden>
+    <div class="worker-mobile-drawer-header">
+      <div>
+        <div class="worker-mobile-brand">Brisbane Star Care</div>
+        <div class="worker-mobile-role">{{ request.user.get_username }}</div>
+      </div>
+      <button class="worker-mobile-close-button" type="button" aria-label="Close Support Coordinator menu" data-worker-menu-close>&times;</button>
+    </div>
+    <nav class="worker-mobile-drawer-nav" aria-label="Support Coordinator navigation">
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_dashboard' %} active{% endif %}" href="{% url 'coordinator_dashboard' %}">Dashboard</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_participant_list' or request.resolver_match.url_name == 'coordinator_participant_detail' %} active{% endif %}" href="{% url 'coordinator_participant_list' %}">My Participants</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_log_list' or request.resolver_match.url_name == 'coordinator_log_detail' or request.resolver_match.url_name == 'coordinator_log_create' %} active{% endif %}" href="{% url 'coordinator_log_list' %}">My Coordination Logs</a>
+    </nav>
+    <form class="worker-mobile-logout" method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button class="button secondary" type="submit">Logout</button>
+    </form>
+  </aside>
+  <nav class="worker-bottom-nav" aria-label="Support Coordinator quick navigation">
+    <a
+      class="worker-bottom-nav-link{% if request.resolver_match.url_name == 'coordinator_dashboard' %} active{% endif %}"
+      href="{% url 'coordinator_dashboard' %}"
+      {% if request.resolver_match.url_name == 'coordinator_dashboard' %}aria-current="page"{% endif %}
+    >
+      <svg class="worker-bottom-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M3 10.75 12 3l9 7.75v8.5A1.75 1.75 0 0 1 19.25 21h-4.5v-5.5h-5.5V21h-4.5A1.75 1.75 0 0 1 3 19.25v-8.5Z" />
+      </svg>
+      <span>Home</span>
+    </a>
+    <a
+      class="worker-bottom-nav-link{% if request.resolver_match.url_name == 'coordinator_participant_list' or request.resolver_match.url_name == 'coordinator_participant_detail' %} active{% endif %}"
+      href="{% url 'coordinator_participant_list' %}"
+      {% if request.resolver_match.url_name == 'coordinator_participant_list' or request.resolver_match.url_name == 'coordinator_participant_detail' %}aria-current="page"{% endif %}
+    >
+      <svg class="worker-bottom-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M5.5 4.5A2.5 2.5 0 1 1 8 7a2.5 2.5 0 0 1-2.5-2.5Zm10 0A2.5 2.5 0 1 1 18 7a2.5 2.5 0 0 1-2.5-2.5ZM3 18.25C3 15.35 5.24 13 8 13s5 2.35 5 5.25V20H3v-1.75Zm10.5-3.88A5.43 5.43 0 0 1 18 12c2.76 0 5 2.35 5 5.25V20h-8v-1.75c0-1.43-.56-2.75-1.5-3.88Z" />
+      </svg>
+      <span>Participants</span>
+    </a>
+    <a
+      class="worker-bottom-nav-link{% if request.resolver_match.url_name == 'coordinator_log_list' or request.resolver_match.url_name == 'coordinator_log_detail' or request.resolver_match.url_name == 'coordinator_log_create' %} active{% endif %}"
+      href="{% url 'coordinator_log_list' %}"
+      {% if request.resolver_match.url_name == 'coordinator_log_list' or request.resolver_match.url_name == 'coordinator_log_detail' or request.resolver_match.url_name == 'coordinator_log_create' %}aria-current="page"{% endif %}
+    >
+      <svg class="worker-bottom-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M6 3.5h9.25L20 8.25V20a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 20V5a1.5 1.5 0 0 1 1.5-1.5H6Zm8.5 1.75V9h3.75L14.5 5.25ZM7 12h10v1.5H7V12Zm0 3.25h10v1.5H7v-1.5Zm0-6.5h4.5v1.5H7v-1.5Z" />
+      </svg>
+      <span>Logs</span>
+    </a>
+  </nav>
+  <section class="content worker-main">
+    <header class="topbar worker-topbar">
+      <span class="user-label">{{ request.user.get_username }}</span>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button class="button secondary topbar-logout" type="submit">Logout</button>
+      </form>
+    </header>
+    {% if messages %}
+      <div class="messages" role="status" aria-live="polite">
+        {% for message in messages %}
+          <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </section>
+</div>
+<script src="{% static 'js/worker_nav.js' %}" defer></script>
+{% endblock %}

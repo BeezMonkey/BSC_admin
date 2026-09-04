@@ -1,0 +1,70 @@
+{% extends "admin_base.html" %}
+{% load bsc_formatting %}
+
+{% block title %}Coordination Log - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ log.participant.display_name }}</h1>
+    <p>{{ log.service_date|date:"d/m/Y" }} | {{ log.get_status_display }}</p>
+  </div>
+  <div class="button-row">
+    <a class="button secondary" href="{{ return_url }}">Back to Coordination Logs</a>
+  </div>
+</div>
+
+<div class="service-log-detail-page">
+<div class="detail-grid">
+  <section class="card">
+    <h2>Coordination Log</h2>
+    <dl class="detail-list">
+      <dt>Coordinator</dt><dd>{{ log.coordinator.display_name }}</dd>
+      <dt>Coordination type</dt><dd>{{ log.get_coordination_type_display }}</dd>
+      <dt>Time</dt><dd>{{ log.start_time|display_time }} - {{ log.end_time|display_time }}</dd>
+      <dt>Break</dt><dd>{{ log.break_minutes }} minutes</dd>
+      <dt>Actual hours</dt><dd>{{ log.actual_hours }}</dd>
+      <dt>Submitted</dt><dd>{{ log.submitted_at|date:"d/m/Y H:i" }}</dd>
+      {% if log.reviewed_by %}
+        <dt>Reviewed by</dt><dd>{{ log.reviewed_by }}</dd>
+      {% endif %}
+      {% if log.reviewed_at %}
+        <dt>Reviewed at</dt><dd>{{ log.reviewed_at|date:"d/m/Y H:i" }}</dd>
+      {% endif %}
+    </dl>
+  </section>
+  <section class="card">
+    <h2>Notes</h2>
+    <dl class="detail-list">
+      <dt>Case notes</dt><dd>{{ log.case_notes }}</dd>
+      <dt>Coordinator notes</dt><dd>{{ log.coordinator_notes|default:"-" }}</dd>
+      {% if log.rejection_reason %}
+        <dt>Rejection reason</dt><dd>{{ log.rejection_reason }}</dd>
+      {% endif %}
+    </dl>
+  </section>
+</div>
+
+{% if log.status == "submitted" %}
+<section class="card service-log-review-card">
+  <h2>Review</h2>
+  <div class="service-log-review-actions coordinator-log-actions">
+    <form method="post" action="{% url 'coordination_log_approve' log.id %}">
+      {% csrf_token %}
+      <button type="submit">Approve</button>
+    </form>
+    <details class="service-log-reject-disclosure">
+      <summary class="button danger-outline">Reject</summary>
+      <form method="post" action="{% url 'coordination_log_reject' log.id %}" class="service-log-reject-form">
+        {% csrf_token %}
+        <label>Reject with reason
+          <input type="text" name="rejection_reason" required>
+        </label>
+        <button class="danger" type="submit">Submit rejection</button>
+      </form>
+    </details>
+  </div>
+</section>
+{% endif %}
+</div>
+{% endblock %}

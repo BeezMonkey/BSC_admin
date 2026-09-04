@@ -7,6 +7,7 @@ class UserProfile(models.Model):
         SUPER_ADMIN = "super_admin", "Super Admin"
         ADMIN = "admin", "Admin"
         SUPPORT_WORKER = "support_worker", "Support Worker"
+        SUPPORT_COORDINATOR = "support_coordinator", "Support Coordinator"
         ACCOUNTANT = "accountant", "Accountant"
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

@@ -29,6 +29,7 @@ urlpatterns = [
     path('', include('core.urls')),
     path('', include('participants.urls')),
     path('', include('workers.urls')),
+    path('', include('coordinators.urls')),
     path('', include('scheduling.urls')),
     path('', include('service_logs.urls')),
     path('', include('invoices.urls')),

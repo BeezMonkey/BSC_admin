@@ -1,0 +1,58 @@
+{% extends "coordinator_base.html" %}
+
+{% block title %}My Coordination Logs - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<section class="worker-content">
+  <header class="page-header">
+    <div>
+      <h1>My Coordination Logs</h1>
+      <p>Review coordination notes you have submitted for admin review.</p>
+    </div>
+    <div class="button-row">
+      <a class="button" href="{% url 'coordinator_log_create' %}">Submit Coordination Log</a>
+    </div>
+  </header>
+
+  <section class="card table-card participant-table-card">
+    <table class="participant-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Participant</th>
+          <th>Type</th>
+          <th>Hours</th>
+          <th>Status</th>
+          <th>Notes</th>
+          <th class="actions-heading">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+          <tr>
+            <td>{{ log.service_date|date:"d/m/Y" }}</td>
+            <td>
+              <a href="{% url 'coordinator_log_detail' log.id %}">{{ log.participant.display_name }}</a>
+            </td>
+            <td>{{ log.get_coordination_type_display }}</td>
+            <td>{{ log.actual_hours }}</td>
+            <td><span class="status-pill status-{{ log.status }}">{{ log.get_status_display }}</span></td>
+            <td>{{ log.case_notes|truncatewords:12 }}</td>
+            <td class="actions">
+              <a href="{% url 'coordinator_log_detail' log.id %}">View</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7">
+              <div class="empty-state">
+                <strong>No coordination logs submitted yet.</strong>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</section>
+{% endblock %}

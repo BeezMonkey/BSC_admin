@@ -1,0 +1,82 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Support Coordinators - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Support Coordinators</h1>
+    <p>Find, filter, and manage support coordinator records.</p>
+  </div>
+  <a class="button" href="{% url 'coordinator_create' %}?next={{ current_list_url|urlencode }}">New Coordinator</a>
+</div>
+
+<form class="filter-bar" method="get">
+  <label>
+    Search
+    <input type="search" name="q" value="{{ query }}" placeholder="Name, email, or phone">
+  </label>
+  <label>
+    Status
+    <select name="status">
+      <option value="">All statuses</option>
+      {% for value, label in status_choices %}
+        <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button type="submit">Search</button>
+  <a class="button secondary" href="{% url 'coordinator_list' %}">Reset</a>
+</form>
+
+<section class="card table-card">
+  <table>
+    <thead>
+      <tr>
+        <th><a class="sort-link" href="?{{ sorting.links.name }}">Name</a></th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th><a class="sort-link" href="?{{ sorting.links.status }}">Status</a></th>
+        <th>Active Assignments</th>
+        <th class="actions-heading">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for coordinator in coordinators %}
+        <tr>
+          <td>{{ coordinator.display_name }}</td>
+          <td>{{ coordinator.email }}</td>
+          <td>{{ coordinator.phone|default:"-" }}</td>
+          <td><span class="status-pill status-{{ coordinator.status }}">{{ coordinator.get_status_display }}</span></td>
+          <td>{{ coordinator.active_assignment_count }}</td>
+          <td class="actions">
+            <a href="{% url 'coordinator_detail' coordinator.id %}?next={{ current_list_url|urlencode }}">View</a>
+            <a href="{% url 'coordinator_edit' coordinator.id %}?next={{ current_list_url|urlencode }}">Edit</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="6">
+            <div class="empty-state">
+              {% if has_filters %}
+                <strong>No support coordinators match the current filters.</strong>
+                <p>Clear the filters to review all support coordinator records.</p>
+                <div class="empty-state-actions">
+                  <a class="button secondary" href="{% url 'coordinator_list' %}">Clear filters</a>
+                </div>
+              {% else %}
+                <strong>No support coordinators found.</strong>
+                <p>Add a coordinator so participants can be assigned for support coordination.</p>
+                <div class="empty-state-actions">
+                  <a class="button" href="{% url 'coordinator_create' %}?next={{ current_list_url|urlencode }}">New Coordinator</a>
+                </div>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% include "core/pagination.html" %}
+{% endblock %}

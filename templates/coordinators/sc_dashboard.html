@@ -1,0 +1,21 @@
+{% extends "coordinator_base.html" %}
+
+{% block title %}Support Coordinator Dashboard - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<section class="worker-content">
+  <header class="page-header">
+    <div>
+      <h1>Support Coordinator Dashboard</h1>
+      <p>Manage your assigned participants and coordination logs.</p>
+    </div>
+  </header>
+  <div class="card-grid worker-dashboard-grid worker-tool-grid coordinator-summary-grid">
+    <section class="card worker-tool-card">
+      <h2>My Participants</h2>
+      <p>{{ assigned_participant_count }} active participant{{ assigned_participant_count|pluralize }} assigned to you.</p>
+      <a class="card-action" href="{% url 'coordinator_participant_list' %}">Open participants</a>
+    </section>
+  </div>
+</section>
+{% endblock %}

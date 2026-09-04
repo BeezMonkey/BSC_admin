@@ -16,6 +16,30 @@ class AuditLog(models.Model):
         DOCUMENT_APPROVED = "document_approved", "Document approved"
         DOCUMENT_REJECTED = "document_rejected", "Document rejected"
         DOCUMENT_DOWNLOADED = "document_downloaded", "Document downloaded"
+        SUPPORT_COORDINATOR_CREATED = (
+            "support_coordinator_created",
+            "Support coordinator created",
+        )
+        SUPPORT_COORDINATOR_UPDATED = (
+            "support_coordinator_updated",
+            "Support coordinator updated",
+        )
+        PARTICIPANT_COORDINATOR_ASSIGNED = (
+            "participant_coordinator_assigned",
+            "Participant assigned to support coordinator",
+        )
+        COORDINATION_LOG_SUBMITTED = (
+            "coordination_log_submitted",
+            "Coordination log submitted",
+        )
+        COORDINATION_LOG_APPROVED = (
+            "coordination_log_approved",
+            "Coordination log approved",
+        )
+        COORDINATION_LOG_REJECTED = (
+            "coordination_log_rejected",
+            "Coordination log rejected",
+        )
 
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL,

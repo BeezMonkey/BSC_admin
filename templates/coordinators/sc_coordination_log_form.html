@@ -1,0 +1,50 @@
+{% extends "coordinator_base.html" %}
+
+{% block title %}Submit Coordination Log - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<section class="worker-content">
+  <header class="page-header">
+    <div>
+      <h1>Submit Coordination Log</h1>
+      <p>Record support coordination work for an assigned participant.</p>
+    </div>
+    <div class="button-row">
+      <a class="button secondary" href="{% url 'coordinator_log_list' %}">Back to Logs</a>
+    </div>
+  </header>
+
+  <form class="record-form" method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="error">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <section class="card form-section">
+      <h2>Service Details</h2>
+      <div class="form-grid">
+        {% include "participants/partials/field.html" with field=form.participant %}
+        {% include "participants/partials/field.html" with field=form.service_date %}
+        {% include "participants/partials/field.html" with field=form.start_time %}
+        {% include "participants/partials/field.html" with field=form.end_time %}
+        {% include "participants/partials/field.html" with field=form.break_minutes %}
+        {% include "participants/partials/field.html" with field=form.actual_hours %}
+        {% include "participants/partials/field.html" with field=form.coordination_type %}
+      </div>
+    </section>
+
+    <section class="card form-section">
+      <h2>Notes</h2>
+      <div class="form-grid single">
+        {% include "participants/partials/field.html" with field=form.case_notes %}
+        {% include "participants/partials/field.html" with field=form.coordinator_notes %}
+      </div>
+    </section>
+
+    <div class="form-actions">
+      <button type="submit">Submit Coordination Log</button>
+      <a class="button secondary" href="{% url 'coordinator_log_list' %}">Back</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

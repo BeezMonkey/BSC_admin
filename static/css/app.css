@@ -2469,6 +2469,12 @@ tbody tr:last-child td {
   flex-wrap: wrap;
 }
 
+.coordinator-log-actions {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
 .service-log-review-actions form {
   margin: 0;
 }
@@ -3094,6 +3100,12 @@ tbody tr:last-child td {
 
 .worker-dashboard-grid {
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.coordinator-summary-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
 }
 
 .worker-dashboard-page {
@@ -4316,7 +4328,8 @@ tbody tr:last-child td {
   }
 
   .worker-dashboard-grid,
-  .action-summary-grid {
+  .action-summary-grid,
+  .coordinator-summary-grid {
     grid-template-columns: 1fr;
   }
 
@@ -4751,6 +4764,10 @@ tbody tr:last-child td {
   .service-log-review-actions form,
   .service-log-review-actions button,
   .service-log-review-actions .button,
+  .coordinator-log-actions,
+  .coordinator-log-actions form,
+  .coordinator-log-actions button,
+  .coordinator-log-actions .button,
   .service-log-reject-disclosure,
   .service-log-reject-form {
     width: 100%;
