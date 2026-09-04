@@ -140,6 +140,7 @@ INSTALLED_APPS = [
     'core',
     'participants',
     'workers',
+    'coordinators',
     'scheduling',
     'service_logs',
     'invoices',

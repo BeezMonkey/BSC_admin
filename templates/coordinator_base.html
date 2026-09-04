@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body %}
+<div class="app-shell worker-app-shell">
+  <header class="worker-mobile-header">
+    <button class="worker-mobile-menu-button" type="button" aria-label="Open Support Coordinator menu" aria-controls="coordinator-mobile-drawer" aria-expanded="false">
+      <span class="worker-mobile-menu-icon" aria-hidden="true"></span>
+    </button>
+    <div>
+      <div class="worker-mobile-brand">Brisbane Star Care</div>
+      <div class="worker-mobile-role">Support Coordinator</div>
+    </div>
+  </header>
+  <aside class="sidebar worker-sidebar">
+    <div class="brand">Brisbane Star Care</div>
+    <nav class="sidebar-nav worker-sidebar-nav" aria-label="Support Coordinator navigation">
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_dashboard' %} active{% endif %}" href="{% url 'coordinator_dashboard' %}">Dashboard</a>
+    </nav>
+  </aside>
+  <div class="worker-mobile-drawer-backdrop" data-worker-menu-close hidden></div>
+  <aside class="worker-mobile-drawer" id="coordinator-mobile-drawer" aria-label="Support Coordinator menu" hidden>
+    <div class="worker-mobile-drawer-header">
+      <div>
+        <div class="worker-mobile-brand">Brisbane Star Care</div>
+        <div class="worker-mobile-role">{{ request.user.get_username }}</div>
+      </div>
+      <button class="worker-mobile-close-button" type="button" aria-label="Close Support Coordinator menu" data-worker-menu-close>&times;</button>
+    </div>
+    <nav class="worker-mobile-drawer-nav" aria-label="Support Coordinator navigation">
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_dashboard' %} active{% endif %}" href="{% url 'coordinator_dashboard' %}">Dashboard</a>
+    </nav>
+    <form class="worker-mobile-logout" method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button class="button secondary" type="submit">Logout</button>
+    </form>
+  </aside>
+  <nav class="worker-bottom-nav" aria-label="Support Coordinator quick navigation">
+    <a
+      class="worker-bottom-nav-link{% if request.resolver_match.url_name == 'coordinator_dashboard' %} active{% endif %}"
+      href="{% url 'coordinator_dashboard' %}"
+      {% if request.resolver_match.url_name == 'coordinator_dashboard' %}aria-current="page"{% endif %}
+    >
+      <svg class="worker-bottom-nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M3 10.75 12 3l9 7.75v8.5A1.75 1.75 0 0 1 19.25 21h-4.5v-5.5h-5.5V21h-4.5A1.75 1.75 0 0 1 3 19.25v-8.5Z" />
+      </svg>
+      <span>Home</span>
+    </a>
+  </nav>
+  <section class="content worker-main">
+    <header class="topbar worker-topbar">
+      <span class="user-label">{{ request.user.get_username }}</span>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button class="button secondary topbar-logout" type="submit">Logout</button>
+      </form>
+    </header>
+    {% if messages %}
+      <div class="messages" role="status" aria-live="polite">
+        {% for message in messages %}
+          <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </section>
+</div>
+<script src="{% static 'js/worker_nav.js' %}" defer></script>
+{% endblock %}
