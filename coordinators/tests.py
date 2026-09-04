@@ -168,6 +168,32 @@ class CoordinatorAdminManagementTests(TestCase):
         )
         self.assertFalse(SupportCoordinator.objects.filter(email="newcoord@example.com").exists())
 
+    def test_coordinator_create_rejects_password_too_similar_to_pending_user(self):
+        self.login_admin()
+
+        response = self.client.post(
+            reverse("coordinator_create"),
+            self.coordinator_payload(
+                username="nina-support-coordinator",
+                email="nina.support.coordinator@example.com",
+                password1="nina-support-coordinator",
+                password2="nina-support-coordinator",
+            ),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "The password is too similar to the username.")
+        self.assertFalse(
+            get_user_model().objects.filter(
+                username="nina-support-coordinator",
+            ).exists()
+        )
+        self.assertFalse(
+            SupportCoordinator.objects.filter(
+                email="nina.support.coordinator@example.com",
+            ).exists()
+        )
+
     def test_admin_can_assign_participant_to_coordinator(self):
         coordinator = create_coordinator()
         participant = create_participant()

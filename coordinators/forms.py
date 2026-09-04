@@ -43,8 +43,14 @@ class SupportCoordinatorCreateForm(forms.Form):
         if password1 != password2:
             self.add_error("password2", "Passwords do not match.")
         if password1:
+            pending_user = get_user_model()(
+                username=cleaned_data.get("username", ""),
+                email=cleaned_data.get("email", ""),
+                first_name=cleaned_data.get("first_name", ""),
+                last_name=cleaned_data.get("last_name", ""),
+            )
             try:
-                validate_password(password1)
+                validate_password(password1, pending_user)
             except forms.ValidationError as error:
                 self.add_error("password1", error)
         return cleaned_data
