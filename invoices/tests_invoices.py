@@ -357,6 +357,15 @@ class InvoiceGenerationTests(TestCase):
 
         self.assertContains(response, 'class="card table-card invoice-preview-table"')
 
+    def test_invoice_create_places_submit_action_in_table_footer(self):
+        self.create_service_log()
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_create"), self.create_payload())
+
+        self.assertContains(response, 'class="invoice-preview-actions"')
+        self.assertContains(response, '<button type="submit">Create Invoice</button>', html=True)
+
     def test_finance_user_can_create_invoice_from_approved_logs(self):
         first_log = self.create_service_log(actual_hours=Decimal("2.00"))
         second_log = self.create_service_log(
@@ -1028,6 +1037,32 @@ class InvoiceGenerationTests(TestCase):
         )
         self.assertNotContains(response, "Ava selected service")
         self.assertNotContains(response, "Ben selected service")
+
+    def test_invoice_create_can_preview_by_form_after_invalid_selected_logs(self):
+        ava_log = self.create_service_log(
+            service_date=date(2026, 6, 1),
+            case_notes="Ava valid manual preview",
+        )
+        ben_log = self.create_service_log(
+            participant=self.other_participant,
+            service_date=date(2026, 6, 2),
+            case_notes="Ben invalid selected service",
+        )
+        self.login_accountant()
+
+        response = self.client.get(
+            reverse("invoice_create"),
+            {
+                "service_log_ids": [ava_log.id, ben_log.id],
+                "participant": self.participant.id,
+                "period_start": "2026-06-01",
+                "period_end": "2026-06-30",
+            },
+        )
+
+        self.assertContains(response, "Ava valid manual preview")
+        self.assertNotContains(response, "Ben invalid selected service")
+        self.assertNotContains(response, f'name="service_log_ids" value="{ben_log.id}"')
 
     def test_invoice_create_creates_invoice_from_selected_logs_only(self):
         selected_log = self.create_service_log(
