@@ -2,6 +2,8 @@ from django.contrib import messages
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from accounts.decorators import admin_required, coordinator_required
 from core.navigation import get_safe_return_url
@@ -114,6 +116,105 @@ def coordinator_log_create(request):
         "coordinators/sc_coordination_log_form.html",
         {"form": form},
     )
+
+
+@admin_required
+def coordination_log_list(request):
+    logs = CoordinationLog.objects.select_related("participant", "coordinator")
+    status = request.GET.get("status", "").strip()
+    has_filters = bool(status)
+    if status:
+        logs = logs.filter(status=status)
+
+    return render(
+        request,
+        "coordinators/coordination_log_list.html",
+        {
+            "logs": logs,
+            "status": status,
+            "has_filters": has_filters,
+            "status_choices": CoordinationLog.Status.choices,
+            "current_list_url": request.get_full_path(),
+        },
+    )
+
+
+@admin_required
+def coordination_log_detail(request, log_id):
+    log = get_object_or_404(
+        CoordinationLog.objects.select_related(
+            "participant",
+            "coordinator",
+            "reviewed_by",
+        ),
+        id=log_id,
+    )
+    return render(
+        request,
+        "coordinators/coordination_log_detail.html",
+        {
+            "log": log,
+            "return_url": get_safe_return_url(
+                request,
+                reverse("coordination_log_list"),
+            ),
+        },
+    )
+
+
+@admin_required
+@require_POST
+def coordination_log_approve(request, log_id):
+    log = get_object_or_404(
+        CoordinationLog,
+        id=log_id,
+        status=CoordinationLog.Status.SUBMITTED,
+    )
+    log.status = CoordinationLog.Status.APPROVED
+    log.reviewed_by = request.user
+    log.reviewed_at = timezone.now()
+    log.rejection_reason = ""
+    log.save(
+        update_fields=[
+            "status",
+            "reviewed_by",
+            "reviewed_at",
+            "rejection_reason",
+            "updated_at",
+        ],
+    )
+    messages.success(request, "Coordination log approved.")
+    return redirect("coordination_log_detail", log_id=log.id)
+
+
+@admin_required
+@require_POST
+def coordination_log_reject(request, log_id):
+    log = get_object_or_404(
+        CoordinationLog,
+        id=log_id,
+        status=CoordinationLog.Status.SUBMITTED,
+    )
+    rejection_reason = request.POST.get("rejection_reason", "").strip()
+    if not rejection_reason:
+        messages.error(request, "Rejection reason is required.")
+        return redirect("coordination_log_detail", log_id=log.id)
+
+    log.status = CoordinationLog.Status.REJECTED
+    log.reviewed_by = request.user
+    log.reviewed_at = timezone.now()
+    log.rejection_reason = rejection_reason
+    log.save(
+        update_fields=[
+            "status",
+            "reviewed_by",
+            "reviewed_at",
+            "rejection_reason",
+            "updated_at",
+        ],
+    )
+    messages.success(request, "Coordination log rejected.")
+    return redirect("coordination_log_detail", log_id=log.id)
 
 
 @admin_required

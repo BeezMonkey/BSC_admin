@@ -3,6 +3,26 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path(
+        "coordination-logs/",
+        views.coordination_log_list,
+        name="coordination_log_list",
+    ),
+    path(
+        "coordination-logs/<int:log_id>/",
+        views.coordination_log_detail,
+        name="coordination_log_detail",
+    ),
+    path(
+        "coordination-logs/<int:log_id>/approve/",
+        views.coordination_log_approve,
+        name="coordination_log_approve",
+    ),
+    path(
+        "coordination-logs/<int:log_id>/reject/",
+        views.coordination_log_reject,
+        name="coordination_log_reject",
+    ),
     path("coordinators/", views.coordinator_list, name="coordinator_list"),
     path("coordinators/new/", views.coordinator_create, name="coordinator_create"),
     path(

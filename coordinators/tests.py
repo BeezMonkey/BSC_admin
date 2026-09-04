@@ -281,6 +281,114 @@ class CoordinatorLogSubmissionTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
+class CoordinationLogAdminReviewTests(TestCase):
+    def setUp(self):
+        self.admin_user = get_user_model().objects.create_user(
+            username="admin-review",
+            password="pass12345",
+        )
+        UserProfile.objects.create(
+            user=self.admin_user,
+            role=UserProfile.Role.ADMIN,
+        )
+        self.coordinator = create_coordinator("coord-review")
+        self.participant = Participant.objects.create(
+            first_name="Review",
+            last_name="Participant",
+            status=Participant.Status.ACTIVE,
+        )
+        self.log = CoordinationLog.objects.create(
+            participant=self.participant,
+            coordinator=self.coordinator,
+            service_date=date(2026, 9, 4),
+            start_time=time(9, 0),
+            end_time=time(10, 30),
+            break_minutes=0,
+            actual_hours=Decimal("1.50"),
+            coordination_type=CoordinationLog.CoordinationType.GENERAL,
+            case_notes="Submitted coordination work.",
+        )
+        self.client.force_login(self.admin_user)
+
+    def test_admin_can_approve_submitted_coordination_log(self):
+        response = self.client.post(
+            reverse("coordination_log_approve", args=[self.log.id]),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.log.refresh_from_db()
+        self.assertEqual(self.log.status, CoordinationLog.Status.APPROVED)
+        self.assertEqual(self.log.reviewed_by, self.admin_user)
+        self.assertIsNotNone(self.log.reviewed_at)
+        self.assertContains(response, "Coordination log approved.")
+
+    def test_admin_reject_requires_reason(self):
+        response = self.client.post(
+            reverse("coordination_log_reject", args=[self.log.id]),
+            {"rejection_reason": ""},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.log.refresh_from_db()
+        self.assertEqual(self.log.status, CoordinationLog.Status.SUBMITTED)
+        self.assertContains(response, "Rejection reason is required.")
+
+    def test_admin_can_reject_submitted_coordination_log(self):
+        response = self.client.post(
+            reverse("coordination_log_reject", args=[self.log.id]),
+            {"rejection_reason": "Needs more detail."},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.log.refresh_from_db()
+        self.assertEqual(self.log.status, CoordinationLog.Status.REJECTED)
+        self.assertEqual(self.log.rejection_reason, "Needs more detail.")
+        self.assertContains(response, "Coordination log rejected.")
+
+    def test_support_coordinator_cannot_access_admin_coordination_log_review(self):
+        self.client.force_login(self.coordinator.user)
+        protected_routes = [
+            ("get", reverse("coordination_log_list")),
+            ("get", reverse("coordination_log_detail", args=[self.log.id])),
+            ("post", reverse("coordination_log_approve", args=[self.log.id])),
+            (
+                "post",
+                reverse("coordination_log_reject", args=[self.log.id]),
+                {"rejection_reason": "No detail."},
+            ),
+        ]
+
+        for route in protected_routes:
+            method = route[0]
+            url = route[1]
+            data = route[2] if len(route) > 2 else {}
+            with self.subTest(url=url):
+                response = getattr(self.client, method)(url, data)
+                self.assertEqual(response.status_code, 403)
+
+    def test_reviewed_coordination_logs_cannot_be_reviewed_again(self):
+        self.log.status = CoordinationLog.Status.APPROVED
+        self.log.reviewed_by = self.admin_user
+        self.log.save(update_fields=["status", "reviewed_by", "updated_at"])
+
+        approve_response = self.client.post(
+            reverse("coordination_log_approve", args=[self.log.id])
+        )
+        reject_response = self.client.post(
+            reverse("coordination_log_reject", args=[self.log.id]),
+            {"rejection_reason": "Changed my mind."},
+        )
+
+        self.assertEqual(approve_response.status_code, 404)
+        self.assertEqual(reject_response.status_code, 404)
+        self.log.refresh_from_db()
+        self.assertEqual(self.log.status, CoordinationLog.Status.APPROVED)
+        self.assertEqual(self.log.rejection_reason, "")
+
+
 class CoordinatorAdminManagementTests(TestCase):
     def create_user_with_role(self, username, role):
         user = get_user_model().objects.create_user(

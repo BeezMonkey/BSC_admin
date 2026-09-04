@@ -1,0 +1,90 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Coordination Logs - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Coordination Logs</h1>
+    <p>Review submitted support coordinator records and return logs that need more detail.</p>
+  </div>
+</div>
+
+<form method="get" class="filter-bar service-log-filter-bar">
+  <label>Status
+    <select name="status">
+      <option value="">All</option>
+      {% for value, label in status_choices %}
+        <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button type="submit">Filter</button>
+  <a class="button secondary" href="{% url 'coordination_log_list' %}">Clear</a>
+</form>
+
+<section class="card table-card service-log-table-card">
+  <table class="service-log-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Participant</th>
+        <th>Coordinator</th>
+        <th>Status</th>
+        <th class="numeric-cell">Hours</th>
+        <th>Notes</th>
+        <th class="actions-heading">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+        <tr>
+          <td class="service-log-date-cell">
+            <div class="service-log-date-stack">
+              <a href="{% url 'coordination_log_detail' log.id %}?next={{ current_list_url|urlencode }}">{{ log.service_date|date:"d/m/Y" }}</a>
+              <span>Submitted {{ log.submitted_at|date:"d/m/Y H:i" }}</span>
+            </div>
+          </td>
+          <td class="service-log-person-cell">
+            <div class="service-log-person-stack">
+              <strong class="service-log-person-name">{{ log.participant.display_name }}</strong>
+              <span class="service-log-role-label">Participant</span>
+            </div>
+          </td>
+          <td class="service-log-person-cell">
+            <div class="service-log-person-stack">
+              <strong class="service-log-person-name">{{ log.coordinator.display_name }}</strong>
+              <span class="service-log-role-label">Support coordinator</span>
+            </div>
+          </td>
+          <td class="service-log-status-cell">
+            <span class="status-pill status-{{ log.status }}">{{ log.get_status_display }}</span>
+          </td>
+          <td class="service-log-hours-cell numeric-cell">{{ log.actual_hours }}</td>
+          <td class="notes-cell"><div class="service-log-notes-preview">{{ log.case_notes|truncatechars:80 }}</div></td>
+          <td class="actions service-log-actions-cell">
+            <a href="{% url 'coordination_log_detail' log.id %}?next={{ current_list_url|urlencode }}">View</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="7">
+            <div class="empty-state">
+              {% if has_filters %}
+                <strong>No coordination logs match the current filters.</strong>
+                <p>Clear the filters to review all submitted coordination records.</p>
+                <div class="empty-state-actions">
+                  <a class="button secondary" href="{% url 'coordination_log_list' %}">Clear filters</a>
+                </div>
+              {% else %}
+                <strong>No coordination logs yet.</strong>
+                <p>Coordination logs appear here after support coordinators submit their work.</p>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
