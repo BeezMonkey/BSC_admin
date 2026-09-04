@@ -1,3 +1,6 @@
+from datetime import datetime
+from decimal import Decimal, ROUND_HALF_UP
+
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
@@ -182,6 +185,8 @@ class ParticipantCoordinatorAssignmentForm(forms.ModelForm):
 
 
 class CoordinationLogForm(forms.ModelForm):
+    HOUR_DECIMAL_PLACES = Decimal("0.01")
+
     class Meta:
         model = CoordinationLog
         fields = [
@@ -209,3 +214,52 @@ class CoordinationLogForm(forms.ModelForm):
         self.fields["participant"].queryset = assigned_participants_for(
             coordinator,
         ).order_by("last_name", "first_name")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        service_date = cleaned_data.get("service_date")
+        start_time = cleaned_data.get("start_time")
+        end_time = cleaned_data.get("end_time")
+        break_minutes = cleaned_data.get("break_minutes")
+        actual_hours = cleaned_data.get("actual_hours")
+
+        duration_minutes = None
+        if service_date and start_time and end_time:
+            starts_at = datetime.combine(service_date, start_time)
+            ends_at = datetime.combine(service_date, end_time)
+            duration_minutes = int((ends_at - starts_at).total_seconds() // 60)
+            if duration_minutes <= 0:
+                self.add_error("end_time", "End time must be after start time.")
+                duration_minutes = None
+
+        break_is_valid = True
+        if duration_minutes is not None and break_minutes is not None:
+            if break_minutes >= duration_minutes:
+                self.add_error(
+                    "break_minutes",
+                    "Break minutes must be less than the total duration.",
+                )
+                break_is_valid = False
+
+        if actual_hours is not None and actual_hours <= 0:
+            self.add_error("actual_hours", "Actual hours must be greater than zero.")
+
+        if (
+            duration_minutes is not None
+            and break_minutes is not None
+            and break_is_valid
+            and actual_hours is not None
+            and actual_hours > 0
+        ):
+            worked_minutes = duration_minutes - break_minutes
+            expected_hours = (Decimal(worked_minutes) / Decimal("60")).quantize(
+                self.HOUR_DECIMAL_PLACES,
+                rounding=ROUND_HALF_UP,
+            )
+            if actual_hours != expected_hours:
+                self.add_error(
+                    "actual_hours",
+                    "Actual hours must match the time worked after breaks.",
+                )
+
+        return cleaned_data

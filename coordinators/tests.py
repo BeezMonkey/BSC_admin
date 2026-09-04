@@ -206,6 +206,52 @@ class CoordinatorLogSubmissionTests(TestCase):
         self.assertFalse(CoordinationLog.objects.exists())
         self.assertContains(response, "Select a valid choice")
 
+    def test_sc_cannot_submit_log_when_end_time_is_not_after_start_time(self):
+        payload = self.valid_payload(self.assigned)
+        payload["end_time"] = "09:00"
+
+        response = self.client.post(reverse("coordinator_log_create"), payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(CoordinationLog.objects.exists())
+        self.assertContains(response, "End time must be after start time.")
+
+    def test_sc_cannot_submit_log_when_break_exceeds_duration(self):
+        payload = self.valid_payload(self.assigned)
+        payload["break_minutes"] = "90"
+
+        response = self.client.post(reverse("coordinator_log_create"), payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(CoordinationLog.objects.exists())
+        self.assertContains(
+            response,
+            "Break minutes must be less than the total duration.",
+        )
+
+    def test_sc_cannot_submit_log_when_actual_hours_do_not_match_duration(self):
+        payload = self.valid_payload(self.assigned)
+        payload["actual_hours"] = "1.25"
+
+        response = self.client.post(reverse("coordinator_log_create"), payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(CoordinationLog.objects.exists())
+        self.assertContains(
+            response,
+            "Actual hours must match the time worked after breaks.",
+        )
+
+    def test_sc_cannot_submit_log_with_non_positive_actual_hours(self):
+        payload = self.valid_payload(self.assigned)
+        payload["actual_hours"] = "0.00"
+
+        response = self.client.post(reverse("coordinator_log_create"), payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(CoordinationLog.objects.exists())
+        self.assertContains(response, "Actual hours must be greater than zero.")
+
     def test_sc_log_list_shows_only_current_coordinators_logs(self):
         own_log = self.create_log(
             self.coordinator,
