@@ -354,6 +354,7 @@ class ServiceLogReviewTests(TestCase):
 
         response = self.client.get(reverse("service_log_list"))
 
+        self.assertContains(response, 'class="status-source-stack"')
         self.assertContains(response, '<span class="source-pill source-unscheduled">Unscheduled</span>')
 
     def test_service_log_pdf_marks_unscheduled_service(self):

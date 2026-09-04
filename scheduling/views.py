@@ -168,6 +168,8 @@ def roster_list(request):
             "worker": ("worker__last_name", "worker__first_name", "service_date"),
             "status": ("status", "service_date"),
         },
+        default_sort="date",
+        default_direction="desc",
     )
     shifts, pagination = paginate_queryset(request, shifts)
     for shift in shifts:

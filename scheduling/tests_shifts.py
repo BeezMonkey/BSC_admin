@@ -1263,6 +1263,30 @@ class ShiftSchedulingTests(TestCase):
         self.assertLess(content.index("01/06/2026"), content.index("03/06/2026"))
         self.assertContains(response, "?status=published&amp;sort=date&amp;direction=desc")
 
+    def test_roster_list_defaults_to_latest_shift_first(self):
+        self.create_shift(
+            service_date=date(2026, 6, 1),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            planned_hours=Decimal("1.00"),
+            status=Shift.Status.PUBLISHED,
+        )
+        self.create_shift(
+            service_date=date(2026, 6, 12),
+            start_time=time(15, 0),
+            end_time=time(16, 0),
+            planned_hours=Decimal("1.00"),
+            status=Shift.Status.COMPLETED,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("roster_list"))
+        content = response.content.decode()
+
+        self.assertLess(content.index("12/06/2026"), content.index("01/06/2026"))
+        self.assertEqual(response.context["sorting"]["sort"], "date")
+        self.assertEqual(response.context["sorting"]["direction"], "desc")
+
     def test_roster_list_distinguishes_empty_filter_results(self):
         self.create_shift(status=Shift.Status.PUBLISHED)
         self.login_admin()
@@ -1477,6 +1501,7 @@ class ShiftSchedulingTests(TestCase):
 
         response = self.client.get(reverse("roster_list"))
 
+        self.assertContains(response, 'class="status-source-stack"')
         self.assertContains(response, '<span class="source-pill source-unscheduled">Unscheduled</span>')
 
     def test_worker_shift_list_marks_sidebar_link_as_active(self):
