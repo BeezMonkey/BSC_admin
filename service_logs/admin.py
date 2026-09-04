@@ -9,11 +9,12 @@ class ServiceLogAdmin(admin.ModelAdmin):
         "service_date",
         "participant",
         "worker",
+        "source",
         "status",
         "actual_hours",
         "submitted_at",
     )
-    list_filter = ("status", "service_date")
+    list_filter = ("source", "status", "service_date")
     search_fields = (
         "participant__first_name",
         "participant__last_name",

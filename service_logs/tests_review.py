@@ -327,6 +327,50 @@ class ServiceLogReviewTests(TestCase):
         self.assertContains(response, "Download PDF")
         self.assertContains(response, reverse("service_log_pdf", args=[self.service_log.id]))
 
+    def test_admin_service_log_detail_marks_unscheduled_service(self):
+        self.shift.source = "unscheduled"
+        self.shift.save(update_fields=["source", "updated_at"])
+        self.service_log.source = "unscheduled"
+        self.service_log.unscheduled_reason = "Participant requested urgent support."
+        self.service_log.save(update_fields=["source", "unscheduled_reason", "updated_at"])
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_detail", args=[self.service_log.id]))
+
+        self.assertContains(response, "<dt>Service type</dt><dd>Unscheduled</dd>", html=True)
+        self.assertContains(
+            response,
+            "<dt>Unscheduled reason</dt><dd>Participant requested urgent support.</dd>",
+            html=True,
+        )
+
+    def test_service_log_list_marks_unscheduled_service(self):
+        self.shift.source = "unscheduled"
+        self.shift.save(update_fields=["source", "updated_at"])
+        self.service_log.source = "unscheduled"
+        self.service_log.unscheduled_reason = "Participant requested urgent support."
+        self.service_log.save(update_fields=["source", "unscheduled_reason", "updated_at"])
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_list"))
+
+        self.assertContains(response, '<span class="source-pill source-unscheduled">Unscheduled</span>')
+
+    def test_service_log_pdf_marks_unscheduled_service(self):
+        self.shift.source = "unscheduled"
+        self.shift.save(update_fields=["source", "updated_at"])
+        self.service_log.source = "unscheduled"
+        self.service_log.unscheduled_reason = "Participant requested urgent support."
+        self.service_log.save(update_fields=["source", "unscheduled_reason", "updated_at"])
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_pdf", args=[self.service_log.id]))
+
+        content = response.content.decode("latin-1")
+        self.assertIn("Service type", content)
+        self.assertIn("Unscheduled", content)
+        self.assertIn("Participant requested urgent support.", content)
+
     def test_admin_service_log_detail_uses_preview_cards_for_image_attachments(self):
         document = Document.objects.create(
             title="Service log attachment - progress-photo.jpg",

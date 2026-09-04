@@ -130,6 +130,9 @@
                 </div>
                 <div class="planner-shift-tile-footer">
                   <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
+                  {% if shift.source == "unscheduled" %}
+                    <span class="source-pill source-unscheduled">Unscheduled</span>
+                  {% endif %}
                   <span class="planner-shift-actions">
                     <a class="planner-shift-action planner-shift-copy-link js-shift-copy-source js-shift-modal-trigger" href="{{ shift.copy_shift_url }}" data-copy-url="{{ shift.copy_shift_url }}" data-modal-url="{{ shift.copy_shift_url }}{% if '?' in shift.copy_shift_url %}&{% else %}?{% endif %}modal=1" title="Copy shift" aria-label="Copy shift from {{ shift.service_date|date:'d/m/Y' }}">
                       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">

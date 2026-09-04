@@ -94,7 +94,12 @@
               <span class="service-log-role-label">Support worker</span>
             </div>
           </td>
-          <td class="service-log-status-cell"><span class="status-pill status-{{ service_log.status }}">{{ service_log.get_status_display }}</span></td>
+          <td class="service-log-status-cell">
+            <span class="status-pill status-{{ service_log.status }}">{{ service_log.get_status_display }}</span>
+            {% if service_log.source == "unscheduled" %}
+              <span class="source-pill source-unscheduled">Unscheduled</span>
+            {% endif %}
+          </td>
           <td class="service-log-hours-cell numeric-cell">{{ service_log.actual_hours }}</td>
           <td class="notes-cell"><div class="service-log-notes-preview">{{ service_log.case_notes|truncatechars:80 }}</div></td>
           <td class="actions service-log-actions-cell">

@@ -37,6 +37,15 @@
     </div>
     {% endif %}
   </section>
+  <section class="card worker-unscheduled-service-card">
+    <div>
+      <h2>Unscheduled Service</h2>
+      <p>Submit completed support that was not already on your roster.</p>
+    </div>
+    <a class="button worker-unscheduled-service-action" href="{% url 'worker_unscheduled_service_log_create' %}">
+      Submit Unscheduled Service
+    </a>
+  </section>
   <div class="card-grid worker-dashboard-grid worker-tool-grid">
     <section class="card worker-tool-card">
       <h2>My Shifts</h2>

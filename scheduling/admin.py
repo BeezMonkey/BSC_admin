@@ -26,9 +26,10 @@ class ShiftAdmin(admin.ModelAdmin):
         "end_time",
         "participant",
         "worker",
+        "source",
         "status",
     )
-    list_filter = ("status", "service_date", "service_type")
+    list_filter = ("source", "status", "service_date", "service_type")
     search_fields = (
         "participant__first_name",
         "participant__last_name",

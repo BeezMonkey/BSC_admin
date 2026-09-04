@@ -4,17 +4,25 @@
 
 {% block content %}
 <section class="worker-card">
-  <h1>My Logs</h1>
+  <div class="worker-log-list-header">
+    <div>
+      <h1>My Logs</h1>
+      <p>Review submitted logs or add support completed outside the roster.</p>
+    </div>
+    <a class="button worker-unscheduled-service-action" href="{% url 'worker_unscheduled_service_log_create' %}">
+      Submit Unscheduled Service
+    </a>
+  </div>
   {% for service_log in service_logs %}
     <a class="list-item" href="{% url 'worker_service_log_detail' service_log.id %}">
       <strong>{{ service_log.service_date|date:"d/m/Y" }}</strong>
-      <span>{{ service_log.participant.display_name }} | {{ service_log.get_status_display }}</span>
+      <span>{{ service_log.participant.display_name }} | {{ service_log.get_status_display }}{% if service_log.source == "unscheduled" %} | Unscheduled{% endif %}</span>
       <span>{{ service_log.case_notes|truncatechars:80 }}</span>
     </a>
   {% empty %}
     <div class="empty-state">
       <strong>No service logs yet.</strong>
-      <p>Completed service logs will appear here after you submit them from My Shifts.</p>
+      <p>Completed service logs will appear here after you submit them from My Shifts or Unscheduled Service.</p>
     </div>
   {% endfor %}
 </section>

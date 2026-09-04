@@ -14,7 +14,7 @@ from django.urls import reverse
 from accounts.models import UserProfile
 from documents.models import Document
 from documents.storage import StorageOperationError
-from participants.models import Participant
+from participants.models import Participant, ParticipantWorkerAssignment
 from scheduling.models import Shift, SupportItem
 from service_logs.models import ServiceLog
 from workers.models import SupportWorker
@@ -123,11 +123,105 @@ class ServiceLogCompletionTests(TestCase):
         data.update(overrides)
         return data
 
+    def unscheduled_log_payload(self, **overrides):
+        data = self.log_payload(
+            participant=self.participant.id,
+            service_date="2026-06-02",
+            support_item=self.support_item.id,
+            service_type=Shift.ServiceType.PERSONAL_CARE,
+            unscheduled_reason="Participant requested urgent support after a cancelled roster.",
+        )
+        data.update(overrides)
+        return data
+
     def login_worker(self):
         self.client.login(username="worker", password="test-password-123")
 
     def login_admin(self):
         self.client.login(username="admin", password="test-password-123")
+
+    def test_worker_dashboard_links_to_unscheduled_service_submission(self):
+        self.login_worker()
+
+        response = self.client.get(reverse("worker_dashboard"))
+
+        self.assertContains(response, "Submit Unscheduled Service")
+        self.assertContains(response, reverse("worker_unscheduled_service_log_create"))
+
+    def test_worker_log_list_links_to_unscheduled_service_submission(self):
+        self.login_worker()
+
+        response = self.client.get(reverse("worker_log_list"))
+
+        self.assertContains(response, "Submit Unscheduled Service")
+        self.assertContains(response, reverse("worker_unscheduled_service_log_create"))
+
+    def test_unscheduled_service_form_only_lists_assigned_active_participants(self):
+        assigned_participant = self.participant
+        unassigned_participant = Participant.objects.create(
+            first_name="Una",
+            last_name="Assigned",
+            status=Participant.Status.ACTIVE,
+        )
+        ParticipantWorkerAssignment.objects.create(
+            participant=assigned_participant,
+            worker=self.worker,
+            start_date=date(2026, 1, 1),
+            is_active=True,
+        )
+        self.login_worker()
+
+        response = self.client.get(reverse("worker_unscheduled_service_log_create"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, assigned_participant.display_name)
+        self.assertNotContains(response, unassigned_participant.display_name)
+
+    def test_worker_can_submit_unscheduled_service_log(self):
+        ParticipantWorkerAssignment.objects.create(
+            participant=self.participant,
+            worker=self.worker,
+            start_date=date(2026, 1, 1),
+            is_active=True,
+        )
+        self.login_worker()
+
+        response = self.client.post(
+            reverse("worker_unscheduled_service_log_create"),
+            self.unscheduled_log_payload(),
+        )
+
+        service_log = ServiceLog.objects.get()
+        generated_shift = service_log.shift
+        self.assertRedirects(
+            response,
+            reverse("worker_service_log_detail", args=[service_log.id]),
+        )
+        self.assertEqual(service_log.source, "unscheduled")
+        self.assertEqual(
+            service_log.unscheduled_reason,
+            "Participant requested urgent support after a cancelled roster.",
+        )
+        self.assertEqual(service_log.status, ServiceLog.Status.SUBMITTED)
+        self.assertEqual(service_log.participant, self.participant)
+        self.assertEqual(service_log.worker, self.worker)
+        self.assertEqual(generated_shift.source, "unscheduled")
+        self.assertEqual(generated_shift.status, Shift.Status.COMPLETED)
+        self.assertEqual(generated_shift.created_by, self.worker_user)
+        self.assertIsNotNone(generated_shift.completed_at)
+
+    def test_worker_cannot_submit_unscheduled_service_for_unassigned_participant(self):
+        self.login_worker()
+
+        response = self.client.post(
+            reverse("worker_unscheduled_service_log_create"),
+            self.unscheduled_log_payload(),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Select a valid choice")
+        self.assertEqual(ServiceLog.objects.count(), 0)
+        self.assertEqual(Shift.objects.count(), 0)
 
     def test_worker_can_complete_own_published_shift(self):
         shift = self.create_shift()

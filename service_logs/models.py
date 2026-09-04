@@ -8,12 +8,14 @@ from scheduling.models import Shift, SupportItem
 
 class ServiceLogManager(models.Manager):
     def create_from_shift(self, shift, **kwargs):
+        source = kwargs.pop("source", getattr(shift, "source", Shift.Source.SCHEDULED))
         return self.create(
             shift=shift,
             participant=shift.participant,
             worker=shift.worker,
             support_item=shift.support_item,
             service_date=shift.service_date,
+            source=source,
             **kwargs,
         )
 
@@ -24,6 +26,10 @@ class ServiceLog(models.Model):
         APPROVED = "approved", "Approved"
         REJECTED = "rejected", "Rejected"
         INVOICED = "invoiced", "Invoiced"
+
+    class Source(models.TextChoices):
+        SCHEDULED = "scheduled", "Scheduled"
+        UNSCHEDULED = "unscheduled", "Unscheduled"
 
     shift = models.OneToOneField(
         Shift,
@@ -46,6 +52,11 @@ class ServiceLog(models.Model):
         related_name="service_logs",
     )
     service_date = models.DateField()
+    source = models.CharField(
+        max_length=20,
+        choices=Source.choices,
+        default=Source.SCHEDULED,
+    )
     actual_start_time = models.TimeField()
     actual_end_time = models.TimeField()
     break_minutes = models.PositiveIntegerField(default=0)
@@ -53,6 +64,7 @@ class ServiceLog(models.Model):
     kilometres = models.DecimalField(max_digits=8, decimal_places=2, default=0)
     case_notes = models.TextField()
     worker_notes = models.TextField(blank=True)
+    unscheduled_reason = models.TextField(blank=True)
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
