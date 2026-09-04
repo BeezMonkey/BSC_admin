@@ -311,6 +311,9 @@ class CoordinationLogAdminReviewTests(TestCase):
         self.client.force_login(self.admin_user)
 
     def test_admin_can_approve_submitted_coordination_log(self):
+        self.log.rejection_reason = "Old correction note."
+        self.log.save(update_fields=["rejection_reason", "updated_at"])
+
         response = self.client.post(
             reverse("coordination_log_approve", args=[self.log.id]),
             follow=True,
@@ -321,6 +324,7 @@ class CoordinationLogAdminReviewTests(TestCase):
         self.assertEqual(self.log.status, CoordinationLog.Status.APPROVED)
         self.assertEqual(self.log.reviewed_by, self.admin_user)
         self.assertIsNotNone(self.log.reviewed_at)
+        self.assertEqual(self.log.rejection_reason, "")
         self.assertContains(response, "Coordination log approved.")
 
     def test_admin_reject_requires_reason(self):
@@ -345,6 +349,8 @@ class CoordinationLogAdminReviewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.log.refresh_from_db()
         self.assertEqual(self.log.status, CoordinationLog.Status.REJECTED)
+        self.assertEqual(self.log.reviewed_by, self.admin_user)
+        self.assertIsNotNone(self.log.reviewed_at)
         self.assertEqual(self.log.rejection_reason, "Needs more detail.")
         self.assertContains(response, "Coordination log rejected.")
 
@@ -369,24 +375,137 @@ class CoordinationLogAdminReviewTests(TestCase):
                 response = getattr(self.client, method)(url, data)
                 self.assertEqual(response.status_code, 403)
 
-    def test_reviewed_coordination_logs_cannot_be_reviewed_again(self):
+    def test_admin_cannot_approve_already_reviewed_coordination_log(self):
         self.log.status = CoordinationLog.Status.APPROVED
         self.log.reviewed_by = self.admin_user
-        self.log.save(update_fields=["status", "reviewed_by", "updated_at"])
-
-        approve_response = self.client.post(
-            reverse("coordination_log_approve", args=[self.log.id])
+        self.log.reviewed_at = self.log.submitted_at
+        self.log.rejection_reason = ""
+        self.log.save(
+            update_fields=[
+                "status",
+                "reviewed_by",
+                "reviewed_at",
+                "rejection_reason",
+                "updated_at",
+            ],
         )
-        reject_response = self.client.post(
+        reviewed_at = self.log.reviewed_at
+
+        response = self.client.post(
+            reverse("coordination_log_approve", args=[self.log.id]),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.log.refresh_from_db()
+        self.assertEqual(self.log.status, CoordinationLog.Status.APPROVED)
+        self.assertEqual(self.log.reviewed_by, self.admin_user)
+        self.assertEqual(self.log.reviewed_at, reviewed_at)
+        self.assertEqual(self.log.rejection_reason, "")
+        self.assertContains(response, "Coordination log has already been reviewed.")
+
+    def test_admin_cannot_approve_rejected_coordination_log(self):
+        self.log.status = CoordinationLog.Status.REJECTED
+        self.log.reviewed_by = self.admin_user
+        self.log.reviewed_at = self.log.submitted_at
+        self.log.rejection_reason = "Original reason."
+        self.log.save(
+            update_fields=[
+                "status",
+                "reviewed_by",
+                "reviewed_at",
+                "rejection_reason",
+                "updated_at",
+            ],
+        )
+        reviewed_at = self.log.reviewed_at
+
+        response = self.client.post(
+            reverse("coordination_log_approve", args=[self.log.id]),
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.log.refresh_from_db()
+        self.assertEqual(self.log.status, CoordinationLog.Status.REJECTED)
+        self.assertEqual(self.log.reviewed_by, self.admin_user)
+        self.assertEqual(self.log.reviewed_at, reviewed_at)
+        self.assertEqual(self.log.rejection_reason, "Original reason.")
+        self.assertContains(response, "Coordination log has already been reviewed.")
+
+    def test_admin_cannot_reject_approved_coordination_log(self):
+        self.log.status = CoordinationLog.Status.APPROVED
+        self.log.reviewed_by = self.admin_user
+        self.log.reviewed_at = self.log.submitted_at
+        self.log.rejection_reason = ""
+        self.log.save(
+            update_fields=[
+                "status",
+                "reviewed_by",
+                "reviewed_at",
+                "rejection_reason",
+                "updated_at",
+            ],
+        )
+        reviewed_at = self.log.reviewed_at
+
+        response = self.client.post(
             reverse("coordination_log_reject", args=[self.log.id]),
             {"rejection_reason": "Changed my mind."},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.log.refresh_from_db()
+        self.assertEqual(self.log.status, CoordinationLog.Status.APPROVED)
+        self.assertEqual(self.log.reviewed_by, self.admin_user)
+        self.assertEqual(self.log.reviewed_at, reviewed_at)
+        self.assertEqual(self.log.rejection_reason, "")
+        self.assertContains(response, "Coordination log has already been reviewed.")
+
+    def test_admin_cannot_reject_already_reviewed_coordination_log(self):
+        self.log.status = CoordinationLog.Status.REJECTED
+        self.log.reviewed_by = self.admin_user
+        self.log.reviewed_at = self.log.submitted_at
+        self.log.rejection_reason = "Original reason."
+        self.log.save(
+            update_fields=[
+                "status",
+                "reviewed_by",
+                "reviewed_at",
+                "rejection_reason",
+                "updated_at",
+            ],
+        )
+        reviewed_at = self.log.reviewed_at
+
+        response = self.client.post(
+            reverse("coordination_log_reject", args=[self.log.id]),
+            {"rejection_reason": "Changed my mind."},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.log.refresh_from_db()
+        self.assertEqual(self.log.status, CoordinationLog.Status.REJECTED)
+        self.assertEqual(self.log.reviewed_by, self.admin_user)
+        self.assertEqual(self.log.reviewed_at, reviewed_at)
+        self.assertEqual(self.log.rejection_reason, "Original reason.")
+        self.assertContains(response, "Coordination log has already been reviewed.")
+
+    def test_review_missing_coordination_log_returns_404(self):
+        missing_id = self.log.id + 100
+
+        approve_response = self.client.post(
+            reverse("coordination_log_approve", args=[missing_id])
+        )
+        reject_response = self.client.post(
+            reverse("coordination_log_reject", args=[missing_id]),
+            {"rejection_reason": "No matching log."},
         )
 
         self.assertEqual(approve_response.status_code, 404)
         self.assertEqual(reject_response.status_code, 404)
-        self.log.refresh_from_db()
-        self.assertEqual(self.log.status, CoordinationLog.Status.APPROVED)
-        self.assertEqual(self.log.rejection_reason, "")
 
 
 class CoordinatorAdminManagementTests(TestCase):

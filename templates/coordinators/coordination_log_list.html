@@ -30,6 +30,7 @@
         <th>Date</th>
         <th>Participant</th>
         <th>Coordinator</th>
+        <th>Type</th>
         <th>Status</th>
         <th class="numeric-cell">Hours</th>
         <th>Notes</th>
@@ -57,6 +58,7 @@
               <span class="service-log-role-label">Support coordinator</span>
             </div>
           </td>
+          <td>{{ log.get_coordination_type_display }}</td>
           <td class="service-log-status-cell">
             <span class="status-pill status-{{ log.status }}">{{ log.get_status_display }}</span>
           </td>
@@ -68,7 +70,7 @@
         </tr>
       {% empty %}
         <tr>
-          <td colspan="7">
+          <td colspan="8">
             <div class="empty-state">
               {% if has_filters %}
                 <strong>No coordination logs match the current filters.</strong>

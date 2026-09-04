@@ -162,59 +162,58 @@ def coordination_log_detail(request, log_id):
     )
 
 
+def redirect_existing_coordination_log_after_stale_review(request, log_id):
+    log = get_object_or_404(CoordinationLog, id=log_id)
+    messages.warning(request, "Coordination log has already been reviewed.")
+    return redirect("coordination_log_detail", log_id=log.id)
+
+
 @admin_required
 @require_POST
 def coordination_log_approve(request, log_id):
-    log = get_object_or_404(
-        CoordinationLog,
+    reviewed_at = timezone.now()
+    updated_count = CoordinationLog.objects.filter(
         id=log_id,
         status=CoordinationLog.Status.SUBMITTED,
+    ).update(
+        status=CoordinationLog.Status.APPROVED,
+        reviewed_by_id=request.user.id,
+        reviewed_at=reviewed_at,
+        rejection_reason="",
+        updated_at=reviewed_at,
     )
-    log.status = CoordinationLog.Status.APPROVED
-    log.reviewed_by = request.user
-    log.reviewed_at = timezone.now()
-    log.rejection_reason = ""
-    log.save(
-        update_fields=[
-            "status",
-            "reviewed_by",
-            "reviewed_at",
-            "rejection_reason",
-            "updated_at",
-        ],
-    )
+    if updated_count != 1:
+        return redirect_existing_coordination_log_after_stale_review(request, log_id)
+
     messages.success(request, "Coordination log approved.")
-    return redirect("coordination_log_detail", log_id=log.id)
+    return redirect("coordination_log_detail", log_id=log_id)
 
 
 @admin_required
 @require_POST
 def coordination_log_reject(request, log_id):
-    log = get_object_or_404(
-        CoordinationLog,
-        id=log_id,
-        status=CoordinationLog.Status.SUBMITTED,
-    )
     rejection_reason = request.POST.get("rejection_reason", "").strip()
     if not rejection_reason:
         messages.error(request, "Rejection reason is required.")
-        return redirect("coordination_log_detail", log_id=log.id)
+        get_object_or_404(CoordinationLog, id=log_id)
+        return redirect("coordination_log_detail", log_id=log_id)
 
-    log.status = CoordinationLog.Status.REJECTED
-    log.reviewed_by = request.user
-    log.reviewed_at = timezone.now()
-    log.rejection_reason = rejection_reason
-    log.save(
-        update_fields=[
-            "status",
-            "reviewed_by",
-            "reviewed_at",
-            "rejection_reason",
-            "updated_at",
-        ],
+    reviewed_at = timezone.now()
+    updated_count = CoordinationLog.objects.filter(
+        id=log_id,
+        status=CoordinationLog.Status.SUBMITTED,
+    ).update(
+        status=CoordinationLog.Status.REJECTED,
+        reviewed_by_id=request.user.id,
+        reviewed_at=reviewed_at,
+        rejection_reason=rejection_reason,
+        updated_at=reviewed_at,
     )
+    if updated_count != 1:
+        return redirect_existing_coordination_log_after_stale_review(request, log_id)
+
     messages.success(request, "Coordination log rejected.")
-    return redirect("coordination_log_detail", log_id=log.id)
+    return redirect("coordination_log_detail", log_id=log_id)
 
 
 @admin_required
