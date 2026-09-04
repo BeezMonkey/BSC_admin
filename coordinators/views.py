@@ -232,7 +232,7 @@ def coordination_log_reject(request, log_id):
         request.user,
         AuditLog.Action.COORDINATION_LOG_REJECTED,
         log,
-        f"Rejected coordination log {log.id}.",
+        f"Rejected coordination log {log.id}. Reason: {rejection_reason}",
     )
     messages.success(request, "Coordination log rejected.")
     return redirect("coordination_log_detail", log_id=log_id)

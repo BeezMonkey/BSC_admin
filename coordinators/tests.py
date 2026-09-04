@@ -665,11 +665,12 @@ class CoordinatorAuditTests(TestCase):
 
     def test_admin_reject_coordination_log_writes_audit_log(self):
         log = self.create_submitted_log()
+        rejection_reason = "Needs more detail."
         self.client.force_login(self.admin_user)
 
         self.client.post(
             reverse("coordination_log_reject", args=[log.id]),
-            {"rejection_reason": "Needs more detail."},
+            {"rejection_reason": rejection_reason},
         )
 
         self.assert_audit_log(
@@ -677,6 +678,40 @@ class CoordinatorAuditTests(TestCase):
             action="coordination_log_rejected",
             obj=log,
             summary_fragment=f"Rejected coordination log {log.id}.",
+        )
+        self.assertIn(
+            rejection_reason,
+            AuditLog.objects.get(action="coordination_log_rejected").summary,
+        )
+
+    def test_admin_reject_without_reason_does_not_write_audit_log(self):
+        log = self.create_submitted_log()
+        self.client.force_login(self.admin_user)
+
+        self.client.post(
+            reverse("coordination_log_reject", args=[log.id]),
+            {"rejection_reason": ""},
+        )
+
+        self.assertFalse(
+            AuditLog.objects.filter(action="coordination_log_rejected").exists()
+        )
+
+    def test_admin_reject_already_reviewed_log_does_not_write_audit_log(self):
+        log = self.create_submitted_log()
+        log.status = CoordinationLog.Status.APPROVED
+        log.reviewed_by = self.admin_user
+        log.reviewed_at = log.submitted_at
+        log.save(update_fields=["status", "reviewed_by", "reviewed_at", "updated_at"])
+        self.client.force_login(self.admin_user)
+
+        self.client.post(
+            reverse("coordination_log_reject", args=[log.id]),
+            {"rejection_reason": "Changed after review."},
+        )
+
+        self.assertFalse(
+            AuditLog.objects.filter(action="coordination_log_rejected").exists()
         )
 
 
