@@ -257,6 +257,7 @@ def invoice_create(request):
         selected_ids = request.POST.getlist("service_log_ids")
     selected_service_logs = []
     selected_error = ""
+    active_selected_ids = selected_ids
 
     if selected_ids:
         selected_service_logs, selected_error = get_selected_billable_logs(selected_ids)
@@ -271,7 +272,14 @@ def invoice_create(request):
 
     service_logs = ServiceLog.objects.none()
     if selected_error:
-        service_logs = ServiceLog.objects.none()
+        active_selected_ids = []
+        if request.method == "GET" and form.is_valid():
+            selected_error = ""
+            service_logs = get_billable_logs(
+                form.cleaned_data["participant"],
+                form.cleaned_data["period_start"],
+                form.cleaned_data["period_end"],
+            )
     elif selected_service_logs:
         service_logs = selected_service_logs
     elif form.is_valid():
@@ -371,7 +379,7 @@ def invoice_create(request):
             "service_logs": service_logs,
             "invoice_rows": invoice_rows,
             "selected_error": selected_error,
-            "selected_service_log_ids": selected_ids,
+            "selected_service_log_ids": active_selected_ids,
         },
     )
 

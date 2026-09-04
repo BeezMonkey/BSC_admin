@@ -3833,6 +3833,14 @@ tbody tr:last-child td {
   border-bottom: 0;
 }
 
+.invoice-preview-actions {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #e3ebf2;
+  padding: 0.75rem 0.86rem;
+  background: #fbfcfd;
+}
+
 .invoice-preview-date-cell,
 .invoice-preview-worker-cell,
 .invoice-preview-hours-cell,
