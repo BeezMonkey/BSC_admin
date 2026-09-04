@@ -3803,6 +3803,41 @@ tbody tr:last-child td {
   font-weight: var(--weight-label);
 }
 
+.invoice-selected-groups {
+  display: grid;
+  gap: 1rem;
+  padding: 0.86rem;
+}
+
+.invoice-selected-group {
+  overflow: hidden;
+  border: 1px solid #dbe5ee;
+  border-radius: 7px;
+  background: #ffffff;
+}
+
+.invoice-selected-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid #e3ebf2;
+  padding: 0.78rem 0.86rem;
+  background: #fbfcfd;
+}
+
+.invoice-selected-group-header h3 {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: var(--weight-label);
+}
+
+.invoice-selected-group-header p {
+  margin: 0.24rem 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 .invoice-preview-table table {
   min-width: 940px;
 }

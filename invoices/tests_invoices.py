@@ -1018,27 +1018,39 @@ class InvoiceGenerationTests(TestCase):
         self.assertNotContains(response, "<td>June 1, 2026</td>", html=True)
         self.assertContains(response, 'name="period_start" value="2026-06-01"')
 
-    def test_invoice_create_selected_logs_must_be_same_participant(self):
+    def test_invoice_create_groups_selected_logs_by_participant(self):
         ava_log = self.create_service_log(case_notes="Ava selected service")
+        ava_second_log = self.create_service_log(
+            service_date=date(2026, 6, 5),
+            case_notes="Ava later selected service",
+        )
         ben_log = self.create_service_log(
             participant=self.other_participant,
+            service_date=date(2026, 6, 2),
             case_notes="Ben selected service",
         )
         self.login_accountant()
 
         response = self.client.get(
             reverse("invoice_create"),
-            {"service_log_ids": [ava_log.id, ben_log.id]},
+            {"service_log_ids": [ava_log.id, ben_log.id, ava_second_log.id]},
         )
 
-        self.assertContains(
-            response,
-            "Selected service logs must belong to one participant.",
-        )
-        self.assertNotContains(response, "Ava selected service")
-        self.assertNotContains(response, "Ben selected service")
+        self.assertContains(response, 'class="invoice-selected-group"', count=2)
+        self.assertContains(response, "Ava Nguyen")
+        self.assertContains(response, "Ben Taylor")
+        self.assertContains(response, "2 logs")
+        self.assertContains(response, "1 log")
+        self.assertContains(response, "01/06/2026 - 05/06/2026")
+        self.assertContains(response, "02/06/2026")
+        self.assertContains(response, "Ava selected service")
+        self.assertContains(response, "Ava later selected service")
+        self.assertContains(response, "Ben selected service")
+        self.assertContains(response, "Create Invoice for Ava Nguyen")
+        self.assertContains(response, "Create Invoice for Ben Taylor")
+        self.assertNotContains(response, "Selected service logs must belong to one participant.")
 
-    def test_invoice_create_can_preview_by_form_after_invalid_selected_logs(self):
+    def test_invoice_create_can_preview_by_form_after_stale_selected_logs(self):
         ava_log = self.create_service_log(
             service_date=date(2026, 6, 1),
             case_notes="Ava valid manual preview",
@@ -1046,6 +1058,7 @@ class InvoiceGenerationTests(TestCase):
         ben_log = self.create_service_log(
             participant=self.other_participant,
             service_date=date(2026, 6, 2),
+            status=ServiceLog.Status.SUBMITTED,
             case_notes="Ben invalid selected service",
         )
         self.login_accountant()
