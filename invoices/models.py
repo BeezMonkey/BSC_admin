@@ -130,7 +130,22 @@ class Invoice(models.Model):
 
 
 class InvoiceLineManager(models.Manager):
+    def _ensure_service_invoice(self, invoice):
+        if invoice.invoice_type != Invoice.InvoiceType.SERVICE:
+            raise ValueError("Service log invoice lines can only be added to service invoices.")
+        if invoice.pk and invoice.lines.filter(coordination_log__isnull=False).exists():
+            raise ValueError("Service invoices cannot contain support coordination lines.")
+
+    def _ensure_support_coordination_invoice(self, invoice):
+        if invoice.invoice_type != Invoice.InvoiceType.SUPPORT_COORDINATION:
+            raise ValueError(
+                "Support coordination invoice lines can only be added to support coordination invoices."
+            )
+        if invoice.pk and invoice.lines.filter(service_log__isnull=False).exists():
+            raise ValueError("Support coordination invoices cannot contain service log lines.")
+
     def create_from_service_log(self, invoice, service_log):
+        self._ensure_service_invoice(invoice)
         support_item = service_log.support_item
         quantity = service_log.actual_hours
         unit_price = support_item.price_limit
@@ -152,6 +167,7 @@ class InvoiceLineManager(models.Manager):
         )
 
     def create_from_coordination_log(self, invoice, coordination_log, support_item):
+        self._ensure_support_coordination_invoice(invoice)
         quantity = coordination_log.actual_hours
         unit_price = support_item.price_limit
         line_total = (quantity * unit_price).quantize(
@@ -178,6 +194,7 @@ class InvoiceLineManager(models.Manager):
         support_item,
         amount,
     ):
+        self._ensure_service_invoice(invoice)
         amount = Decimal(amount)
         if amount <= Decimal("0.00"):
             raise ValueError("Travel claim amount must be greater than zero.")

@@ -144,7 +144,7 @@ class InvoiceExportTests(TestCase):
             invoice_type=Invoice.InvoiceType.SUPPORT_COORDINATION,
             period_start=date(2026, 6, 1),
             period_end=date(2026, 6, 30),
-            created_by=self.accountant_user,
+            created_by=self.admin_user,
         )
         InvoiceLine.objects.create_from_coordination_log(
             invoice=invoice,
@@ -155,6 +155,9 @@ class InvoiceExportTests(TestCase):
 
     def login_accountant(self):
         self.client.login(username="accountant", password="test-password-123")
+
+    def login_admin(self):
+        self.client.login(username="admin", password="test-password-123")
 
     def login_worker(self):
         self.client.login(username="worker", password="test-password-123")
@@ -202,9 +205,9 @@ class InvoiceExportTests(TestCase):
         self.assertEqual(rows[0]["unit_price"], "65.47")
         self.assertEqual(rows[0]["line_total"], "130.94")
 
-    def test_finance_user_can_download_support_coordination_invoice_csv(self):
+    def test_admin_can_download_support_coordination_invoice_csv(self):
         invoice = self.create_support_coordination_invoice()
-        self.login_accountant()
+        self.login_admin()
 
         response = self.client.get(reverse("invoice_csv", args=[invoice.id]))
 
@@ -215,6 +218,16 @@ class InvoiceExportTests(TestCase):
         rows = list(csv.DictReader(StringIO(response.content.decode("utf-8"))))
         self.assertEqual(rows[0]["invoice_type"], Invoice.InvoiceType.SUPPORT_COORDINATION)
         self.assertEqual(rows[0]["source_date"], "03/06/2026")
+
+    def test_accountant_cannot_download_support_coordination_invoice_exports(self):
+        invoice = self.create_support_coordination_invoice()
+        self.login_accountant()
+
+        for url_name in ["invoice_csv", "invoice_pdf"]:
+            with self.subTest(url_name=url_name):
+                response = self.client.get(reverse(url_name, args=[invoice.id]))
+
+                self.assertEqual(response.status_code, 403)
 
     def test_invoice_exports_include_an_admin_approved_travel_claim(self):
         travel_support_item = SupportItem.objects.create(
@@ -280,7 +293,7 @@ class InvoiceExportTests(TestCase):
 
     def test_support_coordination_invoice_pdf_uses_sc_filename_and_type(self):
         invoice = self.create_support_coordination_invoice()
-        self.login_accountant()
+        self.login_admin()
 
         response = self.client.get(reverse("invoice_pdf", args=[invoice.id]))
 

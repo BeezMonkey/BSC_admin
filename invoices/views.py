@@ -8,6 +8,7 @@ from pathlib import Path
 
 from django.conf import settings
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Count, DecimalField, Prefetch, Q, Sum, Value
 from django.db.models.functions import Coalesce
@@ -21,6 +22,7 @@ from PIL import Image
 
 from accounts.decorators import admin_required
 from accounts.decorators import finance_required
+from accounts.permissions import ADMIN_ROLES, has_role
 from coordinators.models import CoordinationLog
 from core.audit import write_audit_log
 from core.models import AuditLog
@@ -41,6 +43,29 @@ from .models import Invoice, InvoiceLine, InvoiceSettings
 
 INVOICE_STATIC_LOGO_PATH = Path("static/img/bsc-logo.png")
 TRAVEL_SUPPORT_ITEM_NUMBER = "04_799_0125_6_1"
+
+
+def invoice_queryset_for_user(user):
+    invoices = Invoice.objects.all()
+    if has_role(user, ADMIN_ROLES):
+        return invoices
+    return invoices.filter(invoice_type=Invoice.InvoiceType.SERVICE)
+
+
+def ensure_invoice_access(user, invoice):
+    if (
+        invoice.invoice_type == Invoice.InvoiceType.SUPPORT_COORDINATION
+        and not has_role(user, ADMIN_ROLES)
+    ):
+        raise PermissionDenied
+
+
+def get_accessible_invoice(user, invoice_id, queryset=None, **filters):
+    if queryset is None:
+        queryset = invoice_queryset()
+    invoice = get_object_or_404(queryset, id=invoice_id, **filters)
+    ensure_invoice_access(user, invoice)
+    return invoice
 
 
 def format_filter_date(value):
@@ -95,12 +120,13 @@ def build_invoice_filter_summary(status, q, participant_query, period_from, peri
 
 @finance_required
 def invoice_list(request):
+    visible_invoices = invoice_queryset_for_user(request.user)
     status_counts = {
         row["status"]: row["count"]
-        for row in Invoice.objects.values("status").annotate(count=Count("id"))
+        for row in visible_invoices.values("status").annotate(count=Count("id"))
     }
     total_count = sum(status_counts.values())
-    invoices = Invoice.objects.select_related("participant", "created_by").annotate(
+    invoices = visible_invoices.select_related("participant", "created_by").annotate(
         total_amount_sort=Coalesce(
             Sum("lines__line_total"),
             Value(Decimal("0.00")),
@@ -686,18 +712,7 @@ def support_coordination_invoice_create(request):
 
 @finance_required
 def invoice_detail(request, invoice_id):
-    invoice = get_object_or_404(
-        Invoice.objects.select_related("participant", "created_by").prefetch_related(
-            Prefetch(
-                "lines",
-                queryset=InvoiceLine.objects.select_related(
-                    "service_log",
-                    "coordination_log",
-                ),
-            ),
-        ),
-        id=invoice_id,
-    )
+    invoice = get_accessible_invoice(request.user, invoice_id)
     return render(
         request,
         "invoices/invoice_detail.html",
@@ -730,17 +745,21 @@ def invoice_settings(request):
     )
 
 
-def get_invoice(invoice_id):
-    return get_object_or_404(
-        Invoice.objects.select_related("participant", "created_by").prefetch_related(
-            Prefetch(
-                "lines",
-                queryset=InvoiceLine.objects.select_related(
-                    "service_log",
-                    "coordination_log",
-                ),
+def invoice_queryset():
+    return Invoice.objects.select_related("participant", "created_by").prefetch_related(
+        Prefetch(
+            "lines",
+            queryset=InvoiceLine.objects.select_related(
+                "service_log",
+                "coordination_log",
             ),
         ),
+    )
+
+
+def get_invoice(invoice_id):
+    return get_object_or_404(
+        invoice_queryset(),
         id=invoice_id,
     )
 
@@ -769,7 +788,7 @@ def release_invoice_source_logs(invoice):
 
 @finance_required
 def invoice_csv(request, invoice_id):
-    invoice = get_invoice(invoice_id)
+    invoice = get_accessible_invoice(request.user, invoice_id)
     output = StringIO()
     writer = csv.writer(output)
     writer.writerow(
@@ -1146,7 +1165,7 @@ def invoice_footer_minimum_top(payment_detail_rows, page_bottom=40):
 
 @finance_required
 def invoice_pdf(request, invoice_id):
-    invoice = get_invoice(invoice_id)
+    invoice = get_accessible_invoice(request.user, invoice_id)
     settings_obj = InvoiceSettings.load()
     business_lines = []
     append_if_present(business_lines, "ABN", settings_obj.abn)
@@ -1387,7 +1406,12 @@ def invoice_pdf(request, invoice_id):
 @finance_required
 @require_POST
 def invoice_mark_issued(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id, status=Invoice.Status.DRAFT)
+    invoice = get_accessible_invoice(
+        request.user,
+        invoice_id,
+        queryset=Invoice.objects.all(),
+        status=Invoice.Status.DRAFT,
+    )
     invoice.status = Invoice.Status.ISSUED
     invoice.save(update_fields=["status", "updated_at"])
     write_audit_log(
@@ -1403,7 +1427,12 @@ def invoice_mark_issued(request, invoice_id):
 @finance_required
 @require_POST
 def invoice_mark_paid(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id, status=Invoice.Status.ISSUED)
+    invoice = get_accessible_invoice(
+        request.user,
+        invoice_id,
+        queryset=Invoice.objects.all(),
+        status=Invoice.Status.ISSUED,
+    )
     invoice.status = Invoice.Status.PAID
     invoice.save(update_fields=["status", "updated_at"])
     write_audit_log(
@@ -1419,12 +1448,13 @@ def invoice_mark_paid(request, invoice_id):
 @finance_required
 @require_POST
 def invoice_cancel(request, invoice_id):
-    invoice = get_object_or_404(
-        Invoice.objects.prefetch_related(
+    invoice = get_accessible_invoice(
+        request.user,
+        invoice_id,
+        queryset=Invoice.objects.prefetch_related(
             "lines__service_log",
             "lines__coordination_log",
         ),
-        id=invoice_id,
         status__in=[Invoice.Status.DRAFT, Invoice.Status.ISSUED],
     )
     release_invoice_source_logs(invoice)
@@ -1443,12 +1473,13 @@ def invoice_cancel(request, invoice_id):
 @finance_required
 @require_POST
 def invoice_delete(request, invoice_id):
-    invoice = get_object_or_404(
-        Invoice.objects.prefetch_related(
+    invoice = get_accessible_invoice(
+        request.user,
+        invoice_id,
+        queryset=Invoice.objects.prefetch_related(
             "lines__service_log",
             "lines__coordination_log",
         ),
-        id=invoice_id,
         status=Invoice.Status.DRAFT,
     )
     invoice_number = invoice.invoice_number

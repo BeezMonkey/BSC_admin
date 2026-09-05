@@ -152,6 +152,28 @@ class InvoiceGenerationTests(TestCase):
             status=status,
         )
 
+    def create_support_coordination_invoice(
+        self,
+        *,
+        status=Invoice.Status.DRAFT,
+        coordination_status=CoordinationLog.Status.INVOICED,
+    ):
+        coordination_log = self.create_coordination_log(status=coordination_status)
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=coordination_log.service_date,
+            period_end=coordination_log.service_date,
+            invoice_type=Invoice.InvoiceType.SUPPORT_COORDINATION,
+            status=status,
+            created_by=self.admin_user,
+        )
+        InvoiceLine.objects.create_from_coordination_log(
+            invoice=invoice,
+            coordination_log=coordination_log,
+            support_item=self.support_item,
+        )
+        return invoice, coordination_log
+
     def create_travel_support_item(self, **overrides):
         data = {
             "item_number": "04_799_0125_6_1",
@@ -632,6 +654,123 @@ class InvoiceGenerationTests(TestCase):
         self.assertEqual(line.unit_price, Decimal("65.47"))
         self.assertEqual(line.line_total, Decimal("98.21"))
 
+    def test_service_log_line_cannot_be_added_to_support_coordination_invoice(self):
+        service_log = self.create_service_log()
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 1),
+            invoice_type=Invoice.InvoiceType.SUPPORT_COORDINATION,
+            created_by=self.admin_user,
+        )
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "Service log invoice lines can only be added to service invoices.",
+        ):
+            InvoiceLine.objects.create_from_service_log(invoice, service_log)
+
+    def test_coordination_log_line_cannot_be_added_to_service_invoice(self):
+        coordination_log = self.create_coordination_log()
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 1),
+            created_by=self.accountant_user,
+        )
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "Support coordination invoice lines can only be added to support coordination invoices.",
+        ):
+            InvoiceLine.objects.create_from_coordination_log(
+                invoice,
+                coordination_log,
+                self.support_item,
+            )
+
+    def test_travel_line_cannot_be_added_to_support_coordination_invoice(self):
+        service_log = self.create_service_log(kilometres=Decimal("12.00"))
+        travel_support_item = self.create_travel_support_item()
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 1),
+            invoice_type=Invoice.InvoiceType.SUPPORT_COORDINATION,
+            created_by=self.admin_user,
+        )
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "Service log invoice lines can only be added to service invoices.",
+        ):
+            InvoiceLine.objects.create_travel_claim_from_service_log(
+                invoice=invoice,
+                service_log=service_log,
+                support_item=travel_support_item,
+                amount=Decimal("12.00"),
+            )
+
+    def test_invoice_line_manager_prevents_mixed_source_invoices(self):
+        service_log = self.create_service_log()
+        coordination_log = self.create_coordination_log()
+        service_invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 1),
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create(
+            invoice=service_invoice,
+            coordination_log=coordination_log,
+            line_type=InvoiceLine.LineType.SUPPORT_COORDINATION,
+            support_item_number=self.support_item.item_number,
+            description=self.support_item.name,
+            unit=self.support_item.unit,
+            unit_price=self.support_item.price_limit,
+            quantity=coordination_log.actual_hours,
+            gst_code=self.support_item.gst_code,
+            line_total=Decimal("98.21"),
+        )
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "Service invoices cannot contain support coordination lines.",
+        ):
+            InvoiceLine.objects.create_from_service_log(service_invoice, service_log)
+
+        second_service_log = self.create_service_log(service_date=date(2026, 6, 2))
+        second_coordination_log = self.create_coordination_log(service_date=date(2026, 6, 2))
+        coordination_invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 2),
+            period_end=date(2026, 6, 2),
+            invoice_type=Invoice.InvoiceType.SUPPORT_COORDINATION,
+            created_by=self.admin_user,
+        )
+        InvoiceLine.objects.create(
+            invoice=coordination_invoice,
+            service_log=second_service_log,
+            line_type=InvoiceLine.LineType.SERVICE,
+            support_item_number=self.support_item.item_number,
+            description=self.support_item.name,
+            unit=self.support_item.unit,
+            unit_price=self.support_item.price_limit,
+            quantity=second_service_log.actual_hours,
+            gst_code=self.support_item.gst_code,
+            line_total=Decimal("130.94"),
+        )
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "Support coordination invoices cannot contain service log lines.",
+        ):
+            InvoiceLine.objects.create_from_coordination_log(
+                coordination_invoice,
+                second_coordination_log,
+                self.support_item,
+            )
+
     def test_same_coordination_log_cannot_be_invoiced_twice(self):
         coordination_log = self.create_coordination_log()
         first_invoice = Invoice.objects.create(
@@ -803,6 +942,51 @@ class InvoiceGenerationTests(TestCase):
 
         self.assertContains(response, invoice.invoice_number)
         self.assertContains(response, "Support Coordination")
+
+    def test_accountant_invoice_list_hides_support_coordination_invoices(self):
+        service_log = self.create_service_log()
+        service_invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create_from_service_log(service_invoice, service_log)
+        coordination_invoice, _ = self.create_support_coordination_invoice()
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_placeholder"))
+
+        self.assertContains(response, service_invoice.invoice_number)
+        self.assertNotContains(response, coordination_invoice.invoice_number)
+        self.assertContains(response, "1 record")
+        self.assertNotContains(response, "Support Coordination")
+
+    def test_accountant_cannot_view_support_coordination_invoice_detail(self):
+        invoice, _ = self.create_support_coordination_invoice()
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_detail", args=[invoice.id]))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_accountant_cannot_mutate_support_coordination_invoice(self):
+        self.login_accountant()
+        cases = [
+            ("invoice_mark_issued", Invoice.Status.DRAFT),
+            ("invoice_mark_paid", Invoice.Status.ISSUED),
+            ("invoice_cancel", Invoice.Status.DRAFT),
+            ("invoice_delete", Invoice.Status.DRAFT),
+        ]
+        for url_name, status in cases:
+            with self.subTest(url_name=url_name):
+                invoice, _ = self.create_support_coordination_invoice(status=status)
+
+                response = self.client.post(reverse(url_name, args=[invoice.id]))
+
+                self.assertEqual(response.status_code, 403)
+                invoice.refresh_from_db()
+                self.assertEqual(invoice.status, status)
 
     def test_invoice_detail_displays_australian_period_dates(self):
         service_log = self.create_service_log()
