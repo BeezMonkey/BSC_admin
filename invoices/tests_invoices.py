@@ -90,6 +90,7 @@ class InvoiceGenerationTests(TestCase):
             gst_code=SupportItem.GSTCode.GST_FREE,
             is_active=True,
         )
+        self.coordinator_index = 0
 
     def create_service_log(self, **overrides):
         participant = overrides.pop("participant", self.participant)
@@ -126,7 +127,12 @@ class InvoiceGenerationTests(TestCase):
         return service_log
 
     def create_coordination_log(self, **overrides):
-        coordinator = overrides.pop("coordinator", create_coordinator_user())
+        coordinator = overrides.pop("coordinator", None)
+        if coordinator is None:
+            self.coordinator_index += 1
+            coordinator = create_coordinator_user(
+                f"coord-invoice-{self.coordinator_index}"
+            )
         participant = overrides.pop("participant", self.participant)
         status = overrides.pop("status", CoordinationLog.Status.APPROVED)
         service_date = overrides.pop("service_date", date(2026, 6, 1))
