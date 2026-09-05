@@ -12,6 +12,10 @@ class AuditLog(models.Model):
         INVOICE_MARKED_PAID = "invoice_marked_paid", "Invoice marked paid"
         INVOICE_CANCELLED = "invoice_cancelled", "Invoice cancelled"
         INVOICE_DELETED = "invoice_deleted", "Invoice deleted"
+        SUPPORT_COORDINATION_INVOICE_CREATED = (
+            "support_coordination_invoice_created",
+            "Support coordination invoice created",
+        )
         DOCUMENT_UPLOADED = "document_uploaded", "Document uploaded"
         DOCUMENT_APPROVED = "document_approved", "Document approved"
         DOCUMENT_REJECTED = "document_rejected", "Document rejected"

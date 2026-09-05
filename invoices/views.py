@@ -655,19 +655,11 @@ def support_coordination_invoice_create(request):
                         )
                         coordination_log.status = CoordinationLog.Status.INVOICED
                         coordination_log.save(update_fields=["status", "updated_at"])
-                audit_action = (
-                    AuditLog.Action.SUPPORT_COORDINATION_INVOICE_CREATED
-                    if hasattr(
-                        AuditLog.Action,
-                        "SUPPORT_COORDINATION_INVOICE_CREATED",
-                    )
-                    else AuditLog.Action.INVOICE_CREATED
-                )
                 write_audit_log(
                     request.user,
-                    audit_action,
+                    AuditLog.Action.SUPPORT_COORDINATION_INVOICE_CREATED,
                     invoice,
-                    f"Created invoice {invoice.invoice_number}.",
+                    f"Created support coordination invoice {invoice.invoice_number}.",
                 )
                 messages.success(request, "Support coordination invoice created.")
                 return redirect(invoice)
@@ -753,14 +745,25 @@ def get_invoice(invoice_id):
     )
 
 
-def release_invoice_service_logs(invoice):
+def release_invoice_source_logs(invoice):
     service_logs = {
         line.service_log_id: line.service_log
         for line in invoice.lines.select_related("service_log")
+        if line.service_log_id
     }
     for service_log in service_logs.values():
         service_log.status = ServiceLog.Status.APPROVED
         service_log.save(update_fields=["status", "updated_at"])
+
+    coordination_logs = {
+        line.coordination_log_id: line.coordination_log
+        for line in invoice.lines.select_related("coordination_log")
+        if line.coordination_log_id
+    }
+    for coordination_log in coordination_logs.values():
+        coordination_log.status = CoordinationLog.Status.APPROVED
+        coordination_log.save(update_fields=["status", "updated_at"])
+
     invoice.lines.all().delete()
 
 
@@ -1417,11 +1420,14 @@ def invoice_mark_paid(request, invoice_id):
 @require_POST
 def invoice_cancel(request, invoice_id):
     invoice = get_object_or_404(
-        Invoice.objects.prefetch_related("lines__service_log"),
+        Invoice.objects.prefetch_related(
+            "lines__service_log",
+            "lines__coordination_log",
+        ),
         id=invoice_id,
         status__in=[Invoice.Status.DRAFT, Invoice.Status.ISSUED],
     )
-    release_invoice_service_logs(invoice)
+    release_invoice_source_logs(invoice)
     invoice.status = Invoice.Status.CANCELLED
     invoice.save(update_fields=["status", "updated_at"])
     write_audit_log(
@@ -1438,12 +1444,15 @@ def invoice_cancel(request, invoice_id):
 @require_POST
 def invoice_delete(request, invoice_id):
     invoice = get_object_or_404(
-        Invoice.objects.prefetch_related("lines__service_log"),
+        Invoice.objects.prefetch_related(
+            "lines__service_log",
+            "lines__coordination_log",
+        ),
         id=invoice_id,
         status=Invoice.Status.DRAFT,
     )
     invoice_number = invoice.invoice_number
-    release_invoice_service_logs(invoice)
+    release_invoice_source_logs(invoice)
     write_audit_log(
         request.user,
         AuditLog.Action.INVOICE_DELETED,
