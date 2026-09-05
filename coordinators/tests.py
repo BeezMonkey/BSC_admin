@@ -116,6 +116,7 @@ class CoordinatorRoleAccessTests(TestCase):
         self.assertContains(response, "coordinator-account")
         self.assertContains(response, "coordinator-account@example.com")
         self.assertContains(response, "0400000000")
+        self.assertNotContains(response, "<h2>Session</h2>", html=True)
 
     def test_support_worker_cannot_access_sc_dashboard(self):
         user = self.create_user_with_role(
