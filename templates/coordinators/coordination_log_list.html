@@ -23,10 +23,19 @@
   <a class="button secondary" href="{% url 'coordination_log_list' %}">Clear</a>
 </form>
 
+<form method="get" action="{% url 'support_coordination_invoice_create' %}">
 <section class="card table-card service-log-table-card">
+  <div class="service-log-billing-action">
+    <div>
+      <strong>Billing action</strong>
+      <span>Select approved coordination logs to create a support coordination invoice.</span>
+    </div>
+    <button type="submit">Create SC Invoice from Selected</button>
+  </div>
   <table class="service-log-table">
     <thead>
       <tr>
+        <th>Select</th>
         <th>Date</th>
         <th>Participant</th>
         <th>Coordinator</th>
@@ -40,6 +49,11 @@
     <tbody>
       {% for log in logs %}
         <tr>
+          <td class="service-log-select-cell">
+            {% if log.status == "approved" and not log.invoice_lines.exists %}
+              <input type="checkbox" name="coordination_log_ids" value="{{ log.id }}">
+            {% endif %}
+          </td>
           <td class="service-log-date-cell">
             <div class="service-log-date-stack">
               <a href="{% url 'coordination_log_detail' log.id %}?next={{ current_list_url|urlencode }}">{{ log.service_date|date:"d/m/Y" }}</a>
@@ -70,7 +84,7 @@
         </tr>
       {% empty %}
         <tr>
-          <td colspan="8">
+          <td colspan="9">
             <div class="empty-state">
               {% if has_filters %}
                 <strong>No coordination logs match the current filters.</strong>
@@ -89,4 +103,5 @@
     </tbody>
   </table>
 </section>
+</form>
 {% endblock %}
