@@ -79,6 +79,7 @@ class CoordinationLog(models.Model):
     class Status(models.TextChoices):
         SUBMITTED = "submitted", "Submitted"
         APPROVED = "approved", "Approved"
+        INVOICED = "invoiced", "Invoiced"
         REJECTED = "rejected", "Rejected"
 
     class CoordinationType(models.TextChoices):

@@ -431,6 +431,32 @@ class CoordinationLogAdminReviewTests(TestCase):
         self.assertEqual(self.log.rejection_reason, "Needs more detail.")
         self.assertContains(response, "Coordination log rejected.")
 
+    def test_coordination_log_list_shows_invoice_selection_for_approved_logs_only(self):
+        approved_log = self.log
+        approved_log.status = CoordinationLog.Status.APPROVED
+        approved_log.save(update_fields=["status", "updated_at"])
+        submitted_log = CoordinationLog.objects.create(
+            participant=self.participant,
+            coordinator=self.coordinator,
+            service_date=date(2026, 9, 5),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            break_minutes=0,
+            actual_hours=Decimal("1.00"),
+            coordination_type=CoordinationLog.CoordinationType.GENERAL,
+            case_notes="Submitted work.",
+        )
+
+        response = self.client.get(reverse("coordination_log_list"))
+
+        self.assertContains(response, "Create SC Invoice from Selected")
+        self.assertContains(
+            response, f'name="coordination_log_ids" value="{approved_log.id}"'
+        )
+        self.assertNotContains(
+            response, f'name="coordination_log_ids" value="{submitted_log.id}"'
+        )
+
     def test_support_coordinator_cannot_access_admin_coordination_log_review(self):
         self.client.force_login(self.coordinator.user)
         protected_routes = [
@@ -1055,6 +1081,11 @@ class CoordinatorModelTests(TestCase):
                 CoordinationLog.CoordinationType.OTHER: "Other",
             },
         )
+
+    def test_coordination_log_has_invoiced_status(self):
+        choices = dict(CoordinationLog.Status.choices)
+
+        self.assertEqual(choices[CoordinationLog.Status.INVOICED], "Invoiced")
 
     def test_support_coordinator_display_name(self):
         coordinator = create_coordinator()

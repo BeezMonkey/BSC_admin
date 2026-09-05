@@ -12,12 +12,18 @@ from .views import (
     invoice_mark_paid,
     invoice_pdf,
     invoice_settings,
+    support_coordination_invoice_create,
 )
 
 urlpatterns = [
     path("invoices/", invoice_list, name="invoice_placeholder"),
     path("invoices/settings/", invoice_settings, name="invoice_settings"),
     path("invoices/new/", invoice_create, name="invoice_create"),
+    path(
+        "invoices/support-coordination/new/",
+        support_coordination_invoice_create,
+        name="support_coordination_invoice_create",
+    ),
     path("invoices/<int:invoice_id>/", invoice_detail, name="invoice_detail"),
     path("invoices/<int:invoice_id>/csv/", invoice_csv, name="invoice_csv"),
     path("invoices/<int:invoice_id>/pdf/", invoice_pdf, name="invoice_pdf"),

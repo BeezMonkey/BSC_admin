@@ -123,7 +123,9 @@ def coordinator_log_create(request):
 
 @admin_required
 def coordination_log_list(request):
-    logs = CoordinationLog.objects.select_related("participant", "coordinator")
+    logs = CoordinationLog.objects.select_related(
+        "participant", "coordinator"
+    ).prefetch_related("invoice_lines")
     status = request.GET.get("status", "").strip()
     has_filters = bool(status)
     if status:

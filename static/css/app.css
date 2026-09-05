@@ -1454,6 +1454,14 @@ table {
   font-weight: 500;
 }
 
+.invoice-number-stack .status-pill {
+  color: #075985;
+  font-size: 0.76rem;
+  font-weight: var(--weight-action);
+  line-height: 1;
+  justify-self: start;
+}
+
 .service-log-table .service-log-person-name {
   color: #253348;
   font-size: 0.88rem;

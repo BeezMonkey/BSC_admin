@@ -8,8 +8,9 @@ from pathlib import Path
 
 from django.conf import settings
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.db.models import Count, DecimalField, Q, Sum, Value
+from django.db.models import Count, DecimalField, Prefetch, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -21,6 +22,8 @@ from PIL import Image
 
 from accounts.decorators import admin_required
 from accounts.decorators import finance_required
+from accounts.permissions import ADMIN_ROLES, has_role
+from coordinators.models import CoordinationLog
 from core.audit import write_audit_log
 from core.models import AuditLog
 from core.navigation import get_safe_return_url
@@ -29,12 +32,40 @@ from core.sorting import apply_sorting
 from service_logs.models import ServiceLog
 from scheduling.models import SupportItem
 
-from .forms import InvoiceCreateForm, InvoiceSettingsForm, TravelClaimForm
+from .forms import (
+    InvoiceCreateForm,
+    InvoiceSettingsForm,
+    SupportCoordinationInvoiceCreateForm,
+    TravelClaimForm,
+)
 from .models import Invoice, InvoiceLine, InvoiceSettings
 
 
 INVOICE_STATIC_LOGO_PATH = Path("static/img/bsc-logo.png")
 TRAVEL_SUPPORT_ITEM_NUMBER = "04_799_0125_6_1"
+
+
+def invoice_queryset_for_user(user):
+    invoices = Invoice.objects.all()
+    if has_role(user, ADMIN_ROLES):
+        return invoices
+    return invoices.filter(invoice_type=Invoice.InvoiceType.SERVICE)
+
+
+def ensure_invoice_access(user, invoice):
+    if (
+        invoice.invoice_type == Invoice.InvoiceType.SUPPORT_COORDINATION
+        and not has_role(user, ADMIN_ROLES)
+    ):
+        raise PermissionDenied
+
+
+def get_accessible_invoice(user, invoice_id, queryset=None, **filters):
+    if queryset is None:
+        queryset = invoice_queryset()
+    invoice = get_object_or_404(queryset, id=invoice_id, **filters)
+    ensure_invoice_access(user, invoice)
+    return invoice
 
 
 def format_filter_date(value):
@@ -60,7 +91,12 @@ def invoice_download_filename(invoice, extension):
         "0000",
     )
     participant_name = safe_filename_part(invoice.participant.display_name, "Participant")
-    return f"Invoice_{invoice_date}_{invoice_sequence}_{participant_name}.{extension}"
+    prefix = (
+        "SC_Invoice"
+        if invoice.invoice_type == Invoice.InvoiceType.SUPPORT_COORDINATION
+        else "Invoice"
+    )
+    return f"{prefix}_{invoice_date}_{invoice_sequence}_{participant_name}.{extension}"
 
 
 def build_invoice_filter_summary(status, q, participant_query, period_from, period_to):
@@ -84,12 +120,13 @@ def build_invoice_filter_summary(status, q, participant_query, period_from, peri
 
 @finance_required
 def invoice_list(request):
+    visible_invoices = invoice_queryset_for_user(request.user)
     status_counts = {
         row["status"]: row["count"]
-        for row in Invoice.objects.values("status").annotate(count=Count("id"))
+        for row in visible_invoices.values("status").annotate(count=Count("id"))
     }
     total_count = sum(status_counts.values())
-    invoices = Invoice.objects.select_related("participant", "created_by").annotate(
+    invoices = visible_invoices.select_related("participant", "created_by").annotate(
         total_amount_sort=Coalesce(
             Sum("lines__line_total"),
             Value(Decimal("0.00")),
@@ -208,6 +245,16 @@ def get_billable_logs(participant, period_start, period_end):
     ).select_related("participant", "worker", "support_item")
 
 
+def get_billable_coordination_logs(participant, period_start, period_end):
+    return CoordinationLog.objects.filter(
+        participant=participant,
+        service_date__gte=period_start,
+        service_date__lte=period_end,
+        status=CoordinationLog.Status.APPROVED,
+        invoice_lines__isnull=True,
+    ).select_related("participant", "coordinator").order_by("service_date", "id")
+
+
 def get_selected_billable_logs(service_log_ids, require_single_participant=True):
     try:
         unique_ids = [
@@ -227,6 +274,33 @@ def get_selected_billable_logs(service_log_ids, require_single_participant=True)
     if require_single_participant and len(participant_ids) > 1:
         return [], "Selected service logs must belong to one participant."
     return service_logs, ""
+
+
+def get_selected_billable_coordination_logs(
+    coordination_log_ids,
+    require_single_participant=True,
+):
+    try:
+        unique_ids = [
+            int(coordination_log_id)
+            for coordination_log_id in dict.fromkeys(coordination_log_ids)
+        ]
+    except (TypeError, ValueError):
+        return [], "Selected coordination logs are no longer available for invoicing."
+
+    coordination_logs = CoordinationLog.objects.filter(
+        id__in=unique_ids,
+        status=CoordinationLog.Status.APPROVED,
+        invoice_lines__isnull=True,
+    ).select_related("participant", "coordinator")
+    coordination_logs = list(coordination_logs.order_by("service_date", "id"))
+    if len(coordination_logs) != len(unique_ids):
+        return [], "Selected coordination logs are no longer available for invoicing."
+
+    participant_ids = {log.participant_id for log in coordination_logs}
+    if require_single_participant and len(participant_ids) > 1:
+        return [], "Selected coordination logs must belong to one participant."
+    return coordination_logs, ""
 
 
 def build_selected_invoice_form_data(service_logs):
@@ -289,6 +363,64 @@ def build_selected_invoice_groups(service_logs):
                 "count": len(logs),
                 "selected_service_log_ids": [log.id for log in logs],
                 "invoice_rows": build_invoice_rows(logs),
+            }
+        )
+    return invoice_groups
+
+
+def build_support_coordination_invoice_form_data(coordination_logs):
+    return {
+        "participant": coordination_logs[0].participant_id,
+        "period_start": min(log.service_date for log in coordination_logs).isoformat(),
+        "period_end": max(log.service_date for log in coordination_logs).isoformat(),
+    }
+
+
+def build_coordination_invoice_rows(coordination_logs):
+    return [
+        {"coordination_log": coordination_log}
+        for coordination_log in coordination_logs
+    ]
+
+
+def build_selected_coordination_invoice_groups(coordination_logs):
+    groups = OrderedDict()
+    ordered_logs = sorted(
+        coordination_logs,
+        key=lambda log: (
+            log.participant.display_name,
+            log.service_date,
+            log.id,
+        ),
+    )
+    for coordination_log in ordered_logs:
+        group = groups.setdefault(
+            coordination_log.participant_id,
+            {
+                "participant": coordination_log.participant,
+                "coordination_logs": [],
+            },
+        )
+        group["coordination_logs"].append(coordination_log)
+
+    invoice_groups = []
+    for group in groups.values():
+        logs = group["coordination_logs"]
+        period_start = min(log.service_date for log in logs)
+        period_end = max(log.service_date for log in logs)
+        period_label = format_au_date(period_start)
+        if period_start != period_end:
+            period_label = f"{period_label} - {format_au_date(period_end)}"
+        invoice_groups.append(
+            {
+                "participant": group["participant"],
+                "period_start": period_start,
+                "period_end": period_end,
+                "period_label": period_label,
+                "total_hours": sum((log.actual_hours for log in logs), Decimal("0.00")),
+                "count": len(logs),
+                "selected_coordination_log_ids": [log.id for log in logs],
+                "invoice_rows": build_coordination_invoice_rows(logs),
             }
         )
     return invoice_groups
@@ -441,14 +573,146 @@ def invoice_create(request):
     )
 
 
+@admin_required
+def support_coordination_invoice_create(request):
+    selected_ids = request.GET.getlist("coordination_log_ids")
+    if request.method == "POST":
+        selected_ids = request.POST.getlist("coordination_log_ids")
+    selected_coordination_logs = []
+    selected_error = ""
+    active_selected_ids = selected_ids
+    selected_invoice_groups = []
+
+    if selected_ids:
+        selected_coordination_logs, selected_error = (
+            get_selected_billable_coordination_logs(
+                selected_ids,
+                require_single_participant=request.method == "POST",
+            )
+        )
+
+    if (
+        request.method == "GET"
+        and selected_coordination_logs
+        and len({log.participant_id for log in selected_coordination_logs}) == 1
+    ):
+        form = SupportCoordinationInvoiceCreateForm(
+            initial=build_support_coordination_invoice_form_data(
+                selected_coordination_logs
+            )
+        )
+    elif request.method == "POST":
+        form = SupportCoordinationInvoiceCreateForm(request.POST)
+    elif request.method == "GET" and selected_coordination_logs:
+        form = SupportCoordinationInvoiceCreateForm()
+    else:
+        form = SupportCoordinationInvoiceCreateForm(request.GET or None)
+
+    coordination_logs = CoordinationLog.objects.none()
+    if selected_error:
+        active_selected_ids = []
+        if request.method == "GET" and form.is_valid():
+            selected_error = ""
+            coordination_logs = get_billable_coordination_logs(
+                form.cleaned_data["participant"],
+                form.cleaned_data["period_start"],
+                form.cleaned_data["period_end"],
+            )
+    elif selected_coordination_logs:
+        coordination_logs = selected_coordination_logs
+        if request.method == "GET":
+            selected_invoice_groups = build_selected_coordination_invoice_groups(
+                selected_coordination_logs
+            )
+    elif form.is_valid():
+        coordination_logs = get_billable_coordination_logs(
+            form.cleaned_data["participant"],
+            form.cleaned_data["period_start"],
+            form.cleaned_data["period_end"],
+        )
+
+    if request.method == "POST":
+        if selected_error:
+            coordination_logs = CoordinationLog.objects.none()
+        elif form.is_valid():
+            if selected_coordination_logs:
+                coordination_logs = selected_coordination_logs
+            else:
+                coordination_logs = get_billable_coordination_logs(
+                    form.cleaned_data["participant"],
+                    form.cleaned_data["period_start"],
+                    form.cleaned_data["period_end"],
+                )
+            coordination_logs = [
+                coordination_log
+                for coordination_log in coordination_logs
+                if coordination_log.participant_id == form.cleaned_data["participant"].id
+                and form.cleaned_data["period_start"]
+                <= coordination_log.service_date
+                <= form.cleaned_data["period_end"]
+            ]
+            if selected_coordination_logs and len(coordination_logs) != len(
+                selected_coordination_logs
+            ):
+                selected_error = (
+                    "Selected coordination logs do not match the invoice participant "
+                    "and period."
+                )
+                coordination_logs = CoordinationLog.objects.none()
+            elif not coordination_logs:
+                messages.error(
+                    request,
+                    "No approved coordination logs found for this invoice.",
+                )
+            else:
+                with transaction.atomic():
+                    invoice = Invoice.objects.create(
+                        participant=form.cleaned_data["participant"],
+                        period_start=form.cleaned_data["period_start"],
+                        period_end=form.cleaned_data["period_end"],
+                        invoice_type=Invoice.InvoiceType.SUPPORT_COORDINATION,
+                        created_by=request.user,
+                    )
+                    for coordination_log in coordination_logs:
+                        InvoiceLine.objects.create_from_coordination_log(
+                            invoice=invoice,
+                            coordination_log=coordination_log,
+                            support_item=form.cleaned_data["support_item"],
+                        )
+                        coordination_log.status = CoordinationLog.Status.INVOICED
+                        coordination_log.save(update_fields=["status", "updated_at"])
+                write_audit_log(
+                    request.user,
+                    AuditLog.Action.SUPPORT_COORDINATION_INVOICE_CREATED,
+                    invoice,
+                    f"Created support coordination invoice {invoice.invoice_number}.",
+                )
+                messages.success(request, "Support coordination invoice created.")
+                return redirect(invoice)
+
+    invoice_rows = build_coordination_invoice_rows(coordination_logs)
+    if coordination_logs and not selected_error:
+        active_selected_ids = active_selected_ids or [
+            coordination_log.id for coordination_log in coordination_logs
+        ]
+
+    return render(
+        request,
+        "invoices/support_coordination_invoice_form.html",
+        {
+            "form": form,
+            "coordination_logs": coordination_logs,
+            "invoice_rows": invoice_rows,
+            "selected_invoice_groups": selected_invoice_groups,
+            "selected_error": selected_error,
+            "selected_coordination_log_ids": active_selected_ids,
+        },
+    )
+
+
 @finance_required
 def invoice_detail(request, invoice_id):
-    invoice = get_object_or_404(
-        Invoice.objects.select_related("participant", "created_by").prefetch_related(
-            "lines",
-        ),
-        id=invoice_id,
-    )
+    invoice = get_accessible_invoice(request.user, invoice_id)
     return render(
         request,
         "invoices/invoice_detail.html",
@@ -481,29 +745,50 @@ def invoice_settings(request):
     )
 
 
+def invoice_queryset():
+    return Invoice.objects.select_related("participant", "created_by").prefetch_related(
+        Prefetch(
+            "lines",
+            queryset=InvoiceLine.objects.select_related(
+                "service_log",
+                "coordination_log",
+            ),
+        ),
+    )
+
+
 def get_invoice(invoice_id):
     return get_object_or_404(
-        Invoice.objects.select_related("participant", "created_by").prefetch_related(
-            "lines",
-        ),
+        invoice_queryset(),
         id=invoice_id,
     )
 
 
-def release_invoice_service_logs(invoice):
+def release_invoice_source_logs(invoice):
     service_logs = {
         line.service_log_id: line.service_log
         for line in invoice.lines.select_related("service_log")
+        if line.service_log_id
     }
     for service_log in service_logs.values():
         service_log.status = ServiceLog.Status.APPROVED
         service_log.save(update_fields=["status", "updated_at"])
+
+    coordination_logs = {
+        line.coordination_log_id: line.coordination_log
+        for line in invoice.lines.select_related("coordination_log")
+        if line.coordination_log_id
+    }
+    for coordination_log in coordination_logs.values():
+        coordination_log.status = CoordinationLog.Status.APPROVED
+        coordination_log.save(update_fields=["status", "updated_at"])
+
     invoice.lines.all().delete()
 
 
 @finance_required
 def invoice_csv(request, invoice_id):
-    invoice = get_invoice(invoice_id)
+    invoice = get_accessible_invoice(request.user, invoice_id)
     output = StringIO()
     writer = csv.writer(output)
     writer.writerow(
@@ -520,9 +805,11 @@ def invoice_csv(request, invoice_id):
             "unit_price",
             "gst_code",
             "line_total",
+            "invoice_type",
+            "source_date",
         ]
     )
-    for line in invoice.lines.all():
+    for line in invoice.lines.select_related("service_log", "coordination_log"):
         writer.writerow(
             [
                 invoice.invoice_number,
@@ -537,11 +824,18 @@ def invoice_csv(request, invoice_id):
                 f"{line.unit_price:.2f}",
                 line.gst_code,
                 f"{line.line_total:.2f}",
+                invoice.invoice_type,
+                invoice_line_source_date(line),
             ]
         )
     response = HttpResponse(output.getvalue(), content_type="text/csv")
+    filename = (
+        invoice_download_filename(invoice, "csv")
+        if invoice.invoice_type == Invoice.InvoiceType.SUPPORT_COORDINATION
+        else f"{invoice.invoice_number}.csv"
+    )
     response["Content-Disposition"] = (
-        f'attachment; filename="{invoice.invoice_number}.csv"'
+        f'attachment; filename="{filename}"'
     )
     return response
 
@@ -747,8 +1041,12 @@ def wrap_pdf_text(text, max_width, font_size):
     return lines
 
 
-def invoice_line_service_date(line):
-    return format_au_date(line.service_log.service_date)
+def invoice_line_source_date(line):
+    if line.service_log_id:
+        return format_au_date(line.service_log.service_date)
+    if line.coordination_log_id:
+        return format_au_date(line.coordination_log.service_date)
+    return "-"
 
 
 def pdf_line(x1, y1, x2, y2, width=1.5, color=(0.435, 0.173, 0.502)):
@@ -867,7 +1165,7 @@ def invoice_footer_minimum_top(payment_detail_rows, page_bottom=40):
 
 @finance_required
 def invoice_pdf(request, invoice_id):
-    invoice = get_invoice(invoice_id)
+    invoice = get_accessible_invoice(request.user, invoice_id)
     settings_obj = InvoiceSettings.load()
     business_lines = []
     append_if_present(business_lines, "ABN", settings_obj.abn)
@@ -915,6 +1213,12 @@ def invoice_pdf(request, invoice_id):
         pdf_text("TAX INVOICE", invoice_detail_x, invoice_detail_y, 10.5, "F2"),
         pdf_text(f"Invoice No.: # {invoice.invoice_number}", invoice_detail_x, invoice_detail_y - detail_line_gap, 8.5),
         pdf_text(f"Invoice Date: {invoice_date}", invoice_detail_x, invoice_detail_y - (detail_line_gap * 2), 8.5),
+        pdf_text(
+            f"Invoice Type: {invoice.get_invoice_type_display()}",
+            invoice_detail_x,
+            invoice_detail_y - (detail_line_gap * 3),
+            8.5,
+        ),
         pdf_line(page_left, divider_y, page_right, divider_y, width=3),
     ]
     if logo_image:
@@ -988,7 +1292,7 @@ def invoice_pdf(request, invoice_id):
         if (value or "").strip()
     ]
     footer_minimum_top = invoice_footer_minimum_top(payment_detail_rows)
-    invoice_lines = list(invoice.lines.select_related("service_log"))
+    invoice_lines = list(invoice.lines.select_related("service_log", "coordination_log"))
     for line_index, line in enumerate(invoice_lines):
         description_lines = wrap_pdf_text(
             line.description,
@@ -1027,7 +1331,7 @@ def invoice_pdf(request, invoice_id):
         code_y = y - (len(description_lines) * 10)
         pdf_lines.extend(
             [
-                pdf_text(invoice_line_service_date(line), item_col_x, y, 7.5),
+                pdf_text(invoice_line_source_date(line), item_col_x, y, 7.5),
                 pdf_right_text(f"{line.quantity:.2f}", qty_col_right, y, 7.5),
                 pdf_right_text(f"${format_money(line.unit_price)}", rate_col_right, y, 7.5),
                 pdf_right_text(f"${format_money(line.line_total)}", amount_col_right, y, 8, "F2"),
@@ -1102,7 +1406,12 @@ def invoice_pdf(request, invoice_id):
 @finance_required
 @require_POST
 def invoice_mark_issued(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id, status=Invoice.Status.DRAFT)
+    invoice = get_accessible_invoice(
+        request.user,
+        invoice_id,
+        queryset=Invoice.objects.all(),
+        status=Invoice.Status.DRAFT,
+    )
     invoice.status = Invoice.Status.ISSUED
     invoice.save(update_fields=["status", "updated_at"])
     write_audit_log(
@@ -1118,7 +1427,12 @@ def invoice_mark_issued(request, invoice_id):
 @finance_required
 @require_POST
 def invoice_mark_paid(request, invoice_id):
-    invoice = get_object_or_404(Invoice, id=invoice_id, status=Invoice.Status.ISSUED)
+    invoice = get_accessible_invoice(
+        request.user,
+        invoice_id,
+        queryset=Invoice.objects.all(),
+        status=Invoice.Status.ISSUED,
+    )
     invoice.status = Invoice.Status.PAID
     invoice.save(update_fields=["status", "updated_at"])
     write_audit_log(
@@ -1134,12 +1448,16 @@ def invoice_mark_paid(request, invoice_id):
 @finance_required
 @require_POST
 def invoice_cancel(request, invoice_id):
-    invoice = get_object_or_404(
-        Invoice.objects.prefetch_related("lines__service_log"),
-        id=invoice_id,
+    invoice = get_accessible_invoice(
+        request.user,
+        invoice_id,
+        queryset=Invoice.objects.prefetch_related(
+            "lines__service_log",
+            "lines__coordination_log",
+        ),
         status__in=[Invoice.Status.DRAFT, Invoice.Status.ISSUED],
     )
-    release_invoice_service_logs(invoice)
+    release_invoice_source_logs(invoice)
     invoice.status = Invoice.Status.CANCELLED
     invoice.save(update_fields=["status", "updated_at"])
     write_audit_log(
@@ -1155,13 +1473,17 @@ def invoice_cancel(request, invoice_id):
 @finance_required
 @require_POST
 def invoice_delete(request, invoice_id):
-    invoice = get_object_or_404(
-        Invoice.objects.prefetch_related("lines__service_log"),
-        id=invoice_id,
+    invoice = get_accessible_invoice(
+        request.user,
+        invoice_id,
+        queryset=Invoice.objects.prefetch_related(
+            "lines__service_log",
+            "lines__coordination_log",
+        ),
         status=Invoice.Status.DRAFT,
     )
     invoice_number = invoice.invoice_number
-    release_invoice_service_logs(invoice)
+    release_invoice_source_logs(invoice)
     write_audit_log(
         request.user,
         AuditLog.Action.INVOICE_DELETED,

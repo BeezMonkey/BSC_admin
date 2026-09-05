@@ -91,6 +91,7 @@
           <td class="invoice-number-cell">
             <div class="invoice-number-stack">
               <a class="invoice-primary-text" href="{% url 'invoice_detail' invoice.id %}?next={{ current_list_url|urlencode }}">{{ invoice.invoice_number }}</a>
+              <span class="status-pill status-{{ invoice.invoice_type }}">{{ invoice.get_invoice_type_display }}</span>
               <span>Created by {{ invoice.created_by.get_username }}</span>
             </div>
           </td>
