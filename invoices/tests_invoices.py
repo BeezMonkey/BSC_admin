@@ -395,6 +395,50 @@ class InvoiceGenerationTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
+    def test_admin_can_create_support_coordination_invoice(self):
+        coordination_log = self.create_coordination_log(actual_hours=Decimal("1.50"))
+        self.login_admin()
+
+        response = self.client.post(
+            reverse("support_coordination_invoice_create"),
+            {
+                "participant": self.participant.id,
+                "period_start": "2026-06-01",
+                "period_end": "2026-06-01",
+                "support_item": self.support_item.id,
+                "coordination_log_ids": [coordination_log.id],
+            },
+        )
+
+        invoice = Invoice.objects.get()
+        self.assertRedirects(response, reverse("invoice_detail", args=[invoice.id]))
+        self.assertEqual(invoice.invoice_type, Invoice.InvoiceType.SUPPORT_COORDINATION)
+        self.assertEqual(invoice.lines.count(), 1)
+        line = invoice.lines.get()
+        self.assertIsNone(line.service_log)
+        self.assertEqual(line.coordination_log, coordination_log)
+        coordination_log.refresh_from_db()
+        self.assertEqual(coordination_log.status, CoordinationLog.Status.INVOICED)
+
+    def test_support_coordination_invoice_create_groups_selected_logs_by_participant(self):
+        first_log = self.create_coordination_log(case_notes="First participant SC work.")
+        other_log = self.create_coordination_log(
+            participant=self.other_participant,
+            case_notes="Other participant SC work.",
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("support_coordination_invoice_create"),
+            {"coordination_log_ids": [first_log.id, other_log.id]},
+        )
+
+        self.assertContains(response, 'class="invoice-selected-group"', count=2)
+        self.assertContains(response, "Ava Nguyen")
+        self.assertContains(response, "Ben Taylor")
+        self.assertContains(response, "Create Invoice for Ava Nguyen")
+        self.assertContains(response, "Create Invoice for Ben Taylor")
+
     def test_invoice_create_filter_uses_aligned_field_layout(self):
         self.login_accountant()
 

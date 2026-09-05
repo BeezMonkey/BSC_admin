@@ -3,17 +3,100 @@
 {% block title %}Create Support Coordination Invoice - Brisbane Star Care{% endblock %}
 
 {% block content %}
-<h1>Create Support Coordination Invoice</h1>
+<div class="page-header">
+  <div>
+    <h1>Create Support Coordination Invoice</h1>
+    <p>Select approved coordination logs for one participant and period.</p>
+  </div>
+</div>
 
-<form method="get">
-  {{ form.as_p }}
+<form method="get" class="filter-bar invoice-preview-filter">
+  {{ form.non_field_errors }}
+  {% for coordination_log_id in selected_coordination_log_ids %}
+    <input type="hidden" name="coordination_log_ids" value="{{ coordination_log_id }}">
+  {% endfor %}
+  <label>
+    Participant
+    {{ form.participant.errors }}
+    {{ form.participant }}
+  </label>
+  <label>
+    Period start
+    {{ form.period_start.errors }}
+    {{ form.period_start }}
+  </label>
+  <label>
+    Period end
+    {{ form.period_end.errors }}
+    {{ form.period_end }}
+  </label>
+  <label>
+    Support item
+    {{ form.support_item.errors }}
+    {{ form.support_item }}
+  </label>
   <button type="submit">Preview Logs</button>
 </form>
 
-{% for coordination_log in coordination_logs %}
-  <section>
-    <input type="hidden" name="coordination_log_ids" value="{{ coordination_log.id }}">
-    <p>{{ coordination_log.case_notes }}</p>
+{% if selected_error %}
+  <section class="card">
+    <p>{{ selected_error }}</p>
   </section>
-{% endfor %}
+{% endif %}
+
+<section class="card table-card invoice-preview-table">
+  <h2>Approved Coordination Logs</h2>
+  {% if selected_invoice_groups %}
+    <div class="invoice-selected-groups">
+      {% for group in selected_invoice_groups %}
+        <article class="invoice-selected-group">
+          <div class="invoice-selected-group-header">
+            <div>
+              <h3>{{ group.participant.display_name }}</h3>
+              <p>{{ group.count }} log{{ group.count|pluralize }} | {{ group.period_label }} | {{ group.total_hours }} hours</p>
+            </div>
+          </div>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="participant" value="{{ group.participant.id }}">
+            <input type="hidden" name="period_start" value="{{ group.period_start|date:'Y-m-d' }}">
+            <input type="hidden" name="period_end" value="{{ group.period_end|date:'Y-m-d' }}">
+            {% for coordination_log_id in group.selected_coordination_log_ids %}
+              <input type="hidden" name="coordination_log_ids" value="{{ coordination_log_id }}">
+            {% endfor %}
+            <label>
+              Support item
+              {{ form.support_item.errors }}
+              {{ form.support_item }}
+            </label>
+            {% include "invoices/support_coordination_invoice_rows.html" with invoice_rows=group.invoice_rows %}
+            <div class="invoice-preview-actions">
+              <button type="submit">Create Invoice for {{ group.participant.display_name }}</button>
+            </div>
+          </form>
+        </article>
+      {% endfor %}
+    </div>
+  {% elif coordination_logs %}
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="participant" value="{{ form.cleaned_data.participant.id }}">
+      <input type="hidden" name="period_start" value="{{ form.cleaned_data.period_start|date:'Y-m-d' }}">
+      <input type="hidden" name="period_end" value="{{ form.cleaned_data.period_end|date:'Y-m-d' }}">
+      <input type="hidden" name="support_item" value="{{ form.cleaned_data.support_item.id }}">
+      {% for coordination_log_id in selected_coordination_log_ids %}
+        <input type="hidden" name="coordination_log_ids" value="{{ coordination_log_id }}">
+      {% endfor %}
+      {% include "invoices/support_coordination_invoice_rows.html" %}
+      <div class="invoice-preview-actions">
+        <button type="submit">Create Invoice</button>
+      </div>
+    </form>
+  {% else %}
+    <div class="invoice-preview-empty-state empty-state">
+      <strong>No approved coordination logs found for this invoice.</strong>
+      <p>Choose another participant or date range, or approve submitted coordination logs before creating an invoice.</p>
+    </div>
+  {% endif %}
+</section>
 {% endblock %}

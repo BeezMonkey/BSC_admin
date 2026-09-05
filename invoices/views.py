@@ -221,7 +221,7 @@ def get_billable_coordination_logs(participant, period_start, period_end):
         service_date__lte=period_end,
         status=CoordinationLog.Status.APPROVED,
         invoice_lines__isnull=True,
-    ).select_related("participant", "coordinator")
+    ).select_related("participant", "coordinator").order_by("service_date", "id")
 
 
 def get_selected_billable_logs(service_log_ids, require_single_participant=True):
@@ -332,6 +332,64 @@ def build_selected_invoice_groups(service_logs):
                 "count": len(logs),
                 "selected_service_log_ids": [log.id for log in logs],
                 "invoice_rows": build_invoice_rows(logs),
+            }
+        )
+    return invoice_groups
+
+
+def build_support_coordination_invoice_form_data(coordination_logs):
+    return {
+        "participant": coordination_logs[0].participant_id,
+        "period_start": min(log.service_date for log in coordination_logs).isoformat(),
+        "period_end": max(log.service_date for log in coordination_logs).isoformat(),
+    }
+
+
+def build_coordination_invoice_rows(coordination_logs):
+    return [
+        {"coordination_log": coordination_log}
+        for coordination_log in coordination_logs
+    ]
+
+
+def build_selected_coordination_invoice_groups(coordination_logs):
+    groups = OrderedDict()
+    ordered_logs = sorted(
+        coordination_logs,
+        key=lambda log: (
+            log.participant.display_name,
+            log.service_date,
+            log.id,
+        ),
+    )
+    for coordination_log in ordered_logs:
+        group = groups.setdefault(
+            coordination_log.participant_id,
+            {
+                "participant": coordination_log.participant,
+                "coordination_logs": [],
+            },
+        )
+        group["coordination_logs"].append(coordination_log)
+
+    invoice_groups = []
+    for group in groups.values():
+        logs = group["coordination_logs"]
+        period_start = min(log.service_date for log in logs)
+        period_end = max(log.service_date for log in logs)
+        period_label = format_au_date(period_start)
+        if period_start != period_end:
+            period_label = f"{period_label} - {format_au_date(period_end)}"
+        invoice_groups.append(
+            {
+                "participant": group["participant"],
+                "period_start": period_start,
+                "period_end": period_end,
+                "period_label": period_label,
+                "total_hours": sum((log.actual_hours for log in logs), Decimal("0.00")),
+                "count": len(logs),
+                "selected_coordination_log_ids": [log.id for log in logs],
+                "invoice_rows": build_coordination_invoice_rows(logs),
             }
         )
     return invoice_groups
@@ -486,15 +544,134 @@ def invoice_create(request):
 
 @admin_required
 def support_coordination_invoice_create(request):
-    form = SupportCoordinationInvoiceCreateForm(request.GET or None)
-    coordination_logs = CoordinationLog.objects.none()
+    selected_ids = request.GET.getlist("coordination_log_ids")
+    if request.method == "POST":
+        selected_ids = request.POST.getlist("coordination_log_ids")
+    selected_coordination_logs = []
+    selected_error = ""
+    active_selected_ids = selected_ids
+    selected_invoice_groups = []
 
-    if form.is_valid():
+    if selected_ids:
+        selected_coordination_logs, selected_error = (
+            get_selected_billable_coordination_logs(
+                selected_ids,
+                require_single_participant=request.method == "POST",
+            )
+        )
+
+    if (
+        request.method == "GET"
+        and selected_coordination_logs
+        and len({log.participant_id for log in selected_coordination_logs}) == 1
+    ):
+        form = SupportCoordinationInvoiceCreateForm(
+            initial=build_support_coordination_invoice_form_data(
+                selected_coordination_logs
+            )
+        )
+    elif request.method == "POST":
+        form = SupportCoordinationInvoiceCreateForm(request.POST)
+    elif request.method == "GET" and selected_coordination_logs:
+        form = SupportCoordinationInvoiceCreateForm()
+    else:
+        form = SupportCoordinationInvoiceCreateForm(request.GET or None)
+
+    coordination_logs = CoordinationLog.objects.none()
+    if selected_error:
+        active_selected_ids = []
+        if request.method == "GET" and form.is_valid():
+            selected_error = ""
+            coordination_logs = get_billable_coordination_logs(
+                form.cleaned_data["participant"],
+                form.cleaned_data["period_start"],
+                form.cleaned_data["period_end"],
+            )
+    elif selected_coordination_logs:
+        coordination_logs = selected_coordination_logs
+        if request.method == "GET":
+            selected_invoice_groups = build_selected_coordination_invoice_groups(
+                selected_coordination_logs
+            )
+    elif form.is_valid():
         coordination_logs = get_billable_coordination_logs(
             form.cleaned_data["participant"],
             form.cleaned_data["period_start"],
             form.cleaned_data["period_end"],
         )
+
+    if request.method == "POST":
+        if selected_error:
+            coordination_logs = CoordinationLog.objects.none()
+        elif form.is_valid():
+            if selected_coordination_logs:
+                coordination_logs = selected_coordination_logs
+            else:
+                coordination_logs = get_billable_coordination_logs(
+                    form.cleaned_data["participant"],
+                    form.cleaned_data["period_start"],
+                    form.cleaned_data["period_end"],
+                )
+            coordination_logs = [
+                coordination_log
+                for coordination_log in coordination_logs
+                if coordination_log.participant_id == form.cleaned_data["participant"].id
+                and form.cleaned_data["period_start"]
+                <= coordination_log.service_date
+                <= form.cleaned_data["period_end"]
+            ]
+            if selected_coordination_logs and len(coordination_logs) != len(
+                selected_coordination_logs
+            ):
+                selected_error = (
+                    "Selected coordination logs do not match the invoice participant "
+                    "and period."
+                )
+                coordination_logs = CoordinationLog.objects.none()
+            elif not coordination_logs:
+                messages.error(
+                    request,
+                    "No approved coordination logs found for this invoice.",
+                )
+            else:
+                with transaction.atomic():
+                    invoice = Invoice.objects.create(
+                        participant=form.cleaned_data["participant"],
+                        period_start=form.cleaned_data["period_start"],
+                        period_end=form.cleaned_data["period_end"],
+                        invoice_type=Invoice.InvoiceType.SUPPORT_COORDINATION,
+                        created_by=request.user,
+                    )
+                    for coordination_log in coordination_logs:
+                        InvoiceLine.objects.create_from_coordination_log(
+                            invoice=invoice,
+                            coordination_log=coordination_log,
+                            support_item=form.cleaned_data["support_item"],
+                        )
+                        coordination_log.status = CoordinationLog.Status.INVOICED
+                        coordination_log.save(update_fields=["status", "updated_at"])
+                audit_action = (
+                    AuditLog.Action.SUPPORT_COORDINATION_INVOICE_CREATED
+                    if hasattr(
+                        AuditLog.Action,
+                        "SUPPORT_COORDINATION_INVOICE_CREATED",
+                    )
+                    else AuditLog.Action.INVOICE_CREATED
+                )
+                write_audit_log(
+                    request.user,
+                    audit_action,
+                    invoice,
+                    f"Created invoice {invoice.invoice_number}.",
+                )
+                messages.success(request, "Support coordination invoice created.")
+                return redirect(invoice)
+
+    invoice_rows = build_coordination_invoice_rows(coordination_logs)
+    if coordination_logs and not selected_error:
+        active_selected_ids = active_selected_ids or [
+            coordination_log.id for coordination_log in coordination_logs
+        ]
 
     return render(
         request,
@@ -502,6 +679,10 @@ def support_coordination_invoice_create(request):
         {
             "form": form,
             "coordination_logs": coordination_logs,
+            "invoice_rows": invoice_rows,
+            "selected_invoice_groups": selected_invoice_groups,
+            "selected_error": selected_error,
+            "selected_coordination_log_ids": active_selected_ids,
         },
     )
 

@@ -1,0 +1,22 @@
+<table>
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Coordinator</th>
+      <th>Coordination type</th>
+      <th class="invoice-preview-hours-cell">Hours</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in invoice_rows %}
+      <tr>
+        <td class="invoice-preview-date-cell">{{ row.coordination_log.service_date|date:"d/m/Y" }}</td>
+        <td class="invoice-preview-worker-cell">{{ row.coordination_log.coordinator.display_name }}</td>
+        <td class="invoice-preview-support-cell">{{ row.coordination_log.get_coordination_type_display }}</td>
+        <td class="invoice-preview-hours-cell">{{ row.coordination_log.actual_hours }}</td>
+        <td class="invoice-preview-notes-cell">{{ row.coordination_log.case_notes|truncatechars:80 }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
