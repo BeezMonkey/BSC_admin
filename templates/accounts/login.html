@@ -7,7 +7,7 @@
   <form class="login-card" method="post">
     {% csrf_token %}
     <h1>Brisbane Star Care</h1>
-    <p>{{ portal_name|default:"NDIS Admin System" }}</p>
+    <p class="portal-badge">{{ portal_name|default:"NDIS Admin System" }}</p>
     {% if form.errors %}
       <div class="error">Invalid username or password.</div>
     {% endif %}
