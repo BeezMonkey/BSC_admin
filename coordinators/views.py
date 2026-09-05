@@ -40,6 +40,16 @@ def coordinator_dashboard(request):
 
 
 @coordinator_required
+def coordinator_account(request):
+    coordinator = get_current_coordinator(request.user)
+    return render(
+        request,
+        "coordinators/sc_account.html",
+        {"coordinator": coordinator},
+    )
+
+
+@coordinator_required
 def coordinator_participant_list(request):
     coordinator = get_current_coordinator(request.user)
     participants = Participant.objects.none()

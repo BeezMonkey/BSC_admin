@@ -1,0 +1,33 @@
+{% extends "coordinator_base.html" %}
+
+{% block title %}My Account - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<section class="worker-content">
+  <header class="page-header">
+    <div>
+      <h1>My Account</h1>
+      <p>Review your Support Coordinator portal details.</p>
+    </div>
+  </header>
+
+  <section class="worker-card">
+    {% if coordinator %}
+      <h2>{{ coordinator.display_name }}</h2>
+      <dl class="detail-list">
+        <dt>Username</dt>
+        <dd>{{ request.user.get_username }}</dd>
+        <dt>Email</dt>
+        <dd>{{ coordinator.email }}</dd>
+        <dt>Phone</dt>
+        <dd>{{ coordinator.phone|default:"-" }}</dd>
+        <dt>Status</dt>
+        <dd>{{ coordinator.get_status_display }}</dd>
+      </dl>
+    {% else %}
+      <h2>Account setup pending</h2>
+      <p>Your coordinator profile has not been set up yet.</p>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}
