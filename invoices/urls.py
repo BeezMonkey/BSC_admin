@@ -13,6 +13,7 @@ from .views import (
     invoice_pdf,
     invoice_settings,
     support_coordination_invoice_create,
+    support_coordination_invoice_list,
 )
 
 urlpatterns = [
@@ -23,6 +24,11 @@ urlpatterns = [
         "invoices/support-coordination/new/",
         support_coordination_invoice_create,
         name="support_coordination_invoice_create",
+    ),
+    path(
+        "invoices/support-coordination/",
+        support_coordination_invoice_list,
+        name="support_coordination_invoice_list",
     ),
     path("invoices/<int:invoice_id>/", invoice_detail, name="invoice_detail"),
     path("invoices/<int:invoice_id>/csv/", invoice_csv, name="invoice_csv"),

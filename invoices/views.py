@@ -118,9 +118,19 @@ def build_invoice_filter_summary(status, q, participant_query, period_from, peri
     return f"{summary}."
 
 
-@finance_required
-def invoice_list(request):
-    visible_invoices = invoice_queryset_for_user(request.user)
+def invoice_list_for_type(
+    request,
+    invoice_type,
+    page_title,
+    page_description,
+    list_url_name,
+    create_url_name,
+    create_button_label,
+    show_invoice_settings=False,
+    all_status_label="All invoices",
+):
+    visible_invoices = invoice_queryset_for_user(request.user).filter(invoice_type=invoice_type)
+    list_url = reverse(list_url_name)
     status_counts = {
         row["status"]: row["count"]
         for row in visible_invoices.values("status").annotate(count=Count("id"))
@@ -166,38 +176,38 @@ def invoice_list(request):
     cancelled_count = status_counts.get(Invoice.Status.CANCELLED, 0)
     status_overview = [
         {
-            "label": "All invoices",
+            "label": all_status_label,
             "count_label": f"{total_count} record{'s' if total_count != 1 else ''}",
             "description": "Full billing history",
-            "url": reverse("invoice_placeholder"),
+            "url": list_url,
             "active": not status,
         },
         {
             "label": "Draft",
             "count_label": f"{draft_count} draft{'s' if draft_count != 1 else ''}",
             "description": "Ready to review before issuing",
-            "url": f"{reverse('invoice_placeholder')}?status={Invoice.Status.DRAFT}",
+            "url": f"{list_url}?status={Invoice.Status.DRAFT}",
             "active": status == Invoice.Status.DRAFT,
         },
         {
             "label": "Issued",
             "count_label": f"{issued_count} awaiting payment",
             "description": "Sent invoices not marked paid",
-            "url": f"{reverse('invoice_placeholder')}?status={Invoice.Status.ISSUED}",
+            "url": f"{list_url}?status={Invoice.Status.ISSUED}",
             "active": status == Invoice.Status.ISSUED,
         },
         {
             "label": "Paid",
             "count_label": f"{paid_count} paid",
             "description": "Completed billing records",
-            "url": f"{reverse('invoice_placeholder')}?status={Invoice.Status.PAID}",
+            "url": f"{list_url}?status={Invoice.Status.PAID}",
             "active": status == Invoice.Status.PAID,
         },
         {
             "label": "Cancelled",
             "count_label": f"{cancelled_count} cancelled",
             "description": "Removed from active billing",
-            "url": f"{reverse('invoice_placeholder')}?status={Invoice.Status.CANCELLED}",
+            "url": f"{list_url}?status={Invoice.Status.CANCELLED}",
             "active": status == Invoice.Status.CANCELLED,
         },
     ]
@@ -218,6 +228,12 @@ def invoice_list(request):
         request,
         "invoices/invoice_list.html",
         {
+            "page_title": page_title,
+            "page_description": page_description,
+            "list_url_name": list_url_name,
+            "create_url_name": create_url_name,
+            "create_button_label": create_button_label,
+            "show_invoice_settings": show_invoice_settings,
             "invoices": invoices,
             "pagination": pagination,
             "sorting": sorting,
@@ -232,6 +248,34 @@ def invoice_list(request):
             "filter_summary": filter_summary,
             "current_list_url": request.get_full_path(),
         },
+    )
+
+
+@finance_required
+def invoice_list(request):
+    return invoice_list_for_type(
+        request,
+        Invoice.InvoiceType.SERVICE,
+        "Invoices",
+        "Manage service invoices.",
+        "invoice_placeholder",
+        "invoice_create",
+        "Create Invoice",
+        show_invoice_settings=True,
+    )
+
+
+@admin_required
+def support_coordination_invoice_list(request):
+    return invoice_list_for_type(
+        request,
+        Invoice.InvoiceType.SUPPORT_COORDINATION,
+        "SC Invoices",
+        "Manage support coordination invoices.",
+        "support_coordination_invoice_list",
+        "support_coordination_invoice_create",
+        "Create SC Invoice",
+        all_status_label="All SC invoices",
     )
 
 
