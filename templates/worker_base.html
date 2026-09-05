@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block extra_styles %}
+  <link rel="stylesheet" href="{% static 'css/portal.css' %}">
+{% endblock %}
+
 {% block body %}
-<div class="app-shell worker-app-shell">
+<div class="app-shell worker-app-shell" data-portal-theme>
   <header class="worker-mobile-header">
     <button class="worker-mobile-menu-button" type="button" aria-label="Open worker menu" aria-controls="worker-mobile-drawer" aria-expanded="false">
       <span class="worker-mobile-menu-icon" aria-hidden="true"></span>
