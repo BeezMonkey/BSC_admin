@@ -224,6 +224,16 @@ def participant_archive(request, participant_id):
 
 
 @admin_required
+@require_POST
+def participant_restore(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+    participant.status = Participant.Status.ACTIVE
+    participant.save(update_fields=["status", "updated_at"])
+    messages.success(request, "Participant restored.")
+    return redirect(participant)
+
+
+@admin_required
 def participant_assign_worker(request, participant_id):
     participant = get_object_or_404(Participant, id=participant_id)
     if request.method == "POST":

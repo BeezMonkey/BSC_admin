@@ -708,6 +708,36 @@ class ParticipantManagementTests(TestCase):
         self.assertEqual(participant.status, Participant.Status.ARCHIVED)
         self.assertEqual(Participant.objects.count(), 1)
 
+    def test_archived_participant_detail_shows_restore_action(self):
+        participant = Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            ndis_number="111111111",
+            status=Participant.Status.ARCHIVED,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("participant_detail", args=[participant.id]))
+
+        self.assertContains(response, "Restore")
+        self.assertContains(response, reverse("participant_restore", args=[participant.id]))
+        self.assertNotContains(response, "Archive</button>")
+
+    def test_admin_can_restore_archived_participant_to_active(self):
+        participant = Participant.objects.create(
+            first_name="Ava",
+            last_name="Nguyen",
+            ndis_number="111111111",
+            status=Participant.Status.ARCHIVED,
+        )
+        self.login_admin()
+
+        response = self.client.post(reverse("participant_restore", args=[participant.id]))
+
+        participant.refresh_from_db()
+        self.assertRedirects(response, reverse("participant_detail", args=[participant.id]))
+        self.assertEqual(participant.status, Participant.Status.ACTIVE)
+
     def test_worker_and_accountant_cannot_access_participant_pages(self):
         participant = Participant.objects.create(
             first_name="Ava",
@@ -720,6 +750,7 @@ class ParticipantManagementTests(TestCase):
             reverse("participant_detail", args=[participant.id]),
             reverse("participant_edit", args=[participant.id]),
             reverse("participant_archive", args=[participant.id]),
+            reverse("participant_restore", args=[participant.id]),
         ]
 
         for username in ["worker", "accountant"]:

@@ -12,7 +12,12 @@
     <a class="button secondary" href="{{ return_url }}">Back to Participants</a>
     <a class="button" href="{% url 'participant_edit' participant.id %}">Edit</a>
     <a class="button" href="{% url 'participant_assign_worker' participant.id %}">Assign Worker</a>
-    {% if participant.status != "archived" %}
+    {% if participant.status == "archived" %}
+      <form method="post" action="{% url 'participant_restore' participant.id %}">
+        {% csrf_token %}
+        <button type="submit">Restore</button>
+      </form>
+    {% else %}
       <form method="post" action="{% url 'participant_archive' participant.id %}">
         {% csrf_token %}
         <button class="danger" type="submit">Archive</button>
