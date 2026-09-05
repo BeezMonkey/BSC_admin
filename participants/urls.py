@@ -8,6 +8,7 @@ from .views import (
     participant_detail,
     participant_edit,
     participant_list,
+    participant_restore,
 )
 
 urlpatterns = [
@@ -24,6 +25,11 @@ urlpatterns = [
         "participants/<int:participant_id>/archive/",
         participant_archive,
         name="participant_archive",
+    ),
+    path(
+        "participants/<int:participant_id>/restore/",
+        participant_restore,
+        name="participant_restore",
     ),
     path("assignments/<int:assignment_id>/end/", assignment_end, name="assignment_end"),
 ]
