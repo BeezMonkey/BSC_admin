@@ -757,12 +757,22 @@ def support_coordination_invoice_create(request):
 @finance_required
 def invoice_detail(request, invoice_id):
     invoice = get_accessible_invoice(request.user, invoice_id)
+    is_support_coordination_invoice = (
+        invoice.invoice_type == Invoice.InvoiceType.SUPPORT_COORDINATION
+    )
+    default_return_url = reverse(
+        "support_coordination_invoice_list"
+        if is_support_coordination_invoice
+        else "invoice_placeholder"
+    )
+    return_label = "Back to SC Invoices" if is_support_coordination_invoice else "Back to Invoices"
     return render(
         request,
         "invoices/invoice_detail.html",
         {
             "invoice": invoice,
-            "return_url": get_safe_return_url(request, reverse("invoice_placeholder")),
+            "return_url": get_safe_return_url(request, default_return_url),
+            "return_label": return_label,
         },
     )
 

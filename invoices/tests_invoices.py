@@ -994,6 +994,7 @@ class InvoiceGenerationTests(TestCase):
             response,
             f'class="sidebar-link active" href="{reverse("support_coordination_invoice_list")}"',
         )
+        self.assertContains(response, "Back to SC Invoices")
 
     def test_accountant_invoice_list_hides_support_coordination_invoices(self):
         service_log = self.create_service_log()
