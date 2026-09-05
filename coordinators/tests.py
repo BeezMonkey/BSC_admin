@@ -69,6 +69,36 @@ class CoordinatorRoleAccessTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Support Coordinator")
 
+    def test_sc_dashboard_shows_participant_and_log_action_cards(self):
+        user = self.create_user_with_role(
+            "coordinator",
+            UserProfile.Role.SUPPORT_COORDINATOR,
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("coordinator_dashboard"))
+
+        self.assertContains(response, "coordinator-dashboard-actions")
+        self.assertContains(response, "My Participants")
+        self.assertContains(response, reverse("coordinator_participant_list"))
+        self.assertContains(response, "Coordination Logs")
+        self.assertContains(response, reverse("coordinator_log_list"))
+        self.assertContains(response, reverse("coordinator_log_create"))
+        self.assertNotContains(response, "Documents")
+
+    def test_sc_mobile_nav_uses_refined_portal_icons(self):
+        user = self.create_user_with_role(
+            "coordinator",
+            UserProfile.Role.SUPPORT_COORDINATOR,
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("coordinator_dashboard"))
+
+        self.assertContains(response, "portal-nav-icon portal-nav-icon-home")
+        self.assertContains(response, "portal-nav-icon portal-nav-icon-users")
+        self.assertContains(response, "portal-nav-icon portal-nav-icon-logs")
+
     def test_support_worker_cannot_access_sc_dashboard(self):
         user = self.create_user_with_role(
             "worker",

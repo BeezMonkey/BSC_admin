@@ -31,6 +31,17 @@ class WorkerMobileShellTests(TestCase):
         self.assertContains(response, reverse("worker_log_list"))
         self.assertContains(response, reverse("worker_document_list"))
 
+    def test_worker_mobile_nav_uses_refined_portal_icons(self):
+        self.create_user_with_role("worker", UserProfile.Role.SUPPORT_WORKER)
+        self.client.login(username="worker", password="test-password-123")
+
+        response = self.client.get(reverse("worker_dashboard"))
+
+        self.assertContains(response, "portal-nav-icon portal-nav-icon-home")
+        self.assertContains(response, "portal-nav-icon portal-nav-icon-calendar")
+        self.assertContains(response, "portal-nav-icon portal-nav-icon-logs")
+        self.assertContains(response, "portal-nav-icon portal-nav-icon-file")
+
     def test_admin_pages_do_not_include_worker_mobile_bottom_navigation(self):
         self.create_user_with_role("admin", UserProfile.Role.ADMIN)
         self.client.login(username="admin", password="test-password-123")

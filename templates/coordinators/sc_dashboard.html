@@ -10,11 +10,19 @@
       <p>Manage your assigned participants and coordination logs.</p>
     </div>
   </header>
-  <div class="card-grid worker-dashboard-grid worker-tool-grid coordinator-summary-grid">
-    <section class="card worker-tool-card">
+  <div class="card-grid worker-dashboard-grid worker-tool-grid coordinator-summary-grid coordinator-dashboard-actions">
+    <section class="card worker-tool-card coordinator-dashboard-card">
       <h2>My Participants</h2>
       <p>{{ assigned_participant_count }} active participant{{ assigned_participant_count|pluralize }} assigned to you.</p>
       <a class="card-action" href="{% url 'coordinator_participant_list' %}">Open participants</a>
+    </section>
+    <section class="card worker-tool-card coordinator-dashboard-card">
+      <h2>Coordination Logs</h2>
+      <p>Review your submitted support coordination records.</p>
+      <div class="button-row coordinator-dashboard-card-actions">
+        <a class="card-action" href="{% url 'coordinator_log_list' %}">Open logs</a>
+        <a class="card-action secondary" href="{% url 'coordinator_log_create' %}">Submit log</a>
+      </div>
     </section>
   </div>
 </section>

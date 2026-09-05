@@ -146,6 +146,7 @@
 }
 
 [data-portal-theme] .button.secondary,
+[data-portal-theme] .card-action.secondary,
 [data-portal-theme] td.actions a,
 [data-portal-theme] .shift-list-view-action,
 [data-portal-theme] .quiet-action {
@@ -154,7 +155,12 @@
   background: #ffffff;
 }
 
+[data-portal-theme] .card-action.secondary {
+  border: 1px solid var(--line);
+}
+
 [data-portal-theme] .button.secondary:hover,
+[data-portal-theme] .card-action.secondary:hover,
 [data-portal-theme] td.actions a:hover,
 [data-portal-theme] .shift-list-view-action:hover,
 [data-portal-theme] .quiet-action:hover {
@@ -242,6 +248,23 @@
 
 [data-portal-theme] .action-summary-grid {
   gap: 10px;
+}
+
+[data-portal-theme] .coordinator-dashboard-actions {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+[data-portal-theme] .coordinator-dashboard-card {
+  min-height: 0;
+}
+
+[data-portal-theme] .coordinator-dashboard-card-actions {
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+[data-portal-theme] .portal-nav-icon {
+  stroke-width: 1.65;
 }
 
 [data-portal-theme] .action-summary-item,
@@ -598,7 +621,7 @@
   }
 
   [data-portal-theme] .worker-bottom-nav-icon {
-    stroke-width: 1.9;
+    stroke-width: 1.65;
   }
 
   [data-portal-theme] .worker-mobile-drawer {
@@ -630,6 +653,20 @@
   [data-portal-theme] .worker-dashboard-grid,
   [data-portal-theme] .coordinator-summary-grid {
     gap: 12px;
+  }
+
+  [data-portal-theme] .coordinator-dashboard-actions {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  [data-portal-theme] .coordinator-dashboard-card-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  [data-portal-theme] .coordinator-dashboard-card .card-action {
+    width: 100%;
   }
 
   [data-portal-theme] .shift-list-item {
