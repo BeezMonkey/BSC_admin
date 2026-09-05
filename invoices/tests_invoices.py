@@ -928,20 +928,51 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, "01/06/2026 - 30/06/2026")
         self.assertNotContains(response, "June 1, 2026 - June 30, 2026")
 
-    def test_invoice_list_shows_support_coordination_type_label(self):
-        invoice = Invoice.objects.create(
+    def test_service_invoice_list_excludes_support_coordination_invoices(self):
+        service_log = self.create_service_log()
+        service_invoice = Invoice.objects.create(
             participant=self.participant,
             period_start=date(2026, 6, 1),
             period_end=date(2026, 6, 30),
-            invoice_type=Invoice.InvoiceType.SUPPORT_COORDINATION,
-            created_by=self.admin_user,
+            created_by=self.accountant_user,
         )
+        InvoiceLine.objects.create_from_service_log(service_invoice, service_log)
+        coordination_invoice, _ = self.create_support_coordination_invoice()
         self.login_admin()
 
         response = self.client.get(reverse("invoice_placeholder"))
 
-        self.assertContains(response, invoice.invoice_number)
-        self.assertContains(response, "Support Coordination")
+        self.assertContains(response, service_invoice.invoice_number)
+        self.assertNotContains(response, coordination_invoice.invoice_number)
+        self.assertContains(response, "Invoices")
+        self.assertContains(response, "Manage service invoices.")
+
+    def test_support_coordination_invoice_list_shows_only_sc_invoices(self):
+        service_log = self.create_service_log()
+        service_invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create_from_service_log(service_invoice, service_log)
+        coordination_invoice, _ = self.create_support_coordination_invoice()
+        self.login_admin()
+
+        response = self.client.get(reverse("support_coordination_invoice_list"))
+
+        self.assertContains(response, coordination_invoice.invoice_number)
+        self.assertNotContains(response, service_invoice.invoice_number)
+        self.assertContains(response, "SC Invoices")
+        self.assertContains(response, "Manage support coordination invoices.")
+        self.assertContains(response, reverse("support_coordination_invoice_create"))
+
+    def test_accountant_cannot_access_support_coordination_invoice_list(self):
+        self.login_accountant()
+
+        response = self.client.get(reverse("support_coordination_invoice_list"))
+
+        self.assertEqual(response.status_code, 403)
 
     def test_accountant_invoice_list_hides_support_coordination_invoices(self):
         service_log = self.create_service_log()
