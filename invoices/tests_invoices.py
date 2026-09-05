@@ -766,6 +766,21 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, "01/06/2026 - 30/06/2026")
         self.assertNotContains(response, "June 1, 2026 - June 30, 2026")
 
+    def test_invoice_list_shows_support_coordination_type_label(self):
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            invoice_type=Invoice.InvoiceType.SUPPORT_COORDINATION,
+            created_by=self.admin_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("invoice_placeholder"))
+
+        self.assertContains(response, invoice.invoice_number)
+        self.assertContains(response, "Support Coordination")
+
     def test_invoice_detail_displays_australian_period_dates(self):
         service_log = self.create_service_log()
         invoice = Invoice.objects.create(
@@ -781,6 +796,21 @@ class InvoiceGenerationTests(TestCase):
 
         self.assertContains(response, "Ava Nguyen | 01/06/2026 - 30/06/2026")
         self.assertNotContains(response, "Ava Nguyen | June 1, 2026 - June 30, 2026")
+
+    def test_invoice_detail_shows_invoice_type(self):
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            invoice_type=Invoice.InvoiceType.SUPPORT_COORDINATION,
+            created_by=self.admin_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("invoice_detail", args=[invoice.id]))
+
+        self.assertContains(response, "Invoice type")
+        self.assertContains(response, "Support Coordination")
 
     def test_invoice_list_delete_action_keeps_inline_form_structure(self):
         invoice = Invoice.objects.create(
