@@ -357,6 +357,110 @@ class SupportWorkerManagementTests(TestCase):
         self.assertContains(response, "Police check")
         self.assertContains(response, "Current")
 
+    def test_worker_detail_shows_login_username_and_reset_link(self):
+        user = get_user_model().objects.create_user(
+            username="maya-login",
+            email="maya.login@example.com",
+            password="test-password-123",
+        )
+        worker = SupportWorker.objects.create(
+            user=user,
+            first_name="Maya",
+            last_name="Singh",
+            email="maya.login@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("worker_detail", args=[worker.id]))
+
+        self.assertContains(response, "Login username")
+        self.assertContains(response, "maya-login")
+        self.assertContains(response, f"/workers/{worker.id}/reset-password/")
+
+    def test_admin_can_reset_worker_password(self):
+        user = get_user_model().objects.create_user(
+            username="maya-reset",
+            email="maya.reset@example.com",
+            password="old-worker-pass-123",
+        )
+        worker = SupportWorker.objects.create(
+            user=user,
+            first_name="Maya",
+            last_name="Singh",
+            email="maya.reset@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        self.login_admin()
+
+        response = self.client.post(
+            f"/workers/{worker.id}/reset-password/",
+            {
+                "new_password1": "NewWorkerPass123!",
+                "new_password2": "NewWorkerPass123!",
+            },
+            follow=True,
+        )
+
+        user.refresh_from_db()
+        self.assertRedirects(response, reverse("worker_detail", args=[worker.id]))
+        self.assertFalse(user.check_password("old-worker-pass-123"))
+        self.assertTrue(user.check_password("NewWorkerPass123!"))
+        self.assertContains(response, "Support worker password updated.")
+
+    def test_worker_reset_password_uses_django_password_validation(self):
+        user = get_user_model().objects.create_user(
+            username="maya-weak",
+            email="maya.weak@example.com",
+            password="old-worker-pass-123",
+        )
+        worker = SupportWorker.objects.create(
+            user=user,
+            first_name="Maya",
+            last_name="Singh",
+            email="maya.weak@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        self.login_admin()
+
+        response = self.client.post(
+            f"/workers/{worker.id}/reset-password/",
+            {"new_password1": "password", "new_password2": "password"},
+        )
+
+        user.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "This password is too common.")
+        self.assertTrue(user.check_password("old-worker-pass-123"))
+
+    def test_non_admin_roles_cannot_reset_worker_password(self):
+        user = get_user_model().objects.create_user(
+            username="maya-protected",
+            email="maya.protected@example.com",
+            password="old-worker-pass-123",
+        )
+        worker = SupportWorker.objects.create(
+            user=user,
+            first_name="Maya",
+            last_name="Singh",
+            email="maya.protected@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+
+        for actor in [self.worker_user, get_user_model().objects.get(username="accountant")]:
+            with self.subTest(actor=actor.username):
+                self.client.force_login(actor)
+                response = self.client.post(
+                    f"/workers/{worker.id}/reset-password/",
+                    {
+                        "new_password1": "NewWorkerPass123!",
+                        "new_password2": "NewWorkerPass123!",
+                    },
+                )
+                user.refresh_from_db()
+                self.assertEqual(response.status_code, 403)
+                self.assertTrue(user.check_password("old-worker-pass-123"))
+
     def test_worker_detail_uses_polished_related_records(self):
         user = get_user_model().objects.create_user(
             username="maya",

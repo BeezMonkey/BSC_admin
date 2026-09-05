@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from accounts.decorators import admin_required, worker_required
+from accounts.forms import AdminSetPasswordForm
 from core.navigation import get_safe_return_url
 from core.pagination import paginate_queryset
 from core.sorting import apply_sorting
@@ -191,6 +192,36 @@ def worker_edit(request, worker_id):
             "title": "Edit Support Worker",
             "worker": worker,
             "return_url": return_url,
+        },
+    )
+
+
+@admin_required
+def worker_reset_password(request, worker_id):
+    worker = get_object_or_404(SupportWorker.objects.select_related("user"), id=worker_id)
+    return_url = get_safe_return_url(
+        request,
+        reverse("worker_detail", args=[worker.id]),
+    )
+    if request.method == "POST":
+        form = AdminSetPasswordForm(worker.user, request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Support worker password updated.")
+            return redirect(return_url)
+    else:
+        form = AdminSetPasswordForm(worker.user)
+
+    return render(
+        request,
+        "accounts/admin_password_reset_form.html",
+        {
+            "form": form,
+            "title": "Reset Support Worker Password",
+            "subject_name": worker.display_name,
+            "login_username": worker.user.username,
+            "return_url": return_url,
+            "submit_label": "Update Password",
         },
     )
 

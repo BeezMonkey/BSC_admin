@@ -36,6 +36,11 @@ urlpatterns = [
         name="coordinator_edit",
     ),
     path(
+        "coordinators/<int:coordinator_id>/reset-password/",
+        views.coordinator_reset_password,
+        name="coordinator_reset_password",
+    ),
+    path(
         "coordinators/<int:coordinator_id>/assign/",
         views.coordinator_assign_participant,
         name="coordinator_assign_participant",
