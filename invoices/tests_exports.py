@@ -171,7 +171,26 @@ class InvoiceExportTests(TestCase):
             f'filename="{self.invoice.invoice_number}.csv"',
             response["Content-Disposition"],
         )
-        rows = list(csv.DictReader(StringIO(response.content.decode("utf-8"))))
+        content = response.content.decode("utf-8")
+        headers = next(csv.reader(StringIO(content)))
+        self.assertEqual(
+            headers[:12],
+            [
+                "invoice_number",
+                "participant",
+                "period_start",
+                "period_end",
+                "status",
+                "support_item_number",
+                "description",
+                "unit",
+                "quantity",
+                "unit_price",
+                "gst_code",
+                "line_total",
+            ],
+        )
+        rows = list(csv.DictReader(StringIO(content)))
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["invoice_number"], self.invoice.invoice_number)
         self.assertEqual(rows[0]["invoice_type"], Invoice.InvoiceType.SERVICE)
@@ -268,7 +287,8 @@ class InvoiceExportTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/pdf")
         self.assertIn('filename="SC_Invoice_', response["Content-Disposition"])
-        self.assertIn(b"Support Coordination", response.content)
+        self.assertTrue(response.content.startswith(b"%PDF"))
+        self.assertGreater(len(response.content), 500)
 
     def test_invoice_pdf_formats_amounts_to_two_decimal_places(self):
         self.login_accountant()

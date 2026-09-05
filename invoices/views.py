@@ -772,8 +772,6 @@ def invoice_csv(request, invoice_id):
     writer.writerow(
         [
             "invoice_number",
-            "invoice_type",
-            "source_date",
             "participant",
             "period_start",
             "period_end",
@@ -785,14 +783,14 @@ def invoice_csv(request, invoice_id):
             "unit_price",
             "gst_code",
             "line_total",
+            "invoice_type",
+            "source_date",
         ]
     )
     for line in invoice.lines.select_related("service_log", "coordination_log"):
         writer.writerow(
             [
                 invoice.invoice_number,
-                invoice.invoice_type,
-                invoice_line_source_date(line),
                 invoice.participant.display_name,
                 format_au_date(invoice.period_start),
                 format_au_date(invoice.period_end),
@@ -804,6 +802,8 @@ def invoice_csv(request, invoice_id):
                 f"{line.unit_price:.2f}",
                 line.gst_code,
                 f"{line.line_total:.2f}",
+                invoice.invoice_type,
+                invoice_line_source_date(line),
             ]
         )
     response = HttpResponse(output.getvalue(), content_type="text/csv")
