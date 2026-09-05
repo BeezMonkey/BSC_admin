@@ -9,7 +9,7 @@
     <p>{{ invoice.participant.display_name }} | {{ invoice.period_start|date:"d/m/Y" }} - {{ invoice.period_end|date:"d/m/Y" }}</p>
   </div>
   <div class="button-row">
-    <a class="button secondary" href="{{ return_url }}">Back to Invoices</a>
+    <a class="button secondary" href="{{ return_url }}">{{ return_label }}</a>
     <a class="button" href="{% url 'invoice_csv' invoice.id %}">Download CSV</a>
     <a class="button" href="{% url 'invoice_pdf' invoice.id %}">Download PDF</a>
   </div>

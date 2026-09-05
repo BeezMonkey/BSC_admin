@@ -1,16 +1,20 @@
 {% extends "admin_base.html" %}
 
-{% block title %}Invoices - Brisbane Star Care{% endblock %}
+{% block title %}{{ page_title }} - Brisbane Star Care{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1>Invoices</h1>
-    <p>Track generated invoices, review draft billing, and follow issued invoices through payment.</p>
+    <h1>{{ page_title }}</h1>
+    <p>{{ page_description }}</p>
   </div>
   <div class="button-row">
+    {% if show_invoice_settings %}
     <a class="button secondary" href="{% url 'invoice_settings' %}">Invoice Settings</a>
-    <a class="button" href="{% url 'invoice_create' %}">Create Invoice</a>
+    {% endif %}
+    {% if create_url_name %}
+    <a class="button" href="{% url create_url_name %}">{{ create_button_label }}</a>
+    {% endif %}
   </div>
 </div>
 
@@ -62,14 +66,14 @@
       <input type="date" name="period_to" value="{{ period_to }}">
     </label>
     <button type="submit">Search</button>
-    <a class="button secondary" href="{% url 'invoice_placeholder' %}">Reset</a>
+    <a class="button secondary" href="{% url list_url_name %}">Reset</a>
   </form>
 </section>
 
 {% if filter_summary %}
-<div class="filter-summary">
+  <div class="filter-summary">
   <span>{{ filter_summary }}</span>
-  <a href="{% url 'invoice_placeholder' %}">Clear filter</a>
+  <a href="{% url list_url_name %}">Clear filter</a>
 </div>
 {% endif %}
 
@@ -132,14 +136,16 @@
                 <strong>No invoices match the current filters.</strong>
                 <p>Clear the filters to review all billing records.</p>
                 <div class="empty-state-actions">
-                  <a class="button secondary" href="{% url 'invoice_placeholder' %}">Clear filters</a>
+                  <a class="button secondary" href="{% url list_url_name %}">Clear filters</a>
                 </div>
               {% else %}
                 <strong>No invoices found.</strong>
                 <p>Create an invoice or adjust the filters to review billing records.</p>
+                {% if create_url_name %}
                 <div class="empty-state-actions">
-                  <a class="button" href="{% url 'invoice_create' %}">Create Invoice</a>
+                  <a class="button" href="{% url create_url_name %}">{{ create_button_label }}</a>
                 </div>
+                {% endif %}
               {% endif %}
             </div>
           </td>
