@@ -9,12 +9,28 @@ from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import UserProfile
+from coordinators.models import CoordinationLog, SupportCoordinator
 from invoices.forms import TravelClaimForm
 from invoices.models import Invoice, InvoiceLine, InvoiceSettings
 from participants.models import Participant
 from scheduling.models import Shift, SupportItem
 from service_logs.models import ServiceLog
 from workers.models import SupportWorker
+
+
+def create_coordinator_user(username="coord-invoice"):
+    user = get_user_model().objects.create_user(
+        username=username,
+        password="test-password-123",
+        email=f"{username}@example.com",
+    )
+    UserProfile.objects.create(user=user, role=UserProfile.Role.SUPPORT_COORDINATOR)
+    return SupportCoordinator.objects.create(
+        user=user,
+        first_name="Casey",
+        last_name="Coordinator",
+        email=f"{username}@example.com",
+    )
 
 
 class InvoiceGenerationTests(TestCase):
@@ -108,6 +124,25 @@ class InvoiceGenerationTests(TestCase):
         service_log.status = status
         service_log.save(update_fields=["status", "updated_at"])
         return service_log
+
+    def create_coordination_log(self, **overrides):
+        coordinator = overrides.pop("coordinator", create_coordinator_user())
+        participant = overrides.pop("participant", self.participant)
+        status = overrides.pop("status", CoordinationLog.Status.APPROVED)
+        service_date = overrides.pop("service_date", date(2026, 6, 1))
+        actual_hours = overrides.pop("actual_hours", Decimal("1.50"))
+        return CoordinationLog.objects.create(
+            participant=participant,
+            coordinator=coordinator,
+            service_date=service_date,
+            start_time=time(9, 0),
+            end_time=time(10, 30),
+            break_minutes=0,
+            actual_hours=actual_hours,
+            coordination_type=CoordinationLog.CoordinationType.GENERAL,
+            case_notes="Coordination work for invoice.",
+            status=status,
+        )
 
     def create_travel_support_item(self, **overrides):
         data = {
@@ -457,6 +492,69 @@ class InvoiceGenerationTests(TestCase):
         self.assertEqual(line.unit_price, Decimal("65.47"))
         self.assertEqual(line.quantity, Decimal("2.00"))
         self.assertEqual(line.line_total, Decimal("130.94"))
+
+    def test_invoice_defaults_to_service_invoice_type(self):
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            created_by=self.accountant_user,
+        )
+
+        self.assertEqual(invoice.invoice_type, Invoice.InvoiceType.SERVICE)
+
+    def test_invoice_line_can_snapshot_support_coordination_log(self):
+        coordination_log = self.create_coordination_log(actual_hours=Decimal("1.50"))
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 1),
+            invoice_type=Invoice.InvoiceType.SUPPORT_COORDINATION,
+            created_by=self.admin_user,
+        )
+
+        line = InvoiceLine.objects.create_from_coordination_log(
+            invoice=invoice,
+            coordination_log=coordination_log,
+            support_item=self.support_item,
+        )
+
+        self.assertIsNone(line.service_log)
+        self.assertEqual(line.coordination_log, coordination_log)
+        self.assertEqual(line.line_type, InvoiceLine.LineType.SUPPORT_COORDINATION)
+        self.assertEqual(line.quantity, Decimal("1.50"))
+        self.assertEqual(line.unit_price, Decimal("65.47"))
+        self.assertEqual(line.line_total, Decimal("98.21"))
+
+    def test_same_coordination_log_cannot_be_invoiced_twice(self):
+        coordination_log = self.create_coordination_log()
+        first_invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 1),
+            invoice_type=Invoice.InvoiceType.SUPPORT_COORDINATION,
+            created_by=self.admin_user,
+        )
+        second_invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 1),
+            invoice_type=Invoice.InvoiceType.SUPPORT_COORDINATION,
+            created_by=self.admin_user,
+        )
+        InvoiceLine.objects.create_from_coordination_log(
+            invoice=first_invoice,
+            coordination_log=coordination_log,
+            support_item=self.support_item,
+        )
+
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                InvoiceLine.objects.create_from_coordination_log(
+                    invoice=second_invoice,
+                    coordination_log=coordination_log,
+                    support_item=self.support_item,
+                )
 
     def test_invoice_line_can_snapshot_service_and_travel_for_one_service_log(self):
         service_log = self.create_service_log(kilometres=Decimal("43.00"))

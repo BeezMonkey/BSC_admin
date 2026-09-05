@@ -1056,6 +1056,11 @@ class CoordinatorModelTests(TestCase):
             },
         )
 
+    def test_coordination_log_has_invoiced_status(self):
+        choices = dict(CoordinationLog.Status.choices)
+
+        self.assertEqual(choices[CoordinationLog.Status.INVOICED], "Invoiced")
+
     def test_support_coordinator_display_name(self):
         coordinator = create_coordinator()
 
