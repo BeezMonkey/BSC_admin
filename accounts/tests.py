@@ -6,7 +6,12 @@ from .models import UserProfile
 
 
 class LoginBrandingTests(TestCase):
-    allowed_hosts = ["testserver", "admin.bscare.com.au", "sw.bscare.com.au"]
+    allowed_hosts = [
+        "testserver",
+        "admin.bscare.com.au",
+        "sw.bscare.com.au",
+        "sc.bscare.com.au",
+    ]
 
     @override_settings(ALLOWED_HOSTS=allowed_hosts)
     def test_admin_domain_shows_admin_portal_label(self):
@@ -21,6 +26,13 @@ class LoginBrandingTests(TestCase):
 
         self.assertContains(response, "Support Worker Portal")
         self.assertContains(response, "Login to Worker Portal")
+
+    @override_settings(ALLOWED_HOSTS=allowed_hosts)
+    def test_support_coordinator_domain_shows_coordinator_portal_label(self):
+        response = self.client.get(reverse("login"), HTTP_HOST="sc.bscare.com.au")
+
+        self.assertContains(response, "Support Coordinator Portal")
+        self.assertContains(response, "Login to Coordinator Portal")
 
     @override_settings(ALLOWED_HOSTS=allowed_hosts)
     def test_default_host_keeps_existing_generic_label(self):
