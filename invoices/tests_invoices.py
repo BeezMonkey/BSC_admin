@@ -974,6 +974,27 @@ class InvoiceGenerationTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
+    def test_support_coordination_invoice_list_highlights_sc_invoice_sidebar_link(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("support_coordination_invoice_list"))
+
+        self.assertContains(
+            response,
+            f'class="sidebar-link active" href="{reverse("support_coordination_invoice_list")}"',
+        )
+
+    def test_support_coordination_invoice_detail_highlights_sc_invoice_sidebar_link(self):
+        invoice, _ = self.create_support_coordination_invoice()
+        self.login_admin()
+
+        response = self.client.get(reverse("invoice_detail", args=[invoice.id]))
+
+        self.assertContains(
+            response,
+            f'class="sidebar-link active" href="{reverse("support_coordination_invoice_list")}"',
+        )
+
     def test_accountant_invoice_list_hides_support_coordination_invoices(self):
         service_log = self.create_service_log()
         service_invoice = Invoice.objects.create(
