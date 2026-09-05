@@ -170,14 +170,42 @@ Run this Smoke test before inviting staff:
 - Document upload/download is tested with a fake file only through private SFTP storage.
 - Audit logs record the major actions.
 
-## 10. Known Beta Limits
+## 10. Prepare For Real Trial
+Before inviting real SW and SC users into the trial:
+
+- Create a Render PostgreSQL backup.
+- Confirm the SFTP upload storage path and backup responsibility.
+- Preview known demo/test data cleanup:
+
+```text
+python manage.py purge_trial_demo_data
+```
+
+- Review the counts carefully. The command should only target known demo/test records.
+- If the preview looks correct, apply the cleanup:
+
+```text
+python manage.py purge_trial_demo_data --confirm
+```
+
+- Create the small first trial set manually:
+
+```text
+2-3 participants
+2 support workers
+1 support coordinator
+```
+
+- Complete one full SW service-log to invoice flow and one full SC coordination-log to SC invoice flow before inviting more users.
+
+## 11. Known Beta Limits
 - Uploaded documents use the private SFTP backend documented in `docs/render-storage-configuration.md`.
 - Do not rely on Render instance storage for important uploaded documents.
 - HSTS is intentionally off for early beta.
 - Staff feedback should focus on workflow, layout, wording, and missing fields.
 - Any serious business use needs a document backup/restore test first.
 
-## 11. If Deploy Fails
+## 12. If Deploy Fails
 Check in this order:
 
 - Build log: dependency install or `collectstatic` error.
