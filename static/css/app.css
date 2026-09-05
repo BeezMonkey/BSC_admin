@@ -156,13 +156,7 @@ button.danger:hover {
 }
 
 .login-card .portal-badge {
-  display: inline-flex;
-  align-items: center;
-  margin: 0.55rem 0 1.45rem;
-  border: 1px solid #b6e1dc;
-  border-radius: 6px;
-  padding: 0.3rem 0.55rem;
-  background: #e7f6f4;
+  margin: 0.4rem 0 1.5rem;
   color: #12675f;
   font-weight: 700;
 }
