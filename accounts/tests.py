@@ -19,6 +19,7 @@ class LoginBrandingTests(TestCase):
 
         self.assertContains(response, "NDIS Admin Portal")
         self.assertContains(response, "Login to Admin Portal")
+        self.assertContains(response, 'class="portal-badge"')
 
     @override_settings(ALLOWED_HOSTS=allowed_hosts)
     def test_support_worker_domain_shows_worker_portal_label(self):
@@ -26,6 +27,7 @@ class LoginBrandingTests(TestCase):
 
         self.assertContains(response, "Support Worker Portal")
         self.assertContains(response, "Login to Worker Portal")
+        self.assertContains(response, 'class="portal-badge"')
 
     @override_settings(ALLOWED_HOSTS=allowed_hosts)
     def test_support_coordinator_domain_shows_coordinator_portal_label(self):
@@ -33,6 +35,7 @@ class LoginBrandingTests(TestCase):
 
         self.assertContains(response, "Support Coordinator Portal")
         self.assertContains(response, "Login to Coordinator Portal")
+        self.assertContains(response, 'class="portal-badge"')
 
     @override_settings(ALLOWED_HOSTS=allowed_hosts)
     def test_default_host_keeps_existing_generic_label(self):
