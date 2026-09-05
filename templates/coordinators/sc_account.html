@@ -29,13 +29,5 @@
       <p>Your coordinator profile has not been set up yet.</p>
     {% endif %}
   </section>
-
-  <section class="worker-card">
-    <h2>Session</h2>
-    <form method="post" action="{% url 'logout' %}">
-      {% csrf_token %}
-      <button class="button secondary" type="submit">Logout</button>
-    </form>
-  </section>
 </section>
 {% endblock %}
