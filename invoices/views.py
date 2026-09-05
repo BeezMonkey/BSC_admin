@@ -9,7 +9,7 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Count, DecimalField, Q, Sum, Value
+from django.db.models import Count, DecimalField, Prefetch, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -66,7 +66,12 @@ def invoice_download_filename(invoice, extension):
         "0000",
     )
     participant_name = safe_filename_part(invoice.participant.display_name, "Participant")
-    return f"Invoice_{invoice_date}_{invoice_sequence}_{participant_name}.{extension}"
+    prefix = (
+        "SC_Invoice"
+        if invoice.invoice_type == Invoice.InvoiceType.SUPPORT_COORDINATION
+        else "Invoice"
+    )
+    return f"{prefix}_{invoice_date}_{invoice_sequence}_{participant_name}.{extension}"
 
 
 def build_invoice_filter_summary(status, q, participant_query, period_from, period_to):
@@ -691,7 +696,13 @@ def support_coordination_invoice_create(request):
 def invoice_detail(request, invoice_id):
     invoice = get_object_or_404(
         Invoice.objects.select_related("participant", "created_by").prefetch_related(
-            "lines",
+            Prefetch(
+                "lines",
+                queryset=InvoiceLine.objects.select_related(
+                    "service_log",
+                    "coordination_log",
+                ),
+            ),
         ),
         id=invoice_id,
     )
@@ -730,7 +741,13 @@ def invoice_settings(request):
 def get_invoice(invoice_id):
     return get_object_or_404(
         Invoice.objects.select_related("participant", "created_by").prefetch_related(
-            "lines",
+            Prefetch(
+                "lines",
+                queryset=InvoiceLine.objects.select_related(
+                    "service_log",
+                    "coordination_log",
+                ),
+            ),
         ),
         id=invoice_id,
     )
@@ -755,6 +772,7 @@ def invoice_csv(request, invoice_id):
     writer.writerow(
         [
             "invoice_number",
+            "invoice_type",
             "participant",
             "period_start",
             "period_end",
@@ -768,10 +786,11 @@ def invoice_csv(request, invoice_id):
             "line_total",
         ]
     )
-    for line in invoice.lines.all():
+    for line in invoice.lines.select_related("service_log", "coordination_log"):
         writer.writerow(
             [
                 invoice.invoice_number,
+                invoice.invoice_type,
                 invoice.participant.display_name,
                 format_au_date(invoice.period_start),
                 format_au_date(invoice.period_end),
@@ -786,8 +805,13 @@ def invoice_csv(request, invoice_id):
             ]
         )
     response = HttpResponse(output.getvalue(), content_type="text/csv")
+    filename = (
+        invoice_download_filename(invoice, "csv")
+        if invoice.invoice_type == Invoice.InvoiceType.SUPPORT_COORDINATION
+        else f"{invoice.invoice_number}.csv"
+    )
     response["Content-Disposition"] = (
-        f'attachment; filename="{invoice.invoice_number}.csv"'
+        f'attachment; filename="{filename}"'
     )
     return response
 
@@ -993,8 +1017,12 @@ def wrap_pdf_text(text, max_width, font_size):
     return lines
 
 
-def invoice_line_service_date(line):
-    return format_au_date(line.service_log.service_date)
+def invoice_line_source_date(line):
+    if line.service_log_id:
+        return format_au_date(line.service_log.service_date)
+    if line.coordination_log_id:
+        return format_au_date(line.coordination_log.service_date)
+    return "-"
 
 
 def pdf_line(x1, y1, x2, y2, width=1.5, color=(0.435, 0.173, 0.502)):
@@ -1161,6 +1189,12 @@ def invoice_pdf(request, invoice_id):
         pdf_text("TAX INVOICE", invoice_detail_x, invoice_detail_y, 10.5, "F2"),
         pdf_text(f"Invoice No.: # {invoice.invoice_number}", invoice_detail_x, invoice_detail_y - detail_line_gap, 8.5),
         pdf_text(f"Invoice Date: {invoice_date}", invoice_detail_x, invoice_detail_y - (detail_line_gap * 2), 8.5),
+        pdf_text(
+            f"Invoice Type: {invoice.get_invoice_type_display()}",
+            invoice_detail_x,
+            invoice_detail_y - (detail_line_gap * 3),
+            8.5,
+        ),
         pdf_line(page_left, divider_y, page_right, divider_y, width=3),
     ]
     if logo_image:
@@ -1234,7 +1268,7 @@ def invoice_pdf(request, invoice_id):
         if (value or "").strip()
     ]
     footer_minimum_top = invoice_footer_minimum_top(payment_detail_rows)
-    invoice_lines = list(invoice.lines.select_related("service_log"))
+    invoice_lines = list(invoice.lines.select_related("service_log", "coordination_log"))
     for line_index, line in enumerate(invoice_lines):
         description_lines = wrap_pdf_text(
             line.description,
@@ -1273,7 +1307,7 @@ def invoice_pdf(request, invoice_id):
         code_y = y - (len(description_lines) * 10)
         pdf_lines.extend(
             [
-                pdf_text(invoice_line_service_date(line), item_col_x, y, 7.5),
+                pdf_text(invoice_line_source_date(line), item_col_x, y, 7.5),
                 pdf_right_text(f"{line.quantity:.2f}", qty_col_right, y, 7.5),
                 pdf_right_text(f"${format_money(line.unit_price)}", rate_col_right, y, 7.5),
                 pdf_right_text(f"${format_money(line.line_total)}", amount_col_right, y, 8, "F2"),

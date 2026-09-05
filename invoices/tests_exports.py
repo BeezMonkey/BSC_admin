@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import UserProfile
+from coordinators.models import CoordinationLog, SupportCoordinator
 from invoices.models import Invoice, InvoiceLine, InvoiceSettings
 from participants.models import Participant
 from scheduling.models import Shift, SupportItem
@@ -105,6 +106,53 @@ class InvoiceExportTests(TestCase):
         service_log.save(update_fields=["status", "updated_at"])
         return service_log
 
+    def create_support_coordinator(self):
+        user = self.create_user_with_role(
+            "coordinator",
+            UserProfile.Role.SUPPORT_COORDINATOR,
+        )
+        return SupportCoordinator.objects.create(
+            user=user,
+            first_name="Casey",
+            last_name="Coordinator",
+            email="coordinator@example.com",
+        )
+
+    def create_support_coordination_invoice(self):
+        support_item = SupportItem.objects.create(
+            item_number="07_002_0106_8_3",
+            name="Support Coordination",
+            unit=SupportItem.Unit.HOUR,
+            price_limit=Decimal("100.14"),
+            gst_code=SupportItem.GSTCode.GST_FREE,
+            is_active=True,
+        )
+        coordination_log = CoordinationLog.objects.create(
+            participant=self.participant,
+            coordinator=self.create_support_coordinator(),
+            service_date=date(2026, 6, 3),
+            start_time=time(9, 0),
+            end_time=time(10, 30),
+            break_minutes=0,
+            actual_hours=Decimal("1.50"),
+            coordination_type=CoordinationLog.CoordinationType.GENERAL,
+            case_notes="Support coordination invoice export log.",
+            status=CoordinationLog.Status.INVOICED,
+        )
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            invoice_type=Invoice.InvoiceType.SUPPORT_COORDINATION,
+            period_start=date(2026, 6, 1),
+            period_end=date(2026, 6, 30),
+            created_by=self.accountant_user,
+        )
+        InvoiceLine.objects.create_from_coordination_log(
+            invoice=invoice,
+            coordination_log=coordination_log,
+            support_item=support_item,
+        )
+        return invoice
+
     def login_accountant(self):
         self.client.login(username="accountant", password="test-password-123")
 
@@ -119,9 +167,14 @@ class InvoiceExportTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "text/csv")
         self.assertIn("attachment;", response["Content-Disposition"])
+        self.assertIn(
+            f'filename="{self.invoice.invoice_number}.csv"',
+            response["Content-Disposition"],
+        )
         rows = list(csv.DictReader(StringIO(response.content.decode("utf-8"))))
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]["invoice_number"], self.invoice.invoice_number)
+        self.assertEqual(rows[0]["invoice_type"], Invoice.InvoiceType.SERVICE)
         self.assertEqual(rows[0]["participant"], "Ava Nguyen")
         self.assertEqual(rows[0]["period_start"], "01/06/2026")
         self.assertEqual(rows[0]["period_end"], "30/06/2026")
@@ -129,6 +182,19 @@ class InvoiceExportTests(TestCase):
         self.assertEqual(rows[0]["quantity"], "2.00")
         self.assertEqual(rows[0]["unit_price"], "65.47")
         self.assertEqual(rows[0]["line_total"], "130.94")
+
+    def test_finance_user_can_download_support_coordination_invoice_csv(self):
+        invoice = self.create_support_coordination_invoice()
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_csv", args=[invoice.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "text/csv")
+        self.assertIn('filename="SC_Invoice_', response["Content-Disposition"])
+        self.assertContains(response, "support_coordination")
+        rows = list(csv.DictReader(StringIO(response.content.decode("utf-8"))))
+        self.assertEqual(rows[0]["invoice_type"], Invoice.InvoiceType.SUPPORT_COORDINATION)
 
     def test_invoice_exports_include_an_admin_approved_travel_claim(self):
         travel_support_item = SupportItem.objects.create(
@@ -191,6 +257,17 @@ class InvoiceExportTests(TestCase):
             f'filename="Invoice_{invoice_date}_{invoice_sequence}_Ava_Nguyen.pdf"',
             response["Content-Disposition"],
         )
+
+    def test_support_coordination_invoice_pdf_uses_sc_filename_and_type(self):
+        invoice = self.create_support_coordination_invoice()
+        self.login_accountant()
+
+        response = self.client.get(reverse("invoice_pdf", args=[invoice.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertIn('filename="SC_Invoice_', response["Content-Disposition"])
+        self.assertIn(b"Support Coordination", response.content)
 
     def test_invoice_pdf_formats_amounts_to_two_decimal_places(self):
         self.login_accountant()
@@ -363,8 +440,8 @@ class InvoiceExportTests(TestCase):
     def test_invoice_pdf_line_item_date_sits_in_first_column(self):
         view_source = Path("invoices/views.py").read_text(encoding="utf-8")
 
-        self.assertIn("def invoice_line_service_date", view_source)
-        self.assertIn("pdf_text(invoice_line_service_date(line), item_col_x", view_source)
+        self.assertIn("def invoice_line_source_date", view_source)
+        self.assertIn("pdf_text(invoice_line_source_date(line), item_col_x", view_source)
         self.assertIn("pdf_text(line.support_item_number, description_col_x", view_source)
         self.assertNotIn("pdf_text(line.support_item_number, item_col_x", view_source)
         self.assertNotIn("def invoice_line_type_label", view_source)
