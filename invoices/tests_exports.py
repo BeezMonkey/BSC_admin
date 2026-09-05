@@ -195,6 +195,7 @@ class InvoiceExportTests(TestCase):
         self.assertContains(response, "support_coordination")
         rows = list(csv.DictReader(StringIO(response.content.decode("utf-8"))))
         self.assertEqual(rows[0]["invoice_type"], Invoice.InvoiceType.SUPPORT_COORDINATION)
+        self.assertEqual(rows[0]["source_date"], "03/06/2026")
 
     def test_invoice_exports_include_an_admin_approved_travel_claim(self):
         travel_support_item = SupportItem.objects.create(

@@ -773,6 +773,7 @@ def invoice_csv(request, invoice_id):
         [
             "invoice_number",
             "invoice_type",
+            "source_date",
             "participant",
             "period_start",
             "period_end",
@@ -791,6 +792,7 @@ def invoice_csv(request, invoice_id):
             [
                 invoice.invoice_number,
                 invoice.invoice_type,
+                invoice_line_source_date(line),
                 invoice.participant.display_name,
                 format_au_date(invoice.period_start),
                 format_au_date(invoice.period_end),
