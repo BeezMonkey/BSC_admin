@@ -137,6 +137,7 @@ class InvoiceGenerationTests(TestCase):
         status = overrides.pop("status", CoordinationLog.Status.APPROVED)
         service_date = overrides.pop("service_date", date(2026, 6, 1))
         actual_hours = overrides.pop("actual_hours", Decimal("1.50"))
+        case_notes = overrides.pop("case_notes", "Coordination work for invoice.")
         return CoordinationLog.objects.create(
             participant=participant,
             coordinator=coordinator,
@@ -146,7 +147,7 @@ class InvoiceGenerationTests(TestCase):
             break_minutes=0,
             actual_hours=actual_hours,
             coordination_type=CoordinationLog.CoordinationType.GENERAL,
-            case_notes="Coordination work for invoice.",
+            case_notes=case_notes,
             status=status,
         )
 
@@ -361,6 +362,38 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, "Log for Ava Nguyen", count=1)
         self.assertNotContains(response, "Log for Ben Taylor")
         self.assertContains(response, "Create Invoice")
+
+    def test_support_coordination_invoice_preview_shows_approved_uninvoiced_logs(self):
+        approved_log = self.create_coordination_log(case_notes="Billable SC work.")
+        self.create_coordination_log(
+            status=CoordinationLog.Status.SUBMITTED,
+            case_notes="Submitted SC work.",
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("support_coordination_invoice_create"),
+            {
+                "participant": self.participant.id,
+                "period_start": "2026-06-01",
+                "period_end": "2026-06-30",
+                "support_item": self.support_item.id,
+            },
+        )
+
+        self.assertContains(response, "Billable SC work.")
+        self.assertContains(
+            response,
+            f'name="coordination_log_ids" value="{approved_log.id}"',
+        )
+        self.assertNotContains(response, "Submitted SC work.")
+
+    def test_support_coordination_invoice_create_requires_admin(self):
+        self.login_accountant()
+
+        response = self.client.get(reverse("support_coordination_invoice_create"))
+
+        self.assertEqual(response.status_code, 403)
 
     def test_invoice_create_filter_uses_aligned_field_layout(self):
         self.login_accountant()

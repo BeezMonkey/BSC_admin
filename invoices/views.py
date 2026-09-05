@@ -21,6 +21,7 @@ from PIL import Image
 
 from accounts.decorators import admin_required
 from accounts.decorators import finance_required
+from coordinators.models import CoordinationLog
 from core.audit import write_audit_log
 from core.models import AuditLog
 from core.navigation import get_safe_return_url
@@ -29,7 +30,12 @@ from core.sorting import apply_sorting
 from service_logs.models import ServiceLog
 from scheduling.models import SupportItem
 
-from .forms import InvoiceCreateForm, InvoiceSettingsForm, TravelClaimForm
+from .forms import (
+    InvoiceCreateForm,
+    InvoiceSettingsForm,
+    SupportCoordinationInvoiceCreateForm,
+    TravelClaimForm,
+)
 from .models import Invoice, InvoiceLine, InvoiceSettings
 
 
@@ -208,6 +214,16 @@ def get_billable_logs(participant, period_start, period_end):
     ).select_related("participant", "worker", "support_item")
 
 
+def get_billable_coordination_logs(participant, period_start, period_end):
+    return CoordinationLog.objects.filter(
+        participant=participant,
+        service_date__gte=period_start,
+        service_date__lte=period_end,
+        status=CoordinationLog.Status.APPROVED,
+        invoice_lines__isnull=True,
+    ).select_related("participant", "coordinator")
+
+
 def get_selected_billable_logs(service_log_ids, require_single_participant=True):
     try:
         unique_ids = [
@@ -227,6 +243,33 @@ def get_selected_billable_logs(service_log_ids, require_single_participant=True)
     if require_single_participant and len(participant_ids) > 1:
         return [], "Selected service logs must belong to one participant."
     return service_logs, ""
+
+
+def get_selected_billable_coordination_logs(
+    coordination_log_ids,
+    require_single_participant=True,
+):
+    try:
+        unique_ids = [
+            int(coordination_log_id)
+            for coordination_log_id in dict.fromkeys(coordination_log_ids)
+        ]
+    except (TypeError, ValueError):
+        return [], "Selected coordination logs are no longer available for invoicing."
+
+    coordination_logs = CoordinationLog.objects.filter(
+        id__in=unique_ids,
+        status=CoordinationLog.Status.APPROVED,
+        invoice_lines__isnull=True,
+    ).select_related("participant", "coordinator")
+    coordination_logs = list(coordination_logs.order_by("service_date", "id"))
+    if len(coordination_logs) != len(unique_ids):
+        return [], "Selected coordination logs are no longer available for invoicing."
+
+    participant_ids = {log.participant_id for log in coordination_logs}
+    if require_single_participant and len(participant_ids) > 1:
+        return [], "Selected coordination logs must belong to one participant."
+    return coordination_logs, ""
 
 
 def build_selected_invoice_form_data(service_logs):
@@ -437,6 +480,28 @@ def invoice_create(request):
             "selected_invoice_groups": selected_invoice_groups,
             "selected_error": selected_error,
             "selected_service_log_ids": active_selected_ids,
+        },
+    )
+
+
+@admin_required
+def support_coordination_invoice_create(request):
+    form = SupportCoordinationInvoiceCreateForm(request.GET or None)
+    coordination_logs = CoordinationLog.objects.none()
+
+    if form.is_valid():
+        coordination_logs = get_billable_coordination_logs(
+            form.cleaned_data["participant"],
+            form.cleaned_data["period_start"],
+            form.cleaned_data["period_end"],
+        )
+
+    return render(
+        request,
+        "invoices/support_coordination_invoice_form.html",
+        {
+            "form": form,
+            "coordination_logs": coordination_logs,
         },
     )
 

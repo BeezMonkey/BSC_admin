@@ -3,6 +3,7 @@ from decimal import Decimal
 from django import forms
 
 from participants.models import Participant
+from scheduling.models import SupportItem
 
 from .models import InvoiceSettings
 
@@ -17,6 +18,31 @@ class InvoiceCreateForm(forms.Form):
     )
     period_end = forms.DateField(
         widget=forms.DateInput(attrs={"type": "date", "placeholder": "dd/mm/yyyy"})
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        period_start = cleaned_data.get("period_start")
+        period_end = cleaned_data.get("period_end")
+        if period_start and period_end and period_end < period_start:
+            self.add_error("period_end", "Period end must be on or after period start.")
+        return cleaned_data
+
+
+class SupportCoordinationInvoiceCreateForm(forms.Form):
+    participant = forms.ModelChoiceField(
+        empty_label="Select participant",
+        queryset=Participant.objects.all(),
+    )
+    period_start = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date", "placeholder": "dd/mm/yyyy"})
+    )
+    period_end = forms.DateField(
+        widget=forms.DateInput(attrs={"type": "date", "placeholder": "dd/mm/yyyy"})
+    )
+    support_item = forms.ModelChoiceField(
+        empty_label="Select support item",
+        queryset=SupportItem.objects.filter(is_active=True).order_by("item_number"),
     )
 
     def clean(self):

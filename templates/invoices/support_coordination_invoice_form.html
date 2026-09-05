@@ -1,0 +1,19 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Create Support Coordination Invoice - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<h1>Create Support Coordination Invoice</h1>
+
+<form method="get">
+  {{ form.as_p }}
+  <button type="submit">Preview Logs</button>
+</form>
+
+{% for coordination_log in coordination_logs %}
+  <section>
+    <input type="hidden" name="coordination_log_ids" value="{{ coordination_log.id }}">
+    <p>{{ coordination_log.case_notes }}</p>
+  </section>
+{% endfor %}
+{% endblock %}
