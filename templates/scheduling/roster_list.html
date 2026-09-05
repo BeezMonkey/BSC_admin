@@ -16,6 +16,8 @@
   </div>
 </div>
 
+<details class="roster-quick-dates"{% if quick_filter %} open{% endif %}>
+<summary>Quick dates</summary>
 <div class="quick-filter-row" aria-label="Roster quick filters">
   {% for item in quick_filters %}
     <a class="button secondary {% if quick_filter == item.value %}active{% endif %}"
@@ -24,8 +26,9 @@
     </a>
   {% endfor %}
 </div>
+</details>
 
-<form class="filter-bar" method="get">
+<form class="filter-bar roster-filter-bar" method="get">
   <label>Date from <input type="date" name="date_from" value="{{ date_from }}"></label>
   <label>Date to <input type="date" name="date_to" value="{{ date_to }}"></label>
   <label>Participant <input type="search" name="participant" value="{{ participant_query }}" placeholder="Name, NDIS, or phone"></label>
@@ -40,8 +43,10 @@
       {% endfor %}
     </select>
   </label>
-  <button type="submit">Search</button>
-  <a class="button secondary" href="{% url 'roster_list' %}">Reset</a>
+  <div class="button-row roster-filter-actions">
+    <button type="submit">Search</button>
+    <a class="button secondary" href="{% url 'roster_list' %}">Reset</a>
+  </div>
 </form>
 
 {% if filter_summary %}

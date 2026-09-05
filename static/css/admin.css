@@ -1,0 +1,400 @@
+/* Loaded only by admin_base.html; worker, coordinator and login styles stay independent. */
+@font-face {
+  font-family: "BSC Inter";
+  src: url("../fonts/inter/InterVariable.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+[data-admin-theme] {
+  --ink: #171717;
+  --muted: #71717a;
+  --line: #e4e4e7;
+  --panel: #ffffff;
+  --surface: #ffffff;
+  --brand: #0f766e;
+  --brand-dark: #0b5f58;
+  --brand-soft: #e6f4f2;
+  --sidebar: #fafafa;
+  --sidebar-text: #171717;
+  --sidebar-muted: #71717a;
+  --sidebar-active: #f1f0ef;
+  --sidebar-active-text: #18181b;
+  --shadow: none;
+  --weight-action: 600;
+  --weight-heading: 700;
+  --weight-label: 600;
+  --weight-link: 500;
+  grid-template-columns: 240px minmax(0, 1fr);
+  color: var(--ink);
+  background: var(--surface);
+  font-family: "BSC Inter", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  letter-spacing: 0;
+}
+
+[data-admin-theme] .sidebar {
+  padding: 20px 12px;
+}
+
+[data-admin-theme] .brand {
+  min-height: 48px;
+  margin: 0 6px 18px;
+  border: 0;
+  padding: 0;
+  align-content: center;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+[data-admin-theme] .brand small {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+[data-admin-theme] .sidebar-nav {
+  gap: 4px;
+}
+
+[data-admin-theme] .sidebar-section-label {
+  margin: 24px 0 6px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+[data-admin-theme] .sidebar-section-label:first-child {
+  margin-top: 4px;
+}
+
+[data-admin-theme] .sidebar-link {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+[data-admin-theme] .sidebar-link.active {
+  box-shadow: none;
+  font-weight: 600;
+}
+
+[data-admin-theme] .content {
+  padding: 0 28px 40px;
+}
+
+[data-admin-theme] .topbar {
+  min-height: 52px;
+  margin: 0 -28px 28px;
+  padding: 8px 28px;
+  background: #ffffff;
+}
+
+[data-admin-theme] .page-header {
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+  border: 0;
+  padding-bottom: 0;
+}
+
+[data-admin-theme] .page-header h1 {
+  font-size: 24px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+[data-admin-theme] .page-header p {
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+[data-admin-theme] .button-row {
+  gap: 8px;
+}
+
+[data-admin-theme] :is(button, .button, .card-action) {
+  border-radius: 5px;
+  font-size: 13px;
+}
+
+[data-admin-theme] :is(button, .button, .card-action):not(.planner-add-shift-square):not(.planner-shift-action) {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+[data-admin-theme] :is(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
+[data-admin-theme] .button.secondary {
+  color: #3f3f46;
+}
+
+[data-admin-theme] :is(input, select, textarea) {
+  border-color: var(--line);
+  border-radius: 5px;
+}
+
+[data-admin-theme] .filter-bar {
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+[data-admin-theme] .filter-bar label {
+  min-width: 0;
+  max-width: 100%;
+  color: #52525b;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+[data-admin-theme] .filter-bar :is(input, select) {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  font-size: 13px;
+}
+
+[data-admin-theme] .filter-bar input::placeholder {
+  color: #71717a;
+}
+
+[data-admin-theme] .filter-bar > :is(button, .button) {
+  min-height: 36px;
+  height: auto;
+  padding: 8px 12px;
+}
+
+[data-admin-theme] .roster-quick-dates {
+  margin-bottom: 16px;
+}
+
+[data-admin-theme] .roster-quick-dates summary {
+  width: fit-content;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+[data-admin-theme] .roster-quick-dates .quick-filter-row {
+  margin: 12px 0 0;
+}
+
+[data-admin-theme] .quick-filter-row .button.active {
+  color: #ffffff;
+}
+
+[data-admin-theme] .roster-filter-bar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, 1fr)) repeat(2, minmax(160px, 1.2fr)) minmax(130px, 0.8fr);
+}
+
+[data-admin-theme] .roster-filter-actions {
+  grid-column: 1 / -1;
+}
+
+[data-admin-theme] .card {
+  border-color: var(--line);
+  box-shadow: none;
+}
+
+[data-admin-theme] :is(.invoice-filter-panel, .participant-filter-panel) {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  margin: 24px 0;
+  box-shadow: none;
+}
+
+[data-admin-theme] :is(.invoice-filter-bar, .participant-filter-bar) {
+  margin-bottom: 0;
+}
+
+[data-admin-theme] :is(.service-log-workbench, .invoice-workbench, .participant-workbench) {
+  margin-bottom: 24px;
+}
+
+[data-admin-theme] .table-card {
+  border-color: var(--line);
+  border-radius: 5px;
+  box-shadow: none;
+}
+
+[data-admin-theme] .roster-table-card {
+  padding: 0;
+}
+
+[data-admin-theme] .table-card :is(th, td) {
+  border-bottom-color: var(--line);
+  padding: 12px;
+}
+
+[data-admin-theme] .table-card th {
+  height: 40px;
+  background: #fafafa;
+  color: #52525b;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+[data-admin-theme] .table-card td {
+  height: 56px;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+[data-admin-theme] .table-card tbody tr:hover {
+  background: #fafafa;
+}
+
+[data-admin-theme] .roster-table {
+  min-width: 1060px;
+}
+
+[data-admin-theme] .roster-table .roster-person-cell {
+  min-width: 140px;
+  font-weight: 500;
+}
+
+[data-admin-theme] .roster-table .roster-service-cell {
+  color: #3f3f46;
+}
+
+[data-admin-theme] .roster-table .roster-next-action-cell {
+  min-width: 160px;
+  color: #52525b;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+[data-admin-theme] td.actions :is(a, button) {
+  min-height: 30px;
+  border-color: var(--line);
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+[data-admin-theme] td.actions a {
+  background: #ffffff;
+}
+
+[data-admin-theme] td.actions a:hover {
+  color: var(--brand-dark);
+  background: var(--brand-soft);
+}
+
+[data-admin-theme] .status-pill {
+  min-height: 22px;
+  border-color: transparent;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+[data-admin-theme] .status-pill:is(.status-active, .status-approved, .status-confirmed, .status-issued, .status-paid, .status-current) {
+  color: #087f5b;
+  background: #e3f8ef;
+}
+
+[data-admin-theme] .status-pill:is(.status-draft, .status-archived, .status-inactive, .status-not_provided, .status-completed) {
+  color: #4b5563;
+  background: #edf0f3;
+}
+
+[data-admin-theme] .status-pill:is(.status-published, .status-submitted, .status-pending, .status-pending_review) {
+  color: #9a5b00;
+  background: #fff3d8;
+}
+
+[data-admin-theme] .status-pill:is(.status-rejected, .status-cancelled, .status-no_show, .status-expired) {
+  color: #b42318;
+  background: #fff1f0;
+}
+
+[data-admin-theme] .status-pill.status-invoiced,
+[data-admin-theme] .source-pill.source-unscheduled {
+  color: var(--brand);
+  background: var(--brand-soft);
+  border-color: transparent;
+}
+
+[data-admin-theme] .status-source-stack {
+  gap: 5px;
+}
+
+[data-admin-theme] .source-pill {
+  font-size: 11px;
+}
+
+[data-admin-theme] .pagination {
+  margin-top: 0;
+  border: 0;
+  padding: 16px 0;
+  box-shadow: none;
+}
+
+[data-admin-theme] :is(.pagination-summary, .pagination-links, .pagination-links > span:not(.disabled)) {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+@media (max-width: 1250px) {
+  [data-admin-theme] .roster-filter-bar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  [data-admin-theme] .roster-filter-actions {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  [data-admin-theme] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  [data-admin-theme] .content {
+    padding: 0 16px 32px;
+  }
+
+  [data-admin-theme] .topbar {
+    margin: 0 -16px 24px;
+    padding: 8px 16px;
+  }
+
+  [data-admin-theme] .page-header {
+    display: flex;
+  }
+
+  [data-admin-theme] .roster-filter-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  [data-admin-theme] .roster-filter-actions {
+    grid-column: 1 / -1;
+  }
+
+  [data-admin-theme] .filter-bar label {
+    flex: 1 1 140px;
+  }
+
+  [data-admin-theme] .filter-bar :is(input, select) {
+    height: 44px;
+    font-size: 16px;
+  }
+
+  [data-admin-theme] .pagination {
+    flex-wrap: wrap;
+  }
+}
