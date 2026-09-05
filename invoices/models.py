@@ -6,6 +6,7 @@ from django.db import models, transaction
 from django.urls import reverse
 from django.utils import timezone
 
+from coordinators.models import CoordinationLog
 from service_logs.models import ServiceLog
 
 
@@ -57,6 +58,10 @@ class InvoiceSettings(models.Model):
 
 
 class Invoice(models.Model):
+    class InvoiceType(models.TextChoices):
+        SERVICE = "service", "Service"
+        SUPPORT_COORDINATION = "support_coordination", "Support Coordination"
+
     class Status(models.TextChoices):
         DRAFT = "draft", "Draft"
         ISSUED = "issued", "Issued"
@@ -64,6 +69,11 @@ class Invoice(models.Model):
         CANCELLED = "cancelled", "Cancelled"
 
     invoice_number = models.CharField(max_length=30, unique=True, blank=True)
+    invoice_type = models.CharField(
+        max_length=30,
+        choices=InvoiceType.choices,
+        default=InvoiceType.SERVICE,
+    )
     participant = models.ForeignKey(
         "participants.Participant",
         on_delete=models.PROTECT,
@@ -141,6 +151,26 @@ class InvoiceLineManager(models.Manager):
             line_total=line_total,
         )
 
+    def create_from_coordination_log(self, invoice, coordination_log, support_item):
+        quantity = coordination_log.actual_hours
+        unit_price = support_item.price_limit
+        line_total = (quantity * unit_price).quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+        return self.create(
+            invoice=invoice,
+            coordination_log=coordination_log,
+            line_type=InvoiceLine.LineType.SUPPORT_COORDINATION,
+            support_item_number=support_item.item_number,
+            description=support_item.name,
+            unit=support_item.unit,
+            unit_price=unit_price,
+            quantity=quantity,
+            gst_code=support_item.gst_code,
+            line_total=line_total,
+        )
+
     def create_travel_claim_from_service_log(
         self,
         invoice,
@@ -175,6 +205,7 @@ class InvoiceLine(models.Model):
     class LineType(models.TextChoices):
         SERVICE = "service", "Service"
         TRAVEL_NON_LABOUR = "travel_non_labour", "Provider travel - non-labour"
+        SUPPORT_COORDINATION = "support_coordination", "Support Coordination"
 
     invoice = models.ForeignKey(
         Invoice,
@@ -185,6 +216,15 @@ class InvoiceLine(models.Model):
         ServiceLog,
         on_delete=models.PROTECT,
         related_name="invoice_lines",
+        null=True,
+        blank=True,
+    )
+    coordination_log = models.ForeignKey(
+        CoordinationLog,
+        on_delete=models.PROTECT,
+        related_name="invoice_lines",
+        null=True,
+        blank=True,
     )
     line_type = models.CharField(
         max_length=30,
@@ -206,8 +246,21 @@ class InvoiceLine(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["service_log", "line_type"],
+                condition=models.Q(service_log__isnull=False),
                 name="unique_invoice_line_type_per_service_log",
-            )
+            ),
+            models.UniqueConstraint(
+                fields=["coordination_log"],
+                condition=models.Q(coordination_log__isnull=False),
+                name="unique_invoice_line_per_coordination_log",
+            ),
+            models.CheckConstraint(
+                check=(
+                    models.Q(service_log__isnull=False, coordination_log__isnull=True)
+                    | models.Q(service_log__isnull=True, coordination_log__isnull=False)
+                ),
+                name="invoice_line_has_exactly_one_source",
+            ),
         ]
 
     def __str__(self):
