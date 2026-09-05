@@ -10,6 +10,7 @@
   </div>
   <div class="button-row">
     <a class="button secondary" href="{{ return_url }}">Back to Support Workers</a>
+    <a class="button secondary" href="{% url 'worker_reset_password' worker.id %}">Reset Password</a>
     <a class="button" href="{% url 'worker_edit' worker.id %}">Edit</a>
   </div>
 </div>
@@ -43,6 +44,8 @@
     <dl class="detail-list">
       <dt>Email</dt>
       <dd>{{ worker.email }}</dd>
+      <dt>Login username</dt>
+      <dd>{{ worker.user.username }}</dd>
       <dt>Phone</dt>
       <dd>{% if worker.phone %}{{ worker.phone }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
       <dt>Address</dt>

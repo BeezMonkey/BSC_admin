@@ -11,6 +11,7 @@
   <div class="button-row">
     <a class="button secondary" href="{{ return_url }}">Back to Support Coordinators</a>
     <a class="button secondary" href="{% url 'coordinator_assign_participant' coordinator.id %}">Assign Participant</a>
+    <a class="button secondary" href="{% url 'coordinator_reset_password' coordinator.id %}">Reset Password</a>
     <a class="button" href="{% url 'coordinator_edit' coordinator.id %}">Edit</a>
   </div>
 </div>
@@ -21,6 +22,8 @@
     <dl class="detail-list">
       <dt>Email</dt>
       <dd>{{ coordinator.email }}</dd>
+      <dt>Login username</dt>
+      <dd>{{ coordinator.user.username }}</dd>
       <dt>Phone</dt>
       <dd>{% if coordinator.phone %}{{ coordinator.phone }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
       <dt>Status</dt>

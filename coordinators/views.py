@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from accounts.decorators import admin_required, coordinator_required
+from accounts.forms import AdminSetPasswordForm
 from core.audit import write_audit_log
 from core.models import AuditLog
 from core.navigation import get_safe_return_url
@@ -376,6 +377,39 @@ def coordinator_edit(request, coordinator_id):
             "title": "Edit Support Coordinator",
             "coordinator": coordinator,
             "return_url": return_url,
+        },
+    )
+
+
+@admin_required
+def coordinator_reset_password(request, coordinator_id):
+    coordinator = get_object_or_404(
+        SupportCoordinator.objects.select_related("user"),
+        id=coordinator_id,
+    )
+    return_url = get_safe_return_url(
+        request,
+        reverse("coordinator_detail", args=[coordinator.id]),
+    )
+    if request.method == "POST":
+        form = AdminSetPasswordForm(coordinator.user, request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Support coordinator password updated.")
+            return redirect(return_url)
+    else:
+        form = AdminSetPasswordForm(coordinator.user)
+
+    return render(
+        request,
+        "accounts/admin_password_reset_form.html",
+        {
+            "form": form,
+            "title": "Reset Support Coordinator Password",
+            "subject_name": coordinator.display_name,
+            "login_username": coordinator.user.username,
+            "return_url": return_url,
+            "submit_label": "Update Password",
         },
     )
 

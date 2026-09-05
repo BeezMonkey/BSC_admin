@@ -1035,6 +1035,53 @@ class CoordinatorAdminManagementTests(TestCase):
         self.assertFalse(coordinator.user.is_active)
         self.assertContains(response, "Support coordinator updated.")
 
+    def test_coordinator_detail_shows_login_username_and_reset_link(self):
+        coordinator = create_coordinator(username="casey-login")
+        self.login_admin()
+
+        response = self.client.get(reverse("coordinator_detail", args=[coordinator.id]))
+
+        self.assertContains(response, "Login username")
+        self.assertContains(response, "casey-login")
+        self.assertContains(response, f"/coordinators/{coordinator.id}/reset-password/")
+
+    def test_admin_can_reset_support_coordinator_password(self):
+        coordinator = create_coordinator(username="casey-reset")
+        coordinator.user.set_password("old-coordinator-pass-123")
+        coordinator.user.save(update_fields=["password"])
+        self.login_admin()
+
+        response = self.client.post(
+            f"/coordinators/{coordinator.id}/reset-password/",
+            {
+                "new_password1": "NewCoordinatorPass123!",
+                "new_password2": "NewCoordinatorPass123!",
+            },
+            follow=True,
+        )
+
+        coordinator.user.refresh_from_db()
+        self.assertRedirects(response, reverse("coordinator_detail", args=[coordinator.id]))
+        self.assertFalse(coordinator.user.check_password("old-coordinator-pass-123"))
+        self.assertTrue(coordinator.user.check_password("NewCoordinatorPass123!"))
+        self.assertContains(response, "Support coordinator password updated.")
+
+    def test_coordinator_reset_password_uses_django_password_validation(self):
+        coordinator = create_coordinator(username="casey-weak")
+        coordinator.user.set_password("old-coordinator-pass-123")
+        coordinator.user.save(update_fields=["password"])
+        self.login_admin()
+
+        response = self.client.post(
+            f"/coordinators/{coordinator.id}/reset-password/",
+            {"new_password1": "password", "new_password2": "password"},
+        )
+
+        coordinator.user.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "This password is too common.")
+        self.assertTrue(coordinator.user.check_password("old-coordinator-pass-123"))
+
     def test_support_worker_cannot_access_coordinator_admin_list(self):
         self.client.force_login(self.worker_user)
 
@@ -1050,6 +1097,7 @@ class CoordinatorAdminManagementTests(TestCase):
             reverse("coordinator_detail", args=[coordinator.id]),
             reverse("coordinator_edit", args=[coordinator.id]),
             reverse("coordinator_assign_participant", args=[coordinator.id]),
+            f"/coordinators/{coordinator.id}/reset-password/",
         ]
         self.client.force_login(self.coordinator_user)
 
