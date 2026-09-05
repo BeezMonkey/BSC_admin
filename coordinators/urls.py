@@ -46,6 +46,7 @@ urlpatterns = [
         name="coordinator_assign_participant",
     ),
     path("sc/dashboard/", views.coordinator_dashboard, name="coordinator_dashboard"),
+    path("sc/account/", views.coordinator_account, name="coordinator_account"),
     path("sc/logs/", views.coordinator_log_list, name="coordinator_log_list"),
     path("sc/logs/new/", views.coordinator_log_create, name="coordinator_log_create"),
     path(
