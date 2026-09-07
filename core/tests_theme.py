@@ -126,6 +126,19 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn(".field textarea", css)
         self.assertIn("border-color: #d6e1eb;", css)
 
+    def test_form_validation_errors_are_subtle_and_readable(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+
+        self.assertIn("--danger-text: #b42318;", css)
+        self.assertIn(".field .field-error", css)
+        self.assertIn("font-size: 0.78rem;", css)
+        self.assertIn("font-weight: 400;", css)
+        self.assertIn("color: var(--danger-text);", css)
+        self.assertIn(".field:has(.field-error) :is(input, select, textarea)", css)
+        self.assertIn(".errorlist", css)
+        self.assertIn("line-height: 1.35;", css)
+        self.assertIn(".message.error", css)
+
     def test_admin_roster_and_invoice_form_alignment_assets_exist(self):
         css = Path("static/css/app.css").read_text(encoding="utf-8")
         shift_fields = Path("templates/scheduling/partials/shift_form_fields.html").read_text(encoding="utf-8")
