@@ -1,34 +1,242 @@
+from datetime import timedelta
+from urllib.parse import urlencode
+
 from django.contrib import messages
+from django.db.models import Count, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_POST
 
 from accounts.decorators import admin_required, worker_required
 from core.audit import write_audit_log
 from core.models import AuditLog
+from participants.models import Participant
+from workers.models import SupportWorker
 
 from .forms import DocumentForm, WorkerDocumentUploadForm
 from .models import Document
 from .storage import StorageOperationError
 
 
+def _document_list_url(owner, person_id=None, category="all"):
+    query = {"owner": owner}
+    if person_id:
+        query["person"] = person_id
+    if category != "all":
+        query["category"] = category
+    return f"{reverse('document_list')}?{urlencode(query)}"
+
+
+def _document_upload_url(owner, person_id=None):
+    if not person_id:
+        return reverse("document_create")
+    key = "worker" if owner == "workers" else "participant"
+    return f"{reverse('document_create')}?{urlencode({key: person_id})}"
+
+
+def _document_category_tabs(owner, person_id, documents, active_category):
+    tabs = [
+        {"key": "all", "label": "All", "count": documents.count()},
+        {
+            "key": Document.Category.PLAN,
+            "label": "Plan",
+            "count": documents.filter(category=Document.Category.PLAN).count(),
+        },
+        {
+            "key": Document.Category.COMPLIANCE,
+            "label": "Compliance",
+            "count": documents.filter(category=Document.Category.COMPLIANCE).count(),
+        },
+        {
+            "key": Document.Category.INVOICE,
+            "label": "Invoices",
+            "count": documents.filter(category=Document.Category.INVOICE).count(),
+        },
+        {
+            "key": Document.Category.SERVICE_LOG,
+            "label": "Service logs",
+            "count": documents.filter(category=Document.Category.SERVICE_LOG).count(),
+        },
+        {
+            "key": "others",
+            "label": "Others",
+            "count": documents.filter(category=Document.Category.GENERAL).count(),
+        },
+    ]
+    if owner == "workers":
+        tabs = [
+            tabs[0],
+            tabs[2],
+            {
+                "key": "others",
+                "label": "Others",
+                "count": documents.filter(
+                    Q(category=Document.Category.GENERAL)
+                    | Q(category=Document.Category.COMPLIANCE, required_document_type="")
+                ).count(),
+            },
+        ]
+
+    for tab in tabs:
+        tab["url"] = _document_list_url(owner, person_id, tab["key"])
+        tab["is_active"] = tab["key"] == active_category
+    return tabs
+
+
+def _filter_documents_for_category(documents, owner, category):
+    if category == "all":
+        return documents
+    if category == "others":
+        if owner == "workers":
+            return documents.filter(
+                Q(category=Document.Category.GENERAL)
+                | Q(category=Document.Category.COMPLIANCE, required_document_type="")
+            )
+        return documents.filter(category=Document.Category.GENERAL)
+    valid_categories = {value for value, _label in Document.Category.choices}
+    if category in valid_categories:
+        return documents.filter(category=category)
+    return documents
+
+
 @admin_required
 def document_list(request):
-    documents = Document.objects.select_related(
-        "participant",
-        "worker",
-        "invoice",
-        "service_log",
-        "uploaded_by",
-    ).filter(
-        category=Document.Category.COMPLIANCE,
-        worker__isnull=False,
+    owner = request.GET.get("owner", "participants")
+    if owner not in {"participants", "workers"}:
+        owner = "participants"
+
+    category = request.GET.get("category", "all")
+    person_id = request.GET.get("person")
+    selected_person = None
+
+    if owner == "workers":
+        people = SupportWorker.objects.select_related("user").annotate(
+            document_count=Count("documents")
+        )
+        if person_id:
+            selected_person = people.filter(id=person_id).first()
+        selected_person = selected_person or people.first()
+        person_list_title = "Support Worker list"
+        person_list_description = "Open a worker to manage their compliance and personal files."
+        selected_person_description = (
+            "Support worker compliance files, credentials, and flexible personal uploads."
+        )
+        documents = (
+            Document.objects.select_related(
+                "participant",
+                "worker",
+                "invoice",
+                "service_log",
+                "uploaded_by",
+            ).filter(worker=selected_person)
+            if selected_person
+            else Document.objects.none()
+        )
+    else:
+        people = Participant.objects.annotate(document_count=Count("documents"))
+        if person_id:
+            selected_person = people.filter(id=person_id).first()
+        selected_person = selected_person or people.first()
+        person_list_title = "Participant list"
+        person_list_description = "Open a person to manage their files."
+        selected_person_description = (
+            "Participant documents, plan files, reports, and flexible personal uploads."
+        )
+        documents = (
+            Document.objects.select_related(
+                "participant",
+                "worker",
+                "invoice",
+                "service_log",
+                "uploaded_by",
+            ).filter(participant=selected_person)
+            if selected_person
+            else Document.objects.none()
+        )
+
+    valid_categories = {"all", "others"} | {
+        value for value, _label in Document.Category.choices
+    }
+    if category not in valid_categories:
+        category = "all"
+
+    documents = documents.order_by("-created_at")
+    filtered_documents = _filter_documents_for_category(documents, owner, category)
+    expiring_soon_date = timezone.localdate() + timedelta(days=30)
+
+    owner_tabs = [
+        {
+            "key": "participants",
+            "label": "Participants",
+            "count": Participant.objects.count(),
+            "url": _document_list_url("participants"),
+            "is_active": owner == "participants",
+        },
+        {
+            "key": "workers",
+            "label": "Support Workers",
+            "count": SupportWorker.objects.count(),
+            "url": _document_list_url("workers"),
+            "is_active": owner == "workers",
+        },
+    ]
+    person_items = [
+        {
+            "person": person,
+            "url": _document_list_url(owner, person.id, category),
+            "is_active": selected_person and person.id == selected_person.id,
+        }
+        for person in people
+    ]
+    category_tabs = _document_category_tabs(
+        owner,
+        selected_person.id if selected_person else None,
+        documents,
+        category,
     )
+    active_category_label = next(
+        (tab["label"] for tab in category_tabs if tab["key"] == category),
+        "All",
+    )
+    summary = {
+        "total": documents.count(),
+        "pending_review": documents.filter(
+            review_status=Document.ReviewStatus.PENDING_REVIEW
+        ).count(),
+        "expiring_soon": documents.filter(
+            expiry_date__isnull=False,
+            expiry_date__lte=expiring_soon_date,
+        ).count(),
+        "others": next(
+            (tab["count"] for tab in category_tabs if tab["key"] == "others"),
+            0,
+        ),
+    }
+
     return render(
         request,
         "documents/document_list.html",
-        {"documents": documents},
+        {
+            "owner": owner,
+            "owner_tabs": owner_tabs,
+            "person_items": person_items,
+            "selected_person": selected_person,
+            "selected_person_description": selected_person_description,
+            "person_list_title": person_list_title,
+            "person_list_description": person_list_description,
+            "documents": filtered_documents,
+            "category_tabs": category_tabs,
+            "active_category": category,
+            "active_category_label": active_category_label,
+            "summary": summary,
+            "upload_url": _document_upload_url(
+                owner,
+                selected_person.id if selected_person else None,
+            ),
+        },
     )
 
 
