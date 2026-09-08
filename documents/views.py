@@ -6,6 +6,7 @@ from django.db.models import Count, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils import timezone
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_POST
@@ -30,11 +31,62 @@ def _document_list_url(owner, person_id=None, category="all"):
     return f"{reverse('document_list')}?{urlencode(query)}"
 
 
-def _document_upload_url(owner, person_id=None):
+def _document_upload_url(owner, person_id=None, category="all"):
     if not person_id:
         return reverse("document_create")
+    return_url = _document_list_url(owner, person_id, category)
     key = "worker" if owner == "workers" else "participant"
-    return f"{reverse('document_create')}?{urlencode({key: person_id})}"
+    query = {
+        key: person_id,
+        "next": return_url,
+    }
+    if category == "others":
+        query["category"] = Document.Category.GENERAL
+    elif category not in {"all", *{value for value, _label in Document.Category.choices}}:
+        category = "all"
+    elif category != "all":
+        query["category"] = category
+    return f"{reverse('document_create')}?{urlencode(query)}"
+
+
+def _safe_next_url(request, next_url):
+    if not next_url:
+        return ""
+    if url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return next_url
+    return ""
+
+
+def _document_upload_context(initial):
+    context_items = []
+    participant_id = initial.get("participant")
+    worker_id = initial.get("worker")
+
+    if participant_id:
+        participant = Participant.objects.filter(id=participant_id).first()
+        if participant:
+            context_items.append(
+                {
+                    "label": "Participant",
+                    "name": participant.display_name,
+                    "detail": participant.ndis_number or participant.get_status_display(),
+                }
+            )
+    if worker_id:
+        worker = SupportWorker.objects.filter(id=worker_id).first()
+        if worker:
+            context_items.append(
+                {
+                    "label": "Support Worker",
+                    "name": worker.display_name,
+                    "detail": worker.email or worker.get_status_display(),
+                }
+            )
+    return context_items
 
 
 def _document_category_tabs(owner, person_id, documents, active_category):
@@ -235,6 +287,7 @@ def document_list(request):
             "upload_url": _document_upload_url(
                 owner,
                 selected_person.id if selected_person else None,
+                category,
             ),
         },
     )
@@ -242,6 +295,7 @@ def document_list(request):
 
 @admin_required
 def document_create(request):
+    next_url = _safe_next_url(request, request.POST.get("next") or request.GET.get("next", ""))
     if request.method == "POST":
         form = DocumentForm(request.POST, request.FILES)
         if form.is_valid():
@@ -263,11 +317,13 @@ def document_create(request):
                 document,
                 f"Uploaded document {document.id}: {document.title}.",
             )
+            if next_url:
+                return redirect(next_url)
             return redirect(document)
     else:
         initial = {
             key: request.GET[key]
-            for key in ("participant", "worker", "invoice", "service_log")
+            for key in ("participant", "worker", "invoice", "service_log", "category")
             if request.GET.get(key)
         }
         form = DocumentForm(initial=initial)
@@ -275,7 +331,13 @@ def document_create(request):
     return render(
         request,
         "documents/document_form.html",
-        {"form": form},
+        {
+            "form": form,
+            "next_url": next_url,
+            "upload_context_items": _document_upload_context(
+                request.POST if request.method == "POST" else form.initial
+            ),
+        },
     )
 
 
