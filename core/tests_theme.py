@@ -187,6 +187,26 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn('class="field worker-access-toggle"', template)
         self.assertIn('class="worker-access-panel worker-access-panel-warning worker-archive-panel"', template)
 
+    def test_admin_document_manager_polish_assets_exist(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+        template = Path("templates/documents/document_list.html").read_text(encoding="utf-8")
+
+        self.assertIn(".document-manager-layout", css)
+        self.assertIn("grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);", css)
+        self.assertIn(".document-owner-switch", css)
+        self.assertIn(".document-person-item", css)
+        self.assertIn(".document-summary-strip", css)
+        self.assertIn(".document-category-tab", css)
+        self.assertIn(".document-manager-table", css)
+        self.assertIn("@media (max-width: 760px)", css)
+        self.assertIn(".document-manager-layout {\n    grid-template-columns: 1fr;", css)
+        self.assertIn('class="document-manager-layout"', template)
+        self.assertIn('class="document-owner-switch"', template)
+        self.assertIn('class="document-person-list"', template)
+        self.assertIn('class="document-summary-strip"', template)
+        self.assertIn('class="document-category-tabs"', template)
+        self.assertIn("Upload Document", template)
+
     def test_support_item_form_control_polish_assets_exist(self):
         css = Path("static/css/app.css").read_text(encoding="utf-8")
         template = Path("templates/scheduling/support_item_form.html").read_text(encoding="utf-8")

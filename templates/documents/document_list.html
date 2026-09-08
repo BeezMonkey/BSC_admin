@@ -1,54 +1,168 @@
 {% extends "admin_base.html" %}
 
-{% block title %}Compliance Documents - Brisbane Star Care{% endblock %}
+{% block title %}Documents - Brisbane Star Care{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1>Compliance Documents</h1>
-    <p>Review worker compliance uploads and keep qualification records current.</p>
+    <h1>Documents</h1>
+    <p>Manage participant and support worker documents from one Admin view.</p>
   </div>
-  <a class="button" href="{% url 'document_create' %}">Upload Document</a>
+  <a class="button" href="{{ upload_url }}">Upload Document</a>
 </div>
 
-<section class="card table-card">
-  <table>
-    <thead>
-      <tr>
-        <th>Title</th>
-        <th>Worker</th>
-        <th>Type</th>
-        <th>Status</th>
-        <th>Expiry</th>
-        <th>Uploaded by</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for document in documents %}
-        <tr>
-          <td><a href="{% url 'document_detail' document.id %}">{{ document.title }}</a></td>
-          <td>{{ document.worker.display_name }}</td>
-          <td>{{ document.get_required_document_type_display|default:"Other document" }}</td>
-          <td><span class="status-pill status-{{ document.review_status }}">{{ document.get_review_status_display }}</span></td>
-          <td>{% if document.expiry_date %}{{ document.expiry_date|date:"d/m/Y" }}{% else %}-{% endif %}</td>
-          <td>{{ document.uploaded_by }}</td>
-          <td><a href="{% url 'document_detail' document.id %}">View</a></td>
-        </tr>
-      {% empty %}
-        <tr>
-          <td colspan="7">
-            <div class="empty-state">
-              <strong>No compliance documents yet.</strong>
-              <p>Worker compliance uploads will appear here for admin review.</p>
-              <div class="empty-state-actions">
-                <a class="button" href="{% url 'document_create' %}">Upload Document</a>
-              </div>
-            </div>
-          </td>
-        </tr>
+<div class="document-manager-layout">
+  <aside class="card document-manager-sidebar">
+    <nav class="document-owner-switch" aria-label="Document owner type">
+      {% for tab in owner_tabs %}
+        <a class="document-owner-tab{% if tab.is_active %} active{% endif %}" href="{{ tab.url }}">
+          <strong>{{ tab.label }}</strong>
+          <span>{{ tab.count }} {% if tab.count == 1 %}record{% else %}records{% endif %}</span>
+        </a>
       {% endfor %}
-    </tbody>
-  </table>
-</section>
+    </nav>
+
+    <div class="document-person-heading">
+      <h2>{{ person_list_title }}</h2>
+      <p>{{ person_list_description }}</p>
+    </div>
+
+    <div class="document-person-list">
+      {% for item in person_items %}
+        <a class="document-person-item{% if item.is_active %} active{% endif %}" href="{{ item.url }}">
+          <span class="document-person-avatar">{{ item.person.initials }}</span>
+          <span class="document-person-copy">
+            <strong>{{ item.person.display_name }}</strong>
+            {% if owner == "participants" and item.person.ndis_number %}
+              <small>NDIS {{ item.person.ndis_number }}</small>
+            {% elif owner == "workers" and item.person.email %}
+              <small>{{ item.person.email }}</small>
+            {% else %}
+              <small>{{ item.person.get_status_display }}</small>
+            {% endif %}
+          </span>
+          <span class="document-count-pill">{{ item.person.document_count }} files</span>
+        </a>
+      {% empty %}
+        <div class="empty-state document-person-empty">
+          <strong>No people found.</strong>
+          <p>Create a participant or support worker before adding files.</p>
+        </div>
+      {% endfor %}
+    </div>
+  </aside>
+
+  <section class="card document-manager-main">
+    {% if selected_person %}
+      <header class="document-person-summary">
+        <div>
+          <h2>{{ selected_person.display_name }}</h2>
+          <p>{{ selected_person_description }}</p>
+        </div>
+        <dl class="document-summary-strip">
+          <div>
+            <dt>{{ summary.total }}</dt>
+            <dd>documents</dd>
+          </div>
+          <div>
+            <dt>{{ summary.pending_review }}</dt>
+            <dd>pending review</dd>
+          </div>
+          <div>
+            <dt>{{ summary.expiring_soon }}</dt>
+            <dd>expiring soon</dd>
+          </div>
+          <div>
+            <dt>{{ summary.others }}</dt>
+            <dd>others</dd>
+          </div>
+        </dl>
+      </header>
+
+      <nav class="document-category-tabs" aria-label="Document categories">
+        {% for tab in category_tabs %}
+          <a class="document-category-tab{% if tab.is_active %} active{% endif %}" href="{{ tab.url }}">
+            {{ tab.label }} <span>{{ tab.count }}</span>
+          </a>
+        {% endfor %}
+      </nav>
+
+      <div class="document-section-header">
+        <div>
+          <h3>{{ active_category_label }}</h3>
+          {% if active_category == "others" %}
+            <p>Flexible files that do not fit fixed categories.</p>
+          {% else %}
+            <p>Files shown by original filename while secure storage names stay private.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="document-table-frame">
+        <table class="document-manager-table">
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Category</th>
+              <th>Uploaded</th>
+              <th>Status</th>
+              <th>Expiry</th>
+              <th>Uploaded by</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for document in documents %}
+              <tr>
+                <td class="document-file-cell">
+                  <a href="{% url 'document_detail' document.id %}">{{ document.title }}</a>
+                  <small>{{ document.filename }}</small>
+                </td>
+                <td>
+                  {% if document.required_document_type %}
+                    {{ document.get_required_document_type_display }}
+                  {% elif document.category == "general" %}
+                    Others
+                  {% else %}
+                    {{ document.get_category_display }}
+                  {% endif %}
+                </td>
+                <td>{{ document.created_at|date:"d/m/Y" }}</td>
+                <td>
+                  <span class="status-pill status-{{ document.review_status }}">{{ document.get_review_status_display }}</span>
+                </td>
+                <td>{% if document.expiry_date %}{{ document.expiry_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
+                <td>{{ document.uploaded_by }}</td>
+                <td class="actions document-actions">
+                  <a class="button secondary" href="{% url 'document_detail' document.id %}">View</a>
+                  <a class="button secondary" href="{% url 'document_download' document.id %}">Download</a>
+                  {% if document.is_previewable %}
+                    <a class="button secondary" href="{% url 'document_preview' document.id %}">Preview</a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7">
+                  <div class="empty-state">
+                    <strong>No documents in this view yet.</strong>
+                    <p>Uploaded files for this person and category will appear here.</p>
+                    <div class="empty-state-actions">
+                      <a class="button" href="{{ upload_url }}">Upload Document</a>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state document-manager-empty">
+        <strong>No document owner selected.</strong>
+        <p>Create a participant or support worker before adding files.</p>
+      </div>
+    {% endif %}
+  </section>
+</div>
 {% endblock %}

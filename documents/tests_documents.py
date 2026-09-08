@@ -186,9 +186,17 @@ class DocumentManagementTests(TestCase):
 
         response = self.client.get(reverse("document_list"))
 
-        self.assertContains(response, 'class="card table-card"')
+        self.assertContains(response, 'class="document-manager-layout"')
 
-    def test_admin_document_list_focuses_worker_compliance_documents(self):
+    def test_admin_document_manager_defaults_to_participant_documents(self):
+        participant_document = Document.objects.create(
+            title="Participant plan",
+            category=Document.Category.PLAN,
+            participant=self.participant,
+            file=self.upload_file("plan.pdf"),
+            original_filename="plan.pdf",
+            uploaded_by=self.admin_user,
+        )
         worker_document = Document.objects.create(
             title="Police Check",
             category=Document.Category.COMPLIANCE,
@@ -196,34 +204,100 @@ class DocumentManagementTests(TestCase):
             required_document_type=Document.RequiredDocumentType.POLICE_CHECK,
             review_status=Document.ReviewStatus.PENDING_REVIEW,
             file=self.upload_file("police-check.pdf"),
+            original_filename="police-check.pdf",
             uploaded_by=self.worker_user,
         )
+        self.login_admin()
+
+        response = self.client.get(reverse("document_list"))
+
+        self.assertContains(response, "Documents")
+        self.assertContains(response, "Participants")
+        self.assertContains(response, "Support Workers")
+        self.assertContains(response, "Participant list")
+        self.assertContains(response, self.participant.display_name)
+        self.assertContains(response, participant_document.title)
+        self.assertContains(response, "plan.pdf")
+        self.assertContains(
+            response,
+            f'href="{reverse("document_create")}?participant={self.participant.id}"',
+        )
+        self.assertNotContains(response, worker_document.title)
+
+    def test_admin_document_manager_can_switch_to_support_worker_documents(self):
         Document.objects.create(
-            title="Service receipt",
-            category=Document.Category.SERVICE_LOG,
+            title="Participant plan",
+            category=Document.Category.PLAN,
             participant=self.participant,
+            file=self.upload_file("plan.pdf"),
+            original_filename="plan.pdf",
+            uploaded_by=self.admin_user,
+        )
+        worker_document = Document.objects.create(
+            title="Police Check",
+            category=Document.Category.COMPLIANCE,
             worker=self.worker,
-            service_log=self.service_log,
-            file=self.upload_file("receipt.pdf"),
+            required_document_type=Document.RequiredDocumentType.POLICE_CHECK,
+            review_status=Document.ReviewStatus.PENDING_REVIEW,
+            file=self.upload_file("police-check.pdf"),
+            original_filename="police-check.pdf",
             uploaded_by=self.worker_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("document_list"),
+            {"owner": "workers", "person": self.worker.id},
+        )
+
+        self.assertContains(response, "Support Worker list")
+        self.assertContains(response, "Wendy Worker")
+        self.assertContains(response, worker_document.title)
+        self.assertContains(response, "police-check.pdf")
+        self.assertContains(response, "Pending review")
+        self.assertContains(
+            response,
+            f'href="{reverse("document_create")}?worker={self.worker.id}"',
+        )
+        self.assertNotContains(response, "Participant plan")
+
+    def test_admin_document_manager_filters_selected_person_others(self):
+        other_participant = Participant.objects.create(
+            first_name="Jia",
+            last_name="Li",
+            ndis_number="543210987",
         )
         Document.objects.create(
             title="Participant plan",
             category=Document.Category.PLAN,
             participant=self.participant,
             file=self.upload_file("plan.pdf"),
+            original_filename="plan.pdf",
+            uploaded_by=self.admin_user,
+        )
+        other_document = Document.objects.create(
+            title="Provider contact note",
+            category=Document.Category.GENERAL,
+            participant=other_participant,
+            file=self.upload_file("provider-note.docx"),
+            original_filename="provider-note.docx",
             uploaded_by=self.admin_user,
         )
         self.login_admin()
 
-        response = self.client.get(reverse("document_list"))
+        response = self.client.get(
+            reverse("document_list"),
+            {
+                "owner": "participants",
+                "person": other_participant.id,
+                "category": "others",
+            },
+        )
 
-        self.assertContains(response, "Compliance Documents")
-        self.assertContains(response, "Review worker compliance uploads")
-        self.assertContains(response, worker_document.title)
-        self.assertContains(response, "Wendy Worker")
-        self.assertContains(response, "Police Check")
-        self.assertNotContains(response, "Service receipt")
+        self.assertContains(response, "Others")
+        self.assertContains(response, other_participant.display_name)
+        self.assertContains(response, other_document.title)
+        self.assertContains(response, "provider-note.docx")
         self.assertNotContains(response, "Participant plan")
 
     def test_document_create_uses_record_form_layout(self):
@@ -597,7 +671,10 @@ class DocumentManagementTests(TestCase):
         )
         self.login_admin()
 
-        response = self.client.get(reverse("document_list"))
+        response = self.client.get(
+            reverse("document_list"),
+            {"owner": "workers", "person": self.worker.id},
+        )
 
         self.assertContains(response, "Pending review")
 

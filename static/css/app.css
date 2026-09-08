@@ -1278,6 +1278,291 @@ input[type="checkbox"] {
   padding: 0.78rem;
 }
 
+.document-manager-layout {
+  display: grid;
+  grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
+  align-items: start;
+  gap: 1rem;
+}
+
+.document-manager-sidebar,
+.document-manager-main {
+  padding: 0;
+  overflow: hidden;
+}
+
+.document-owner-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid #e3ebf2;
+}
+
+.document-owner-tab {
+  display: grid;
+  gap: 0.08rem;
+  min-height: 4rem;
+  border: 1px solid #d8e1ea;
+  border-radius: 6px;
+  padding: 0.72rem;
+  color: #475569;
+  background: #ffffff;
+}
+
+.document-owner-tab:hover,
+.document-owner-tab:focus,
+.document-owner-tab.active {
+  border-color: #8fd5cc;
+  color: var(--brand-dark);
+  background: var(--brand-soft);
+}
+
+.document-owner-tab strong {
+  color: inherit;
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.document-owner-tab span {
+  color: #52637a;
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
+.document-person-heading {
+  padding: 0.9rem 1rem 0.7rem;
+  border-bottom: 1px solid #e3ebf2;
+}
+
+.document-person-heading h2,
+.document-person-summary h2,
+.document-section-header h3 {
+  margin: 0;
+  color: var(--ink);
+  font-weight: var(--weight-heading);
+  line-height: 1.2;
+}
+
+.document-person-heading h2 {
+  font-size: 1.02rem;
+}
+
+.document-person-heading p,
+.document-person-summary p,
+.document-section-header p {
+  margin: 0.18rem 0 0;
+  color: var(--muted);
+}
+
+.document-person-list {
+  display: grid;
+}
+
+.document-person-item {
+  display: grid;
+  grid-template-columns: 2.45rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.68rem;
+  border-bottom: 1px solid #e8eef5;
+  padding: 0.78rem 1rem;
+  background: #ffffff;
+}
+
+.document-person-item:hover,
+.document-person-item:focus,
+.document-person-item.active {
+  background: #f0faf8;
+}
+
+.document-person-item.active {
+  box-shadow: inset 3px 0 0 var(--brand);
+}
+
+.document-person-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  color: var(--brand-dark);
+  background: #d9f1ee;
+  font-size: 0.78rem;
+  font-weight: var(--weight-action);
+}
+
+.document-person-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.08rem;
+}
+
+.document-person-copy strong {
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 0.94rem;
+  font-weight: var(--weight-action);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-person-copy small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-count-pill {
+  border: 1px solid #d8e1ea;
+  border-radius: 999px;
+  padding: 0.16rem 0.48rem;
+  color: #475569;
+  background: #ffffff;
+  font-size: 0.75rem;
+  font-weight: var(--weight-action);
+  white-space: nowrap;
+}
+
+.document-person-empty,
+.document-manager-empty {
+  margin: 1rem;
+}
+
+.document-person-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+  padding: 1.05rem 1.18rem 0.78rem;
+  border-bottom: 1px solid #e3ebf2;
+}
+
+.document-person-summary h2 {
+  font-size: 1.35rem;
+}
+
+.document-summary-strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.document-summary-strip div {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  border: 1px solid #d8e1ea;
+  border-radius: 999px;
+  padding: 0.18rem 0.56rem;
+  background: #ffffff;
+}
+
+.document-summary-strip dt {
+  color: #0f172a;
+  font-weight: var(--weight-action);
+}
+
+.document-summary-strip dd {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.document-category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding: 0.78rem 1.18rem;
+  border-bottom: 1px solid #e8eef5;
+}
+
+.document-category-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  min-height: 2rem;
+  border: 1px solid #cfe0ee;
+  border-radius: 999px;
+  padding: 0.28rem 0.65rem;
+  color: #344054;
+  background: #ffffff;
+  font-size: 0.86rem;
+  font-weight: var(--weight-action);
+}
+
+.document-category-tab:hover,
+.document-category-tab:focus,
+.document-category-tab.active {
+  border-color: #8fd5cc;
+  color: var(--brand-dark);
+  background: var(--brand-soft);
+}
+
+.document-category-tab span {
+  color: inherit;
+}
+
+.document-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.92rem 1.18rem 0.65rem;
+}
+
+.document-section-header h3 {
+  font-size: 1.08rem;
+}
+
+.document-table-frame {
+  overflow-x: auto;
+}
+
+.document-manager-table {
+  min-width: 880px;
+}
+
+.document-manager-table th,
+.document-manager-table td {
+  vertical-align: middle;
+}
+
+.document-file-cell {
+  min-width: 16rem;
+}
+
+.document-file-cell a,
+.document-file-cell small {
+  display: block;
+}
+
+.document-file-cell a {
+  color: #0f172a;
+  font-weight: var(--weight-action);
+}
+
+.document-file-cell small {
+  margin-top: 0.1rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
+}
+
+.document-actions {
+  min-width: 15rem;
+}
+
+.document-actions .button {
+  min-height: 2rem;
+  padding: 0.34rem 0.56rem;
+  font-size: 0.82rem;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -4327,6 +4612,35 @@ tbody tr:last-child td {
 
   .app-shell:not(.worker-app-shell) .sidebar {
     display: none;
+  }
+
+  .document-manager-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .document-owner-switch {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 0.65rem;
+  }
+
+  .document-person-item {
+    grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+    padding: 0.72rem 0.85rem;
+  }
+
+  .document-person-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .document-summary-strip {
+    justify-content: flex-start;
+  }
+
+  .document-category-tabs,
+  .document-section-header,
+  .document-person-summary {
+    padding-right: 0.9rem;
+    padding-left: 0.9rem;
   }
 
   .worker-topbar {
