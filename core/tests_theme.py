@@ -139,6 +139,19 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn("line-height: 1.35;", css)
         self.assertIn(".message.error", css)
 
+    def test_participant_assignment_form_layout_is_balanced(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+        template = Path("templates/participants/assignment_form.html").read_text(encoding="utf-8")
+
+        self.assertIn('class="form-grid participant-assignment-grid"', template)
+        self.assertIn('field_class="participant-assignment-active-field"', template)
+        self.assertIn('field_class="participant-assignment-notes-field"', template)
+        self.assertIn(".participant-assignment-grid", css)
+        self.assertIn(".participant-assignment-notes-field", css)
+        self.assertIn("grid-column: 2 / span 2;", css)
+        self.assertIn(".participant-assignment-grid {\n    grid-template-columns: repeat(2, minmax(0, 1fr));", css)
+        self.assertIn(".participant-assignment-notes-field {\n    grid-column: 1 / -1;", css)
+
     def test_admin_roster_and_invoice_form_alignment_assets_exist(self):
         css = Path("static/css/app.css").read_text(encoding="utf-8")
         shift_fields = Path("templates/scheduling/partials/shift_form_fields.html").read_text(encoding="utf-8")
