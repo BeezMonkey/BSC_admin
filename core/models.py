@@ -20,6 +20,7 @@ class AuditLog(models.Model):
         DOCUMENT_APPROVED = "document_approved", "Document approved"
         DOCUMENT_REJECTED = "document_rejected", "Document rejected"
         DOCUMENT_DOWNLOADED = "document_downloaded", "Document downloaded"
+        DOCUMENT_DELETED = "document_deleted", "Document deleted"
         SUPPORT_COORDINATOR_CREATED = (
             "support_coordinator_created",
             "Support coordinator created",

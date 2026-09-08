@@ -1627,6 +1627,35 @@ input[type="checkbox"] {
   white-space: nowrap;
 }
 
+.document-delete-confirm {
+  display: grid;
+  gap: 1rem;
+}
+
+.document-delete-warning {
+  border: 1px solid #fecaca;
+  border-left: 3px solid #dc2626;
+  border-radius: 6px;
+  padding: 0.85rem 0.95rem;
+  background: #fff7f6;
+}
+
+.document-delete-warning h2 {
+  margin: 0;
+  color: #991b1b;
+  font-size: 1rem;
+  font-weight: var(--weight-heading);
+}
+
+.document-delete-warning p {
+  margin: 0.25rem 0 0;
+  color: #7f1d1d;
+}
+
+.document-delete-actions {
+  justify-content: flex-end;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;

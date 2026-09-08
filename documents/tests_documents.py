@@ -10,6 +10,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from accounts.models import UserProfile
+from core.models import AuditLog
 from documents.models import Document
 from documents.storage import StorageOperationError
 from invoices.models import Invoice
@@ -394,6 +395,141 @@ class DocumentManagementTests(TestCase):
         self.assertContains(detail_response, "Worker compliance")
         self.assertEqual(download_response.status_code, 200)
         self.assertEqual(download_response.content, b"file-content")
+
+    def test_admin_document_list_links_to_delete_confirmation(self):
+        document = Document.objects.create(
+            title="Participant plan",
+            category=Document.Category.PLAN,
+            participant=self.participant,
+            file=self.upload_file("plan.pdf"),
+            original_filename="plan.pdf",
+            uploaded_by=self.admin_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("document_list"))
+
+        self.assertContains(response, "Delete")
+        self.assertContains(response, reverse("document_delete", args=[document.id]))
+
+    def test_admin_document_detail_links_to_delete_confirmation(self):
+        document = Document.objects.create(
+            title="Participant plan",
+            category=Document.Category.PLAN,
+            participant=self.participant,
+            file=self.upload_file("plan.pdf"),
+            original_filename="plan.pdf",
+            uploaded_by=self.admin_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("document_detail", args=[document.id]))
+
+        self.assertContains(response, "Delete")
+        self.assertContains(response, reverse("document_delete", args=[document.id]))
+
+    def test_admin_document_delete_confirmation_shows_file_context(self):
+        document = Document.objects.create(
+            title="Participant plan",
+            category=Document.Category.PLAN,
+            participant=self.participant,
+            file=self.upload_file("plan.pdf"),
+            original_filename="plan.pdf",
+            uploaded_by=self.admin_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("document_delete", args=[document.id]),
+            {
+                "next": (
+                    f"{reverse('document_list')}?owner=participants"
+                    f"&person={self.participant.id}"
+                )
+            },
+        )
+
+        self.assertContains(response, "Delete document")
+        self.assertContains(response, "Participant plan")
+        self.assertContains(response, "plan.pdf")
+        self.assertContains(response, self.participant.display_name)
+        self.assertContains(response, "This will delete the database record and private file.")
+
+    def test_admin_can_delete_document_and_private_file(self):
+        document = Document.objects.create(
+            title="Participant plan",
+            category=Document.Category.PLAN,
+            participant=self.participant,
+            file=self.upload_file("plan.pdf"),
+            original_filename="plan.pdf",
+            uploaded_by=self.admin_user,
+        )
+        stored_name = document.file.name
+        self.assertTrue(document.file.storage.exists(stored_name))
+        self.login_admin()
+        return_url = (
+            f"{reverse('document_list')}?owner=participants"
+            f"&person={self.participant.id}"
+        )
+
+        response = self.client.post(
+            reverse("document_delete", args=[document.id]),
+            {"next": return_url},
+        )
+
+        self.assertRedirects(response, return_url)
+        self.assertFalse(Document.objects.filter(id=document.id).exists())
+        self.assertFalse(document.file.storage.exists(stored_name))
+        self.assertTrue(
+            AuditLog.objects.filter(
+                action=AuditLog.Action.DOCUMENT_DELETED,
+                object_id=str(document.id),
+            ).exists()
+        )
+
+    def test_document_delete_keeps_record_when_private_file_delete_fails(self):
+        document = Document.objects.create(
+            title="Participant plan",
+            category=Document.Category.PLAN,
+            participant=self.participant,
+            file=self.upload_file("plan.pdf"),
+            original_filename="plan.pdf",
+            uploaded_by=self.admin_user,
+        )
+        self.login_admin()
+
+        with patch.object(
+            document.file.storage,
+            "delete",
+            side_effect=StorageOperationError("Could not delete document from private storage."),
+        ):
+            response = self.client.post(reverse("document_delete", args=[document.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Could not delete document from private storage")
+        self.assertTrue(Document.objects.filter(id=document.id).exists())
+        self.assertFalse(
+            AuditLog.objects.filter(
+                action=AuditLog.Action.DOCUMENT_DELETED,
+                object_id=str(document.id),
+            ).exists()
+        )
+
+    def test_worker_cannot_delete_document_from_admin_view(self):
+        document = Document.objects.create(
+            title="Participant plan",
+            category=Document.Category.PLAN,
+            participant=self.participant,
+            file=self.upload_file("plan.pdf"),
+            original_filename="plan.pdf",
+            uploaded_by=self.admin_user,
+        )
+        self.login_worker()
+
+        response = self.client.post(reverse("document_delete", args=[document.id]))
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(Document.objects.filter(id=document.id).exists())
 
     def test_admin_can_preview_image_document_inline(self):
         document = Document.objects.create(

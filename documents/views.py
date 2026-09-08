@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils import timezone
 from django.views.decorators.clickjacking import xframe_options_sameorigin
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 
 from accounts.decorators import admin_required, worker_required
 from core.audit import write_audit_log
@@ -47,6 +47,14 @@ def _document_upload_url(owner, person_id=None, category="all"):
     elif category != "all":
         query["category"] = category
     return f"{reverse('document_create')}?{urlencode(query)}"
+
+
+def _document_owner_url(document):
+    if document.worker_id:
+        return _document_list_url("workers", document.worker_id)
+    if document.participant_id:
+        return _document_list_url("participants", document.participant_id)
+    return reverse("document_list")
 
 
 def _safe_next_url(request, next_url):
@@ -289,6 +297,11 @@ def document_list(request):
                 selected_person.id if selected_person else None,
                 category,
             ),
+            "current_list_url": _document_list_url(
+                owner,
+                selected_person.id if selected_person else None,
+                category,
+            ),
         },
     )
 
@@ -344,7 +357,56 @@ def document_create(request):
 @admin_required
 def document_detail(request, document_id):
     document = get_object_or_404(Document, id=document_id)
-    return render(request, "documents/document_detail.html", {"document": document})
+    return render(
+        request,
+        "documents/document_detail.html",
+        {
+            "document": document,
+            "document_owner_url": _document_owner_url(document),
+        },
+    )
+
+
+@admin_required
+@require_http_methods(["GET", "POST"])
+def document_delete(request, document_id):
+    document = get_object_or_404(Document, id=document_id)
+    return_url = _safe_next_url(
+        request,
+        request.POST.get("next") or request.GET.get("next", ""),
+    ) or _document_owner_url(document)
+
+    if request.method == "POST":
+        document_title = document.title
+        document_filename = document.filename
+        try:
+            document.file.delete(save=False)
+        except Exception:
+            messages.error(
+                request,
+                "Could not delete document from private storage. Please try again later or contact admin.",
+            )
+            return render(
+                request,
+                "documents/document_confirm_delete.html",
+                {"document": document, "return_url": return_url},
+            )
+
+        write_audit_log(
+            request.user,
+            AuditLog.Action.DOCUMENT_DELETED,
+            document,
+            f"Deleted document {document.id}: {document_title} ({document_filename}).",
+        )
+        document.delete()
+        messages.success(request, f"Deleted document {document_title}.")
+        return redirect(return_url)
+
+    return render(
+        request,
+        "documents/document_confirm_delete.html",
+        {"document": document, "return_url": return_url},
+    )
 
 
 @admin_required
