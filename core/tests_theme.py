@@ -198,6 +198,8 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn(".document-summary-strip", css)
         self.assertIn(".document-category-tab", css)
         self.assertIn(".document-manager-table", css)
+        self.assertIn(".document-upload-context", css)
+        self.assertIn(".document-upload-context-list", css)
         self.assertIn("@media (max-width: 760px)", css)
         self.assertIn(".document-manager-layout {\n    grid-template-columns: 1fr;", css)
         self.assertIn('class="document-manager-layout"', template)

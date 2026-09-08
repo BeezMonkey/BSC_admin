@@ -12,8 +12,32 @@
 
 <form class="record-form" method="post" enctype="multipart/form-data" novalidate>
   {% csrf_token %}
+  {% if next_url %}
+    <input type="hidden" name="next" value="{{ next_url }}">
+  {% endif %}
   {% if form.non_field_errors %}
     <div class="error">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  {% if upload_context_items %}
+    <section class="card document-upload-context" aria-label="Selected document owner">
+      <div>
+        <h2>Uploading for</h2>
+        <p>The linked records below are prefilled from Documents. You can still change them before uploading.</p>
+      </div>
+      <div class="document-upload-context-list">
+        {% for item in upload_context_items %}
+          <span>
+            <small>{{ item.label }}</small>
+            <strong>{{ item.name }}</strong>
+            {% if item.detail %}<em>{{ item.detail }}</em>{% endif %}
+          </span>
+        {% endfor %}
+      </div>
+      {% if next_url %}
+        <a class="button secondary" href="{{ next_url }}">Back to selected documents</a>
+      {% endif %}
+    </section>
   {% endif %}
 
   <section class="card form-section">

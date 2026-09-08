@@ -157,9 +157,20 @@ class DocumentManagementTests(TestCase):
 
         response = self.client.get(
             reverse("document_create"),
-            {"participant": self.participant.id, "worker": self.worker.id},
+            {
+                "participant": self.participant.id,
+                "worker": self.worker.id,
+                "next": f"{reverse('document_list')}?owner=participants&person={self.participant.id}",
+            },
         )
 
+        self.assertContains(response, "Uploading for")
+        self.assertContains(response, self.participant.display_name)
+        self.assertContains(response, self.worker.display_name)
+        self.assertContains(
+            response,
+            f'name="next" value="{reverse("document_list")}?owner=participants&amp;person={self.participant.id}"',
+        )
         self.assertContains(
             response,
             f'<option value="{self.participant.id}" selected>{self.participant.display_name}</option>',
@@ -170,6 +181,55 @@ class DocumentManagementTests(TestCase):
             f'<option value="{self.worker.id}" selected>{self.worker.display_name}</option>',
             html=True,
         )
+
+    def test_document_create_prefills_others_category_from_shortcut(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("document_create"),
+            {
+                "participant": self.participant.id,
+                "category": "general",
+            },
+        )
+
+        self.assertContains(response, "Uploading for")
+        self.assertContains(
+            response,
+            '<option value="general" selected>General</option>',
+            html=True,
+        )
+
+    def test_document_create_returns_to_selected_documents_after_shortcut_upload(self):
+        self.login_admin()
+        return_url = (
+            f"{reverse('document_list')}?owner=participants"
+            f"&person={self.participant.id}&category=others"
+        )
+
+        response = self.client.post(
+            reverse("document_create"),
+            self.document_payload(
+                title="Provider contact note",
+                category=Document.Category.GENERAL,
+                next=return_url,
+            ),
+        )
+
+        document = Document.objects.get()
+        self.assertEqual(document.title, "Provider contact note")
+        self.assertRedirects(response, return_url)
+
+    def test_document_create_ignores_external_next_url(self):
+        self.login_admin()
+
+        response = self.client.post(
+            reverse("document_create"),
+            self.document_payload(next="https://example.invalid/documents/"),
+        )
+
+        document = Document.objects.get()
+        self.assertRedirects(response, reverse("document_detail", args=[document.id]))
 
     def test_document_create_marks_documents_sidebar_link_as_active(self):
         self.login_admin()
@@ -220,7 +280,11 @@ class DocumentManagementTests(TestCase):
         self.assertContains(response, "plan.pdf")
         self.assertContains(
             response,
-            f'href="{reverse("document_create")}?participant={self.participant.id}"',
+            f"participant={self.participant.id}",
+        )
+        self.assertContains(
+            response,
+            f"next=%2Fdocuments%2F%3Fowner%3Dparticipants%26person%3D{self.participant.id}",
         )
         self.assertNotContains(response, worker_document.title)
 
@@ -257,7 +321,11 @@ class DocumentManagementTests(TestCase):
         self.assertContains(response, "Pending review")
         self.assertContains(
             response,
-            f'href="{reverse("document_create")}?worker={self.worker.id}"',
+            f"worker={self.worker.id}",
+        )
+        self.assertContains(
+            response,
+            f"next=%2Fdocuments%2F%3Fowner%3Dworkers%26person%3D{self.worker.id}",
         )
         self.assertNotContains(response, "Participant plan")
 
@@ -298,6 +366,7 @@ class DocumentManagementTests(TestCase):
         self.assertContains(response, other_participant.display_name)
         self.assertContains(response, other_document.title)
         self.assertContains(response, "provider-note.docx")
+        self.assertContains(response, "category=general")
         self.assertNotContains(response, "Participant plan")
 
     def test_document_create_uses_record_form_layout(self):
