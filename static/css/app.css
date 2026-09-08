@@ -1951,15 +1951,16 @@ tbody tr:last-child td {
 
 .participant-assignment-active-control {
   align-items: center;
-  background: var(--surface-muted);
+  background: var(--surface);
   border: 1px solid var(--border);
+  border-left: 3px solid var(--brand);
   border-radius: 0.45rem;
   color: var(--text);
   display: inline-flex;
   gap: 0.55rem;
   min-height: 2.4rem;
-  padding: 0.48rem 0.7rem;
-  width: fit-content;
+  padding: 0.58rem 0.75rem;
+  width: 100%;
 }
 
 .participant-assignment-active-control input[type="checkbox"] {
