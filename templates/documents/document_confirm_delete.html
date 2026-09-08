@@ -1,0 +1,38 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Delete Document - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Delete document</h1>
+    <p>Review the file details before permanently deleting it.</p>
+  </div>
+  <a class="button secondary" href="{{ return_url }}">Back to Documents</a>
+</div>
+
+<section class="card document-delete-confirm">
+  <div class="document-delete-warning">
+    <h2>This will delete the database record and private file.</h2>
+    <p>The document will be removed from Admin and from private storage. This action cannot be undone.</p>
+  </div>
+
+  <dl class="detail-list">
+    <dt>Title</dt><dd>{{ document.title }}</dd>
+    <dt>File</dt><dd>{{ document.filename }}</dd>
+    <dt>Category</dt><dd>{{ document.get_category_display }}</dd>
+    <dt>Status</dt><dd>{{ document.get_review_status_display }}</dd>
+    <dt>Participant</dt><dd>{{ document.participant|default:"-" }}</dd>
+    <dt>Worker</dt><dd>{{ document.worker|default:"-" }}</dd>
+    <dt>Uploaded by</dt><dd>{{ document.uploaded_by }}</dd>
+    <dt>Uploaded</dt><dd>{{ document.created_at|date:"d/m/Y" }}</dd>
+  </dl>
+
+  <form method="post" class="form-actions document-delete-actions">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ return_url }}">
+    <button class="danger" type="submit">Delete document</button>
+    <a class="button secondary" href="{{ return_url }}">Cancel</a>
+  </form>
+</section>
+{% endblock %}

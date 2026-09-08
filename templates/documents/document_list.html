@@ -139,6 +139,7 @@
                   {% if document.is_previewable %}
                     <a class="button secondary" href="{% url 'document_preview' document.id %}">Preview</a>
                   {% endif %}
+                  <a class="button danger-outline" href="{% url 'document_delete' document.id %}?next={{ current_list_url|urlencode }}">Delete</a>
                 </td>
               </tr>
             {% empty %}

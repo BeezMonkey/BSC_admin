@@ -9,8 +9,9 @@
     <p>{{ document.get_category_display }}</p>
   </div>
   <div class="button-row">
-    <a class="button secondary" href="{% url 'document_list' %}">Back to Documents</a>
+    <a class="button secondary" href="{{ document_owner_url }}">Back to Documents</a>
     <a class="button" href="{% url 'document_download' document.id %}">Download</a>
+    <a class="button danger-outline" href="{% url 'document_delete' document.id %}?next={{ document_owner_url|urlencode }}">Delete</a>
   </div>
 </div>
 
