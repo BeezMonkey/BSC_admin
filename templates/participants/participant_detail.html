@@ -128,13 +128,13 @@
           <td>{% if assignment.notes %}{{ assignment.notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
           <td class="actions">
             {% if assignment.is_active %}
-              <form method="post" action="{% url 'assignment_end' assignment.id %}" class="inline-form">
+              <form method="post" action="{% url 'assignment_end' assignment.id %}" class="inline-form assignment-end-form">
                 {% csrf_token %}
                 <input type="date" name="end_date">
                 <button type="submit">End</button>
               </form>
             {% else %}
-              <span class="detail-empty">No action</span>
+              <span class="assignment-ended-action detail-empty">No action</span>
             {% endif %}
           </td>
         </tr>
