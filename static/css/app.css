@@ -2805,6 +2805,23 @@ tbody tr:last-child td {
   min-width: 140px;
 }
 
+.assignment-end-form {
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+}
+
+.assignment-end-form input[type="date"] {
+  width: 9.5rem;
+  min-width: 9.5rem;
+}
+
+.assignment-ended-action {
+  display: inline-flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
 .list-item {
   display: grid;
   gap: 0.35rem;
@@ -5238,6 +5255,15 @@ tbody tr:last-child td {
 
   .participant-assignment-grid {
     grid-template-columns: 1fr;
+  }
+
+  .assignment-end-form {
+    flex-wrap: wrap;
+  }
+
+  .assignment-end-form input[type="date"] {
+    width: 100%;
+    min-width: 0;
   }
 
   .support-item-notes-field {

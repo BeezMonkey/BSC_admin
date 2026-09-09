@@ -156,6 +156,20 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn(".participant-assignment-notes-field {\n  grid-column: 1 / -1;", css)
         self.assertIn(".participant-assignment-grid {\n    grid-template-columns: repeat(2, minmax(0, 1fr));", css)
 
+    def test_participant_assigned_worker_actions_align_inline(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+        template = Path("templates/participants/participant_detail.html").read_text(encoding="utf-8")
+
+        self.assertIn('class="inline-form assignment-end-form"', template)
+        self.assertIn('class="assignment-ended-action detail-empty"', template)
+        self.assertIn(".assignment-end-form", css)
+        self.assertIn("justify-content: flex-end;", css)
+        self.assertIn("flex-wrap: nowrap;", css)
+        self.assertIn(".assignment-end-form input[type=\"date\"]", css)
+        self.assertIn("width: 9.5rem;", css)
+        self.assertIn(".assignment-ended-action", css)
+        self.assertIn(".assignment-end-form {\n    flex-wrap: wrap;", css)
+
     def test_admin_roster_and_invoice_form_alignment_assets_exist(self):
         css = Path("static/css/app.css").read_text(encoding="utf-8")
         shift_fields = Path("templates/scheduling/partials/shift_form_fields.html").read_text(encoding="utf-8")
