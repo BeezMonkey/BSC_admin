@@ -6,8 +6,10 @@ from .views import (
     document_detail,
     document_download,
     document_list,
+    participant_document_files,
     document_preview,
     document_review,
+    worker_document_files,
     worker_document_detail,
     worker_document_download,
     worker_document_list,
@@ -17,6 +19,16 @@ from .views import (
 urlpatterns = [
     path("documents/", document_list, name="document_list"),
     path("documents/new/", document_create, name="document_create"),
+    path(
+        "documents/participants/<int:participant_id>/",
+        participant_document_files,
+        name="participant_document_files",
+    ),
+    path(
+        "documents/workers/<int:worker_id>/",
+        worker_document_files,
+        name="worker_document_files",
+    ),
     path("documents/<int:document_id>/", document_detail, name="document_detail"),
     path("documents/<int:document_id>/delete/", document_delete, name="document_delete"),
     path("documents/<int:document_id>/preview/", document_preview, name="document_preview"),
