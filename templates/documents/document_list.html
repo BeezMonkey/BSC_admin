@@ -6,13 +6,32 @@
 <div class="page-header">
   <div>
     <h1>Documents</h1>
-    <p>Manage participant and support worker documents from one Admin view.</p>
+    <p>Find a person first, then open their dedicated file management page.</p>
   </div>
-  <a class="button" href="{{ upload_url }}">Upload Document</a>
+  <a class="button" href="{% url 'document_create' %}">Upload Document</a>
 </div>
 
-<div class="document-manager-layout">
-  <aside class="card document-manager-sidebar">
+<section class="document-directory-summary" aria-label="Document summary">
+  <div class="document-summary-card">
+    <span>Total documents</span>
+    <strong>{{ summary.total_documents }}</strong>
+  </div>
+  <div class="document-summary-card">
+    <span>Pending review</span>
+    <strong>{{ summary.pending_review }}</strong>
+  </div>
+  <div class="document-summary-card">
+    <span>Expiring soon</span>
+    <strong>{{ summary.expiring_soon }}</strong>
+  </div>
+  <div class="document-summary-card">
+    <span>People with files</span>
+    <strong>{{ summary.people_with_files }}</strong>
+  </div>
+</section>
+
+<section class="card document-directory-panel">
+  <div class="document-directory-header">
     <nav class="document-owner-switch" aria-label="Document owner type">
       {% for tab in owner_tabs %}
         <a class="document-owner-tab{% if tab.is_active %} active{% endif %}" href="{{ tab.url }}">
@@ -21,149 +40,132 @@
         </a>
       {% endfor %}
     </nav>
-
-    <div class="document-person-heading">
-      <h2>{{ person_list_title }}</h2>
-      <p>{{ person_list_description }}</p>
+    <div>
+      <h2>{{ directory_title }}</h2>
+      <p>{{ directory_description }}</p>
     </div>
+  </div>
 
-    <div class="document-person-list">
-      {% for item in person_items %}
-        <a class="document-person-item{% if item.is_active %} active{% endif %}" href="{{ item.url }}">
-          <span class="document-person-avatar">{{ item.person.initials }}</span>
-          <span class="document-person-copy">
-            <strong>{{ item.person.display_name }}</strong>
-            {% if owner == "participants" and item.person.ndis_number %}
-              <small>NDIS {{ item.person.ndis_number }}</small>
-            {% elif owner == "workers" and item.person.email %}
-              <small>{{ item.person.email }}</small>
-            {% else %}
-              <small>{{ item.person.get_status_display }}</small>
-            {% endif %}
-          </span>
-          <span class="document-count-pill">{{ item.person.document_count }} files</span>
-        </a>
-      {% empty %}
-        <div class="empty-state document-person-empty">
-          <strong>No people found.</strong>
-          <p>Create a participant or support worker before adding files.</p>
-        </div>
-      {% endfor %}
-    </div>
-  </aside>
-
-  <section class="card document-manager-main">
-    {% if selected_person %}
-      <header class="document-person-summary">
-        <div>
-          <h2>{{ selected_person.display_name }}</h2>
-          <p>{{ selected_person_description }}</p>
-        </div>
-        <dl class="document-summary-strip">
-          <div>
-            <dt>{{ summary.total }}</dt>
-            <dd>documents</dd>
-          </div>
-          <div>
-            <dt>{{ summary.pending_review }}</dt>
-            <dd>pending review</dd>
-          </div>
-          <div>
-            <dt>{{ summary.expiring_soon }}</dt>
-            <dd>expiring soon</dd>
-          </div>
-          <div>
-            <dt>{{ summary.others }}</dt>
-            <dd>others</dd>
-          </div>
-        </dl>
-      </header>
-
-      <nav class="document-category-tabs" aria-label="Document categories">
-        {% for tab in category_tabs %}
-          <a class="document-category-tab{% if tab.is_active %} active{% endif %}" href="{{ tab.url }}">
-            {{ tab.label }} <span>{{ tab.count }}</span>
-          </a>
+  <form class="filter-bar document-directory-filter" method="get">
+    <input type="hidden" name="owner" value="{{ owner }}">
+    <label>
+      Search
+      <input type="search" name="q" value="{{ query }}" placeholder="Name, NDIS, email, or phone">
+    </label>
+    <label>
+      Document status
+      <select name="review_status">
+        <option value="">All statuses</option>
+        {% for value, label in review_status_choices %}
+          <option value="{{ value }}" {% if review_status == value %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
-      </nav>
+      </select>
+    </label>
+    <label>
+      Category
+      <select name="category">
+        {% for value, label in category_choices %}
+          <option value="{{ value }}" {% if active_category == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      File coverage
+      <select name="coverage">
+        <option value="">All people</option>
+        <option value="has_documents" {% if coverage == "has_documents" %}selected{% endif %}>Has documents</option>
+        <option value="no_documents" {% if coverage == "no_documents" %}selected{% endif %}>No documents</option>
+      </select>
+    </label>
+    <button type="submit">Search</button>
+    <a class="button secondary" href="{% if owner == 'workers' %}{% url 'document_list' %}?owner=workers{% else %}{% url 'document_list' %}{% endif %}">Reset</a>
+  </form>
 
-      <div class="document-section-header">
-        <div>
-          <h3>{{ active_category_label }}</h3>
-          {% if active_category == "others" %}
-            <p>Flexible files that do not fit fixed categories.</p>
-          {% else %}
-            <p>Files shown by original filename while secure storage names stay private.</p>
-          {% endif %}
-        </div>
-      </div>
-
-      <div class="document-table-frame">
-        <table class="document-manager-table">
-          <thead>
+  <div class="document-directory-table-wrap">
+    <table class="document-directory-table">
+      <thead>
+        <tr>
+          <th><a class="sort-link" href="?{{ sorting.links.name }}">Person</a></th>
+          <th>Contact</th>
+          <th>Type</th>
+          <th><a class="sort-link" href="?{{ sorting.links.documents }}">Documents</a></th>
+          <th>Pending</th>
+          <th>Expiring soon</th>
+          <th><a class="sort-link" href="?{{ sorting.links.last_uploaded }}">Last uploaded</a></th>
+          <th class="actions-heading">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in person_items %}
+          {% with person=item.person %}
             <tr>
-              <th>File</th>
-              <th>Category</th>
-              <th>Uploaded</th>
-              <th>Status</th>
-              <th>Expiry</th>
-              <th>Uploaded by</th>
-              <th>Actions</th>
+              <td class="document-person-cell">
+                <div class="document-person-inline">
+                  <span class="document-person-avatar">{{ person.initials }}</span>
+                  <span class="document-person-copy">
+                    <a href="{{ item.detail_url }}">{{ person.display_name }}</a>
+                    {% if owner == "participants" and person.ndis_number %}
+                      <small>NDIS {{ person.ndis_number }}</small>
+                    {% elif owner == "workers" and person.email %}
+                      <small>{{ person.email }}</small>
+                    {% else %}
+                      <small>{{ person.get_status_display }}</small>
+                    {% endif %}
+                  </span>
+                </div>
+              </td>
+              <td>
+                <strong>{{ person.phone|default:"Not provided" }}</strong>
+                {% if owner == "participants" %}
+                  <small class="document-table-subline">{{ person.email|default:"No email" }}</small>
+                {% else %}
+                  <small class="document-table-subline">{{ person.get_employment_type_display }}</small>
+                {% endif %}
+              </td>
+              <td>{{ person_type_label }}</td>
+              <td><span class="document-count-pill">{{ person.document_count }} files</span></td>
+              <td>
+                {% if person.pending_review_count %}
+                  <span class="status-pill status-pending_review">{{ person.pending_review_count }} pending</span>
+                {% else %}
+                  0
+                {% endif %}
+              </td>
+              <td>{{ person.expiring_soon_count }}</td>
+              <td>
+                {% if person.last_uploaded %}
+                  {{ person.last_uploaded|date:"d/m/Y" }}
+                {% else %}
+                  <span class="detail-empty">Not uploaded</span>
+                {% endif %}
+              </td>
+              <td class="actions document-directory-actions">
+                <a class="button secondary" href="{{ item.detail_url }}">Open files</a>
+                <a class="button secondary" href="{{ item.upload_url }}">Upload</a>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {% for document in documents %}
-              <tr>
-                <td class="document-file-cell">
-                  <a href="{% url 'document_detail' document.id %}">{{ document.title }}</a>
-                  <small>{{ document.filename }}</small>
-                </td>
-                <td>
-                  {% if document.required_document_type %}
-                    {{ document.get_required_document_type_display }}
-                  {% elif document.category == "general" %}
-                    Others
-                  {% else %}
-                    {{ document.get_category_display }}
-                  {% endif %}
-                </td>
-                <td>{{ document.created_at|date:"d/m/Y" }}</td>
-                <td>
-                  <span class="status-pill status-{{ document.review_status }}">{{ document.get_review_status_display }}</span>
-                </td>
-                <td>{% if document.expiry_date %}{{ document.expiry_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
-                <td>{{ document.uploaded_by }}</td>
-                <td class="actions document-actions">
-                  <a class="button secondary" href="{% url 'document_detail' document.id %}">View</a>
-                  <a class="button secondary" href="{% url 'document_download' document.id %}">Download</a>
-                  {% if document.is_previewable %}
-                    <a class="button secondary" href="{% url 'document_preview' document.id %}">Preview</a>
-                  {% endif %}
-                  <a class="button danger-outline" href="{% url 'document_delete' document.id %}?next={{ current_list_url|urlencode }}">Delete</a>
-                </td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td colspan="7">
-                  <div class="empty-state">
-                    <strong>No documents in this view yet.</strong>
-                    <p>Uploaded files for this person and category will appear here.</p>
-                    <div class="empty-state-actions">
-                      <a class="button" href="{{ upload_url }}">Upload Document</a>
-                    </div>
+          {% endwith %}
+        {% empty %}
+          <tr>
+            <td colspan="8">
+              <div class="empty-state">
+                {% if has_filters %}
+                  <strong>No people match the current document filters.</strong>
+                  <p>Clear filters to review the full document directory.</p>
+                  <div class="empty-state-actions">
+                    <a class="button secondary" href="{% if owner == 'workers' %}{% url 'document_list' %}?owner=workers{% else %}{% url 'document_list' %}{% endif %}">Clear filters</a>
                   </div>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% else %}
-      <div class="empty-state document-manager-empty">
-        <strong>No document owner selected.</strong>
-        <p>Create a participant or support worker before adding files.</p>
-      </div>
-    {% endif %}
-  </section>
-</div>
+                {% else %}
+                  <strong>No people found.</strong>
+                  <p>Create a participant or support worker before adding files.</p>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% include "core/pagination.html" %}
 {% endblock %}

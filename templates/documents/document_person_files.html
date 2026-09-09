@@ -1,0 +1,155 @@
+{% extends "admin_base.html" %}
+
+{% block title %}{{ selected_person.display_name }} Documents - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ selected_person.display_name }}</h1>
+    <p>{{ selected_person_description }}</p>
+  </div>
+  <div class="button-row">
+    <a class="button secondary" href="{{ directory_url }}">Back to Documents</a>
+    <a class="button" href="{{ upload_url }}">Upload Document</a>
+  </div>
+</div>
+
+<section class="card document-person-hero">
+  <div class="document-person-hero-main">
+    <span class="document-person-avatar document-person-avatar-large">{{ selected_person.initials }}</span>
+    <div>
+      <h2>{% if owner == "workers" %}Support worker documents{% else %}Participant documents{% endif %}</h2>
+      <p>Files are grouped by category while original filenames remain visible for Admin.</p>
+    </div>
+  </div>
+  <dl class="document-person-meta">
+    <div>
+      <dt>Person type</dt>
+      <dd>{% if owner == "workers" %}Support Worker{% else %}Participant{% endif %}</dd>
+    </div>
+    <div>
+      <dt>{% if owner == "workers" %}Email{% else %}NDIS{% endif %}</dt>
+      <dd>
+        {% if owner == "workers" %}
+          {{ selected_person.email|default:"Not provided" }}
+        {% else %}
+          {{ selected_person.ndis_number|default:"Not provided" }}
+        {% endif %}
+      </dd>
+    </div>
+    <div>
+      <dt>Documents</dt>
+      <dd>{{ summary.total }} total</dd>
+    </div>
+    <div>
+      <dt>Review</dt>
+      <dd>{{ summary.pending_review }} pending</dd>
+    </div>
+  </dl>
+</section>
+
+<section class="card document-file-controls">
+  <nav class="document-category-tabs" aria-label="Document categories">
+    {% for tab in category_tabs %}
+      <a class="document-category-tab{% if tab.is_active %} active{% endif %}" href="{{ tab.url }}">
+        {{ tab.label }} <span>{{ tab.count }}</span>
+      </a>
+    {% endfor %}
+  </nav>
+  <form class="filter-bar document-file-filter" method="get">
+    {% if active_category != "all" %}
+      <input type="hidden" name="category" value="{{ active_category }}">
+    {% endif %}
+    <label>
+      Search files
+      <input type="search" name="q" value="{{ query }}" placeholder="Filename, note, or uploaded by">
+    </label>
+    <label>
+      Status
+      <select name="review_status">
+        <option value="">All statuses</option>
+        {% for value, label in review_status_choices %}
+          <option value="{{ value }}" {% if review_status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button type="submit">Search</button>
+    <a class="button secondary" href="{{ reset_url }}">Reset</a>
+  </form>
+</section>
+
+<section class="card document-file-panel">
+  <div class="document-section-header">
+    <div>
+      <h3>{{ active_category_label }}</h3>
+      {% if active_category == "others" %}
+        <p>Flexible files that do not fit fixed categories.</p>
+      {% else %}
+        <p>Files shown by original filename while secure storage names stay private.</p>
+      {% endif %}
+    </div>
+    <a class="button" href="{{ upload_url }}">Upload to {{ active_category_label }}</a>
+  </div>
+
+  <div class="document-table-frame">
+    <table class="document-manager-table">
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Category</th>
+          <th>Uploaded</th>
+          <th>Status</th>
+          <th>Expiry</th>
+          <th>Uploaded by</th>
+          <th class="actions-heading">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for document in documents %}
+          <tr>
+            <td class="document-file-cell">
+              <a href="{% url 'document_detail' document.id %}">{{ document.title }}</a>
+              <small>{{ document.filename }}</small>
+            </td>
+            <td>
+              {% if document.required_document_type %}
+                {{ document.get_required_document_type_display }}
+              {% elif document.category == "general" %}
+                Others
+              {% else %}
+                {{ document.get_category_display }}
+              {% endif %}
+            </td>
+            <td>{{ document.created_at|date:"d/m/Y" }}</td>
+            <td>
+              <span class="status-pill status-{{ document.review_status }}">{{ document.get_review_status_display }}</span>
+            </td>
+            <td>{% if document.expiry_date %}{{ document.expiry_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
+            <td>{{ document.uploaded_by }}</td>
+            <td class="actions document-actions">
+              <a class="button secondary" href="{% url 'document_detail' document.id %}">View</a>
+              <a class="button secondary" href="{% url 'document_download' document.id %}">Download</a>
+              {% if document.is_previewable %}
+                <a class="button secondary" href="{% url 'document_preview' document.id %}">Preview</a>
+              {% endif %}
+              <a class="button danger-outline" href="{% url 'document_delete' document.id %}?next={{ current_list_url|urlencode }}">Delete</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7">
+              <div class="empty-state">
+                <strong>No documents in this view yet.</strong>
+                <p>Uploaded files for this person and category will appear here.</p>
+                <div class="empty-state-actions">
+                  <a class="button" href="{{ upload_url }}">Upload Document</a>
+                </div>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

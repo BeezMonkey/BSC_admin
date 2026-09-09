@@ -2,7 +2,7 @@ from datetime import timedelta
 from urllib.parse import urlencode
 
 from django.contrib import messages
-from django.db.models import Count, Q
+from django.db.models import Count, Max, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -14,6 +14,8 @@ from django.views.decorators.http import require_http_methods, require_POST
 from accounts.decorators import admin_required, worker_required
 from core.audit import write_audit_log
 from core.models import AuditLog
+from core.pagination import paginate_queryset
+from core.sorting import apply_sorting
 from participants.models import Participant
 from workers.models import SupportWorker
 
@@ -22,19 +24,24 @@ from .models import Document
 from .storage import StorageOperationError
 
 
-def _document_list_url(owner, person_id=None, category="all"):
-    query = {"owner": owner}
-    if person_id:
-        query["person"] = person_id
+def _document_list_url(owner="participants"):
+    if owner == "workers":
+        return f"{reverse('document_list')}?owner=workers"
+    return reverse("document_list")
+
+
+def _document_owner_detail_url(owner, person_id, category="all"):
+    route_name = "worker_document_files" if owner == "workers" else "participant_document_files"
+    url = reverse(route_name, args=[person_id])
     if category != "all":
-        query["category"] = category
-    return f"{reverse('document_list')}?{urlencode(query)}"
+        return f"{url}?{urlencode({'category': category})}"
+    return url
 
 
 def _document_upload_url(owner, person_id=None, category="all"):
     if not person_id:
         return reverse("document_create")
-    return_url = _document_list_url(owner, person_id, category)
+    return_url = _document_owner_detail_url(owner, person_id, category)
     key = "worker" if owner == "workers" else "participant"
     query = {
         key: person_id,
@@ -51,9 +58,9 @@ def _document_upload_url(owner, person_id=None, category="all"):
 
 def _document_owner_url(document):
     if document.worker_id:
-        return _document_list_url("workers", document.worker_id)
+        return _document_owner_detail_url("workers", document.worker_id)
     if document.participant_id:
-        return _document_list_url("participants", document.participant_id)
+        return _document_owner_detail_url("participants", document.participant_id)
     return reverse("document_list")
 
 
@@ -141,7 +148,7 @@ def _document_category_tabs(owner, person_id, documents, active_category):
         ]
 
     for tab in tabs:
-        tab["url"] = _document_list_url(owner, person_id, tab["key"])
+        tab["url"] = _document_owner_detail_url(owner, person_id, tab["key"])
         tab["is_active"] = tab["key"] == active_category
     return tabs
 
@@ -162,70 +169,192 @@ def _filter_documents_for_category(documents, owner, category):
     return documents
 
 
+def _document_queryset():
+    return Document.objects.select_related(
+        "participant",
+        "worker",
+        "invoice",
+        "service_log",
+        "uploaded_by",
+    )
+
+
+def _valid_document_category(category):
+    valid_categories = {"all", "others"} | {
+        value for value, _label in Document.Category.choices
+    }
+    return category if category in valid_categories else "all"
+
+
+def _document_category_filter(owner, category):
+    if category == "others":
+        if owner == "workers":
+            return Q(documents__category=Document.Category.GENERAL) | Q(
+                documents__category=Document.Category.COMPLIANCE,
+                documents__required_document_type="",
+            )
+        return Q(documents__category=Document.Category.GENERAL)
+    if category and category != "all":
+        return Q(documents__category=category)
+    return Q()
+
+
+def _selected_person_document_context(request, owner, selected_person):
+    category = _valid_document_category(request.GET.get("category", "all"))
+    query = request.GET.get("q", "").strip()
+    review_status = request.GET.get("review_status", "").strip()
+    valid_review_statuses = {value for value, _label in Document.ReviewStatus.choices}
+    if review_status not in valid_review_statuses:
+        review_status = ""
+
+    if owner == "workers":
+        selected_person_description = "Support worker documents, compliance files, and flexible personal uploads."
+        documents = _document_queryset().filter(worker=selected_person)
+    else:
+        selected_person_description = "Participant documents, plan files, reports, and flexible personal uploads."
+        documents = _document_queryset().filter(participant=selected_person)
+
+    documents = documents.order_by("-created_at")
+    category_tabs = _document_category_tabs(owner, selected_person.id, documents, category)
+    filtered_documents = _filter_documents_for_category(documents, owner, category)
+    if query:
+        filtered_documents = filtered_documents.filter(
+            Q(title__icontains=query)
+            | Q(original_filename__icontains=query)
+            | Q(notes__icontains=query)
+            | Q(uploaded_by__username__icontains=query)
+        )
+    if review_status:
+        filtered_documents = filtered_documents.filter(review_status=review_status)
+
+    expiring_soon_date = timezone.localdate() + timedelta(days=30)
+    active_category_label = next(
+        (tab["label"] for tab in category_tabs if tab["key"] == category),
+        "All",
+    )
+    current_list_url = request.get_full_path()
+
+    return {
+        "owner": owner,
+        "selected_person": selected_person,
+        "selected_person_description": selected_person_description,
+        "documents": filtered_documents,
+        "category_tabs": category_tabs,
+        "active_category": category,
+        "active_category_label": active_category_label,
+        "query": query,
+        "review_status": review_status,
+        "review_status_choices": Document.ReviewStatus.choices,
+        "reset_url": _document_owner_detail_url(owner, selected_person.id, category),
+        "summary": {
+            "total": documents.count(),
+            "pending_review": documents.filter(
+                review_status=Document.ReviewStatus.PENDING_REVIEW
+            ).count(),
+            "expiring_soon": documents.filter(
+                expiry_date__isnull=False,
+                expiry_date__lte=expiring_soon_date,
+            ).count(),
+            "others": next(
+                (tab["count"] for tab in category_tabs if tab["key"] == "others"),
+                0,
+            ),
+        },
+        "upload_url": _document_upload_url(owner, selected_person.id, category),
+        "current_list_url": current_list_url,
+        "directory_url": _document_list_url(owner),
+    }
+
+
 @admin_required
 def document_list(request):
     owner = request.GET.get("owner", "participants")
     if owner not in {"participants", "workers"}:
         owner = "participants"
 
-    category = request.GET.get("category", "all")
     person_id = request.GET.get("person")
-    selected_person = None
+    if person_id:
+        category = _valid_document_category(request.GET.get("category", "all"))
+        return redirect(_document_owner_detail_url(owner, person_id, category))
+
+    query = request.GET.get("q", "").strip()
+    category = _valid_document_category(request.GET.get("category", "all"))
+    review_status = request.GET.get("review_status", "").strip()
+    valid_review_statuses = {value for value, _label in Document.ReviewStatus.choices}
+    if review_status not in valid_review_statuses:
+        review_status = ""
+    coverage = request.GET.get("coverage", "").strip()
+    if coverage not in {"has_documents", "no_documents"}:
+        coverage = ""
+
+    expiring_soon_date = timezone.localdate() + timedelta(days=30)
+    annotations = {
+        "document_count": Count("documents", distinct=True),
+        "pending_review_count": Count(
+            "documents",
+            filter=Q(documents__review_status=Document.ReviewStatus.PENDING_REVIEW),
+            distinct=True,
+        ),
+        "expiring_soon_count": Count(
+            "documents",
+            filter=Q(
+                documents__expiry_date__isnull=False,
+                documents__expiry_date__lte=expiring_soon_date,
+            ),
+            distinct=True,
+        ),
+        "last_uploaded": Max("documents__created_at"),
+    }
 
     if owner == "workers":
-        people = SupportWorker.objects.select_related("user").annotate(
-            document_count=Count("documents")
-        )
-        if person_id:
-            selected_person = people.filter(id=person_id).first()
-        selected_person = selected_person or people.first()
-        person_list_title = "Support Worker list"
-        person_list_description = "Open a worker to manage their compliance and personal files."
-        selected_person_description = (
-            "Support worker compliance files, credentials, and flexible personal uploads."
-        )
-        documents = (
-            Document.objects.select_related(
-                "participant",
-                "worker",
-                "invoice",
-                "service_log",
-                "uploaded_by",
-            ).filter(worker=selected_person)
-            if selected_person
-            else Document.objects.none()
-        )
+        people = SupportWorker.objects.select_related("user").annotate(**annotations)
+        if query:
+            people = people.filter(
+                Q(first_name__icontains=query)
+                | Q(last_name__icontains=query)
+                | Q(email__icontains=query)
+                | Q(phone__icontains=query)
+            )
+        person_type_label = "Support Worker"
+        directory_title = "Support Worker directory"
+        directory_description = "Find a worker, then open their dedicated compliance file page."
     else:
-        people = Participant.objects.annotate(document_count=Count("documents"))
-        if person_id:
-            selected_person = people.filter(id=person_id).first()
-        selected_person = selected_person or people.first()
-        person_list_title = "Participant list"
-        person_list_description = "Open a person to manage their files."
-        selected_person_description = (
-            "Participant documents, plan files, reports, and flexible personal uploads."
-        )
-        documents = (
-            Document.objects.select_related(
-                "participant",
-                "worker",
-                "invoice",
-                "service_log",
-                "uploaded_by",
-            ).filter(participant=selected_person)
-            if selected_person
-            else Document.objects.none()
-        )
+        people = Participant.objects.annotate(**annotations)
+        if query:
+            people = people.filter(
+                Q(first_name__icontains=query)
+                | Q(last_name__icontains=query)
+                | Q(preferred_name__icontains=query)
+                | Q(ndis_number__icontains=query)
+                | Q(phone__icontains=query)
+                | Q(email__icontains=query)
+            )
+        person_type_label = "Participant"
+        directory_title = "Participant directory"
+        directory_description = "Find a participant, then open their dedicated file page."
 
-    valid_categories = {"all", "others"} | {
-        value for value, _label in Document.Category.choices
-    }
-    if category not in valid_categories:
-        category = "all"
+    category_filter = _document_category_filter(owner, category)
+    if category_filter:
+        people = people.filter(category_filter)
+    if review_status:
+        people = people.filter(documents__review_status=review_status)
+    if coverage == "has_documents":
+        people = people.filter(document_count__gt=0)
+    elif coverage == "no_documents":
+        people = people.filter(document_count=0)
 
-    documents = documents.order_by("-created_at")
-    filtered_documents = _filter_documents_for_category(documents, owner, category)
-    expiring_soon_date = timezone.localdate() + timedelta(days=30)
+    people = people.distinct()
+    people, sorting = apply_sorting(
+        request,
+        people,
+        {
+            "name": ("last_name", "first_name"),
+            "documents": ("document_count", "last_name", "first_name"),
+            "last_uploaded": ("last_uploaded", "last_name", "first_name"),
+        },
+        default_sort="name",
+    )
+    people, pagination = paginate_queryset(request, people)
 
     owner_tabs = [
         {
@@ -246,33 +375,24 @@ def document_list(request):
     person_items = [
         {
             "person": person,
-            "url": _document_list_url(owner, person.id, category),
-            "is_active": selected_person and person.id == selected_person.id,
+            "detail_url": _document_owner_detail_url(owner, person.id),
+            "upload_url": _document_upload_url(owner, person.id),
         }
         for person in people
     ]
-    category_tabs = _document_category_tabs(
-        owner,
-        selected_person.id if selected_person else None,
-        documents,
-        category,
-    )
-    active_category_label = next(
-        (tab["label"] for tab in category_tabs if tab["key"] == category),
-        "All",
-    )
-    summary = {
-        "total": documents.count(),
-        "pending_review": documents.filter(
+    total_documents = Document.objects.count()
+    directory_summary = {
+        "total_documents": total_documents,
+        "pending_review": Document.objects.filter(
             review_status=Document.ReviewStatus.PENDING_REVIEW
         ).count(),
-        "expiring_soon": documents.filter(
+        "expiring_soon": Document.objects.filter(
             expiry_date__isnull=False,
             expiry_date__lte=expiring_soon_date,
         ).count(),
-        "others": next(
-            (tab["count"] for tab in category_tabs if tab["key"] == "others"),
-            0,
+        "people_with_files": (
+            Participant.objects.filter(documents__isnull=False).distinct().count()
+            + SupportWorker.objects.filter(documents__isnull=False).distinct().count()
         ),
     }
 
@@ -283,26 +403,48 @@ def document_list(request):
             "owner": owner,
             "owner_tabs": owner_tabs,
             "person_items": person_items,
-            "selected_person": selected_person,
-            "selected_person_description": selected_person_description,
-            "person_list_title": person_list_title,
-            "person_list_description": person_list_description,
-            "documents": filtered_documents,
-            "category_tabs": category_tabs,
+            "person_type_label": person_type_label,
+            "directory_title": directory_title,
+            "directory_description": directory_description,
             "active_category": category,
-            "active_category_label": active_category_label,
-            "summary": summary,
-            "upload_url": _document_upload_url(
-                owner,
-                selected_person.id if selected_person else None,
-                category,
-            ),
-            "current_list_url": _document_list_url(
-                owner,
-                selected_person.id if selected_person else None,
-                category,
-            ),
+            "query": query,
+            "review_status": review_status,
+            "coverage": coverage,
+            "review_status_choices": Document.ReviewStatus.choices,
+            "category_choices": [
+                ("all", "All categories"),
+                (Document.Category.PLAN, "Plan"),
+                (Document.Category.COMPLIANCE, "Compliance"),
+                (Document.Category.INVOICE, "Invoices"),
+                (Document.Category.SERVICE_LOG, "Service logs"),
+                ("others", "Others"),
+            ],
+            "summary": directory_summary,
+            "pagination": pagination,
+            "sorting": sorting,
+            "has_filters": bool(query or review_status or coverage or category != "all"),
+            "current_list_url": request.get_full_path(),
         },
+    )
+
+
+@admin_required
+def participant_document_files(request, participant_id):
+    participant = get_object_or_404(Participant, id=participant_id)
+    return render(
+        request,
+        "documents/document_person_files.html",
+        _selected_person_document_context(request, "participants", participant),
+    )
+
+
+@admin_required
+def worker_document_files(request, worker_id):
+    worker = get_object_or_404(SupportWorker.objects.select_related("user"), id=worker_id)
+    return render(
+        request,
+        "documents/document_person_files.html",
+        _selected_person_document_context(request, "workers", worker),
     )
 
 

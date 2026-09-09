@@ -161,7 +161,7 @@ class DocumentManagementTests(TestCase):
             {
                 "participant": self.participant.id,
                 "worker": self.worker.id,
-                "next": f"{reverse('document_list')}?owner=participants&person={self.participant.id}",
+                "next": reverse("participant_document_files", args=[self.participant.id]),
             },
         )
 
@@ -170,7 +170,7 @@ class DocumentManagementTests(TestCase):
         self.assertContains(response, self.worker.display_name)
         self.assertContains(
             response,
-            f'name="next" value="{reverse("document_list")}?owner=participants&amp;person={self.participant.id}"',
+            f'name="next" value="{reverse("participant_document_files", args=[self.participant.id])}"',
         )
         self.assertContains(
             response,
@@ -204,8 +204,8 @@ class DocumentManagementTests(TestCase):
     def test_document_create_returns_to_selected_documents_after_shortcut_upload(self):
         self.login_admin()
         return_url = (
-            f"{reverse('document_list')}?owner=participants"
-            f"&person={self.participant.id}&category=others"
+            f"{reverse('participant_document_files', args=[self.participant.id])}"
+            "?category=others"
         )
 
         response = self.client.post(
@@ -247,9 +247,9 @@ class DocumentManagementTests(TestCase):
 
         response = self.client.get(reverse("document_list"))
 
-        self.assertContains(response, 'class="document-manager-layout"')
+        self.assertContains(response, "document-directory-panel")
 
-    def test_admin_document_manager_defaults_to_participant_documents(self):
+    def test_admin_document_directory_defaults_to_participant_people(self):
         participant_document = Document.objects.create(
             title="Participant plan",
             category=Document.Category.PLAN,
@@ -275,21 +275,25 @@ class DocumentManagementTests(TestCase):
         self.assertContains(response, "Documents")
         self.assertContains(response, "Participants")
         self.assertContains(response, "Support Workers")
-        self.assertContains(response, "Participant list")
+        self.assertContains(response, "Participant directory")
         self.assertContains(response, self.participant.display_name)
-        self.assertContains(response, participant_document.title)
-        self.assertContains(response, "plan.pdf")
+        self.assertContains(response, "1 files")
+        self.assertContains(
+            response,
+            reverse("participant_document_files", args=[self.participant.id]),
+        )
         self.assertContains(
             response,
             f"participant={self.participant.id}",
         )
         self.assertContains(
             response,
-            f"next=%2Fdocuments%2F%3Fowner%3Dparticipants%26person%3D{self.participant.id}",
+            f"next=%2Fdocuments%2Fparticipants%2F{self.participant.id}%2F",
         )
+        self.assertNotContains(response, participant_document.title)
         self.assertNotContains(response, worker_document.title)
 
-    def test_admin_document_manager_can_switch_to_support_worker_documents(self):
+    def test_admin_document_directory_can_switch_to_support_workers(self):
         Document.objects.create(
             title="Participant plan",
             category=Document.Category.PLAN,
@@ -312,25 +316,124 @@ class DocumentManagementTests(TestCase):
 
         response = self.client.get(
             reverse("document_list"),
-            {"owner": "workers", "person": self.worker.id},
+            {"owner": "workers"},
         )
 
-        self.assertContains(response, "Support Worker list")
+        self.assertContains(response, "Support Worker directory")
         self.assertContains(response, "Wendy Worker")
-        self.assertContains(response, worker_document.title)
-        self.assertContains(response, "police-check.pdf")
-        self.assertContains(response, "Pending review")
+        self.assertContains(response, "1 files")
         self.assertContains(
             response,
             f"worker={self.worker.id}",
         )
         self.assertContains(
             response,
-            f"next=%2Fdocuments%2F%3Fowner%3Dworkers%26person%3D{self.worker.id}",
+            f"next=%2Fdocuments%2Fworkers%2F{self.worker.id}%2F",
+        )
+        self.assertNotContains(response, worker_document.title)
+        self.assertNotContains(response, "Participant plan")
+
+    def test_admin_document_directory_searches_people_without_long_sidebar(self):
+        Participant.objects.create(
+            first_name="Jia",
+            last_name="Li",
+            ndis_number="543210987",
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("document_list"), {"q": "Ava"})
+
+        self.assertContains(response, self.participant.display_name)
+        self.assertNotContains(response, "Jia Li")
+        self.assertContains(response, 'name="q"')
+
+    def test_admin_participant_document_files_show_selected_person_documents(self):
+        participant_document = Document.objects.create(
+            title="Participant plan",
+            category=Document.Category.PLAN,
+            participant=self.participant,
+            file=self.upload_file("plan.pdf"),
+            original_filename="plan.pdf",
+            uploaded_by=self.admin_user,
+        )
+        worker_document = Document.objects.create(
+            title="Police Check",
+            category=Document.Category.COMPLIANCE,
+            worker=self.worker,
+            required_document_type=Document.RequiredDocumentType.POLICE_CHECK,
+            review_status=Document.ReviewStatus.PENDING_REVIEW,
+            file=self.upload_file("police-check.pdf"),
+            original_filename="police-check.pdf",
+            uploaded_by=self.worker_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("participant_document_files", args=[self.participant.id])
+        )
+
+        self.assertContains(response, self.participant.display_name)
+        self.assertContains(response, "Back to Documents")
+        self.assertContains(response, participant_document.title)
+        self.assertContains(response, "plan.pdf")
+        self.assertContains(
+            response,
+            f"next=%2Fdocuments%2Fparticipants%2F{self.participant.id}%2F",
+        )
+        self.assertNotContains(response, worker_document.title)
+
+    def test_admin_worker_document_files_show_selected_worker_documents(self):
+        Document.objects.create(
+            title="Participant plan",
+            category=Document.Category.PLAN,
+            participant=self.participant,
+            file=self.upload_file("plan.pdf"),
+            original_filename="plan.pdf",
+            uploaded_by=self.admin_user,
+        )
+        worker_document = Document.objects.create(
+            title="Police Check",
+            category=Document.Category.COMPLIANCE,
+            worker=self.worker,
+            required_document_type=Document.RequiredDocumentType.POLICE_CHECK,
+            review_status=Document.ReviewStatus.PENDING_REVIEW,
+            file=self.upload_file("police-check.pdf"),
+            original_filename="police-check.pdf",
+            uploaded_by=self.worker_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("worker_document_files", args=[self.worker.id]))
+
+        self.assertContains(response, self.worker.display_name)
+        self.assertContains(response, "Support worker documents")
+        self.assertContains(response, worker_document.title)
+        self.assertContains(response, "police-check.pdf")
+        self.assertContains(response, "Pending review")
+        self.assertContains(
+            response,
+            f"next=%2Fdocuments%2Fworkers%2F{self.worker.id}%2F",
         )
         self.assertNotContains(response, "Participant plan")
 
-    def test_admin_document_manager_filters_selected_person_others(self):
+    def test_legacy_document_person_query_redirects_to_dedicated_detail_page(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("document_list"),
+            {
+                "owner": "participants",
+                "person": self.participant.id,
+                "category": "others",
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            f"{reverse('participant_document_files', args=[self.participant.id])}?category=others",
+        )
+
+    def test_admin_document_files_filter_selected_person_others(self):
         other_participant = Participant.objects.create(
             first_name="Jia",
             last_name="Li",
@@ -355,10 +458,8 @@ class DocumentManagementTests(TestCase):
         self.login_admin()
 
         response = self.client.get(
-            reverse("document_list"),
+            reverse("participant_document_files", args=[other_participant.id]),
             {
-                "owner": "participants",
-                "person": other_participant.id,
                 "category": "others",
             },
         )
@@ -396,7 +497,7 @@ class DocumentManagementTests(TestCase):
         self.assertEqual(download_response.status_code, 200)
         self.assertEqual(download_response.content, b"file-content")
 
-    def test_admin_document_list_links_to_delete_confirmation(self):
+    def test_admin_document_files_link_to_delete_confirmation(self):
         document = Document.objects.create(
             title="Participant plan",
             category=Document.Category.PLAN,
@@ -407,7 +508,9 @@ class DocumentManagementTests(TestCase):
         )
         self.login_admin()
 
-        response = self.client.get(reverse("document_list"))
+        response = self.client.get(
+            reverse("participant_document_files", args=[self.participant.id])
+        )
 
         self.assertContains(response, "Delete")
         self.assertContains(response, reverse("document_delete", args=[document.id]))
@@ -467,10 +570,7 @@ class DocumentManagementTests(TestCase):
         stored_name = document.file.name
         self.assertTrue(document.file.storage.exists(stored_name))
         self.login_admin()
-        return_url = (
-            f"{reverse('document_list')}?owner=participants"
-            f"&person={self.participant.id}"
-        )
+        return_url = reverse("participant_document_files", args=[self.participant.id])
 
         response = self.client.post(
             reverse("document_delete", args=[document.id]),
@@ -877,8 +977,7 @@ class DocumentManagementTests(TestCase):
         self.login_admin()
 
         response = self.client.get(
-            reverse("document_list"),
-            {"owner": "workers", "person": self.worker.id},
+            reverse("worker_document_files", args=[self.worker.id]),
         )
 
         self.assertContains(response, "Pending review")
