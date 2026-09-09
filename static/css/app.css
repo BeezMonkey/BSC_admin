@@ -2733,6 +2733,12 @@ tbody tr:last-child td {
   font-size: 0.86rem;
 }
 
+.related-records-table .actions-heading,
+.related-records-table td.actions {
+  min-width: 18rem;
+  text-align: center;
+}
+
 .tabs-placeholder {
   display: flex;
   gap: 0.5rem;
@@ -2819,6 +2825,12 @@ tbody tr:last-child td {
 .assignment-ended-action {
   display: inline-flex;
   justify-content: flex-end;
+  width: 100%;
+}
+
+.related-records-table .assignment-end-form,
+.related-records-table .assignment-ended-action {
+  justify-content: center;
   width: 100%;
 }
 
