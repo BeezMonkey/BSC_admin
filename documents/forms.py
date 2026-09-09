@@ -52,6 +52,19 @@ def validate_service_log_attachments(files):
 class DocumentForm(forms.ModelForm):
     ALLOWED_EXTENSIONS = ALLOWED_DOCUMENT_EXTENSIONS
     MAX_FILE_SIZE = COMPLIANCE_MAX_FILE_SIZE
+    LINKED_RECORD_FIELDS = ["participant", "worker", "invoice", "service_log"]
+    PERSON_UPLOAD_CATEGORY_CHOICES = {
+        "participants": [
+            (Document.Category.PLAN, "Agreement"),
+            (Document.Category.COMPLIANCE, "NDIS Forms"),
+            (Document.Category.GENERAL, "Others"),
+        ],
+        "workers": [
+            (Document.Category.PLAN, "Agreement"),
+            (Document.Category.COMPLIANCE, "Compliance"),
+            (Document.Category.GENERAL, "Others"),
+        ],
+    }
 
     class Meta:
         model = Document
@@ -69,6 +82,24 @@ class DocumentForm(forms.ModelForm):
             "notes": forms.Textarea(attrs={"rows": 3}),
         }
 
+    def __init__(
+        self,
+        *args,
+        upload_owner="",
+        hide_linked_records=False,
+        **kwargs,
+    ):
+        super().__init__(*args, **kwargs)
+        if upload_owner in self.PERSON_UPLOAD_CATEGORY_CHOICES:
+            self.fields["category"].label = "Document type"
+            self.fields["category"].choices = self.PERSON_UPLOAD_CATEGORY_CHOICES[
+                upload_owner
+            ]
+        self.hide_linked_records = hide_linked_records
+        if self.hide_linked_records:
+            for field_name in self.LINKED_RECORD_FIELDS:
+                self.fields[field_name].widget = forms.HiddenInput()
+
     def clean_file(self):
         uploaded_file = self.cleaned_data["file"]
         return validate_uploaded_document(
@@ -79,8 +110,7 @@ class DocumentForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        linked_fields = ["participant", "worker", "invoice", "service_log"]
-        if not any(cleaned_data.get(field) for field in linked_fields):
+        if not any(cleaned_data.get(field) for field in self.LINKED_RECORD_FIELDS):
             raise forms.ValidationError("Select at least one linked record.")
         return cleaned_data
 
