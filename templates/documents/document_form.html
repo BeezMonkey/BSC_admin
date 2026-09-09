@@ -1,12 +1,12 @@
 {% extends "admin_base.html" %}
 
-{% block title %}Upload Document - Brisbane Star Care{% endblock %}
+{% block title %}Upload File - Brisbane Star Care{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1>{{ upload_page_title|default:"Upload Document" }}</h1>
-    <p>{{ upload_page_description|default:"Attach a file to one or more business records." }}</p>
+    <h1>{{ upload_page_title|default:"Upload File" }}</h1>
+    <p>{{ upload_page_description|default:"Attach a file to a selected person or record." }}</p>
   </div>
 </div>
 
@@ -75,7 +75,7 @@
   </section>
 
   <div class="form-actions">
-    <button type="submit">Upload Document</button>
+    <button type="submit">Upload File</button>
   </div>
 </form>
 {% endblock %}

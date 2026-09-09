@@ -27,7 +27,7 @@
       <a class="sidebar-link{% if request.resolver_match.url_name == 'coordination_log_list' or request.resolver_match.url_name == 'coordination_log_detail' %} active{% endif %}" href="{% url 'coordination_log_list' %}">Coordination Logs</a>
       <a class="sidebar-link{% if request.resolver_match.url_name == 'support_coordination_invoice_list' or request.resolver_match.url_name == 'support_coordination_invoice_create' or request.resolver_match.url_name == 'invoice_detail' and invoice.invoice_type == 'support_coordination' %} active{% endif %}" href="{% url 'support_coordination_invoice_list' %}">SC Invoices</a>
       <span class="sidebar-section-label">Compliance</span>
-      <a class="sidebar-link{% if request.resolver_match.url_name == 'document_list' or request.resolver_match.url_name == 'document_create' or request.resolver_match.url_name == 'document_detail' %} active{% endif %}" href="{% url 'document_list' %}">Documents</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'document_list' or request.resolver_match.url_name == 'document_create' or request.resolver_match.url_name == 'document_detail' or request.resolver_match.url_name == 'document_delete' or request.resolver_match.url_name == 'participant_document_files' or request.resolver_match.url_name == 'worker_document_files' %} active{% endif %}" href="{% url 'document_list' %}">Uploaded Files</a>
       <span class="sidebar-section-label">System</span>
       <a class="sidebar-link{% if request.resolver_match.url_name == 'audit_log_list' or request.resolver_match.url_name == 'audit_log_detail' %} active{% endif %}" href="{% url 'audit_log_list' %}">Audit Logs</a>
     </nav>
