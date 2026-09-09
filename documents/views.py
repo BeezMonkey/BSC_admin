@@ -104,6 +104,61 @@ def _document_upload_context(initial):
     return context_items
 
 
+def _document_upload_owner(initial):
+    participant_id = initial.get("participant")
+    worker_id = initial.get("worker")
+    has_invoice = bool(initial.get("invoice"))
+    has_service_log = bool(initial.get("service_log"))
+
+    if participant_id and not worker_id and not has_invoice and not has_service_log:
+        return "participants"
+    if worker_id and not participant_id and not has_invoice and not has_service_log:
+        return "workers"
+    return ""
+
+
+def _document_upload_page_copy(upload_context_items, hide_linked_records):
+    if hide_linked_records and upload_context_items:
+        person_name = upload_context_items[0]["name"]
+        return {
+            "title": f"Upload document for {person_name}",
+            "description": "Choose a document type, attach the file, and add optional notes.",
+            "context_note": "This file will be saved under the selected person.",
+            "back_label": "Back to documents",
+        }
+    return {
+        "title": "Upload Document",
+        "description": "Attach a file to one or more business records.",
+        "context_note": (
+            "The linked records below are prefilled from Documents. "
+            "You can still change them before uploading."
+        ),
+        "back_label": "Back to selected documents",
+    }
+
+
+def _document_upload_template_context(
+    request,
+    form,
+    next_url,
+    hide_linked_records,
+):
+    upload_context_items = _document_upload_context(
+        request.POST if request.method == "POST" else form.initial
+    )
+    page_copy = _document_upload_page_copy(upload_context_items, hide_linked_records)
+    return {
+        "form": form,
+        "next_url": next_url,
+        "upload_context_items": upload_context_items,
+        "hide_linked_records": hide_linked_records,
+        "upload_page_title": page_copy["title"],
+        "upload_page_description": page_copy["description"],
+        "upload_context_note": page_copy["context_note"],
+        "upload_back_label": page_copy["back_label"],
+    }
+
+
 def _document_category_tabs(owner, person_id, documents, active_category):
     tabs = [
         {"key": "all", "label": "All", "count": documents.count()},
@@ -451,8 +506,16 @@ def worker_document_files(request, worker_id):
 @admin_required
 def document_create(request):
     next_url = _safe_next_url(request, request.POST.get("next") or request.GET.get("next", ""))
+    source_data = request.POST if request.method == "POST" else request.GET
+    upload_owner = _document_upload_owner(source_data)
+    hide_linked_records = bool(upload_owner)
     if request.method == "POST":
-        form = DocumentForm(request.POST, request.FILES)
+        form = DocumentForm(
+            request.POST,
+            request.FILES,
+            upload_owner=upload_owner,
+            hide_linked_records=hide_linked_records,
+        )
         if form.is_valid():
             document = form.save(commit=False)
             document.uploaded_by = request.user
@@ -464,7 +527,12 @@ def document_create(request):
                 return render(
                     request,
                     "documents/document_form.html",
-                    {"form": form},
+                    _document_upload_template_context(
+                        request,
+                        form,
+                        next_url,
+                        hide_linked_records,
+                    ),
                 )
             write_audit_log(
                 request.user,
@@ -481,18 +549,21 @@ def document_create(request):
             for key in ("participant", "worker", "invoice", "service_log", "category")
             if request.GET.get(key)
         }
-        form = DocumentForm(initial=initial)
+        form = DocumentForm(
+            initial=initial,
+            upload_owner=upload_owner,
+            hide_linked_records=hide_linked_records,
+        )
 
     return render(
         request,
         "documents/document_form.html",
-        {
-            "form": form,
-            "next_url": next_url,
-            "upload_context_items": _document_upload_context(
-                request.POST if request.method == "POST" else form.initial
-            ),
-        },
+        _document_upload_template_context(
+            request,
+            form,
+            next_url,
+            hide_linked_records,
+        ),
     )
 
 

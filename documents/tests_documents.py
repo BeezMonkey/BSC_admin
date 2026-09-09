@@ -197,9 +197,89 @@ class DocumentManagementTests(TestCase):
         self.assertContains(response, "Uploading for")
         self.assertContains(
             response,
-            '<option value="general" selected>General</option>',
+            '<option value="general" selected>Others</option>',
             html=True,
         )
+
+    def test_participant_document_upload_shortcut_uses_simple_person_form(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("document_create"),
+            {
+                "participant": self.participant.id,
+                "category": "general",
+                "next": reverse("participant_document_files", args=[self.participant.id]),
+            },
+        )
+
+        self.assertContains(
+            response,
+            f"Upload document for {self.participant.display_name}",
+        )
+        self.assertContains(response, "Choose a document type, attach the file")
+        self.assertContains(response, "Document type")
+        self.assertNotContains(response, "Linked Records")
+        self.assertNotContains(response, '<select name="participant"')
+        self.assertNotContains(response, '<select name="worker"')
+        self.assertNotContains(response, '<select name="invoice"')
+        self.assertNotContains(response, '<select name="service_log"')
+        self.assertContains(
+            response,
+            f'<input type="hidden" name="participant" value="{self.participant.id}"',
+        )
+        self.assertContains(response, '<option value="plan">Agreement</option>', html=True)
+        self.assertContains(
+            response,
+            '<option value="compliance">NDIS Forms</option>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<option value="general" selected>Others</option>',
+            html=True,
+        )
+        self.assertNotContains(response, '<option value="invoice">Invoice</option>')
+        self.assertNotContains(response, '<option value="service_log">Service log</option>')
+
+    def test_worker_document_upload_shortcut_uses_simple_person_form(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("document_create"),
+            {
+                "worker": self.worker.id,
+                "category": "general",
+                "next": reverse("worker_document_files", args=[self.worker.id]),
+            },
+        )
+
+        self.assertContains(
+            response,
+            f"Upload document for {self.worker.display_name}",
+        )
+        self.assertContains(response, "Document type")
+        self.assertNotContains(response, "Linked Records")
+        self.assertNotContains(response, '<select name="participant"')
+        self.assertNotContains(response, '<select name="worker"')
+        self.assertContains(
+            response,
+            f'<input type="hidden" name="worker" value="{self.worker.id}"',
+        )
+        self.assertContains(response, '<option value="plan">Agreement</option>', html=True)
+        self.assertContains(
+            response,
+            '<option value="compliance">Compliance</option>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<option value="general" selected>Others</option>',
+            html=True,
+        )
+        self.assertNotContains(response, "NDIS Forms")
+        self.assertNotContains(response, '<option value="invoice">Invoice</option>')
+        self.assertNotContains(response, '<option value="service_log">Service log</option>')
 
     def test_document_create_returns_to_selected_documents_after_shortcut_upload(self):
         self.login_admin()
@@ -738,6 +818,30 @@ class DocumentManagementTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Could not upload document to private storage")
+        self.assertEqual(Document.objects.count(), 0)
+
+    def test_person_upload_storage_error_keeps_simple_form(self):
+        self.login_admin()
+
+        with patch(
+            "documents.views.Document.save",
+            side_effect=StorageOperationError("Could not upload document to private storage."),
+        ):
+            response = self.client.post(
+                reverse("document_create"),
+                self.document_payload(
+                    category=Document.Category.GENERAL,
+                    next=reverse("participant_document_files", args=[self.participant.id]),
+                ),
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            f"Upload document for {self.participant.display_name}",
+        )
+        self.assertContains(response, "Could not upload document to private storage")
+        self.assertNotContains(response, "Linked Records")
         self.assertEqual(Document.objects.count(), 0)
 
     def test_upload_requires_linked_object(self):
