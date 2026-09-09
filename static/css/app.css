@@ -2733,6 +2733,12 @@ tbody tr:last-child td {
   font-size: 0.86rem;
 }
 
+.related-records-table .actions-heading,
+.related-records-table td.actions {
+  min-width: 14rem;
+  text-align: right;
+}
+
 .tabs-placeholder {
   display: flex;
   gap: 0.5rem;

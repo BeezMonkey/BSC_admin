@@ -168,6 +168,8 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn(".assignment-end-form input[type=\"date\"]", css)
         self.assertIn("width: 9.5rem;", css)
         self.assertIn(".assignment-ended-action", css)
+        self.assertIn(".related-records-table .actions-heading,\n.related-records-table td.actions", css)
+        self.assertIn("min-width: 14rem;", css)
         self.assertIn(".assignment-end-form {\n    flex-wrap: wrap;", css)
 
     def test_admin_roster_and_invoice_form_alignment_assets_exist(self):
