@@ -701,6 +701,78 @@ class DocumentManagementTests(TestCase):
         self.assertContains(response, "Delete")
         self.assertContains(response, reverse("document_delete", args=[document.id]))
 
+    def test_admin_document_detail_links_to_metadata_edit(self):
+        document = Document.objects.create(
+            title="Participant plan",
+            category=Document.Category.PLAN,
+            participant=self.participant,
+            file=self.upload_file("plan.pdf"),
+            original_filename="plan.pdf",
+            uploaded_by=self.admin_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("document_detail", args=[document.id]))
+
+        self.assertContains(response, "Edit")
+        self.assertContains(response, f"/documents/{document.id}/edit/")
+
+    def test_admin_can_edit_document_metadata_without_replacing_private_file(self):
+        document = Document.objects.create(
+            title="Participant plan",
+            category=Document.Category.PLAN,
+            participant=self.participant,
+            file=self.upload_file("plan.pdf"),
+            original_filename="plan.pdf",
+            uploaded_by=self.admin_user,
+        )
+        stored_name = document.file.name
+        return_url = reverse("participant_document_files", args=[self.participant.id])
+        self.login_admin()
+
+        response = self.client.post(
+            f"/documents/{document.id}/edit/",
+            {
+                "title": "Updated plan name",
+                "category": Document.Category.GENERAL,
+                "review_status": Document.ReviewStatus.PENDING_REVIEW,
+                "issue_date": "2026-06-01",
+                "expiry_date": "2027-06-01",
+                "notes": "Moved into Others for easier Admin filing.",
+                "next": return_url,
+            },
+        )
+
+        document.refresh_from_db()
+        self.assertRedirects(response, return_url)
+        self.assertEqual(document.title, "Updated plan name")
+        self.assertEqual(document.category, Document.Category.GENERAL)
+        self.assertEqual(document.review_status, Document.ReviewStatus.PENDING_REVIEW)
+        self.assertEqual(document.issue_date, date(2026, 6, 1))
+        self.assertEqual(document.expiry_date, date(2027, 6, 1))
+        self.assertEqual(document.notes, "Moved into Others for easier Admin filing.")
+        self.assertEqual(document.file.name, stored_name)
+        self.assertEqual(document.original_filename, "plan.pdf")
+
+    def test_document_metadata_edit_does_not_show_file_upload_control(self):
+        document = Document.objects.create(
+            title="Participant plan",
+            category=Document.Category.PLAN,
+            participant=self.participant,
+            file=self.upload_file("plan.pdf"),
+            original_filename="plan.pdf",
+            uploaded_by=self.admin_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(f"/documents/{document.id}/edit/")
+
+        self.assertContains(response, "Edit file details")
+        self.assertContains(response, "Original filename")
+        self.assertContains(response, "plan.pdf")
+        self.assertNotContains(response, 'type="file"')
+        self.assertNotContains(response, "Choose File")
+
     def test_admin_document_delete_confirmation_shows_file_context(self):
         document = Document.objects.create(
             title="Participant plan",

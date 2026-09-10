@@ -22,6 +22,7 @@
   </div>
   <div class="button-row">
     <a class="button secondary" href="{{ document_owner_url }}">Back to files</a>
+    <a class="button secondary" href="{% url 'document_edit' document.id %}?next={{ document_owner_url|urlencode }}">Edit</a>
     <a class="button" href="{% url 'document_download' document.id %}">Download</a>
     <a class="button danger-outline" href="{% url 'document_delete' document.id %}?next={{ document_owner_url|urlencode }}">Delete</a>
   </div>

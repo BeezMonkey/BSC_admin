@@ -1,0 +1,66 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Edit Uploaded File - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Edit file details</h1>
+    <p>Update the Admin filing details without replacing the private CrazyDomains file.</p>
+  </div>
+  <div class="button-row">
+    <a class="button secondary" href="{{ return_url }}">Back to files</a>
+    <a class="button" href="{% url 'document_download' document.id %}">Download</a>
+    <a class="button danger-outline" href="{% url 'document_delete' document.id %}?next={{ return_url|urlencode }}">Delete</a>
+  </div>
+</div>
+
+<section class="card document-file-reference">
+  <h2>Current file</h2>
+  <dl class="detail-list">
+    <dt>Original filename</dt><dd>{{ document.filename }}</dd>
+    <dt>CrazyDomains secure file name</dt><dd class="document-storage-name">{{ document.file.name }}</dd>
+    <dt>Owner</dt>
+    <dd>
+      {% if document.participant_id %}
+        Participant - {{ document.participant.display_name }}
+      {% elif document.worker_id %}
+        Support Worker - {{ document.worker.display_name }}
+      {% else %}
+        -
+      {% endif %}
+    </dd>
+  </dl>
+</section>
+
+<form class="record-form document-metadata-form" method="post" novalidate>
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ return_url }}">
+  {% if form.non_field_errors %}
+    <div class="error">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <section class="card form-section">
+    <h2>Filing details</h2>
+    <div class="form-grid">
+      {% include "participants/partials/field.html" with field=form.title %}
+      {% include "participants/partials/field.html" with field=form.category %}
+      {% include "participants/partials/field.html" with field=form.review_status %}
+      {% include "participants/partials/field.html" with field=form.issue_date %}
+      {% include "participants/partials/field.html" with field=form.expiry_date %}
+    </div>
+  </section>
+
+  <section class="card form-section">
+    <h2>Notes</h2>
+    <div class="form-grid single">
+      {% include "participants/partials/field.html" with field=form.notes %}
+    </div>
+  </section>
+
+  <div class="form-actions">
+    <button type="submit">Save file details</button>
+    <a class="button secondary" href="{{ return_url }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}
