@@ -544,6 +544,45 @@ class DocumentManagementTests(TestCase):
         self.assertNotContains(response, '<select name="invoice"')
         self.assertNotContains(response, '<select name="service_log"')
 
+    def test_admin_person_file_page_has_inline_preview_dialog(self):
+        document = Document.objects.create(
+            title="Participant plan",
+            category=Document.Category.PLAN,
+            participant=self.participant,
+            file=self.upload_file("plan.pdf"),
+            original_filename="plan.pdf",
+            uploaded_by=self.admin_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("participant_document_files", args=[self.participant.id])
+        )
+
+        self.assertContains(response, 'id="document-preview-dialog"')
+        self.assertContains(response, "data-document-preview-open")
+        self.assertContains(response, f'href="{reverse("document_preview", args=[document.id])}"')
+        self.assertContains(response, f'data-preview-download-url="{reverse("document_download", args=[document.id])}"')
+        self.assertContains(response, "showModal")
+
+    def test_admin_document_detail_has_inline_preview_action(self):
+        document = Document.objects.create(
+            title="Participant plan",
+            category=Document.Category.PLAN,
+            participant=self.participant,
+            file=self.upload_file("plan.pdf"),
+            original_filename="plan.pdf",
+            uploaded_by=self.admin_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("document_detail", args=[document.id]))
+
+        self.assertContains(response, "Preview")
+        self.assertContains(response, "data-document-preview-open")
+        self.assertContains(response, f'href="{reverse("document_preview", args=[document.id])}"')
+        self.assertContains(response, 'id="document-preview-dialog"')
+
     def test_admin_worker_document_files_show_selected_worker_documents(self):
         Document.objects.create(
             title="Participant plan",

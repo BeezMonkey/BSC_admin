@@ -232,6 +232,8 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn(".document-upload-context-list", css)
         self.assertIn(".document-upload-dialog", css)
         self.assertIn(".document-upload-dialog-body", css)
+        self.assertIn(".document-preview-dialog", css)
+        self.assertIn(".document-preview-frame", css)
         self.assertIn(".document-delete-confirm", css)
         self.assertIn(".document-delete-warning", css)
         self.assertIn("@media (max-width: 760px)", css)
@@ -249,6 +251,19 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn("Back to Support Worker", detail_template)
         self.assertIn("Back to Participant", detail_template)
         self.assertIn('id="document-upload-dialog"', dialog_template)
+        self.assertIn("data-document-preview-open", detail_template)
+
+    def test_admin_document_preview_modal_assets_exist(self):
+        dialog_template = Path("templates/documents/partials/preview_dialog.html").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("data-document-preview-open", dialog_template)
+        self.assertIn("showModal", dialog_template)
+        self.assertIn("Escape", dialog_template)
+        self.assertIn('id="document-preview-dialog"', dialog_template)
+        self.assertIn("Open in new tab", dialog_template)
+        self.assertIn("Download", dialog_template)
 
     def test_support_item_form_control_polish_assets_exist(self):
         css = Path("static/css/app.css").read_text(encoding="utf-8")

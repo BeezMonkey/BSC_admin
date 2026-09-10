@@ -1,0 +1,93 @@
+<dialog class="document-preview-dialog" id="document-preview-dialog" aria-labelledby="document-preview-title">
+  <div class="document-preview-shell">
+    <header class="document-preview-header">
+      <div>
+        <h2 id="document-preview-title" data-document-preview-title>Preview file</h2>
+        <p data-document-preview-filename></p>
+      </div>
+      <button class="button secondary document-dialog-close" type="button" data-document-preview-close aria-label="Close preview">Close</button>
+    </header>
+    <div class="document-preview-body">
+      <iframe class="document-preview-frame" data-document-preview-frame title="File preview"></iframe>
+    </div>
+    <footer class="document-preview-footer">
+      <a class="button secondary" href="#" target="_blank" rel="noopener" data-document-preview-new-tab>Open in new tab</a>
+      <a class="button" href="#" data-document-preview-download>Download</a>
+    </footer>
+  </div>
+</dialog>
+
+<script>
+  (() => {
+    const dialog = document.getElementById("document-preview-dialog");
+    if (!dialog || typeof dialog.showModal !== "function") {
+      return;
+    }
+
+    const frame = dialog.querySelector("[data-document-preview-frame]");
+    const title = dialog.querySelector("[data-document-preview-title]");
+    const filename = dialog.querySelector("[data-document-preview-filename]");
+    const downloadLink = dialog.querySelector("[data-document-preview-download]");
+    const newTabLink = dialog.querySelector("[data-document-preview-new-tab]");
+
+    function clearPreview() {
+      if (frame) {
+        frame.removeAttribute("src");
+      }
+    }
+
+    function closePreview() {
+      dialog.close();
+      clearPreview();
+    }
+
+    document.addEventListener("click", (event) => {
+      const trigger = event.target.closest("[data-document-preview-open]");
+      if (!trigger) {
+        return;
+      }
+
+      event.preventDefault();
+      const previewUrl = trigger.href;
+      const downloadUrl = trigger.getAttribute("data-preview-download-url") || previewUrl;
+      const previewTitle = trigger.getAttribute("data-preview-title") || "Preview file";
+      const previewFilename = trigger.getAttribute("data-preview-filename") || "";
+
+      if (title) {
+        title.textContent = previewTitle;
+      }
+      if (filename) {
+        filename.textContent = previewFilename;
+      }
+      if (frame) {
+        frame.src = previewUrl;
+      }
+      if (downloadLink) {
+        downloadLink.href = downloadUrl;
+      }
+      if (newTabLink) {
+        newTabLink.href = previewUrl;
+      }
+
+      dialog.showModal();
+    });
+
+    dialog.querySelectorAll("[data-document-preview-close]").forEach((closeButton) => {
+      closeButton.addEventListener("click", closePreview);
+    });
+
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) {
+        closePreview();
+      }
+    });
+
+    dialog.addEventListener("close", clearPreview);
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && dialog.open) {
+        closePreview();
+      }
+    });
+  })();
+</script>
