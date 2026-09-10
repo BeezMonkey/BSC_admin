@@ -131,3 +131,13 @@ class Document(models.Model):
 
     def get_absolute_url(self):
         return reverse("document_detail", args=[self.id])
+
+
+WORKER_REQUIRED_DOCUMENT_TYPES = {
+    Document.RequiredDocumentType.POLICE_CHECK,
+    Document.RequiredDocumentType.NDIS_WORKER_SCREENING,
+    Document.RequiredDocumentType.FIRST_AID,
+    Document.RequiredDocumentType.CPR,
+    Document.RequiredDocumentType.WWCC,
+    Document.RequiredDocumentType.DRIVER_LICENCE,
+}
