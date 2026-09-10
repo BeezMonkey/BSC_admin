@@ -724,9 +724,18 @@ class DocumentManagementTests(TestCase):
 
         self.assertContains(response, "Delete uploaded file")
         self.assertContains(response, "Participant plan")
+        self.assertContains(response, "Original filename")
         self.assertContains(response, "plan.pdf")
+        self.assertContains(response, "CrazyDomains secure file name")
+        self.assertContains(response, document.file.name)
+        self.assertContains(response, "Owner")
+        self.assertContains(response, "Participant")
         self.assertContains(response, self.participant.display_name)
+        self.assertContains(response, "Folder")
+        self.assertContains(response, "Agreement")
+        self.assertContains(response, "Uploaded")
         self.assertContains(response, "This will delete the database record and private file.")
+        self.assertContains(response, "The document record will stay in Admin if the private file cannot be removed.")
 
     def test_admin_can_delete_document_and_private_file(self):
         document = Document.objects.create(

@@ -14,12 +14,23 @@
 <section class="card document-delete-confirm">
   <div class="document-delete-warning">
     <h2>This will delete the database record and private file.</h2>
-    <p>The uploaded file will be removed from Admin and from CrazyDomains private storage. This action cannot be undone.</p>
+    <p>The uploaded file will be removed from Admin and from CrazyDomains private storage. This action cannot be undone. The document record will stay in Admin if the private file cannot be removed.</p>
   </div>
 
   <dl class="detail-list">
     <dt>Title</dt><dd>{{ document.title }}</dd>
-    <dt>File</dt><dd>{{ document.filename }}</dd>
+    <dt>Original filename</dt><dd>{{ document.filename }}</dd>
+    <dt>CrazyDomains secure file name</dt><dd class="document-storage-name">{{ document.file.name }}</dd>
+    <dt>Owner</dt>
+    <dd>
+      {% if document.participant_id %}
+        Participant - {{ document.participant.display_name }}
+      {% elif document.worker_id %}
+        Support Worker - {{ document.worker.display_name }}
+      {% else %}
+        -
+      {% endif %}
+    </dd>
     <dt>Folder</dt>
     <dd>
       {% if document.category == "general" %}
@@ -35,8 +46,6 @@
       {% endif %}
     </dd>
     <dt>Status</dt><dd>{{ document.get_review_status_display }}</dd>
-    <dt>Participant</dt><dd>{{ document.participant|default:"-" }}</dd>
-    <dt>Worker</dt><dd>{{ document.worker|default:"-" }}</dd>
     <dt>Uploaded by</dt><dd>{{ document.uploaded_by }}</dd>
     <dt>Uploaded</dt><dd>{{ document.created_at|date:"d/m/Y" }}</dd>
   </dl>
