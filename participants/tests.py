@@ -579,7 +579,7 @@ class ParticipantManagementTests(TestCase):
         self.assertContains(response, "Needs NDIS number")
         self.assertContains(response, "Active worker assigned")
         self.assertContains(response, "Next steps")
-        self.assertContains(response, "Upload Document")
+        self.assertNotContains(response, "Upload Document")
         self.assertContains(response, "Create Shift")
         self.assertContains(response, "Files")
         self.assertContains(response, "View all files")

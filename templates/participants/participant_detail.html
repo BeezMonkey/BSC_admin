@@ -44,7 +44,6 @@
     <h2>Next steps</h2>
     <div class="button-row">
       <a class="button" href="{% url 'participant_assign_worker' participant.id %}">Assign Worker</a>
-      <a class="button secondary" href="{% url 'document_create' %}?participant={{ participant.id }}">Upload Document</a>
       <a class="button secondary" href="{% url 'shift_create' %}?participant={{ participant.id }}">Create Shift</a>
     </div>
   </section>
