@@ -147,15 +147,16 @@
   </table>
 </section>
 
-<section class="card">
-  <h2>Related Records</h2>
-  <div class="tabs-placeholder">
-    <span>Roster</span>
-    <span>Service Logs</span>
-    <span>Invoices</span>
-    <span>Assigned Workers</span>
-    <span>Documents</span>
-    <span>Notes</span>
+<section class="card person-file-entry-card">
+  <div class="person-file-entry">
+    <div>
+      <h2>Files</h2>
+      <p>Open this participant's file folder to review, download, upload, or remove documents.</p>
+    </div>
+    <div class="button-row">
+      <a class="button secondary" href="{% url 'participant_document_files' participant.id %}">View all files</a>
+      <a class="button secondary" href="{% url 'document_create' %}?participant={{ participant.id }}&amp;next={% url 'participant_document_files' participant.id %}">Upload file</a>
+    </div>
   </div>
 </section>
 </div>

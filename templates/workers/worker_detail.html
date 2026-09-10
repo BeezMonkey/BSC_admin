@@ -108,16 +108,15 @@
         {% endfor %}
       </tbody>
     </table>
-    <h3>Other documents</h3>
-    <div class="compact-record-list">
-      {% for document in other_compliance_documents %}
-        <a href="{% url 'document_detail' document.id %}">
-          <strong>{{ document.title }}</strong>
-          <span>{{ document.get_review_status_display }}{% if document.expiry_date %} | Expires {{ document.expiry_date|date:"d/m/Y" }}{% endif %}</span>
-        </a>
-      {% empty %}
-        <span class="detail-empty">No other compliance documents.</span>
-      {% endfor %}
+    <div class="person-file-entry">
+      <div>
+        <h3>All worker files</h3>
+        <p>Open this worker's file folder to review, download, upload, or remove documents.</p>
+      </div>
+      <div class="button-row">
+        <a class="button secondary" href="{% url 'worker_document_files' worker.id %}">View all files</a>
+        <a class="button secondary" href="{% url 'document_create' %}?worker={{ worker.id }}&amp;next={% url 'worker_document_files' worker.id %}">Upload file</a>
+      </div>
     </div>
   </section>
 
