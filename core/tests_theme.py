@@ -214,6 +214,9 @@ class ThemeTokenTests(SimpleTestCase):
         detail_template = Path("templates/documents/document_person_files.html").read_text(
             encoding="utf-8"
         )
+        dialog_template = Path("templates/documents/partials/upload_dialog.html").read_text(
+            encoding="utf-8"
+        )
 
         self.assertIn(".document-directory-summary", css)
         self.assertIn(".document-directory-panel", css)
@@ -245,7 +248,7 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn('class="filter-bar document-file-filter"', detail_template)
         self.assertIn("Back to Support Worker", detail_template)
         self.assertIn("Back to Participant", detail_template)
-        self.assertIn('id="document-upload-dialog"', detail_template)
+        self.assertIn('id="document-upload-dialog"', dialog_template)
 
     def test_support_item_form_control_polish_assets_exist(self):
         css = Path("static/css/app.css").read_text(encoding="utf-8")

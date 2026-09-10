@@ -584,6 +584,8 @@ class ParticipantManagementTests(TestCase):
         self.assertContains(response, "Files")
         self.assertContains(response, "View all files")
         self.assertContains(response, reverse("participant_document_files", args=[participant.id]))
+        self.assertContains(response, 'id="document-upload-dialog"')
+        self.assertContains(response, 'data-document-upload-open')
 
     def test_participant_assignment_only_offers_active_workers(self):
         participant = Participant.objects.create(

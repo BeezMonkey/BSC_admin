@@ -8,6 +8,7 @@ from accounts.decorators import admin_required
 from core.navigation import get_safe_return_url
 from core.pagination import paginate_queryset
 from core.sorting import apply_sorting
+from documents.forms import DocumentForm
 
 from .forms import ParticipantForm, ParticipantWorkerAssignmentForm
 from .models import Participant, ParticipantWorkerAssignment
@@ -181,6 +182,10 @@ def participant_detail(request, participant_id):
             "readiness_items": readiness_items,
             "active_assignments": active_assignments,
             "return_url": get_safe_return_url(request, reverse("participant_list")),
+            "current_detail_url": request.get_full_path(),
+            "upload_category_choices": DocumentForm.PERSON_UPLOAD_CATEGORY_CHOICES[
+                "participants"
+            ],
         },
     )
 

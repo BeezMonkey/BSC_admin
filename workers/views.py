@@ -8,11 +8,22 @@ from accounts.forms import AdminSetPasswordForm
 from core.navigation import get_safe_return_url
 from core.pagination import paginate_queryset
 from core.sorting import apply_sorting
+from documents.forms import DocumentForm
 from documents.models import Document
 from service_logs.models import ServiceLog
 
 from .forms import SupportWorkerCreateForm, SupportWorkerEditForm
 from .models import SupportWorker
+
+
+ADMIN_REQUIRED_DOCUMENT_TYPES = {
+    Document.RequiredDocumentType.POLICE_CHECK,
+    Document.RequiredDocumentType.NDIS_WORKER_SCREENING,
+    Document.RequiredDocumentType.FIRST_AID,
+    Document.RequiredDocumentType.CPR,
+    Document.RequiredDocumentType.WWCC,
+    Document.RequiredDocumentType.DRIVER_LICENCE,
+}
 
 
 @admin_required
@@ -144,6 +155,7 @@ def worker_detail(request, worker_id):
             "document": documents_by_type.get(value),
         }
         for value, label in Document.RequiredDocumentType.choices
+        if value in ADMIN_REQUIRED_DOCUMENT_TYPES
     ]
     other_compliance_documents = Document.objects.filter(
         worker=worker,
@@ -164,6 +176,10 @@ def worker_detail(request, worker_id):
             "other_compliance_documents": other_compliance_documents,
             "recent_service_logs": recent_service_logs,
             "return_url": get_safe_return_url(request, reverse("worker_list")),
+            "current_detail_url": request.get_full_path(),
+            "upload_category_choices": DocumentForm.PERSON_UPLOAD_CATEGORY_CHOICES[
+                "workers"
+            ],
         },
     )
 
