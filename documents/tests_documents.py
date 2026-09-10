@@ -215,10 +215,10 @@ class DocumentManagementTests(TestCase):
 
         self.assertContains(
             response,
-            f"Upload document for {self.participant.display_name}",
+            f"Upload file for {self.participant.display_name}",
         )
-        self.assertContains(response, "Choose a document type, attach the file")
-        self.assertContains(response, "Document type")
+        self.assertContains(response, "Choose a folder, attach the file")
+        self.assertContains(response, "Folder")
         self.assertNotContains(response, "Linked Records")
         self.assertNotContains(response, '<select name="participant"')
         self.assertNotContains(response, '<select name="worker"')
@@ -256,9 +256,9 @@ class DocumentManagementTests(TestCase):
 
         self.assertContains(
             response,
-            f"Upload document for {self.worker.display_name}",
+            f"Upload file for {self.worker.display_name}",
         )
-        self.assertContains(response, "Document type")
+        self.assertContains(response, "Folder")
         self.assertNotContains(response, "Linked Records")
         self.assertNotContains(response, '<select name="participant"')
         self.assertNotContains(response, '<select name="worker"')
@@ -329,6 +329,29 @@ class DocumentManagementTests(TestCase):
 
         self.assertContains(response, "document-directory-panel")
 
+    def test_admin_document_file_manager_uses_uploaded_files_language(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("document_list"))
+
+        self.assertContains(response, "Uploaded Files")
+        self.assertContains(response, "CrazyDomains")
+        self.assertContains(response, "Upload File")
+        self.assertContains(response, ">Uploaded Files</a>")
+        self.assertNotContains(response, "Attach a file to one or more business records.")
+
+    def test_admin_document_file_manager_hides_business_record_categories(self):
+        self.login_admin()
+
+        response = self.client.get(reverse("document_list"))
+
+        self.assertContains(response, "Agreement")
+        self.assertContains(response, "NDIS Forms")
+        self.assertContains(response, "Others")
+        self.assertNotContains(response, '<option value="invoice">')
+        self.assertNotContains(response, '<option value="service_log">')
+        self.assertNotContains(response, "Linked Records")
+
     def test_admin_document_directory_defaults_to_participant_people(self):
         participant_document = Document.objects.create(
             title="Participant plan",
@@ -352,7 +375,7 @@ class DocumentManagementTests(TestCase):
 
         response = self.client.get(reverse("document_list"))
 
-        self.assertContains(response, "Documents")
+        self.assertContains(response, "Uploaded Files")
         self.assertContains(response, "Participants")
         self.assertContains(response, "Support Workers")
         self.assertContains(response, "Participant directory")
@@ -453,14 +476,48 @@ class DocumentManagementTests(TestCase):
         )
 
         self.assertContains(response, self.participant.display_name)
-        self.assertContains(response, "Back to Documents")
+        self.assertContains(response, "Back to Uploaded Files")
         self.assertContains(response, participant_document.title)
         self.assertContains(response, "plan.pdf")
+        self.assertContains(response, "Agreement")
+        self.assertContains(response, "NDIS Forms")
+        self.assertContains(response, "Others")
+        self.assertNotContains(response, 'href="/documents/participants/1/?category=invoice"')
+        self.assertNotContains(response, 'href="/documents/participants/1/?category=service_log"')
+        self.assertNotContains(response, "Linked Records")
         self.assertContains(
             response,
             f"next=%2Fdocuments%2Fparticipants%2F{self.participant.id}%2F",
         )
         self.assertNotContains(response, worker_document.title)
+
+    def test_admin_person_file_page_has_inline_upload_dialog(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("participant_document_files", args=[self.participant.id])
+        )
+
+        self.assertContains(response, 'id="document-upload-dialog"')
+        self.assertContains(response, 'action="/documents/new/"')
+        self.assertContains(
+            response,
+            f'<input type="hidden" name="participant" value="{self.participant.id}">',
+            html=True,
+        )
+        self.assertContains(response, '<option value="plan">Agreement</option>', html=True)
+        self.assertContains(
+            response,
+            '<option value="compliance">NDIS Forms</option>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            '<option value="general" selected>Others</option>',
+            html=True,
+        )
+        self.assertNotContains(response, '<select name="invoice"')
+        self.assertNotContains(response, '<select name="service_log"')
 
     def test_admin_worker_document_files_show_selected_worker_documents(self):
         Document.objects.create(
@@ -486,10 +543,16 @@ class DocumentManagementTests(TestCase):
         response = self.client.get(reverse("worker_document_files", args=[self.worker.id]))
 
         self.assertContains(response, self.worker.display_name)
-        self.assertContains(response, "Support worker documents")
+        self.assertContains(response, "Support worker file folder")
         self.assertContains(response, worker_document.title)
         self.assertContains(response, "police-check.pdf")
         self.assertContains(response, "Pending review")
+        self.assertContains(response, "Agreement")
+        self.assertContains(response, "Compliance")
+        self.assertContains(response, "Others")
+        self.assertNotContains(response, "NDIS Forms")
+        self.assertNotContains(response, 'href="/documents/workers/1/?category=invoice"')
+        self.assertNotContains(response, 'href="/documents/workers/1/?category=service_log"')
         self.assertContains(
             response,
             f"next=%2Fdocuments%2Fworkers%2F{self.worker.id}%2F",
@@ -632,7 +695,7 @@ class DocumentManagementTests(TestCase):
             },
         )
 
-        self.assertContains(response, "Delete document")
+        self.assertContains(response, "Delete uploaded file")
         self.assertContains(response, "Participant plan")
         self.assertContains(response, "plan.pdf")
         self.assertContains(response, self.participant.display_name)
@@ -838,7 +901,7 @@ class DocumentManagementTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(
             response,
-            f"Upload document for {self.participant.display_name}",
+            f"Upload file for {self.participant.display_name}",
         )
         self.assertContains(response, "Could not upload document to private storage")
         self.assertNotContains(response, "Linked Records")

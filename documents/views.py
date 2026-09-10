@@ -24,6 +24,19 @@ from .models import Document
 from .storage import StorageOperationError
 
 
+FILE_MANAGER_CATEGORY_KEYS = {
+    "all",
+    "others",
+    Document.Category.PLAN,
+    Document.Category.COMPLIANCE,
+    Document.Category.GENERAL,
+}
+FILE_MANAGER_EXCLUDED_CATEGORIES = [
+    Document.Category.INVOICE,
+    Document.Category.SERVICE_LOG,
+]
+
+
 def _document_list_url(owner="participants"):
     if owner == "workers":
         return f"{reverse('document_list')}?owner=workers"
@@ -121,19 +134,19 @@ def _document_upload_page_copy(upload_context_items, hide_linked_records):
     if hide_linked_records and upload_context_items:
         person_name = upload_context_items[0]["name"]
         return {
-            "title": f"Upload document for {person_name}",
-            "description": "Choose a document type, attach the file, and add optional notes.",
+            "title": f"Upload file for {person_name}",
+            "description": "Choose a folder, attach the file, and add optional notes.",
             "context_note": "This file will be saved under the selected person.",
-            "back_label": "Back to documents",
+            "back_label": "Back to uploaded files",
         }
     return {
-        "title": "Upload Document",
-        "description": "Attach a file to one or more business records.",
+        "title": "Upload File",
+        "description": "Attach a file to a selected person or record.",
         "context_note": (
-            "The linked records below are prefilled from Documents. "
+            "The linked records below are prefilled from Uploaded Files. "
             "You can still change them before uploading."
         ),
-        "back_label": "Back to selected documents",
+        "back_label": "Back to selected files",
     }
 
 
@@ -160,27 +173,18 @@ def _document_upload_template_context(
 
 
 def _document_category_tabs(owner, person_id, documents, active_category):
+    compliance_label = "Compliance" if owner == "workers" else "NDIS Forms"
     tabs = [
         {"key": "all", "label": "All", "count": documents.count()},
         {
             "key": Document.Category.PLAN,
-            "label": "Plan",
+            "label": "Agreement",
             "count": documents.filter(category=Document.Category.PLAN).count(),
         },
         {
             "key": Document.Category.COMPLIANCE,
-            "label": "Compliance",
+            "label": compliance_label,
             "count": documents.filter(category=Document.Category.COMPLIANCE).count(),
-        },
-        {
-            "key": Document.Category.INVOICE,
-            "label": "Invoices",
-            "count": documents.filter(category=Document.Category.INVOICE).count(),
-        },
-        {
-            "key": Document.Category.SERVICE_LOG,
-            "label": "Service logs",
-            "count": documents.filter(category=Document.Category.SERVICE_LOG).count(),
         },
         {
             "key": "others",
@@ -188,19 +192,6 @@ def _document_category_tabs(owner, person_id, documents, active_category):
             "count": documents.filter(category=Document.Category.GENERAL).count(),
         },
     ]
-    if owner == "workers":
-        tabs = [
-            tabs[0],
-            tabs[2],
-            {
-                "key": "others",
-                "label": "Others",
-                "count": documents.filter(
-                    Q(category=Document.Category.GENERAL)
-                    | Q(category=Document.Category.COMPLIANCE, required_document_type="")
-                ).count(),
-            },
-        ]
 
     for tab in tabs:
         tab["url"] = _document_owner_detail_url(owner, person_id, tab["key"])
@@ -212,20 +203,17 @@ def _filter_documents_for_category(documents, owner, category):
     if category == "all":
         return documents
     if category == "others":
-        if owner == "workers":
-            return documents.filter(
-                Q(category=Document.Category.GENERAL)
-                | Q(category=Document.Category.COMPLIANCE, required_document_type="")
-            )
         return documents.filter(category=Document.Category.GENERAL)
-    valid_categories = {value for value, _label in Document.Category.choices}
+    valid_categories = {Document.Category.PLAN, Document.Category.COMPLIANCE}
     if category in valid_categories:
         return documents.filter(category=category)
     return documents
 
 
 def _document_queryset():
-    return Document.objects.select_related(
+    return Document.objects.exclude(
+        category__in=FILE_MANAGER_EXCLUDED_CATEGORIES
+    ).select_related(
         "participant",
         "worker",
         "invoice",
@@ -235,23 +223,35 @@ def _document_queryset():
 
 
 def _valid_document_category(category):
-    valid_categories = {"all", "others"} | {
-        value for value, _label in Document.Category.choices
-    }
-    return category if category in valid_categories else "all"
+    if category == Document.Category.GENERAL:
+        return "others"
+    return category if category in FILE_MANAGER_CATEGORY_KEYS else "all"
 
 
 def _document_category_filter(owner, category):
     if category == "others":
-        if owner == "workers":
-            return Q(documents__category=Document.Category.GENERAL) | Q(
-                documents__category=Document.Category.COMPLIANCE,
-                documents__required_document_type="",
-            )
         return Q(documents__category=Document.Category.GENERAL)
-    if category and category != "all":
+    if category in {Document.Category.PLAN, Document.Category.COMPLIANCE}:
         return Q(documents__category=category)
     return Q()
+
+
+def _file_manager_document_filter(prefix="documents"):
+    return ~Q(**{f"{prefix}__category__in": FILE_MANAGER_EXCLUDED_CATEGORIES})
+
+
+def _document_category_choices(owner):
+    compliance_label = "Compliance" if owner == "workers" else "NDIS Forms"
+    return [
+        ("all", "All folders"),
+        (Document.Category.PLAN, "Agreement"),
+        (Document.Category.COMPLIANCE, compliance_label),
+        ("others", "Others"),
+    ]
+
+
+def _document_upload_category_choices(owner):
+    return DocumentForm.PERSON_UPLOAD_CATEGORY_CHOICES[owner]
 
 
 def _selected_person_document_context(request, owner, selected_person):
@@ -263,10 +263,10 @@ def _selected_person_document_context(request, owner, selected_person):
         review_status = ""
 
     if owner == "workers":
-        selected_person_description = "Support worker documents, compliance files, and flexible personal uploads."
+        selected_person_description = "Support worker files stored in CrazyDomains."
         documents = _document_queryset().filter(worker=selected_person)
     else:
-        selected_person_description = "Participant documents, plan files, reports, and flexible personal uploads."
+        selected_person_description = "Participant files stored in CrazyDomains."
         documents = _document_queryset().filter(participant=selected_person)
 
     documents = documents.order_by("-created_at")
@@ -316,6 +316,10 @@ def _selected_person_document_context(request, owner, selected_person):
             ),
         },
         "upload_url": _document_upload_url(owner, selected_person.id, category),
+        "upload_category_choices": _document_upload_category_choices(owner),
+        "upload_category_value": (
+            Document.Category.GENERAL if category in {"all", "others"} else category
+        ),
         "current_list_url": current_list_url,
         "directory_url": _document_list_url(owner),
     }
@@ -343,11 +347,17 @@ def document_list(request):
         coverage = ""
 
     expiring_soon_date = timezone.localdate() + timedelta(days=30)
+    document_filter = _file_manager_document_filter()
     annotations = {
-        "document_count": Count("documents", distinct=True),
+        "document_count": Count(
+            "documents",
+            filter=document_filter,
+            distinct=True,
+        ),
         "pending_review_count": Count(
             "documents",
-            filter=Q(documents__review_status=Document.ReviewStatus.PENDING_REVIEW),
+            filter=Q(documents__review_status=Document.ReviewStatus.PENDING_REVIEW)
+            & document_filter,
             distinct=True,
         ),
         "expiring_soon_count": Count(
@@ -355,10 +365,14 @@ def document_list(request):
             filter=Q(
                 documents__expiry_date__isnull=False,
                 documents__expiry_date__lte=expiring_soon_date,
-            ),
+            )
+            & document_filter,
             distinct=True,
         ),
-        "last_uploaded": Max("documents__created_at"),
+        "last_uploaded": Max(
+            "documents__created_at",
+            filter=document_filter,
+        ),
     }
 
     if owner == "workers":
@@ -372,7 +386,7 @@ def document_list(request):
             )
         person_type_label = "Support Worker"
         directory_title = "Support Worker directory"
-        directory_description = "Find a worker, then open their dedicated compliance file page."
+        directory_description = "Find a worker, then open their CrazyDomains file folder."
     else:
         people = Participant.objects.annotate(**annotations)
         if query:
@@ -386,13 +400,15 @@ def document_list(request):
             )
         person_type_label = "Participant"
         directory_title = "Participant directory"
-        directory_description = "Find a participant, then open their dedicated file page."
+        directory_description = "Find a participant, then open their CrazyDomains file folder."
 
     category_filter = _document_category_filter(owner, category)
     if category_filter:
         people = people.filter(category_filter)
     if review_status:
-        people = people.filter(documents__review_status=review_status)
+        people = people.filter(
+            Q(documents__review_status=review_status) & document_filter
+        )
     if coverage == "has_documents":
         people = people.filter(document_count__gt=0)
     elif coverage == "no_documents":
@@ -435,19 +451,32 @@ def document_list(request):
         }
         for person in people
     ]
-    total_documents = Document.objects.count()
+    file_manager_documents = Document.objects.exclude(
+        category__in=FILE_MANAGER_EXCLUDED_CATEGORIES
+    )
+    total_documents = file_manager_documents.count()
     directory_summary = {
         "total_documents": total_documents,
-        "pending_review": Document.objects.filter(
+        "pending_review": file_manager_documents.filter(
             review_status=Document.ReviewStatus.PENDING_REVIEW
         ).count(),
-        "expiring_soon": Document.objects.filter(
+        "expiring_soon": file_manager_documents.filter(
             expiry_date__isnull=False,
             expiry_date__lte=expiring_soon_date,
         ).count(),
         "people_with_files": (
-            Participant.objects.filter(documents__isnull=False).distinct().count()
-            + SupportWorker.objects.filter(documents__isnull=False).distinct().count()
+            Participant.objects.filter(
+                documents__isnull=False,
+            )
+            .filter(_file_manager_document_filter())
+            .distinct()
+            .count()
+            + SupportWorker.objects.filter(
+                documents__isnull=False,
+            )
+            .filter(_file_manager_document_filter())
+            .distinct()
+            .count()
         ),
     }
 
@@ -466,14 +495,7 @@ def document_list(request):
             "review_status": review_status,
             "coverage": coverage,
             "review_status_choices": Document.ReviewStatus.choices,
-            "category_choices": [
-                ("all", "All categories"),
-                (Document.Category.PLAN, "Plan"),
-                (Document.Category.COMPLIANCE, "Compliance"),
-                (Document.Category.INVOICE, "Invoices"),
-                (Document.Category.SERVICE_LOG, "Service logs"),
-                ("others", "Others"),
-            ],
+            "category_choices": _document_category_choices(owner),
             "summary": directory_summary,
             "pagination": pagination,
             "sorting": sorting,

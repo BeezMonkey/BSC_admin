@@ -91,7 +91,7 @@ class DocumentForm(forms.ModelForm):
     ):
         super().__init__(*args, **kwargs)
         if upload_owner in self.PERSON_UPLOAD_CATEGORY_CHOICES:
-            self.fields["category"].label = "Document type"
+            self.fields["category"].label = "Folder"
             self.fields["category"].choices = self.PERSON_UPLOAD_CATEGORY_CHOICES[
                 upload_owner
             ]

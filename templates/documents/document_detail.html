@@ -1,15 +1,27 @@
 {% extends "admin_base.html" %}
 
-{% block title %}Document - Brisbane Star Care{% endblock %}
+{% block title %}Uploaded File - Brisbane Star Care{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
     <h1>{{ document.title }}</h1>
-    <p>{{ document.get_category_display }}</p>
+    <p>
+      {% if document.category == "general" %}
+        Others
+      {% elif document.category == "plan" %}
+        Agreement
+      {% elif document.category == "compliance" and document.participant_id %}
+        NDIS Forms
+      {% elif document.category == "compliance" %}
+        Compliance
+      {% else %}
+        {{ document.get_category_display }}
+      {% endif %}
+    </p>
   </div>
   <div class="button-row">
-    <a class="button secondary" href="{{ document_owner_url }}">Back to Documents</a>
+    <a class="button secondary" href="{{ document_owner_url }}">Back to Uploaded Files</a>
     <a class="button" href="{% url 'document_download' document.id %}">Download</a>
     <a class="button danger-outline" href="{% url 'document_delete' document.id %}?next={{ document_owner_url|urlencode }}">Delete</a>
   </div>
@@ -19,13 +31,27 @@
   <dl class="detail-list">
     <dt>File</dt><dd>{{ document.filename }}</dd>
     <dt>Status</dt><dd>{{ document.get_review_status_display }}</dd>
-    <dt>Required type</dt><dd>{{ document.get_required_document_type_display|default:"-" }}</dd>
+    <dt>Folder</dt>
+    <dd>
+      {% if document.category == "general" %}
+        Others
+      {% elif document.category == "plan" %}
+        Agreement
+      {% elif document.category == "compliance" and document.participant_id %}
+        NDIS Forms
+      {% elif document.category == "compliance" %}
+        Compliance
+      {% else %}
+        {{ document.get_category_display }}
+      {% endif %}
+    </dd>
+    {% if document.required_document_type %}
+      <dt>Required type</dt><dd>{{ document.get_required_document_type_display }}</dd>
+    {% endif %}
     <dt>Issue date</dt><dd>{% if document.issue_date %}{{ document.issue_date|date:"d/m/Y" }}{% else %}-{% endif %}</dd>
     <dt>Expiry date</dt><dd>{% if document.expiry_date %}{{ document.expiry_date|date:"d/m/Y" }}{% else %}-{% endif %}</dd>
     <dt>Participant</dt><dd>{{ document.participant|default:"-" }}</dd>
     <dt>Worker</dt><dd>{{ document.worker|default:"-" }}</dd>
-    <dt>Invoice</dt><dd>{{ document.invoice|default:"-" }}</dd>
-    <dt>Service log</dt><dd>{{ document.service_log|default:"-" }}</dd>
     <dt>Notes</dt><dd>{{ document.notes|default:"-" }}</dd>
     <dt>Uploaded by</dt><dd>{{ document.uploaded_by }}</dd>
   </dl>
