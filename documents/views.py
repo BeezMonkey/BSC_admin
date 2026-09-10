@@ -19,7 +19,7 @@ from core.sorting import apply_sorting
 from participants.models import Participant
 from workers.models import SupportWorker
 
-from .forms import DocumentForm, WorkerDocumentUploadForm
+from .forms import DocumentForm, DocumentMetadataForm, WorkerDocumentUploadForm
 from .models import Document
 from .storage import StorageOperationError
 
@@ -75,6 +75,14 @@ def _document_owner_url(document):
     if document.participant_id:
         return _document_owner_detail_url("participants", document.participant_id)
     return reverse("document_list")
+
+
+def _document_owner_key(document):
+    if document.worker_id:
+        return "workers"
+    if document.participant_id:
+        return "participants"
+    return ""
 
 
 def _safe_next_url(request, next_url):
@@ -598,13 +606,53 @@ def document_create(request):
 
 @admin_required
 def document_detail(request, document_id):
-    document = get_object_or_404(Document, id=document_id)
+    document = get_object_or_404(
+        Document.objects.select_related("participant", "worker", "uploaded_by"),
+        id=document_id,
+    )
     return render(
         request,
         "documents/document_detail.html",
         {
             "document": document,
             "document_owner_url": _document_owner_url(document),
+        },
+    )
+
+
+@admin_required
+@require_http_methods(["GET", "POST"])
+def document_edit(request, document_id):
+    document = get_object_or_404(
+        Document.objects.select_related("participant", "worker", "uploaded_by"),
+        id=document_id,
+    )
+    return_url = _safe_next_url(
+        request,
+        request.POST.get("next") or request.GET.get("next", ""),
+    ) or _document_owner_url(document)
+    document_owner = _document_owner_key(document)
+
+    if request.method == "POST":
+        form = DocumentMetadataForm(
+            request.POST,
+            instance=document,
+            document_owner=document_owner,
+        )
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Updated file details.")
+            return redirect(return_url)
+    else:
+        form = DocumentMetadataForm(instance=document, document_owner=document_owner)
+
+    return render(
+        request,
+        "documents/document_edit_form.html",
+        {
+            "document": document,
+            "form": form,
+            "return_url": return_url,
         },
     )
 

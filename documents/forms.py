@@ -143,6 +143,44 @@ class DocumentForm(forms.ModelForm):
         return cleaned_data
 
 
+class DocumentMetadataForm(forms.ModelForm):
+    PERSON_FOLDER_CHOICES = DocumentForm.PERSON_UPLOAD_CATEGORY_CHOICES
+
+    class Meta:
+        model = Document
+        fields = [
+            "title",
+            "category",
+            "review_status",
+            "issue_date",
+            "expiry_date",
+            "notes",
+        ]
+        widgets = {
+            "issue_date": forms.DateInput(attrs={"type": "date"}),
+            "expiry_date": forms.DateInput(attrs={"type": "date"}),
+            "notes": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, *args, document_owner="", **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["category"].label = "Folder"
+        if document_owner in self.PERSON_FOLDER_CHOICES:
+            choices = list(self.PERSON_FOLDER_CHOICES[document_owner])
+            current_category = getattr(self.instance, "category", "")
+            if current_category and current_category not in {value for value, _label in choices}:
+                choices.append((current_category, self.instance.get_category_display()))
+            self.fields["category"].choices = choices
+
+    def clean(self):
+        cleaned_data = super().clean()
+        issue_date = cleaned_data.get("issue_date")
+        expiry_date = cleaned_data.get("expiry_date")
+        if issue_date and expiry_date and expiry_date < issue_date:
+            self.add_error("expiry_date", "Expiry date must be after issue date.")
+        return cleaned_data
+
+
 class WorkerDocumentUploadForm(forms.Form):
     title = forms.CharField(
         label="Document name",
