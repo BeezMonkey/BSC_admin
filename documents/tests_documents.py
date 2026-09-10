@@ -1107,6 +1107,54 @@ class DocumentManagementTests(TestCase):
         self.assertContains(response, "Upload Other Document")
         self.assertContains(response, reverse("worker_document_upload"))
 
+    def test_worker_document_list_matches_admin_required_compliance_types(self):
+        self.login_worker()
+
+        response = self.client.get(reverse("worker_document_list"))
+
+        self.assertContains(response, "Police Check")
+        self.assertContains(response, "NDIS Worker Screening Check")
+        self.assertContains(response, "First Aid Certificate")
+        self.assertContains(response, "CPR Certificate")
+        self.assertContains(response, "Working With Children Check")
+        self.assertContains(response, "Driver Licence")
+        self.assertNotContains(response, "NDIS Worker Orientation Module")
+        self.assertNotContains(response, "Resume")
+        self.assertNotContains(response, "Visa Document")
+        self.assertNotContains(response, "Educational Qualification")
+
+    def test_worker_non_core_required_documents_remain_visible_as_other_documents(self):
+        Document.objects.create(
+            title="Resume",
+            category=Document.Category.COMPLIANCE,
+            worker=self.worker,
+            required_document_type=Document.RequiredDocumentType.RESUME,
+            review_status=Document.ReviewStatus.APPROVED,
+            file=self.upload_file("resume.pdf"),
+            original_filename="resume.pdf",
+            uploaded_by=self.worker_user,
+        )
+        self.login_worker()
+
+        response = self.client.get(reverse("worker_document_list"))
+
+        self.assertContains(response, "Other documents")
+        self.assertContains(response, "Resume")
+        self.assertContains(response, "resume.pdf")
+        self.assertNotContains(response, "?type=resume")
+
+    def test_worker_non_core_required_type_upload_opens_other_document_form(self):
+        self.login_worker()
+
+        response = self.client.get(
+            reverse("worker_document_upload"),
+            {"type": Document.RequiredDocumentType.RESUME},
+        )
+
+        self.assertContains(response, "Upload Other Document")
+        self.assertNotContains(response, "Upload Resume")
+        self.assertNotContains(response, '<input type="hidden" name="required_document_type" value="resume"')
+
     def test_required_document_upload_locks_selected_type(self):
         self.login_worker()
 

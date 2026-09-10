@@ -20,7 +20,7 @@ from participants.models import Participant
 from workers.models import SupportWorker
 
 from .forms import DocumentForm, DocumentMetadataForm, WorkerDocumentUploadForm
-from .models import Document
+from .models import Document, WORKER_REQUIRED_DOCUMENT_TYPES
 from .storage import StorageOperationError
 
 
@@ -783,19 +783,21 @@ def required_compliance_items_for_worker(worker):
             "document": documents.get(value),
         }
         for value, label in Document.RequiredDocumentType.choices
+        if value in WORKER_REQUIRED_DOCUMENT_TYPES
     ]
 
 
 def valid_required_document_type(value):
-    valid_values = {choice_value for choice_value, _ in Document.RequiredDocumentType.choices}
-    return value if value in valid_values else ""
+    return value if value in WORKER_REQUIRED_DOCUMENT_TYPES else ""
 
 
 @worker_required
 def worker_document_list(request):
     worker = getattr(request.user, "supportworker", None)
-    documents = worker_documents_for_user(request.user).filter(required_document_type="").exclude(
-        category=Document.Category.SERVICE_LOG,
+    documents = (
+        worker_documents_for_user(request.user)
+        .exclude(category=Document.Category.SERVICE_LOG)
+        .filter(Q(required_document_type="") | ~Q(required_document_type__in=WORKER_REQUIRED_DOCUMENT_TYPES))
     )
     required_documents = required_compliance_items_for_worker(worker) if worker else []
     return render(
