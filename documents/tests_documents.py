@@ -153,6 +153,30 @@ class DocumentManagementTests(TestCase):
         self.assertEqual(document.uploaded_by, self.admin_user)
         self.assertTrue(document.file.name.startswith("documents/"))
 
+    def test_admin_can_upload_required_worker_document_from_person_dialog(self):
+        self.login_admin()
+        return_url = reverse("worker_detail", args=[self.worker.id])
+
+        response = self.client.post(
+            reverse("document_create"),
+            self.document_payload(
+                title="",
+                category=Document.Category.COMPLIANCE,
+                participant="",
+                worker=self.worker.id,
+                required_document_type=Document.RequiredDocumentType.POLICE_CHECK,
+                next=return_url,
+            ),
+        )
+
+        document = Document.objects.get()
+        self.assertRedirects(response, return_url)
+        self.assertEqual(document.title, "Police Check")
+        self.assertEqual(document.category, Document.Category.COMPLIANCE)
+        self.assertEqual(document.worker, self.worker)
+        self.assertEqual(document.required_document_type, Document.RequiredDocumentType.POLICE_CHECK)
+        self.assertEqual(document.uploaded_by, self.admin_user)
+
     def test_document_create_prefills_linked_record_from_shortcut(self):
         self.login_admin()
 

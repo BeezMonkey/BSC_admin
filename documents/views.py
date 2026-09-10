@@ -568,7 +568,14 @@ def document_create(request):
     else:
         initial = {
             key: request.GET[key]
-            for key in ("participant", "worker", "invoice", "service_log", "category")
+            for key in (
+                "participant",
+                "worker",
+                "invoice",
+                "service_log",
+                "category",
+                "required_document_type",
+            )
             if request.GET.get(key)
         }
         form = DocumentForm(

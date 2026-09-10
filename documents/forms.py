@@ -71,6 +71,7 @@ class DocumentForm(forms.ModelForm):
         fields = [
             "title",
             "category",
+            "required_document_type",
             "file",
             "participant",
             "worker",
@@ -90,6 +91,26 @@ class DocumentForm(forms.ModelForm):
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
+        requested_required_document_type = (
+            self.data.get(self.add_prefix("required_document_type"))
+            or self.initial.get("required_document_type")
+            or ""
+        )
+        valid_required_document_types = {
+            value for value, _label in Document.RequiredDocumentType.choices
+        }
+        self.locked_required_document_type = (
+            requested_required_document_type
+            if requested_required_document_type in valid_required_document_types
+            else ""
+        )
+        self.fields["required_document_type"].widget = forms.HiddenInput()
+        if self.locked_required_document_type:
+            label = Document.RequiredDocumentType(self.locked_required_document_type).label
+            self.fields["title"].required = False
+            self.fields["title"].initial = self.fields["title"].initial or label
+            self.fields["category"].initial = Document.Category.COMPLIANCE
+            self.fields["required_document_type"].initial = self.locked_required_document_type
         if upload_owner in self.PERSON_UPLOAD_CATEGORY_CHOICES:
             self.fields["category"].label = "Folder"
             self.fields["category"].choices = self.PERSON_UPLOAD_CATEGORY_CHOICES[
@@ -110,6 +131,13 @@ class DocumentForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        if self.locked_required_document_type:
+            cleaned_data["required_document_type"] = self.locked_required_document_type
+            cleaned_data["category"] = Document.Category.COMPLIANCE
+            if not cleaned_data.get("title"):
+                cleaned_data["title"] = Document.RequiredDocumentType(
+                    self.locked_required_document_type
+                ).label
         if not any(cleaned_data.get(field) for field in self.LINKED_RECORD_FIELDS):
             raise forms.ValidationError("Select at least one linked record.")
         return cleaned_data

@@ -154,9 +154,11 @@
     </div>
     <div class="button-row">
       <a class="button secondary" href="{% url 'participant_document_files' participant.id %}">View all files</a>
-      <a class="button secondary" href="{% url 'document_create' %}?participant={{ participant.id }}&amp;next={% url 'participant_document_files' participant.id %}">Upload file</a>
+      <a class="button secondary" href="{% url 'document_create' %}?participant={{ participant.id }}&amp;category=general&amp;next={% url 'participant_document_files' participant.id %}" data-document-upload-open data-upload-category="general" data-upload-next="{% url 'participant_document_files' participant.id %}">Upload file</a>
     </div>
   </div>
 </section>
 </div>
+
+{% include "documents/partials/upload_dialog.html" with upload_dialog_owner="participants" upload_dialog_person=participant upload_dialog_next_url=current_detail_url upload_dialog_category_choices=upload_category_choices upload_dialog_category_value="general" %}
 {% endblock %}

@@ -101,7 +101,7 @@
             {% else %}
               <td><span class="status-pill status-not_provided">Not uploaded</span></td>
               <td><span class="detail-empty">Not provided</span></td>
-              <td><a href="{% url 'document_create' %}?worker={{ worker.id }}">Upload</a></td>
+              <td><a href="{% url 'document_create' %}?worker={{ worker.id }}&amp;category=compliance&amp;required_document_type={{ item.value }}&amp;next={{ current_detail_url|urlencode }}" data-document-upload-open data-upload-category="compliance" data-upload-required-type="{{ item.value }}" data-upload-title="{{ item.label }}" data-upload-next="{{ current_detail_url }}">Upload</a></td>
             {% endif %}
           </tr>
         {% endfor %}
@@ -114,7 +114,7 @@
       </div>
       <div class="button-row">
         <a class="button secondary" href="{% url 'worker_document_files' worker.id %}">View all files</a>
-        <a class="button secondary" href="{% url 'document_create' %}?worker={{ worker.id }}&amp;next={% url 'worker_document_files' worker.id %}">Upload file</a>
+        <a class="button secondary" href="{% url 'document_create' %}?worker={{ worker.id }}&amp;category=general&amp;next={% url 'worker_document_files' worker.id %}" data-document-upload-open data-upload-category="general" data-upload-next="{% url 'worker_document_files' worker.id %}">Upload file</a>
       </div>
     </div>
   </section>
@@ -177,4 +177,6 @@
     </table>
   </section>
 </div>
+
+{% include "documents/partials/upload_dialog.html" with upload_dialog_owner="workers" upload_dialog_person=worker upload_dialog_next_url=current_detail_url upload_dialog_category_choices=upload_category_choices upload_dialog_category_value="general" %}
 {% endblock %}

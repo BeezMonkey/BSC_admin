@@ -1,0 +1,88 @@
+<dialog class="document-upload-dialog" id="document-upload-dialog" aria-labelledby="document-upload-dialog-title" data-upload-default-category="{{ upload_dialog_category_value }}">
+  <form class="document-upload-dialog-form" method="post" action="{% url 'document_create' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ upload_dialog_next_url }}" data-document-upload-next>
+    <input type="hidden" name="required_document_type" value="" data-document-upload-required-type>
+    {% if upload_dialog_owner == "workers" %}
+      <input type="hidden" name="worker" value="{{ upload_dialog_person.id }}">
+    {% else %}
+      <input type="hidden" name="participant" value="{{ upload_dialog_person.id }}">
+    {% endif %}
+    <div class="document-upload-dialog-header">
+      <div>
+        <h2 id="document-upload-dialog-title">Upload File</h2>
+        <p>{{ upload_dialog_person.display_name }}</p>
+      </div>
+      <button class="button secondary document-dialog-close" type="button" data-document-upload-close aria-label="Close upload dialog">Close</button>
+    </div>
+    <div class="document-upload-dialog-body">
+      <label>
+        Title
+        <input type="text" name="title" autocomplete="off" required data-document-upload-title>
+      </label>
+      <label>
+        Folder
+        <select name="category" required data-document-upload-category>
+          {% for value, label in upload_dialog_category_choices %}
+            <option value="{{ value }}" {% if value == upload_dialog_category_value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        File
+        <input type="file" name="file" required>
+      </label>
+      <label class="document-dialog-notes">
+        Notes
+        <textarea name="notes" rows="3"></textarea>
+      </label>
+    </div>
+    <div class="document-upload-dialog-footer">
+      <button type="submit">Upload File</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  (() => {
+    const dialog = document.getElementById("document-upload-dialog");
+    if (!dialog || typeof dialog.showModal !== "function") {
+      return;
+    }
+    const categorySelect = dialog.querySelector("[data-document-upload-category]");
+    const defaultCategory = dialog.getAttribute("data-upload-default-category") || "";
+    const requiredTypeInput = dialog.querySelector("[data-document-upload-required-type]");
+    const nextInput = dialog.querySelector("[data-document-upload-next]");
+    const titleInput = dialog.querySelector("[data-document-upload-title]");
+    document.querySelectorAll("[data-document-upload-open]").forEach((trigger) => {
+      trigger.addEventListener("click", (event) => {
+        event.preventDefault();
+        const category = trigger.getAttribute("data-upload-category") || defaultCategory;
+        const requiredType = trigger.getAttribute("data-upload-required-type") || "";
+        const nextUrl = trigger.getAttribute("data-upload-next") || "";
+        const title = trigger.getAttribute("data-upload-title") || "";
+        if (category && categorySelect) {
+          categorySelect.value = category;
+        }
+        if (requiredTypeInput) {
+          requiredTypeInput.value = requiredType;
+        }
+        if (nextInput && nextUrl) {
+          nextInput.value = nextUrl;
+        }
+        if (titleInput) {
+          titleInput.value = title;
+        }
+        dialog.showModal();
+      });
+    });
+    dialog.querySelectorAll("[data-document-upload-close]").forEach((closeButton) => {
+      closeButton.addEventListener("click", () => dialog.close());
+    });
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) {
+        dialog.close();
+      }
+    });
+  })();
+</script>
