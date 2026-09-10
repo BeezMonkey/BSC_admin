@@ -243,7 +243,8 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn('class="card document-person-hero"', detail_template)
         self.assertIn('class="document-category-tabs"', detail_template)
         self.assertIn('class="filter-bar document-file-filter"', detail_template)
-        self.assertIn("Back to Uploaded Files", detail_template)
+        self.assertIn("Back to Support Worker", detail_template)
+        self.assertIn("Back to Participant", detail_template)
         self.assertIn('id="document-upload-dialog"', detail_template)
 
     def test_support_item_form_control_polish_assets_exist(self):
@@ -266,7 +267,6 @@ class ThemeTokenTests(SimpleTestCase):
 
         self.assertIn('class="sidebar-section-label">Operations</span>', template)
         self.assertIn('class="sidebar-section-label">Business</span>', template)
-        self.assertIn('class="sidebar-section-label">Compliance</span>', template)
         self.assertIn(">Dashboard</a>", template)
         self.assertIn(">Participants</a>", template)
         self.assertIn(">Support Workers</a>", template)
@@ -274,7 +274,7 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn("url_name == 'roster_planner'", template)
         self.assertIn(">Service Logs</a>", template)
         self.assertIn(">Invoices</a>", template)
-        self.assertIn(">Uploaded Files</a>", template)
+        self.assertNotIn(">Uploaded Files</a>", template)
         self.assertIn(">Support Items</a>", template)
         self.assertIn(">Audit Logs</a>", template)
         self.assertNotIn(">CRM</a>", template)

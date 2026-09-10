@@ -625,7 +625,10 @@ class SupportWorkerManagementTests(TestCase):
         self.assertContains(response, "Approved")
         self.assertContains(response, "Expires 01/06/2027")
         self.assertContains(response, "Not uploaded")
-        self.assertContains(response, "Other documents")
+        self.assertContains(response, "All worker files")
+        self.assertContains(response, "View all files")
+        self.assertContains(response, reverse("worker_document_files", args=[worker.id]))
+        self.assertNotContains(response, "Other documents")
         self.assertNotContains(response, "Other worker Police Check")
 
     def test_worker_detail_shows_active_participants_and_recent_service_logs(self):

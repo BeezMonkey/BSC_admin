@@ -2964,6 +2964,40 @@ tbody tr:last-child td {
   margin-top: 0.15rem;
 }
 
+.person-file-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  border: 1px solid #dce8f2;
+  border-radius: 7px;
+  padding: 0.78rem 0.85rem;
+  background: #fbfcfd;
+}
+
+.person-file-entry h2,
+.person-file-entry h3,
+.person-file-entry p {
+  margin: 0;
+}
+
+.person-file-entry h2,
+.person-file-entry h3 {
+  color: var(--ink);
+  font-size: 0.98rem;
+  font-weight: var(--weight-action);
+}
+
+.person-file-entry p {
+  margin-top: 0.18rem;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.person-file-entry .button-row {
+  flex: 0 0 auto;
+}
+
 .compact-record-list {
   display: grid;
   gap: 0.5rem;
@@ -5670,6 +5704,19 @@ tbody tr:last-child td {
 }
 
 @media (max-width: 640px) {
+  .person-file-entry {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .person-file-entry .button-row {
+    width: 100%;
+  }
+
+  .person-file-entry .button-row .button {
+    flex: 1 1 auto;
+  }
+
   .document-directory-summary,
   .document-person-meta,
   .document-directory-filter,

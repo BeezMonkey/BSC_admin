@@ -312,15 +312,13 @@ class DocumentManagementTests(TestCase):
         document = Document.objects.get()
         self.assertRedirects(response, reverse("document_detail", args=[document.id]))
 
-    def test_document_create_marks_documents_sidebar_link_as_active(self):
+    def test_document_create_does_not_show_primary_sidebar_entry(self):
         self.login_admin()
 
         response = self.client.get(reverse("document_create"))
 
-        self.assertContains(
-            response,
-            f'class="sidebar-link active" href="{reverse("document_list")}"',
-        )
+        self.assertNotContains(response, ">Uploaded Files</a>")
+        self.assertNotContains(response, f'href="{reverse("document_list")}"')
 
     def test_document_list_wraps_table_for_small_screens(self):
         self.login_admin()
@@ -337,7 +335,7 @@ class DocumentManagementTests(TestCase):
         self.assertContains(response, "Uploaded Files")
         self.assertContains(response, "CrazyDomains")
         self.assertContains(response, "Upload File")
-        self.assertContains(response, ">Uploaded Files</a>")
+        self.assertNotContains(response, ">Uploaded Files</a>")
         self.assertNotContains(response, "Attach a file to one or more business records.")
 
     def test_admin_document_file_manager_hides_business_record_categories(self):
@@ -476,7 +474,8 @@ class DocumentManagementTests(TestCase):
         )
 
         self.assertContains(response, self.participant.display_name)
-        self.assertContains(response, "Back to Uploaded Files")
+        self.assertContains(response, "Back to Participant")
+        self.assertContains(response, reverse("participant_detail", args=[self.participant.id]))
         self.assertContains(response, participant_document.title)
         self.assertContains(response, "plan.pdf")
         self.assertContains(response, "Agreement")
@@ -543,6 +542,8 @@ class DocumentManagementTests(TestCase):
         response = self.client.get(reverse("worker_document_files", args=[self.worker.id]))
 
         self.assertContains(response, self.worker.display_name)
+        self.assertContains(response, "Back to Support Worker")
+        self.assertContains(response, reverse("worker_detail", args=[self.worker.id]))
         self.assertContains(response, "Support worker file folder")
         self.assertContains(response, worker_document.title)
         self.assertContains(response, "police-check.pdf")

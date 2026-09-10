@@ -9,7 +9,11 @@
     <p>{{ selected_person_description }}</p>
   </div>
   <div class="button-row">
-    <a class="button secondary" href="{{ directory_url }}">Back to Uploaded Files</a>
+    {% if owner == "workers" %}
+      <a class="button secondary" href="{% url 'worker_detail' selected_person.id %}">Back to Support Worker</a>
+    {% else %}
+      <a class="button secondary" href="{% url 'participant_detail' selected_person.id %}">Back to Participant</a>
+    {% endif %}
     <a class="button" href="{{ upload_url }}" data-document-upload-open data-upload-category="{{ upload_category_value }}">Upload File</a>
   </div>
 </div>
