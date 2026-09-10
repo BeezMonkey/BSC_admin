@@ -498,6 +498,8 @@ class DocumentManagementTests(TestCase):
         )
 
         self.assertContains(response, 'id="document-upload-dialog"')
+        self.assertContains(response, "data-document-upload-open", count=2)
+        self.assertNotContains(response, 'class="empty-state-actions"')
         self.assertContains(response, 'action="/documents/new/"')
         self.assertContains(
             response,

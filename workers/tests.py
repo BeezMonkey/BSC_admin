@@ -558,7 +558,7 @@ class SupportWorkerManagementTests(TestCase):
         self.assertContains(response, "Needs WWCC / Blue Card current")
         self.assertContains(response, "Has active participant assignment")
         self.assertContains(response, "Next steps")
-        self.assertContains(response, "Upload Document")
+        self.assertNotContains(response, "Upload Document")
         self.assertContains(response, "Create Shift")
 
     def test_worker_detail_shows_compliance_document_upload_statuses(self):

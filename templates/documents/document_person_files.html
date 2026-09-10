@@ -14,7 +14,6 @@
     {% else %}
       <a class="button secondary" href="{% url 'participant_detail' selected_person.id %}">Back to Participant</a>
     {% endif %}
-    <a class="button" href="{{ upload_url }}" data-document-upload-open data-upload-category="{{ upload_category_value }}">Upload File</a>
   </div>
 </div>
 
@@ -149,9 +148,6 @@
               <div class="empty-state">
                 <strong>No files in this folder yet.</strong>
                 <p>Uploaded files for this person and folder will appear here.</p>
-                <div class="empty-state-actions">
-                  <a class="button" href="{{ upload_url }}" data-document-upload-open data-upload-category="{{ upload_category_value }}">Upload File</a>
-                </div>
               </div>
             </td>
           </tr>
