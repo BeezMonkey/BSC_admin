@@ -565,6 +565,35 @@ class DocumentManagementTests(TestCase):
         self.assertContains(response, f'data-preview-download-url="{reverse("document_download", args=[document.id])}"')
         self.assertContains(response, "showModal")
 
+    def test_admin_person_file_actions_use_consistent_order(self):
+        document = Document.objects.create(
+            title="Participant plan",
+            category=Document.Category.PLAN,
+            participant=self.participant,
+            file=self.upload_file("plan.pdf"),
+            original_filename="plan.pdf",
+            uploaded_by=self.admin_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("participant_document_files", args=[self.participant.id])
+        )
+        content = response.content.decode()
+
+        actions_index = content.index('class="actions document-actions"')
+        view_index = content.index(">View<", actions_index)
+        preview_index = content.index(">Preview<", actions_index)
+        download_index = content.index(">Download<", actions_index)
+        edit_index = content.index(">Edit<", actions_index)
+        delete_index = content.index(">Delete<", actions_index)
+
+        self.assertLess(view_index, preview_index)
+        self.assertLess(preview_index, download_index)
+        self.assertLess(download_index, edit_index)
+        self.assertLess(edit_index, delete_index)
+        self.assertContains(response, reverse("document_detail", args=[document.id]))
+
     def test_admin_document_detail_has_inline_preview_action(self):
         document = Document.objects.create(
             title="Participant plan",
@@ -582,6 +611,30 @@ class DocumentManagementTests(TestCase):
         self.assertContains(response, "data-document-preview-open")
         self.assertContains(response, f'href="{reverse("document_preview", args=[document.id])}"')
         self.assertContains(response, 'id="document-preview-dialog"')
+
+    def test_admin_document_detail_actions_use_consistent_order(self):
+        document = Document.objects.create(
+            title="Participant plan",
+            category=Document.Category.PLAN,
+            participant=self.participant,
+            file=self.upload_file("plan.pdf"),
+            original_filename="plan.pdf",
+            uploaded_by=self.admin_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(reverse("document_detail", args=[document.id]))
+        content = response.content.decode()
+
+        actions_index = content.index('class="button-row document-detail-actions"')
+        preview_index = content.index(">Preview<", actions_index)
+        download_index = content.index(">Download<", actions_index)
+        edit_index = content.index(">Edit<", actions_index)
+        delete_index = content.index(">Delete<", actions_index)
+
+        self.assertLess(preview_index, download_index)
+        self.assertLess(download_index, edit_index)
+        self.assertLess(edit_index, delete_index)
 
     def test_admin_worker_document_files_show_selected_worker_documents(self):
         Document.objects.create(
