@@ -230,6 +230,8 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn(".document-manager-table", css)
         self.assertIn(".document-detail-actions", css)
         self.assertIn(".document-action-group {\n  display: flex;", css)
+        self.assertIn(".document-action-group {\n  display: flex;\n  flex-wrap: nowrap;", css)
+        self.assertIn(".document-action-group .button {\n  margin-right: 0;", css)
         self.assertIn(".document-action-group {\n    justify-content: flex-start;", css)
         self.assertIn(".document-upload-context", css)
         self.assertIn(".document-upload-context-list", css)
