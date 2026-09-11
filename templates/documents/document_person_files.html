@@ -134,13 +134,15 @@
             <td>{% if document.expiry_date %}{{ document.expiry_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
             <td>{{ document.uploaded_by }}</td>
             <td class="actions document-actions">
-              <a class="button secondary" href="{% url 'document_detail' document.id %}">View</a>
-              <a class="button secondary" href="{% url 'document_download' document.id %}">Download</a>
-              {% if document.is_previewable %}
-                <a class="button secondary" href="{% url 'document_preview' document.id %}" data-document-preview-open data-preview-title="{{ document.title }}" data-preview-filename="{{ document.filename }}" data-preview-download-url="{% url 'document_download' document.id %}">Preview</a>
-              {% endif %}
-              <a class="button secondary" href="{% url 'document_edit' document.id %}?next={{ current_list_url|urlencode }}">Edit</a>
-              <a class="button danger-outline" href="{% url 'document_delete' document.id %}?next={{ current_list_url|urlencode }}">Delete</a>
+              <div class="document-action-group">
+                {% if document.is_previewable %}
+                  <a class="button secondary" href="{% url 'document_preview' document.id %}" data-document-preview-open data-preview-title="{{ document.title }}" data-preview-filename="{{ document.filename }}" data-preview-download-url="{% url 'document_download' document.id %}">Preview</a>
+                {% else %}
+                  <a class="button secondary" href="{% url 'document_detail' document.id %}">View</a>
+                {% endif %}
+                <a class="button secondary" href="{% url 'document_download' document.id %}">Download</a>
+                <a class="button danger-outline" href="{% url 'document_delete' document.id %}?next={{ current_list_url|urlencode }}">Delete</a>
+              </div>
             </td>
           </tr>
         {% empty %}

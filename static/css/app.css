@@ -1553,14 +1553,32 @@ input[type="checkbox"] {
   overflow-wrap: anywhere;
 }
 
+.document-manager-table .actions-heading,
+.document-manager-table .document-actions {
+  text-align: right;
+}
+
 .document-actions {
+  width: 15rem;
   min-width: 15rem;
 }
 
-.document-actions .button {
+.document-action-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.document-action-group .button {
   min-height: 2rem;
   padding: 0.34rem 0.56rem;
   font-size: 0.82rem;
+}
+
+.document-detail-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .document-upload-context {
@@ -5786,6 +5804,22 @@ tbody tr:last-child td {
 
   .person-file-entry .button-row .button {
     flex: 1 1 auto;
+  }
+
+  .document-actions {
+    min-width: 16rem;
+  }
+
+  .document-action-group {
+    justify-content: flex-start;
+  }
+
+  .document-action-group .button {
+    flex: 0 0 auto;
+  }
+
+  .document-detail-actions {
+    justify-content: flex-start;
   }
 
   .document-directory-summary,
