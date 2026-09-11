@@ -1568,13 +1568,16 @@ input[type="checkbox"] {
   flex-wrap: nowrap;
   justify-content: flex-end;
   gap: 0.35rem;
+  min-width: max-content;
 }
 
 .document-action-group .button {
+  flex: 0 0 auto;
   margin-right: 0;
   min-height: 2rem;
   padding: 0.34rem 0.56rem;
   font-size: 0.82rem;
+  white-space: nowrap;
 }
 
 .document-detail-actions {
