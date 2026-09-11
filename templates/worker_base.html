@@ -6,6 +6,7 @@
 {% endblock %}
 
 {% block body %}
+{% with support_worker=request.user.supportworker %}
 <div class="app-shell worker-app-shell" data-portal-theme>
   <header class="worker-mobile-header">
     <button class="worker-mobile-menu-button" type="button" aria-label="Open worker menu" aria-controls="worker-mobile-drawer" aria-expanded="false">
@@ -13,6 +14,7 @@
     </button>
     <div>
       <div class="worker-mobile-brand">Brisbane Star Care</div>
+      <div class="worker-mobile-user">{% if support_worker %}{{ support_worker.display_name }}{% else %}{{ request.user.get_username }}{% endif %}</div>
       <div class="worker-mobile-role">Support Worker</div>
     </div>
   </header>
@@ -31,7 +33,8 @@
     <div class="worker-mobile-drawer-header">
       <div>
         <div class="worker-mobile-brand">Brisbane Star Care</div>
-        <div class="worker-mobile-role">{{ request.user.get_username }}</div>
+        <div class="worker-mobile-user">{% if support_worker %}{{ support_worker.display_name }}{% else %}{{ request.user.get_username }}{% endif %}</div>
+        <div class="worker-mobile-role">Support Worker</div>
       </div>
       <button class="worker-mobile-close-button" type="button" aria-label="Close worker menu" data-worker-menu-close>&times;</button>
     </div>
@@ -83,7 +86,7 @@
   </nav>
   <section class="content worker-main">
     <header class="topbar worker-topbar">
-      <span class="user-label">{{ request.user.get_username }}</span>
+      <span class="user-label">{% if support_worker %}{{ support_worker.display_name }}{% else %}{{ request.user.get_username }}{% endif %}</span>
       <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}
         <button class="button secondary topbar-logout" type="submit">Logout</button>
@@ -100,4 +103,5 @@
   </section>
 </div>
 <script src="{% static 'js/worker_nav.js' %}" defer></script>
+{% endwith %}
 {% endblock %}

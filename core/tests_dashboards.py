@@ -558,6 +558,27 @@ class DashboardPolishTests(TestCase):
         self.assertContains(response, 'href="/sw/profile/"')
         self.assertContains(response, 'method="post" action="/logout/"')
 
+    def test_worker_shell_shows_worker_display_name_in_header(self):
+        user = User.objects.create_user(username="worker", password="pass")
+        UserProfile.objects.create(
+            user=user,
+            role=UserProfile.Role.SUPPORT_WORKER,
+            is_active_worker=True,
+        )
+        SupportWorker.objects.create(
+            user=user,
+            first_name="Christian",
+            last_name="Caceres",
+            email="worker@example.com",
+        )
+
+        self.client.login(username="worker", password="pass")
+        response = self.client.get(reverse("worker_dashboard"))
+
+        self.assertContains(response, "Christian Caceres")
+        self.assertContains(response, 'class="worker-mobile-user"', count=2)
+        self.assertNotContains(response, '<span class="user-label">worker</span>')
+
     def test_worker_dashboard_uses_mobile_content_polish_hooks(self):
         user = User.objects.create_user(username="worker", password="pass")
         UserProfile.objects.create(
