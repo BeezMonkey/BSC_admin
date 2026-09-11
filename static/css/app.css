@@ -1553,18 +1553,25 @@ input[type="checkbox"] {
   overflow-wrap: anywhere;
 }
 
+.document-manager-table .actions-heading,
+.document-manager-table .document-actions {
+  text-align: right;
+}
+
 .document-actions {
-  min-width: 18rem;
+  width: 15rem;
+  min-width: 15rem;
 }
 
 .document-action-group {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
   gap: 0.35rem;
 }
 
 .document-action-group .button {
+  margin-right: 0;
   min-height: 2rem;
   padding: 0.34rem 0.56rem;
   font-size: 0.82rem;
