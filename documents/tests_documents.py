@@ -565,7 +565,7 @@ class DocumentManagementTests(TestCase):
         self.assertContains(response, f'data-preview-download-url="{reverse("document_download", args=[document.id])}"')
         self.assertContains(response, "showModal")
 
-    def test_admin_person_file_actions_use_consistent_order(self):
+    def test_admin_person_file_actions_use_primary_file_actions_for_previewable_documents(self):
         document = Document.objects.create(
             title="Participant plan",
             category=Document.Category.PLAN,
@@ -582,16 +582,45 @@ class DocumentManagementTests(TestCase):
         content = response.content.decode()
 
         actions_index = content.index('class="actions document-actions"')
-        view_index = content.index(">View<", actions_index)
+        actions_end = content.index("</div>", actions_index)
+        action_content = content[actions_index:actions_end]
         preview_index = content.index(">Preview<", actions_index)
         download_index = content.index(">Download<", actions_index)
-        edit_index = content.index(">Edit<", actions_index)
         delete_index = content.index(">Delete<", actions_index)
 
-        self.assertLess(view_index, preview_index)
         self.assertLess(preview_index, download_index)
-        self.assertLess(download_index, edit_index)
-        self.assertLess(edit_index, delete_index)
+        self.assertLess(download_index, delete_index)
+        self.assertNotIn(">View<", action_content)
+        self.assertNotIn(">Edit<", action_content)
+        self.assertContains(response, reverse("document_detail", args=[document.id]))
+
+    def test_admin_person_file_actions_use_view_for_unpreviewable_documents(self):
+        document = Document.objects.create(
+            title="Provider note",
+            category=Document.Category.GENERAL,
+            participant=self.participant,
+            file=self.upload_file("provider-note.docx"),
+            original_filename="provider-note.docx",
+            uploaded_by=self.admin_user,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("participant_document_files", args=[self.participant.id])
+        )
+        content = response.content.decode()
+
+        actions_index = content.index('class="actions document-actions"')
+        actions_end = content.index("</div>", actions_index)
+        action_content = content[actions_index:actions_end]
+        view_index = content.index(">View<", actions_index)
+        download_index = content.index(">Download<", actions_index)
+        delete_index = content.index(">Delete<", actions_index)
+
+        self.assertLess(view_index, download_index)
+        self.assertLess(download_index, delete_index)
+        self.assertNotIn(">Preview<", action_content)
+        self.assertNotIn(">Edit<", action_content)
         self.assertContains(response, reverse("document_detail", args=[document.id]))
 
     def test_admin_document_detail_has_inline_preview_action(self):

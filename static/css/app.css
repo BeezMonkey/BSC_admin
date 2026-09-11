@@ -1553,8 +1553,14 @@ input[type="checkbox"] {
   overflow-wrap: anywhere;
 }
 
+.document-manager-table .actions-heading,
+.document-manager-table .document-actions {
+  text-align: right;
+}
+
 .document-actions {
-  min-width: 18rem;
+  width: 15rem;
+  min-width: 15rem;
 }
 
 .document-action-group {
