@@ -1408,7 +1408,7 @@ class ShiftSchedulingTests(TestCase):
 
         response = self.client.get(reverse("worker_shift_list"))
 
-        self.assertContains(response, 'class="worker-card worker-shift-page"')
+        self.assertContains(response, 'class="worker-card worker-shift-page worker-desktop-page"')
         self.assertContains(response, 'class="worker-shift-toolbar"')
         self.assertContains(response, 'class="shift-summary-item shift-summary-attention"')
         self.assertContains(response, 'class="shift-summary-item shift-summary-upcoming"')
@@ -1544,7 +1544,7 @@ class ShiftSchedulingTests(TestCase):
 
         response = self.client.get(reverse("worker_shift_detail", args=[shift.id]))
 
-        self.assertContains(response, 'class="worker-card worker-shift-detail-page"')
+        self.assertContains(response, 'class="worker-card worker-shift-detail-page worker-desktop-page"')
         self.assertContains(response, "worker-detail-header")
         self.assertContains(response, 'class="worker-detail-actions"')
         self.assertContains(response, "worker-primary-action")
@@ -1556,7 +1556,7 @@ class ShiftSchedulingTests(TestCase):
 
         response = self.client.get(reverse("worker_service_log_create", args=[shift.id]))
 
-        self.assertContains(response, 'class="worker-card worker-service-log-form-page"')
+        self.assertContains(response, 'class="worker-card worker-service-log-form-page worker-desktop-page"')
         self.assertContains(response, "worker-bottom-actions")
         self.assertContains(response, "Submit Service Log")
 

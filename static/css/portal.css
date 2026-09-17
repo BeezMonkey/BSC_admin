@@ -539,6 +539,55 @@
   border-color: transparent;
 }
 
+@media (min-width: 981px) {
+  [data-portal-theme] .worker-desktop-page {
+    box-sizing: border-box;
+    justify-self: center;
+    width: min(100%, 1180px);
+  }
+
+  [data-portal-theme] .worker-main > .worker-card.worker-desktop-page {
+    margin: 0 auto 24px;
+    padding: 24px;
+  }
+
+  [data-portal-theme] .worker-main > .worker-card.worker-desktop-page:last-child {
+    margin-bottom: 0;
+  }
+
+  [data-portal-theme] .worker-dashboard-page.worker-desktop-page {
+    gap: 20px;
+  }
+
+  [data-portal-theme] .worker-dashboard-page .worker-tool-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  [data-portal-theme] .worker-shift-page .shift-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  [data-portal-theme] .worker-shift-page .shift-summary > span {
+    justify-content: flex-start;
+    min-height: 56px;
+    padding: 12px 14px;
+  }
+
+  [data-portal-theme] .worker-shift-page .shift-filter-nav {
+    justify-content: flex-start;
+  }
+
+  [data-portal-theme] :is(
+    .worker-profile-summary,
+    .worker-shift-detail-page,
+    .worker-service-log-detail-page
+  ) .detail-list {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+}
+
 @media (max-width: 980px) {
   [data-portal-theme] {
     display: block;

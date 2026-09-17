@@ -1,6 +1,8 @@
 from datetime import date, time
 from decimal import Decimal
+from pathlib import Path
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
@@ -14,6 +16,38 @@ from workers.models import SupportWorker
 
 
 class DashboardPolishTests(TestCase):
+    def test_worker_desktop_layout_is_scoped_away_from_documents_and_mobile(self):
+        desktop_templates = (
+            "templates/core/worker_dashboard.html",
+            "templates/core/worker_placeholder.html",
+            "templates/scheduling/worker_shift_list.html",
+            "templates/scheduling/worker_shift_detail.html",
+            "templates/service_logs/worker_log_list.html",
+            "templates/service_logs/worker_service_log_detail.html",
+            "templates/service_logs/worker_service_log_form.html",
+            "templates/workers/worker_profile.html",
+        )
+        document_templates = (
+            "templates/documents/worker_document_list.html",
+            "templates/documents/worker_document_detail.html",
+            "templates/documents/worker_document_upload.html",
+        )
+
+        for template_path in desktop_templates:
+            with self.subTest(template=template_path):
+                template = (Path(settings.BASE_DIR) / template_path).read_text(encoding="utf-8")
+                self.assertIn("worker-desktop-page", template)
+
+        for template_path in document_templates:
+            with self.subTest(template=template_path):
+                template = (Path(settings.BASE_DIR) / template_path).read_text(encoding="utf-8")
+                self.assertNotIn("worker-desktop-page", template)
+
+        portal_css = (Path(settings.BASE_DIR) / "static/css/portal.css").read_text(encoding="utf-8")
+        self.assertIn("@media (min-width: 981px)", portal_css)
+        self.assertIn("[data-portal-theme] .worker-desktop-page", portal_css)
+        self.assertIn("width: min(100%, 1180px);", portal_css)
+
     def test_admin_dashboard_lists_current_v1_modules(self):
         user = User.objects.create_user(username="admin", password="pass")
         UserProfile.objects.create(user=user, role=UserProfile.Role.ADMIN)
@@ -599,7 +633,7 @@ class DashboardPolishTests(TestCase):
         self.client.login(username="worker", password="pass")
         response = self.client.get(reverse("worker_dashboard"))
 
-        self.assertContains(response, 'class="worker-content worker-dashboard-page"')
+        self.assertContains(response, 'class="worker-content worker-dashboard-page worker-desktop-page"')
         self.assertContains(response, 'class="card worker-action-summary worker-priority-panel"')
         self.assertContains(response, 'class="card-grid worker-dashboard-grid worker-tool-grid"')
         self.assertContains(response, 'class="card worker-tool-card"')

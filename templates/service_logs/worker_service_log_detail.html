@@ -4,7 +4,7 @@
 {% block title %}Service Log - Brisbane Star Care{% endblock %}
 
 {% block content %}
-<section class="worker-card">
+<section class="worker-card worker-service-log-detail-page worker-desktop-page">
   <div class="page-header">
     <div>
       <h1>{{ service_log.participant.display_name }}</h1>
@@ -27,7 +27,7 @@
   </dl>
 </section>
 
-<section class="worker-card">
+<section class="worker-card worker-service-log-attachments-page worker-desktop-page">
   <h2>Attachments</h2>
   {% for document in service_log.documents.all %}
     <a class="list-item" href="{% url 'worker_document_detail' document.id %}">

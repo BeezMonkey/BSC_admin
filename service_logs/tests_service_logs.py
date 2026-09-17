@@ -452,7 +452,7 @@ class ServiceLogCompletionTests(TestCase):
 
         response = self.client.get(reverse("worker_service_log_create", args=[shift.id]))
 
-        self.assertContains(response, 'class="worker-card worker-service-log-form-page"')
+        self.assertContains(response, 'class="worker-card worker-service-log-form-page worker-desktop-page"')
         self.assertContains(response, 'class="worker-log-shift-summary"')
         self.assertContains(response, 'class="worker-log-field-grid"')
         self.assertContains(response, 'class="worker-log-notes-grid"')
