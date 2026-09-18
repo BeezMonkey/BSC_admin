@@ -3,7 +3,7 @@
 {% block title %}Worker Dashboard - Brisbane Star Care{% endblock %}
 
 {% block content %}
-<section class="worker-content worker-dashboard-page">
+<section class="worker-content worker-dashboard-page worker-desktop-page">
   <header class="page-header">
     <div>
       <h1>Home <span class="worker-title-user">| {% if support_worker %}{{ support_worker.display_name }}{% else %}{{ request.user.get_username }}{% endif %}</span></h1>
