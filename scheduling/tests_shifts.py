@@ -671,18 +671,159 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, reverse("shift_detail", args=[matching_shift.id]))
         self.assertNotContains(response, "<p>Oscar Other</p>", html=True)
 
-    def test_roster_planner_defaults_to_participant_view(self):
+    def test_roster_planner_defaults_to_daily_overview(self):
         self.login_admin()
 
         response = self.client.get(reverse("roster_planner"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Participant view")
-        self.assertContains(response, "Participant focus")
+        self.assertEqual(response.context["view_mode"], "daily")
+        self.assertContains(response, "Daily overview")
+        self.assertContains(response, "Participant filter")
         self.assertContains(response, "Worker filter")
         self.assertContains(response, "1 week")
         self.assertContains(response, "planner-week-toolbar")
         self.assertEqual(len(response.context["planner_days"]), 7)
+
+    def test_roster_planner_participant_view_builds_participant_resource_rows(self):
+        shift = self.create_shift(
+            service_date=date(2026, 6, 8),
+            status=Shift.Status.DRAFT,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_planner"),
+            {
+                "view": "participant",
+                "date_from": "2026-06-08",
+                "date_to": "2026-06-14",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Participant schedule")
+        self.assertContains(response, 'data-resource-type="participant"')
+        participant_row = next(
+            row
+            for row in response.context["planner_resources"]
+            if row["resource"] == self.participant
+        )
+        self.assertIn(shift, participant_row["days"][0]["shifts"])
+
+    def test_roster_planner_worker_view_shows_hours_for_selected_week(self):
+        self.create_shift(
+            service_date=date(2026, 6, 8),
+            planned_hours=Decimal("2.00"),
+            status=Shift.Status.DRAFT,
+        )
+        self.create_shift(
+            service_date=date(2026, 6, 10),
+            start_time=time(12, 0),
+            end_time=time(15, 30),
+            planned_hours=Decimal("3.50"),
+            status=Shift.Status.PUBLISHED,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_planner"),
+            {
+                "view": "worker",
+                "date_from": "2026-06-08",
+                "date_to": "2026-06-14",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Worker schedule")
+        self.assertContains(response, 'data-resource-type="worker"')
+        worker_row = next(
+            row
+            for row in response.context["planner_resources"]
+            if row["resource"] == self.worker
+        )
+        self.assertEqual(worker_row["hours_total"], Decimal("5.50"))
+        self.assertEqual(worker_row["hours_label"], "5.5 hours this week")
+        self.assertContains(response, "5.5 hours this week")
+
+    def test_roster_planner_worker_hours_ignore_participant_display_filter(self):
+        other_participant = Participant.objects.create(
+            first_name="Ben",
+            last_name="Brown",
+            status=Participant.Status.ACTIVE,
+        )
+        self.create_shift(
+            participant=self.participant,
+            service_date=date(2026, 6, 8),
+            planned_hours=Decimal("2.00"),
+            status=Shift.Status.PUBLISHED,
+        )
+        self.create_shift(
+            participant=other_participant,
+            service_date=date(2026, 6, 9),
+            planned_hours=Decimal("3.00"),
+            status=Shift.Status.CONFIRMED,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_planner"),
+            {
+                "view": "worker",
+                "participant": self.participant.id,
+                "date_from": "2026-06-08",
+                "date_to": "2026-06-14",
+            },
+        )
+
+        worker_row = next(
+            row
+            for row in response.context["planner_resources"]
+            if row["resource"] == self.worker
+        )
+        self.assertEqual(worker_row["hours_total"], Decimal("5.00"))
+        self.assertEqual(worker_row["hours_label"], "5 hours this week")
+
+    def test_roster_planner_marks_active_overlaps_only(self):
+        first_shift = self.create_shift(
+            service_date=date(2026, 6, 9),
+            start_time=time(9, 0),
+            end_time=time(11, 0),
+            status=Shift.Status.PUBLISHED,
+        )
+        second_shift = self.create_shift(
+            service_date=date(2026, 6, 9),
+            start_time=time(10, 30),
+            end_time=time(12, 30),
+            status=Shift.Status.CONFIRMED,
+        )
+        cancelled_shift = self.create_shift(
+            service_date=date(2026, 6, 9),
+            start_time=time(9, 30),
+            end_time=time(10, 30),
+            status=Shift.Status.CANCELLED,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_planner"),
+            {
+                "view": "daily",
+                "date_from": "2026-06-08",
+                "date_to": "2026-06-14",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["conflict_count"], 1)
+        self.assertEqual(
+            response.context["conflict_shift_ids"],
+            {first_shift.id, second_shift.id},
+        )
+        self.assertNotIn(cancelled_shift.id, response.context["conflict_shift_ids"])
+        self.assertContains(response, "1 scheduling conflict needs attention")
+        self.assertContains(response, "Time conflict", count=2)
 
     def test_roster_planner_multi_week_range_is_not_month_view(self):
         self.login_admin()

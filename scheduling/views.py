@@ -1,8 +1,9 @@
 from datetime import timedelta
+from decimal import Decimal
 from urllib.parse import urlencode
 
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -35,6 +36,42 @@ def format_filter_date(value):
 
 def format_roster_time(value):
     return format_display_time(value)
+
+
+def find_planner_conflicts(shifts):
+    conflict_shift_ids = set()
+    conflicts = []
+    shifts_by_worker_and_date = {}
+    for shift in shifts:
+        if shift.status not in Shift.ACTIVE_CONFLICT_STATUSES:
+            continue
+        key = (shift.worker_id, shift.service_date)
+        shifts_by_worker_and_date.setdefault(key, []).append(shift)
+
+    for grouped_shifts in shifts_by_worker_and_date.values():
+        grouped_shifts.sort(key=lambda shift: (shift.start_time, shift.end_time, shift.id))
+        for index, first_shift in enumerate(grouped_shifts):
+            for second_shift in grouped_shifts[index + 1 :]:
+                if second_shift.start_time >= first_shift.end_time:
+                    break
+                if first_shift.start_time < second_shift.end_time:
+                    conflict_shift_ids.update((first_shift.id, second_shift.id))
+                    conflicts.append(
+                        {
+                            "first_shift": first_shift,
+                            "second_shift": second_shift,
+                            "worker": first_shift.worker,
+                            "date": first_shift.service_date,
+                        }
+                    )
+    return conflict_shift_ids, conflicts
+
+
+def format_planner_hours(hours, day_count):
+    normalized_hours = format(hours, "f").rstrip("0").rstrip(".") or "0"
+    unit = "hour" if hours == Decimal("1") else "hours"
+    period = "this week" if day_count == 7 else "selected range"
+    return f"{normalized_hours} {unit} {period}"
 
 
 def build_roster_filter_summary(status, participant_query, worker_query, date_from, date_to):
@@ -235,9 +272,11 @@ def roster_planner(request):
     today = timezone.localdate()
     default_date_from = today - timedelta(days=today.weekday())
     default_date_to = default_date_from + timedelta(days=6)
-    view_mode = request.GET.get("view", "participant").strip()
-    if view_mode not in {"participant", "worker"}:
-        view_mode = "participant"
+    view_mode = request.GET.get("view", "daily").strip()
+    if view_mode not in {"daily", "participant", "worker"}:
+        view_mode = "daily"
+    is_daily_view = view_mode == "daily"
+    is_participant_view = view_mode == "participant"
     is_worker_view = view_mode == "worker"
     date_from = request.GET.get("date_from", "").strip() or default_date_from.isoformat()
     date_to = request.GET.get("date_to", "").strip() or default_date_to.isoformat()
@@ -252,8 +291,31 @@ def roster_planner(request):
     planner_range_label = ""
     planner_scope_modifier = "custom"
 
-    shifts = Shift.objects.select_related("participant", "worker", "support_item")
-    shifts = filter_roster_queryset(shifts, date_from, date_to, "", "", "")
+    range_shifts = Shift.objects.select_related("participant", "worker", "support_item")
+    range_shifts = filter_roster_queryset(range_shifts, date_from, date_to, "", "", "")
+    workload_statuses = {
+        Shift.Status.DRAFT,
+        Shift.Status.PUBLISHED,
+        Shift.Status.CONFIRMED,
+        Shift.Status.COMPLETED,
+    }
+    worker_hours_by_id = {
+        row["worker_id"]: row["hours_total"] or Decimal("0")
+        for row in range_shifts.filter(status__in=workload_statuses)
+        .values("worker_id")
+        .annotate(hours_total=Sum("planned_hours"))
+    }
+    conflict_source_shifts = list(
+        range_shifts.filter(status__in=Shift.ACTIVE_CONFLICT_STATUSES).order_by(
+            "worker_id",
+            "service_date",
+            "start_time",
+            "end_time",
+        )
+    )
+    conflict_shift_ids, planner_conflicts = find_planner_conflicts(conflict_source_shifts)
+
+    shifts = range_shifts
     if participant_id:
         selected_participant = get_object_or_404(Participant, id=participant_id)
         shifts = shifts.filter(participant=selected_participant)
@@ -262,6 +324,7 @@ def roster_planner(request):
         shifts = shifts.filter(worker=selected_worker)
     shifts = list(shifts.order_by("service_date", "start_time", "participant__last_name"))
     for shift in shifts:
+        shift.has_conflict = shift.id in conflict_shift_ids
         shift.display_time = (
             f"{format_roster_time(shift.start_time)} - {format_roster_time(shift.end_time)}"
         )
@@ -294,7 +357,21 @@ def roster_planner(request):
             f"{reverse('shift_create')}?"
             f"{urlencode({key: value for key, value in copy_shift_params.items() if value != '' and value is not None})}"
         )
+    participants = list(
+        Participant.objects.filter(status=Participant.Status.ACTIVE).order_by(
+            "last_name",
+            "first_name",
+        )
+    )
+    workers = list(
+        SupportWorker.objects.filter(status=SupportWorker.Status.ACTIVE).order_by(
+            "last_name",
+            "first_name",
+        )
+    )
     planner_days = []
+    planner_resources = []
+    mode_urls = {}
     if display_date_from and display_date_to and display_date_from <= display_date_to:
         planner_day_count = (display_date_to - display_date_from).days + 1
         planner_range_label = (
@@ -337,6 +414,25 @@ def roster_planner(request):
         )
         today_url = planner_url_for(default_date_from, default_date_to)
 
+        def planner_mode_url(mode):
+            params = {
+                "view": mode,
+                "participant": selected_participant.id if selected_participant else "",
+                "worker": selected_worker.id if selected_worker else "",
+                "date_from": display_date_from.isoformat(),
+                "date_to": display_date_to.isoformat(),
+            }
+            return (
+                f"{reverse('roster_planner')}?"
+                f"{urlencode({key: value for key, value in params.items() if value})}"
+            )
+
+        mode_urls = {
+            "daily": planner_mode_url("daily"),
+            "participant": planner_mode_url("participant"),
+            "worker": planner_mode_url("worker"),
+        }
+
         current_date = display_date_from
         while current_date <= display_date_to:
             add_shift_params = {
@@ -360,6 +456,55 @@ def roster_planner(request):
             )
             current_date += timedelta(days=1)
 
+        if is_participant_view:
+            resources = [selected_participant] if selected_participant else participants
+            for participant in resources:
+                resource_shifts = [
+                    shift for shift in shifts if shift.participant_id == participant.id
+                ]
+                planner_resources.append(
+                    {
+                        "resource": participant,
+                        "days": [
+                            {
+                                "date": day["date"],
+                                "is_weekend": day["is_weekend"],
+                                "shifts": [
+                                    shift
+                                    for shift in resource_shifts
+                                    if shift.service_date == day["date"]
+                                ],
+                            }
+                            for day in planner_days
+                        ],
+                    }
+                )
+        elif is_worker_view:
+            resources = [selected_worker] if selected_worker else workers
+            for worker in resources:
+                resource_shifts = [shift for shift in shifts if shift.worker_id == worker.id]
+                hours_total = worker_hours_by_id.get(worker.id, Decimal("0"))
+                planner_resources.append(
+                    {
+                        "resource": worker,
+                        "hours_total": hours_total,
+                        "hours_label": format_planner_hours(hours_total, planner_day_count),
+                        "has_conflict": any(shift.has_conflict for shift in resource_shifts),
+                        "days": [
+                            {
+                                "date": day["date"],
+                                "is_weekend": day["is_weekend"],
+                                "shifts": [
+                                    shift
+                                    for shift in resource_shifts
+                                    if shift.service_date == day["date"]
+                                ],
+                            }
+                            for day in planner_days
+                        ],
+                    }
+                )
+
     return render(
         request,
         "scheduling/roster_planner.html",
@@ -368,22 +513,23 @@ def roster_planner(request):
             "date_to": date_to,
             "display_date_from": display_date_from,
             "display_date_to": display_date_to,
-            "participants": Participant.objects.filter(status=Participant.Status.ACTIVE).order_by(
-                "last_name",
-                "first_name",
-            ),
-            "workers": SupportWorker.objects.filter(status=SupportWorker.Status.ACTIVE).order_by(
-                "last_name",
-                "first_name",
-            ),
+            "participants": participants,
+            "workers": workers,
             "selected_participant": selected_participant,
             "selected_worker": selected_worker,
             "view_mode": view_mode,
+            "is_daily_view": is_daily_view,
+            "is_participant_view": is_participant_view,
             "is_worker_view": is_worker_view,
-            "primary_filter_label": "Worker focus" if is_worker_view else "Participant focus",
+            "primary_filter_label": (
+                "Worker focus"
+                if is_worker_view
+                else "Participant focus" if is_participant_view else "Participant filter"
+            ),
             "secondary_filter_label": "Participant filter" if is_worker_view else "Worker filter",
             "shifts": shifts,
             "planner_days": planner_days,
+            "planner_resources": planner_resources,
             "planner_day_count": planner_day_count,
             "planner_span_label": planner_span_label,
             "planner_range_label": planner_range_label,
@@ -391,6 +537,10 @@ def roster_planner(request):
             "previous_week_url": previous_week_url if planner_days else "",
             "next_week_url": next_week_url if planner_days else "",
             "today_url": today_url if planner_days else "",
+            "mode_urls": mode_urls,
+            "conflict_count": len(planner_conflicts),
+            "conflict_shift_ids": conflict_shift_ids,
+            "planner_conflicts": planner_conflicts,
             "current_planner_url": request.get_full_path(),
         },
     )

@@ -578,6 +578,39 @@ td.actions a:last-child {
   white-space: nowrap;
 }
 
+.planner-view-switch {
+  display: inline-grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 0.2rem;
+  background: #ffffff;
+}
+
+.planner-view-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  border-radius: 5px;
+  padding: 0.35rem 0.7rem;
+  color: #475569;
+  font-weight: var(--weight-action);
+  white-space: nowrap;
+}
+
+.planner-view-option:hover,
+.planner-view-option:focus {
+  color: var(--brand-dark);
+  background: var(--brand-soft);
+}
+
+.planner-view-option.active {
+  color: #ffffff;
+  background: var(--brand);
+}
+
 .planner-scope-chips {
   display: flex;
   align-items: center;
@@ -621,7 +654,7 @@ td.actions a:last-child {
 
 .planner-filter-bar-compact {
   display: grid;
-  grid-template-columns: minmax(130px, 0.75fr) minmax(160px, 1fr) minmax(160px, 1fr) minmax(135px, 0.82fr) minmax(135px, 0.82fr) auto auto;
+  grid-template-columns: minmax(160px, 1fr) minmax(160px, 1fr) minmax(135px, 0.82fr) minmax(135px, 0.82fr) auto auto;
   align-items: end;
   gap: 0.58rem;
 }
@@ -643,6 +676,90 @@ td.actions a:last-child {
 
 .planner-shift-card {
   gap: 0.8rem;
+}
+
+.planner-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.planner-section-heading p {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+}
+
+.planner-summary-pills {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.planner-summary-pill,
+.planner-hours-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.65rem;
+  border: 1px solid #cde7e3;
+  border-radius: 999px;
+  padding: 0.24rem 0.55rem;
+  color: var(--brand-dark);
+  background: #f3fbf9;
+  font-size: 0.78rem;
+  font-weight: var(--weight-label);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.planner-summary-pill.warning,
+.planner-hours-pill.warning {
+  border-color: #f1c75b;
+  color: #805b00;
+  background: #fff8e6;
+}
+
+.planner-conflict-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid #f1c75b;
+  border-left: 4px solid #d69e2e;
+  border-radius: 7px;
+  padding: 0.75rem 0.85rem;
+  background: #fff8e6;
+}
+
+.planner-conflict-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.planner-conflict-summary strong { color: #6f4e00; }
+
+.planner-conflict-summary p {
+  margin: 0.14rem 0 0;
+  color: #725b22;
+  font-size: 0.84rem;
+}
+
+.planner-conflict-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  color: #ffffff;
+  background: #9a6700;
+  font-weight: 800;
 }
 
 .planner-scroll-frame {
@@ -787,6 +904,11 @@ td.actions a:last-child {
   background: var(--brand-soft);
 }
 
+.planner-shift-tile.planner-shift-conflict {
+  border-left-color: #d69e2e;
+  background: #fff8e6;
+}
+
 .planner-shift-copy {
   min-width: 0;
 }
@@ -805,6 +927,31 @@ td.actions a:last-child {
   font-size: 0.78rem;
   line-height: 1.3;
   overflow-wrap: anywhere;
+}
+
+.planner-shift-primary {
+  margin: 0.18rem 0 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: var(--weight-action);
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.planner-conflict-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.25rem;
+  border-radius: 4px;
+  padding: 0.12rem 0.34rem;
+  color: #805b00;
+  background: #ffe8a3;
+  font-size: 0.66rem;
+  font-weight: var(--weight-label);
+  line-height: 1.1;
+  text-transform: uppercase;
 }
 
 .planner-shift-tile-footer {
@@ -886,6 +1033,142 @@ td.actions a:last-child {
 .planner-empty-day {
   margin: 0;
   min-height: 3.6rem;
+}
+
+.planner-resource-grid {
+  width: max-content;
+  min-width: 100%;
+  --planner-resource-width: 210px;
+  --planner-resource-day-width: 145px;
+}
+
+.planner-resource-header-row,
+.planner-resource-row {
+  display: grid;
+  grid-template-columns: var(--planner-resource-width) minmax(0, 1fr);
+  min-width: 100%;
+}
+
+.planner-resource-header-row {
+  border-bottom: 1px solid var(--line);
+  background: #fbfcfd;
+}
+
+.planner-resource-row {
+  border-bottom: 1px solid var(--line);
+}
+
+.planner-resource-row:last-child { border-bottom: 0; }
+
+.planner-resource-corner,
+.planner-resource-label {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  border-right: 1px solid var(--line);
+  background: #ffffff;
+}
+
+.planner-resource-corner {
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  min-height: 3.6rem;
+  padding: 0.65rem 0.75rem;
+  color: var(--muted);
+  background: #fbfcfd;
+  font-size: 0.78rem;
+  font-weight: var(--weight-label);
+}
+
+.planner-resource-day-headings,
+.planner-resource-days {
+  display: grid;
+  grid-template-columns: repeat(var(--planner-day-count), var(--planner-resource-day-width));
+}
+
+.planner-resource-day-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.35rem;
+  min-height: 3.6rem;
+  border-right: 1px solid var(--line);
+  padding: 0.55rem 0.62rem;
+  background: #fbfcfd;
+}
+
+.planner-resource-day-heading:last-child,
+.planner-resource-day:last-child { border-right: 0; }
+
+.planner-resource-day-heading strong,
+.planner-resource-day-heading span { display: block; }
+
+.planner-resource-day-heading span {
+  margin-top: 0.15rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.planner-resource-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  min-height: 8.2rem;
+  padding: 0.8rem;
+}
+
+.planner-resource-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  color: var(--brand-dark);
+  background: #dff3f0;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.planner-resource-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.18rem;
+}
+
+.planner-resource-copy strong {
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+}
+
+.planner-resource-copy > span:not(.planner-hours-pill) {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.planner-hours-pill {
+  width: fit-content;
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+}
+
+.planner-resource-day {
+  display: grid;
+  align-content: start;
+  gap: 0.44rem;
+  min-height: 8.2rem;
+  border-right: 1px solid var(--line);
+  padding: 0.5rem;
+  background: #ffffff;
+}
+
+.planner-resource-day.planner-weekend,
+.planner-resource-day-heading.planner-weekend { background: #fff7ed; }
+
+.planner-resource-empty {
+  width: 100%;
 }
 
 .shift-modal-open {
@@ -5102,9 +5385,9 @@ tbody tr:last-child td {
   }
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1050px) {
   .planner-filter-bar-compact {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .planner-filter-bar-compact button,
@@ -5114,6 +5397,7 @@ tbody tr:last-child td {
 
   .planner-filter-actions {
     display: grid;
+    grid-column: 1 / -1;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.58rem;
   }
@@ -5386,12 +5670,41 @@ tbody tr:last-child td {
     justify-content: flex-start;
   }
 
+  .planner-view-switch {
+    width: 100%;
+  }
+
+  .planner-view-option {
+    padding-right: 0.45rem;
+    padding-left: 0.45rem;
+    text-align: center;
+    white-space: normal;
+  }
+
   .planner-week-range {
     width: 100%;
   }
 
   .planner-filter-bar-compact {
     grid-template-columns: 1fr;
+  }
+
+  .planner-section-heading,
+  .planner-conflict-banner {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .planner-summary-pills {
+    justify-content: flex-start;
+  }
+
+  .planner-conflict-banner .button {
+    width: 100%;
+  }
+
+  .planner-resource-grid {
+    --planner-resource-width: 190px;
   }
 
   .planner-date-grid {
