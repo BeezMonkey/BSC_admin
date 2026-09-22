@@ -14,8 +14,11 @@
   </div>
   <div class="planner-shift-tile-footer">
     <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
-    {% if shift.has_conflict %}
+    {% if shift.has_worker_conflict %}
       <span class="planner-conflict-tag">Time conflict</span>
+    {% endif %}
+    {% if shift.has_participant_conflict %}
+      <span class="planner-conflict-tag">Participant overlap</span>
     {% endif %}
     {% if shift.source == "unscheduled" %}
       <span class="source-pill source-unscheduled">Unscheduled</span>

@@ -518,6 +518,62 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, "Worker has an overlapping active shift")
         self.assertEqual(Shift.objects.count(), 1)
 
+    def test_participant_overlap_requires_explicit_confirmation(self):
+        Shift.objects.create(
+            participant=self.participant,
+            worker=self.worker,
+            service_date=date(2026, 6, 1),
+            start_time=time(9, 0),
+            end_time=time(12, 0),
+            planned_hours=Decimal("3.00"),
+            support_item=self.support_item,
+            service_type=Shift.ServiceType.PERSONAL_CARE,
+            status=Shift.Status.PUBLISHED,
+            created_by=self.admin_user,
+        )
+        self.login_admin()
+        payload = self.shift_payload(
+            worker=self.other_worker.id,
+            start_time="10:00",
+            end_time="13:00",
+            status=Shift.Status.PUBLISHED,
+        )
+
+        warning_response = self.client.post(reverse("shift_create"), payload)
+
+        self.assertEqual(warning_response.status_code, 200)
+        self.assertContains(warning_response, "Participant has an overlapping active shift")
+        self.assertContains(warning_response, "Allow this participant overlap")
+        self.assertEqual(Shift.objects.count(), 1)
+
+        payload["allow_participant_overlap"] = "1"
+        confirmed_response = self.client.post(reverse("shift_create"), payload)
+
+        self.assertEqual(confirmed_response.status_code, 302)
+        self.assertEqual(Shift.objects.count(), 2)
+
+    def test_cancelled_shift_does_not_require_participant_overlap_confirmation(self):
+        self.create_shift(
+            service_date=date(2026, 6, 1),
+            start_time=time(9, 0),
+            end_time=time(12, 0),
+            status=Shift.Status.PUBLISHED,
+        )
+        self.login_admin()
+
+        response = self.client.post(
+            reverse("shift_create"),
+            self.shift_payload(
+                worker=self.other_worker.id,
+                start_time="10:00",
+                end_time="13:00",
+                status=Shift.Status.CANCELLED,
+            ),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Shift.objects.count(), 2)
+
     def test_admin_can_filter_roster_list(self):
         Shift.objects.create(
             participant=self.participant,
@@ -824,6 +880,44 @@ class ShiftSchedulingTests(TestCase):
         self.assertNotIn(cancelled_shift.id, response.context["conflict_shift_ids"])
         self.assertContains(response, "1 scheduling conflict needs attention")
         self.assertContains(response, "Time conflict", count=2)
+
+    def test_roster_planner_marks_participant_overlap_across_workers(self):
+        first_shift = self.create_shift(
+            service_date=date(2026, 6, 9),
+            start_time=time(9, 0),
+            end_time=time(12, 0),
+            status=Shift.Status.CONFIRMED,
+        )
+        second_shift = self.create_shift(
+            worker=self.other_worker,
+            service_date=date(2026, 6, 9),
+            start_time=time(10, 0),
+            end_time=time(13, 0),
+            planned_hours=Decimal("3.00"),
+            status=Shift.Status.PUBLISHED,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("roster_planner"),
+            {
+                "view": "daily",
+                "date_from": "2026-06-08",
+                "date_to": "2026-06-14",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["conflict_count"], 1)
+        self.assertEqual(
+            response.context["conflict_shift_ids"],
+            {first_shift.id, second_shift.id},
+        )
+        self.assertContains(
+            response,
+            "Ava Nguyen has overlapping shifts on Tuesday, 09 June.",
+        )
+        self.assertContains(response, "Participant overlap", count=2)
 
     def test_roster_planner_multi_week_range_is_not_month_view(self):
         self.login_admin()

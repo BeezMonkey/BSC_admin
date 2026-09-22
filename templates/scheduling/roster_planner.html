@@ -90,12 +90,16 @@
       <div>
         <strong>{{ conflict_count }} scheduling conflict{{ conflict_count|pluralize }} {% if conflict_count == 1 %}needs{% else %}need{% endif %} attention</strong>
         {% with conflict=planner_conflicts.0 %}
-          <p>{{ conflict.worker.display_name }} has overlapping shifts on {{ conflict.date|date:"l, d F" }}.</p>
+          {% if conflict.type == "participant" %}
+            <p>{{ conflict.participant.display_name }} has overlapping shifts on {{ conflict.date|date:"l, d F" }}.</p>
+          {% else %}
+            <p>{{ conflict.worker.display_name }} has overlapping shifts on {{ conflict.date|date:"l, d F" }}.</p>
+          {% endif %}
         {% endwith %}
       </div>
     </div>
-    {% if not is_worker_view %}
-      <a class="button secondary" href="{{ mode_urls.worker }}#planner-conflicts">Review conflicts</a>
+    {% if conflict_review_url %}
+      <a class="button secondary" href="{{ conflict_review_url }}#planner-conflicts">Review conflicts</a>
     {% endif %}
   </aside>
 {% endif %}

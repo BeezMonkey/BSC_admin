@@ -38,32 +38,59 @@ def format_roster_time(value):
     return format_display_time(value)
 
 
-def find_planner_conflicts(shifts):
-    conflict_shift_ids = set()
-    conflicts = []
-    shifts_by_worker_and_date = {}
+def find_overlapping_shift_pairs(shifts, key_function):
+    grouped_shifts = {}
     for shift in shifts:
-        if shift.status not in Shift.ACTIVE_CONFLICT_STATUSES:
-            continue
-        key = (shift.worker_id, shift.service_date)
-        shifts_by_worker_and_date.setdefault(key, []).append(shift)
+        grouped_shifts.setdefault(key_function(shift), []).append(shift)
 
-    for grouped_shifts in shifts_by_worker_and_date.values():
-        grouped_shifts.sort(key=lambda shift: (shift.start_time, shift.end_time, shift.id))
-        for index, first_shift in enumerate(grouped_shifts):
-            for second_shift in grouped_shifts[index + 1 :]:
+    for shifts_in_group in grouped_shifts.values():
+        shifts_in_group.sort(key=lambda shift: (shift.start_time, shift.end_time, shift.id))
+        for index, first_shift in enumerate(shifts_in_group):
+            for second_shift in shifts_in_group[index + 1 :]:
                 if second_shift.start_time >= first_shift.end_time:
                     break
                 if first_shift.start_time < second_shift.end_time:
-                    conflict_shift_ids.update((first_shift.id, second_shift.id))
-                    conflicts.append(
-                        {
-                            "first_shift": first_shift,
-                            "second_shift": second_shift,
-                            "worker": first_shift.worker,
-                            "date": first_shift.service_date,
-                        }
-                    )
+                    yield first_shift, second_shift
+
+
+def find_planner_conflicts(shifts):
+    conflict_shift_ids = set()
+    conflicts = []
+    active_shifts = [
+        shift for shift in shifts if shift.status in Shift.ACTIVE_CONFLICT_STATUSES
+    ]
+
+    for first_shift, second_shift in find_overlapping_shift_pairs(
+        active_shifts,
+        lambda shift: (shift.worker_id, shift.service_date),
+    ):
+        conflict_shift_ids.update((first_shift.id, second_shift.id))
+        conflicts.append(
+            {
+                "type": "worker",
+                "first_shift": first_shift,
+                "second_shift": second_shift,
+                "worker": first_shift.worker,
+                "date": first_shift.service_date,
+            }
+        )
+
+    for first_shift, second_shift in find_overlapping_shift_pairs(
+        active_shifts,
+        lambda shift: (shift.participant_id, shift.service_date),
+    ):
+        if first_shift.worker_id == second_shift.worker_id:
+            continue
+        conflict_shift_ids.update((first_shift.id, second_shift.id))
+        conflicts.append(
+            {
+                "type": "participant",
+                "first_shift": first_shift,
+                "second_shift": second_shift,
+                "participant": first_shift.participant,
+                "date": first_shift.service_date,
+            }
+        )
     return conflict_shift_ids, conflicts
 
 
@@ -314,6 +341,12 @@ def roster_planner(request):
         )
     )
     conflict_shift_ids, planner_conflicts = find_planner_conflicts(conflict_source_shifts)
+    conflict_types_by_shift_id = {}
+    for conflict in planner_conflicts:
+        for conflict_shift in (conflict["first_shift"], conflict["second_shift"]):
+            conflict_types_by_shift_id.setdefault(conflict_shift.id, set()).add(
+                conflict["type"]
+            )
 
     shifts = range_shifts
     if participant_id:
@@ -324,7 +357,10 @@ def roster_planner(request):
         shifts = shifts.filter(worker=selected_worker)
     shifts = list(shifts.order_by("service_date", "start_time", "participant__last_name"))
     for shift in shifts:
-        shift.has_conflict = shift.id in conflict_shift_ids
+        shift.conflict_types = conflict_types_by_shift_id.get(shift.id, set())
+        shift.has_conflict = bool(shift.conflict_types)
+        shift.has_worker_conflict = "worker" in shift.conflict_types
+        shift.has_participant_conflict = "participant" in shift.conflict_types
         shift.display_time = (
             f"{format_roster_time(shift.start_time)} - {format_roster_time(shift.end_time)}"
         )
@@ -372,6 +408,7 @@ def roster_planner(request):
     planner_days = []
     planner_resources = []
     mode_urls = {}
+    conflict_review_url = ""
     if display_date_from and display_date_to and display_date_from <= display_date_to:
         planner_day_count = (display_date_to - display_date_from).days + 1
         planner_range_label = (
@@ -432,6 +469,10 @@ def roster_planner(request):
             "participant": planner_mode_url("participant"),
             "worker": planner_mode_url("worker"),
         }
+        if planner_conflicts:
+            conflict_target_view = planner_conflicts[0]["type"]
+            if view_mode != conflict_target_view:
+                conflict_review_url = mode_urls[conflict_target_view]
 
         current_date = display_date_from
         while current_date <= display_date_to:
@@ -489,7 +530,9 @@ def roster_planner(request):
                         "resource": worker,
                         "hours_total": hours_total,
                         "hours_label": format_planner_hours(hours_total, planner_day_count),
-                        "has_conflict": any(shift.has_conflict for shift in resource_shifts),
+                        "has_conflict": any(
+                            shift.has_worker_conflict for shift in resource_shifts
+                        ),
                         "days": [
                             {
                                 "date": day["date"],
@@ -541,6 +584,7 @@ def roster_planner(request):
             "conflict_count": len(planner_conflicts),
             "conflict_shift_ids": conflict_shift_ids,
             "planner_conflicts": planner_conflicts,
+            "conflict_review_url": conflict_review_url,
             "current_planner_url": request.get_full_path(),
         },
     )
