@@ -1,0 +1,19 @@
+{% load bsc_formatting %}
+<div class="shift-overlap-warning multi-worker-review-summary">
+  <strong>{{ participant.display_name }}</strong>
+  <p>{{ service_date|date:"l, d F Y" }}</p>
+  <p>Select every worker who is intentionally supporting this participant at the same time.</p>
+</div>
+
+<label class="field multi-worker-shift-options">
+  <span>Overlapping shifts</span>
+  {{ form.shifts }}
+  {% if form.shifts.errors %}
+    <span class="field-error">{{ form.shifts.errors|striptags }}</span>
+  {% endif %}
+</label>
+
+<div class="form-grid">
+  {% include "participants/partials/field.html" with field=form.reason %}
+  {% include "participants/partials/field.html" with field=form.notes %}
+</div>

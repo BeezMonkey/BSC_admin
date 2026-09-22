@@ -18,7 +18,14 @@
       <span class="planner-conflict-tag">Time conflict</span>
     {% endif %}
     {% if shift.has_participant_conflict %}
-      <span class="planner-conflict-tag">Participant overlap</span>
+      <a
+        class="planner-conflict-tag planner-conflict-link js-shift-modal-trigger"
+        href="{{ shift.participant_overlap_review_url }}?next={{ current_planner_url|urlencode }}"
+        data-modal-url="{{ shift.participant_overlap_review_url }}?modal=1&amp;next={{ current_planner_url|urlencode }}"
+      >Participant overlap</a>
+    {% endif %}
+    {% if shift.planned_multi_worker_support %}
+      <span class="planner-multi-worker-tag">{{ shift.planned_multi_worker_support.worker_count }}:1 support</span>
     {% endif %}
     {% if shift.source == "unscheduled" %}
       <span class="source-pill source-unscheduled">Unscheduled</span>

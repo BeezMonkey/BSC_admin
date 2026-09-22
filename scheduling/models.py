@@ -126,3 +126,44 @@ class Shift(models.Model):
 
     def get_absolute_url(self):
         return reverse("shift_detail", args=[self.id])
+
+
+class PlannedMultiWorkerSupport(models.Model):
+    class Reason(models.TextChoices):
+        MANUAL_HANDLING = "manual_handling", "Manual handling"
+        BEHAVIOUR_SUPPORT = "behaviour_support", "Behaviour support"
+        SAFETY = "safety", "Safety"
+        OTHER = "other", "Other"
+
+    participant = models.ForeignKey(
+        "participants.Participant",
+        on_delete=models.PROTECT,
+        related_name="planned_multi_worker_supports",
+    )
+    service_date = models.DateField()
+    overlap_start_time = models.TimeField()
+    overlap_end_time = models.TimeField()
+    worker_count = models.PositiveSmallIntegerField()
+    reason = models.CharField(max_length=30, choices=Reason.choices)
+    notes = models.TextField(blank=True)
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="approved_multi_worker_supports",
+        null=True,
+        blank=True,
+    )
+    approved_at = models.DateTimeField(auto_now_add=True)
+    shifts = models.ManyToManyField(
+        Shift,
+        related_name="planned_multi_worker_supports",
+    )
+
+    class Meta:
+        ordering = ["service_date", "overlap_start_time", "id"]
+
+    def __str__(self):
+        return (
+            f"{self.worker_count}:1 support for {self.participant} "
+            f"on {self.service_date}"
+        )

@@ -1,0 +1,22 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Review Participant Overlap - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Review participant overlap</h1>
+    <p>Confirm this only when the participant is planned to receive support from multiple workers.</p>
+  </div>
+  <a class="button secondary" href="{{ return_url }}">Cancel</a>
+</div>
+
+<form class="record-form" method="post" novalidate>
+  {% csrf_token %}
+  {% include "scheduling/partials/planned_multi_worker_support_fields.html" %}
+  <div class="form-actions">
+    <button type="submit">Approve Multi-worker Support</button>
+    <a class="button secondary" href="{{ return_url }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}
