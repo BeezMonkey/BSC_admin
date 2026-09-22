@@ -24,11 +24,15 @@
         value="1"
         {% if form.allow_participant_overlap.value %}checked{% endif %}
       >
-      <span>Allow this participant overlap (for example, planned 2:1 support).</span>
+      <span>Approve this as planned multi-worker support.</span>
     </label>
     {% if form.allow_participant_overlap.errors %}
       <span class="field-error">{{ form.allow_participant_overlap.errors|striptags }}</span>
     {% endif %}
+    <div class="form-grid shift-overlap-details">
+      {% include "participants/partials/field.html" with field=form.multi_worker_reason %}
+      {% include "participants/partials/field.html" with field=form.multi_worker_notes %}
+    </div>
   </aside>
 {% endif %}
 

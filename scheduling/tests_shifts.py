@@ -7,7 +7,7 @@ from django.urls import reverse
 
 from accounts.models import UserProfile
 from participants.models import Participant
-from scheduling.models import Shift, SupportItem
+from scheduling.models import PlannedMultiWorkerSupport, Shift, SupportItem
 from workers.models import SupportWorker
 
 
@@ -543,14 +543,77 @@ class ShiftSchedulingTests(TestCase):
 
         self.assertEqual(warning_response.status_code, 200)
         self.assertContains(warning_response, "Participant has an overlapping active shift")
-        self.assertContains(warning_response, "Allow this participant overlap")
+        self.assertContains(
+            warning_response,
+            "Approve this as planned multi-worker support.",
+        )
         self.assertEqual(Shift.objects.count(), 1)
 
         payload["allow_participant_overlap"] = "1"
+        payload["multi_worker_reason"] = "manual_handling"
+        payload["multi_worker_notes"] = "Two workers are required for safe transfers."
         confirmed_response = self.client.post(reverse("shift_create"), payload)
 
         self.assertEqual(confirmed_response.status_code, 302)
         self.assertEqual(Shift.objects.count(), 2)
+
+        planner_response = self.client.get(
+            reverse("roster_planner"),
+            {
+                "view": "participant",
+                "participant": self.participant.id,
+                "date_from": "2026-06-01",
+                "date_to": "2026-06-07",
+            },
+        )
+        self.assertEqual(planner_response.context["conflict_count"], 0)
+        self.assertContains(planner_response, "2:1 support", count=2)
+        self.assertNotContains(planner_response, "Participant overlap")
+
+    def test_confirmation_groups_separate_overlap_windows(self):
+        third_worker_user = self.create_user_with_role(
+            "thirdworker",
+            UserProfile.Role.SUPPORT_WORKER,
+        )
+        third_worker = SupportWorker.objects.create(
+            user=third_worker_user,
+            first_name="Taylor",
+            last_name="Third",
+            email="third@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        self.create_shift(
+            service_date=date(2026, 6, 1),
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            planned_hours=Decimal("1.00"),
+        )
+        self.create_shift(
+            worker=self.other_worker,
+            service_date=date(2026, 6, 1),
+            start_time=time(16, 0),
+            end_time=time(17, 0),
+            planned_hours=Decimal("1.00"),
+        )
+        self.login_admin()
+
+        response = self.client.post(
+            reverse("shift_create"),
+            self.shift_payload(
+                worker=third_worker.id,
+                start_time="09:00",
+                end_time="17:00",
+                break_minutes="0",
+                status=Shift.Status.PUBLISHED,
+                allow_participant_overlap="1",
+                multi_worker_reason="safety",
+                multi_worker_notes="Separate morning and afternoon two-worker support.",
+            ),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Shift.objects.count(), 3)
+        self.assertEqual(PlannedMultiWorkerSupport.objects.count(), 2)
 
     def test_cancelled_shift_does_not_require_participant_overlap_confirmation(self):
         self.create_shift(
@@ -918,6 +981,256 @@ class ShiftSchedulingTests(TestCase):
             "Ava Nguyen has overlapping shifts on Tuesday, 09 June.",
         )
         self.assertContains(response, "Participant overlap", count=2)
+
+    def test_admin_can_review_and_approve_existing_participant_overlap(self):
+        first_shift = self.create_shift(
+            service_date=date(2026, 6, 9),
+            start_time=time(9, 0),
+            end_time=time(12, 0),
+            status=Shift.Status.CONFIRMED,
+        )
+        second_shift = self.create_shift(
+            worker=self.other_worker,
+            service_date=date(2026, 6, 9),
+            start_time=time(10, 0),
+            end_time=time(13, 0),
+            planned_hours=Decimal("3.00"),
+            status=Shift.Status.PUBLISHED,
+        )
+        self.login_admin()
+        review_url = (
+            f"/roster/planner/multi-worker/{first_shift.id}/{second_shift.id}/review/"
+        )
+
+        modal_response = self.client.get(f"{review_url}?modal=1")
+
+        self.assertEqual(modal_response.status_code, 200)
+        self.assertContains(modal_response, "Review participant overlap")
+        self.assertContains(modal_response, "Wendy Worker")
+        self.assertContains(modal_response, "Oscar Other")
+
+        approval_response = self.client.post(
+            f"{review_url}?modal=1",
+            {
+                "modal": "1",
+                "shifts": [first_shift.id, second_shift.id],
+                "reason": "manual_handling",
+                "notes": "Two workers are required for safe transfers.",
+            },
+        )
+
+        self.assertEqual(approval_response.status_code, 200)
+        self.assertJSONEqual(approval_response.content, {"ok": True})
+
+        planner_response = self.client.get(
+            reverse("roster_planner"),
+            {
+                "view": "participant",
+                "participant": self.participant.id,
+                "date_from": "2026-06-08",
+                "date_to": "2026-06-14",
+            },
+        )
+        self.assertEqual(planner_response.context["conflict_count"], 0)
+        self.assertContains(planner_response, "2:1 support", count=2)
+
+    def test_multi_worker_review_can_approve_three_to_one_support(self):
+        third_worker_user = self.create_user_with_role(
+            "thirdworker",
+            UserProfile.Role.SUPPORT_WORKER,
+        )
+        third_worker = SupportWorker.objects.create(
+            user=third_worker_user,
+            first_name="Taylor",
+            last_name="Third",
+            email="third@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        first_shift = self.create_shift(
+            service_date=date(2026, 6, 9),
+            start_time=time(9, 0),
+            end_time=time(13, 0),
+            status=Shift.Status.CONFIRMED,
+        )
+        second_shift = self.create_shift(
+            worker=self.other_worker,
+            service_date=date(2026, 6, 9),
+            start_time=time(10, 0),
+            end_time=time(14, 0),
+            planned_hours=Decimal("4.00"),
+            status=Shift.Status.PUBLISHED,
+        )
+        third_shift = self.create_shift(
+            worker=third_worker,
+            service_date=date(2026, 6, 9),
+            start_time=time(11, 0),
+            end_time=time(12, 0),
+            planned_hours=Decimal("1.00"),
+            status=Shift.Status.PUBLISHED,
+        )
+        self.login_admin()
+        review_url = (
+            f"/roster/planner/multi-worker/{first_shift.id}/{second_shift.id}/review/"
+        )
+
+        approval_response = self.client.post(
+            f"{review_url}?modal=1",
+            {
+                "modal": "1",
+                "shifts": [first_shift.id, second_shift.id, third_shift.id],
+                "reason": "safety",
+                "notes": "Three workers are required for this planned support window.",
+            },
+        )
+
+        self.assertEqual(approval_response.status_code, 200)
+        self.assertJSONEqual(approval_response.content, {"ok": True})
+        planner_response = self.client.get(
+            reverse("roster_planner"),
+            {
+                "view": "participant",
+                "participant": self.participant.id,
+                "date_from": "2026-06-08",
+                "date_to": "2026-06-14",
+            },
+        )
+        self.assertEqual(planner_response.context["conflict_count"], 0)
+        self.assertContains(planner_response, "3:1 support", count=3)
+
+    def test_editing_approved_shift_invalidates_multi_worker_support(self):
+        first_shift = self.create_shift(
+            service_date=date(2026, 6, 9),
+            start_time=time(9, 0),
+            end_time=time(12, 0),
+            status=Shift.Status.CONFIRMED,
+        )
+        second_shift = self.create_shift(
+            worker=self.other_worker,
+            service_date=date(2026, 6, 9),
+            start_time=time(10, 0),
+            end_time=time(13, 0),
+            planned_hours=Decimal("3.00"),
+            status=Shift.Status.PUBLISHED,
+        )
+        self.login_admin()
+        review_url = (
+            f"/roster/planner/multi-worker/{first_shift.id}/{second_shift.id}/review/"
+        )
+        self.client.post(
+            review_url,
+            {
+                "shifts": [first_shift.id, second_shift.id],
+                "reason": "manual_handling",
+                "notes": "Two workers are required for safe transfers.",
+            },
+        )
+
+        edit_response = self.client.post(
+            reverse("shift_edit", args=[first_shift.id]),
+            self.shift_payload(
+                worker=self.worker.id,
+                service_date="2026-06-10",
+                start_time="09:00",
+                end_time="12:00",
+                status=Shift.Status.CONFIRMED,
+            ),
+        )
+
+        self.assertEqual(edit_response.status_code, 302)
+        planner_response = self.client.get(
+            reverse("roster_planner"),
+            {
+                "view": "participant",
+                "participant": self.participant.id,
+                "date_from": "2026-06-08",
+                "date_to": "2026-06-14",
+            },
+        )
+        self.assertNotContains(planner_response, "2:1 support")
+        self.assertFalse(PlannedMultiWorkerSupport.objects.exists())
+
+    def test_cancelling_approved_shift_invalidates_multi_worker_support(self):
+        first_shift = self.create_shift(
+            service_date=date(2026, 6, 9),
+            start_time=time(9, 0),
+            end_time=time(12, 0),
+            status=Shift.Status.CONFIRMED,
+        )
+        second_shift = self.create_shift(
+            worker=self.other_worker,
+            service_date=date(2026, 6, 9),
+            start_time=time(10, 0),
+            end_time=time(13, 0),
+            planned_hours=Decimal("3.00"),
+            status=Shift.Status.PUBLISHED,
+        )
+        self.login_admin()
+        review_url = (
+            f"/roster/planner/multi-worker/{first_shift.id}/{second_shift.id}/review/"
+        )
+        self.client.post(
+            review_url,
+            {
+                "shifts": [first_shift.id, second_shift.id],
+                "reason": "manual_handling",
+                "notes": "Two workers are required for safe transfers.",
+            },
+        )
+
+        response = self.client.post(
+            reverse("shift_cancel", args=[first_shift.id]),
+            {"cancellation_reason": "Participant unavailable."},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(PlannedMultiWorkerSupport.objects.exists())
+
+    def test_editing_non_schedule_details_keeps_multi_worker_support(self):
+        first_shift = self.create_shift(
+            service_date=date(2026, 6, 9),
+            start_time=time(9, 0),
+            end_time=time(12, 0),
+            status=Shift.Status.CONFIRMED,
+        )
+        second_shift = self.create_shift(
+            worker=self.other_worker,
+            service_date=date(2026, 6, 9),
+            start_time=time(10, 0),
+            end_time=time(13, 0),
+            planned_hours=Decimal("3.00"),
+            status=Shift.Status.PUBLISHED,
+        )
+        self.login_admin()
+        review_url = (
+            f"/roster/planner/multi-worker/{first_shift.id}/{second_shift.id}/review/"
+        )
+        self.client.post(
+            review_url,
+            {
+                "shifts": [first_shift.id, second_shift.id],
+                "reason": "manual_handling",
+                "notes": "Two workers are required for safe transfers.",
+            },
+        )
+
+        response = self.client.post(
+            reverse("shift_edit", args=[first_shift.id]),
+            self.shift_payload(
+                worker=self.worker.id,
+                service_date="2026-06-09",
+                start_time="09:00",
+                end_time="12:00",
+                status=Shift.Status.CONFIRMED,
+                admin_notes="Updated handover note.",
+            ),
+        )
+
+        self.assertEqual(
+            response.status_code,
+            302,
+            response.context["form"].errors.as_json() if response.status_code == 200 else "",
+        )
+        self.assertEqual(PlannedMultiWorkerSupport.objects.count(), 1)
 
     def test_roster_planner_multi_week_range_is_not_month_view(self):
         self.login_admin()

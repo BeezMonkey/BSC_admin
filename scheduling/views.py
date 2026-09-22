@@ -21,8 +21,20 @@ from core.sorting import apply_sorting
 from participants.models import Participant
 from workers.models import SupportWorker
 
-from .forms import RecurringShiftForm, ShiftForm, SupportItemForm
-from .models import Shift, SupportItem
+from .forms import (
+    PlannedMultiWorkerSupportReviewForm,
+    RecurringShiftForm,
+    ShiftForm,
+    SupportItemForm,
+)
+from .models import PlannedMultiWorkerSupport, Shift, SupportItem
+from .multi_worker import (
+    approve_multi_worker_support,
+    approve_overlap_groups,
+    approved_shift_pairs,
+    invalidate_multi_worker_supports,
+    shift_pair_key,
+)
 
 
 def format_filter_date(value):
@@ -53,9 +65,10 @@ def find_overlapping_shift_pairs(shifts, key_function):
                     yield first_shift, second_shift
 
 
-def find_planner_conflicts(shifts):
+def find_planner_conflicts(shifts, approved_participant_pairs=None):
     conflict_shift_ids = set()
     conflicts = []
+    approved_participant_pairs = approved_participant_pairs or set()
     active_shifts = [
         shift for shift in shifts if shift.status in Shift.ACTIVE_CONFLICT_STATUSES
     ]
@@ -80,6 +93,8 @@ def find_planner_conflicts(shifts):
         lambda shift: (shift.participant_id, shift.service_date),
     ):
         if first_shift.worker_id == second_shift.worker_id:
+            continue
+        if shift_pair_key(first_shift, second_shift) in approved_participant_pairs:
             continue
         conflict_shift_ids.update((first_shift.id, second_shift.id))
         conflicts.append(
@@ -340,13 +355,32 @@ def roster_planner(request):
             "end_time",
         )
     )
-    conflict_shift_ids, planner_conflicts = find_planner_conflicts(conflict_source_shifts)
+    planned_supports = list(
+        PlannedMultiWorkerSupport.objects.filter(
+            service_date__gte=date_from,
+            service_date__lte=date_to,
+        ).prefetch_related("shifts")
+    )
+    approved_pairs, planned_support_by_shift_id = approved_shift_pairs(planned_supports)
+    conflict_shift_ids, planner_conflicts = find_planner_conflicts(
+        conflict_source_shifts,
+        approved_pairs,
+    )
     conflict_types_by_shift_id = {}
+    participant_review_url_by_shift_id = {}
     for conflict in planner_conflicts:
         for conflict_shift in (conflict["first_shift"], conflict["second_shift"]):
             conflict_types_by_shift_id.setdefault(conflict_shift.id, set()).add(
                 conflict["type"]
             )
+            if conflict["type"] == "participant":
+                participant_review_url_by_shift_id.setdefault(
+                    conflict_shift.id,
+                    reverse(
+                        "planned_multi_worker_support_review",
+                        args=[conflict["first_shift"].id, conflict["second_shift"].id],
+                    ),
+                )
 
     shifts = range_shifts
     if participant_id:
@@ -361,6 +395,11 @@ def roster_planner(request):
         shift.has_conflict = bool(shift.conflict_types)
         shift.has_worker_conflict = "worker" in shift.conflict_types
         shift.has_participant_conflict = "participant" in shift.conflict_types
+        shift.participant_overlap_review_url = participant_review_url_by_shift_id.get(
+            shift.id,
+            "",
+        )
+        shift.planned_multi_worker_support = planned_support_by_shift_id.get(shift.id)
         shift.display_time = (
             f"{format_roster_time(shift.start_time)} - {format_roster_time(shift.end_time)}"
         )
@@ -644,6 +683,14 @@ def shift_create(request):
         form = ShiftForm(request.POST, created_by=request.user)
         if form.is_valid():
             shift = form.save()
+            if form.participant_overlap_shifts:
+                approve_overlap_groups(
+                    shift,
+                    form.participant_overlap_shifts,
+                    form.cleaned_data["multi_worker_reason"],
+                    form.cleaned_data["multi_worker_notes"],
+                    request.user,
+                )
             if is_modal:
                 return JsonResponse({"ok": True})
             messages.success(request, "Shift created.")
@@ -745,6 +792,90 @@ def recurring_shift_preview(form):
         )
         service_date += timedelta(days=step_days)
     return preview
+
+
+def participant_overlap_review_shifts(first_shift, second_shift):
+    if (
+        first_shift.participant_id != second_shift.participant_id
+        or first_shift.service_date != second_shift.service_date
+        or first_shift.worker_id == second_shift.worker_id
+        or first_shift.status not in Shift.ACTIVE_CONFLICT_STATUSES
+        or second_shift.status not in Shift.ACTIVE_CONFLICT_STATUSES
+        or first_shift.start_time >= second_shift.end_time
+        or second_shift.start_time >= first_shift.end_time
+    ):
+        return []
+
+    overlap_start = max(first_shift.start_time, second_shift.start_time)
+    overlap_end = min(first_shift.end_time, second_shift.end_time)
+    return list(
+        Shift.objects.filter(
+            participant=first_shift.participant,
+            service_date=first_shift.service_date,
+            status__in=Shift.ACTIVE_CONFLICT_STATUSES,
+            start_time__lt=overlap_end,
+            end_time__gt=overlap_start,
+        )
+        .select_related("participant", "worker")
+        .order_by("start_time", "end_time", "id")
+    )
+
+
+@admin_required
+def planned_multi_worker_support_review(request, first_shift_id, second_shift_id):
+    first_shift = get_object_or_404(
+        Shift.objects.select_related("participant", "worker"),
+        id=first_shift_id,
+    )
+    second_shift = get_object_or_404(
+        Shift.objects.select_related("participant", "worker"),
+        id=second_shift_id,
+    )
+    candidate_shifts = participant_overlap_review_shifts(first_shift, second_shift)
+    if not candidate_shifts:
+        messages.info(request, "This participant overlap no longer needs review.")
+        return redirect(get_safe_return_url(request, reverse("roster_planner")))
+
+    is_modal = request.GET.get("modal") == "1" or request.POST.get("modal") == "1"
+    if request.method == "POST":
+        form = PlannedMultiWorkerSupportReviewForm(
+            request.POST,
+            candidate_shifts=candidate_shifts,
+        )
+        if form.is_valid():
+            approve_multi_worker_support(
+                form.cleaned_data["shifts"],
+                form.cleaned_data["reason"],
+                form.cleaned_data["notes"],
+                request.user,
+            )
+            if is_modal:
+                return JsonResponse({"ok": True})
+            messages.success(request, "Planned multi-worker support approved.")
+            return redirect(get_safe_return_url(request, reverse("roster_planner")))
+    else:
+        form = PlannedMultiWorkerSupportReviewForm(
+            candidate_shifts=candidate_shifts,
+            initial_shifts=[first_shift, second_shift],
+        )
+
+    context = {
+        "form": form,
+        "candidate_shifts": candidate_shifts,
+        "participant": first_shift.participant,
+        "service_date": first_shift.service_date,
+        "is_modal": is_modal,
+        "form_action": request.get_full_path(),
+        "return_url": get_safe_return_url(request, reverse("roster_planner")),
+    }
+    if is_modal:
+        return render(
+            request,
+            "scheduling/partials/planned_multi_worker_support_modal.html",
+            context,
+            status=400 if request.method == "POST" else 200,
+        )
+    return render(request, "scheduling/planned_multi_worker_support_review.html", context)
 
 
 @admin_required
@@ -853,7 +984,22 @@ def shift_edit(request, shift_id):
     if request.method == "POST":
         form = ShiftForm(request.POST, instance=shift, created_by=request.user)
         if form.is_valid():
+            schedule_changed = form.schedule_changed()
             shift = form.save()
+            if schedule_changed:
+                invalidate_multi_worker_supports(
+                    [shift],
+                    request.user,
+                    "The shift participant, worker, date, or time changed.",
+                )
+            if form.participant_overlap_shifts:
+                approve_overlap_groups(
+                    shift,
+                    form.participant_overlap_shifts,
+                    form.cleaned_data["multi_worker_reason"],
+                    form.cleaned_data["multi_worker_notes"],
+                    request.user,
+                )
             if is_modal:
                 return JsonResponse({"ok": True})
             messages.success(request, "Shift updated.")
@@ -959,6 +1105,11 @@ def shift_bulk_publish(request):
 @require_POST
 def shift_cancel(request, shift_id):
     shift = get_object_or_404(Shift, id=shift_id)
+    invalidate_multi_worker_supports(
+        [shift],
+        request.user,
+        "One of the linked shifts was cancelled.",
+    )
     shift.status = Shift.Status.CANCELLED
     shift.cancellation_reason = request.POST.get("cancellation_reason", "")
     shift.save(update_fields=["status", "cancellation_reason", "updated_at"])
@@ -981,6 +1132,11 @@ def shift_delete(request, shift_id):
         messages.error(request, "Only draft or published shifts can be deleted.")
         return redirect(shift)
 
+    invalidate_multi_worker_supports(
+        [shift],
+        request.user,
+        "One of the linked shifts was deleted.",
+    )
     shift.delete()
     messages.success(request, "Shift deleted.")
     return redirect(return_url)

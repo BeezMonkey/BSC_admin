@@ -3,7 +3,9 @@ from decimal import Decimal
 from django import forms
 from django.db.models import Q
 
-from .models import Shift, SupportItem
+from core.formatting import format_display_time
+
+from .models import PlannedMultiWorkerSupport, Shift, SupportItem
 from workers.models import SupportWorker
 
 
@@ -51,6 +53,14 @@ class SupportItemForm(forms.ModelForm):
 
 class ShiftForm(forms.ModelForm):
     allow_participant_overlap = forms.BooleanField(required=False)
+    multi_worker_reason = forms.ChoiceField(
+        choices=PlannedMultiWorkerSupport.Reason.choices,
+        required=False,
+    )
+    multi_worker_notes = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 2}),
+    )
 
     class Meta:
         model = Shift
@@ -81,8 +91,18 @@ class ShiftForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.created_by = kwargs.pop("created_by", None)
         self.participant_overlap_shift = None
+        self.participant_overlap_shifts = []
         self.participant_overlap_count = 0
         super().__init__(*args, **kwargs)
+        self.original_schedule = None
+        if self.instance.pk:
+            self.original_schedule = {
+                "participant_id": self.instance.participant_id,
+                "worker_id": self.instance.worker_id,
+                "service_date": self.instance.service_date,
+                "start_time": self.instance.start_time,
+                "end_time": self.instance.end_time,
+            }
         self.fields["support_item"].queryset = SupportItem.active_items()
         self.fields["worker"].queryset = schedulable_worker_queryset(
             getattr(self.instance, "worker", None)
@@ -157,6 +177,13 @@ class ShiftForm(forms.ModelForm):
             ).exclude(worker=worker)
             if self.instance.pk:
                 participant_overlap = participant_overlap.exclude(pk=self.instance.pk)
+                if not self.schedule_changed(cleaned_data):
+                    approved_support_ids = PlannedMultiWorkerSupport.objects.filter(
+                        shifts=self.instance
+                    ).values_list("id", flat=True)
+                    participant_overlap = participant_overlap.exclude(
+                        planned_multi_worker_supports__id__in=approved_support_ids
+                    )
             participant_overlap = participant_overlap.order_by(
                 "start_time",
                 "end_time",
@@ -164,6 +191,7 @@ class ShiftForm(forms.ModelForm):
             )
             self.participant_overlap_count = participant_overlap.count()
             self.participant_overlap_shift = participant_overlap.first()
+            self.participant_overlap_shifts = list(participant_overlap)
             if (
                 self.participant_overlap_shift
                 and not cleaned_data.get("allow_participant_overlap")
@@ -172,8 +200,30 @@ class ShiftForm(forms.ModelForm):
                     "allow_participant_overlap",
                     "Participant has an overlapping active shift. Confirm this is intentional.",
                 )
+            elif self.participant_overlap_shift and not cleaned_data.get(
+                "multi_worker_reason"
+            ):
+                self.add_error(
+                    "multi_worker_reason",
+                    "Select why this participant needs multi-worker support.",
+                )
 
         return cleaned_data
+
+    def schedule_changed(self, cleaned_data=None):
+        if not self.original_schedule:
+            return False
+        cleaned_data = cleaned_data or self.cleaned_data
+        participant = cleaned_data.get("participant")
+        worker = cleaned_data.get("worker")
+        current_schedule = {
+            "participant_id": participant.id if participant else None,
+            "worker_id": worker.id if worker else None,
+            "service_date": cleaned_data.get("service_date"),
+            "start_time": cleaned_data.get("start_time"),
+            "end_time": cleaned_data.get("end_time"),
+        }
+        return current_schedule != self.original_schedule
 
     def save(self, commit=True):
         shift = super().save(commit=False)
@@ -184,6 +234,53 @@ class ShiftForm(forms.ModelForm):
             shift.save()
             self.save_m2m()
         return shift
+
+
+class MultiWorkerShiftChoiceField(forms.ModelMultipleChoiceField):
+    def label_from_instance(self, shift):
+        return (
+            f"{shift.worker.display_name} - "
+            f"{format_display_time(shift.start_time)} to "
+            f"{format_display_time(shift.end_time)}"
+        )
+
+
+class PlannedMultiWorkerSupportReviewForm(forms.Form):
+    shifts = MultiWorkerShiftChoiceField(
+        queryset=Shift.objects.none(),
+        widget=forms.CheckboxSelectMultiple,
+    )
+    reason = forms.ChoiceField(choices=PlannedMultiWorkerSupport.Reason.choices)
+    notes = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 3}),
+    )
+
+    def __init__(self, *args, candidate_shifts, initial_shifts=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        candidate_ids = [shift.id for shift in candidate_shifts]
+        self.fields["shifts"].queryset = Shift.objects.filter(id__in=candidate_ids).select_related(
+            "participant",
+            "worker",
+        )
+        if initial_shifts and not self.is_bound:
+            self.initial["shifts"] = [shift.id for shift in initial_shifts]
+
+    def clean_shifts(self):
+        shifts = list(self.cleaned_data["shifts"])
+        if len(shifts) < 2:
+            raise forms.ValidationError("Select at least two overlapping shifts.")
+        if len({shift.participant_id for shift in shifts}) != 1:
+            raise forms.ValidationError("Selected shifts must have the same participant.")
+        if len({shift.service_date for shift in shifts}) != 1:
+            raise forms.ValidationError("Selected shifts must be on the same date.")
+        if len({shift.worker_id for shift in shifts}) != len(shifts):
+            raise forms.ValidationError("Each selected shift must have a different worker.")
+        overlap_start = max(shift.start_time for shift in shifts)
+        overlap_end = min(shift.end_time for shift in shifts)
+        if overlap_start >= overlap_end:
+            raise forms.ValidationError("Selected shifts must share an overlapping time window.")
+        return shifts
 
 
 class RecurringShiftForm(forms.Form):

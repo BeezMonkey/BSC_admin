@@ -7,6 +7,14 @@ class AuditLog(models.Model):
         SERVICE_LOG_APPROVED = "service_log_approved", "Service log approved"
         SERVICE_LOG_REJECTED = "service_log_rejected", "Service log rejected"
         SHIFT_CANCELLED = "shift_cancelled", "Shift cancelled"
+        MULTI_WORKER_SUPPORT_APPROVED = (
+            "multi_worker_support_approved",
+            "Multi-worker support approved",
+        )
+        MULTI_WORKER_SUPPORT_INVALIDATED = (
+            "multi_worker_support_invalidated",
+            "Multi-worker support invalidated",
+        )
         INVOICE_CREATED = "invoice_created", "Invoice created"
         INVOICE_MARKED_ISSUED = "invoice_marked_issued", "Invoice marked issued"
         INVOICE_MARKED_PAID = "invoice_marked_paid", "Invoice marked paid"

@@ -1,6 +1,7 @@
 from django.urls import path
 
 from .views import (
+    planned_multi_worker_support_review,
     recurring_shift_create,
     roster_list,
     roster_planner,
@@ -23,6 +24,11 @@ from .views import (
 urlpatterns = [
     path("roster/", roster_list, name="roster_list"),
     path("roster/planner/", roster_planner, name="roster_planner"),
+    path(
+        "roster/planner/multi-worker/<int:first_shift_id>/<int:second_shift_id>/review/",
+        planned_multi_worker_support_review,
+        name="planned_multi_worker_support_review",
+    ),
     path("roster/new/", shift_create, name="shift_create"),
     path("roster/recurring/new/", recurring_shift_create, name="recurring_shift_create"),
     path("roster/publish-shown/", shift_bulk_publish, name="shift_bulk_publish"),
