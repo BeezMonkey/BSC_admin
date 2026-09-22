@@ -1462,7 +1462,8 @@ class ShiftSchedulingTests(TestCase):
         response = self.client.get(reverse("worker_shift_list"))
 
         self.assertContains(response, "Ava Nguyen")
-        self.assertContains(response, str(own_shift.id))
+        self.assertContains(response, reverse("worker_shift_detail", args=[own_shift.id]))
+        self.assertNotContains(response, f"#{own_shift.id}")
         self.assertNotContains(response, "Draft")
         self.assertNotContains(response, "Oscar Other")
 
@@ -1506,12 +1507,12 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, "status-pill status-confirmed")
         self.assertContains(response, "status-pill status-completed")
         self.assertLess(
-            content.index(f"#{published_shift.id}"),
-            content.index(f"#{completed_shift.id}"),
+            content.index("04/06/2026"),
+            content.index("21/05/2026"),
         )
         self.assertLess(
-            content.index(f"#{confirmed_shift.id}"),
-            content.index(f"#{completed_shift.id}"),
+            content.index("05/06/2026"),
+            content.index("21/05/2026"),
         )
 
     def test_worker_shift_list_shows_status_quick_actions(self):
@@ -1539,7 +1540,7 @@ class ShiftSchedulingTests(TestCase):
             reverse("worker_service_log_create", args=[confirmed_shift.id]),
         )
         self.assertContains(response, "Complete Log")
-        completed_section = content[content.index(f"#{completed_shift.id}") :]
+        completed_section = content[content.index("06/06/2026") :]
         self.assertNotIn("Confirm", completed_section)
         self.assertNotIn("Complete Log", completed_section)
 
@@ -1560,7 +1561,8 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, 'class="shift-list-status-row"')
         self.assertContains(response, 'class="shift-list-view-action shift-list-secondary-action"')
         self.assertContains(response, 'class="list-item-actions shift-list-actions shift-list-primary-action"')
-        self.assertContains(response, f'<span class="shift-list-date">#%s 01/06/2026</span>' % shift.id)
+        self.assertContains(response, '<span class="shift-list-date">01/06/2026</span>')
+        self.assertNotContains(response, f"#{shift.id}")
         self.assertContains(response, reverse("worker_shift_confirm", args=[shift.id]))
 
     def test_worker_shift_list_actions_have_clear_accessible_labels(self):
@@ -1578,7 +1580,7 @@ class ShiftSchedulingTests(TestCase):
 
         self.assertContains(
             response,
-            f'aria-label="View shift #{published_shift.id} details"',
+            'aria-label="View shift for Ava Nguyen on 04/06/2026"',
         )
         self.assertContains(
             response,
@@ -1586,11 +1588,11 @@ class ShiftSchedulingTests(TestCase):
         )
         self.assertContains(
             response,
-            f'aria-label="Confirm shift #{published_shift.id}"',
+            'aria-label="Confirm shift for Ava Nguyen on 04/06/2026"',
         )
         self.assertContains(
             response,
-            f'aria-label="Complete log for shift #{confirmed_shift.id}"',
+            'aria-label="Complete log for Ava Nguyen on 05/06/2026"',
         )
 
     def test_worker_shift_list_can_filter_by_shift_group(self):
@@ -1613,9 +1615,9 @@ class ShiftSchedulingTests(TestCase):
             {"view": "needs_attention"},
         )
 
-        self.assertContains(response, f"#{published_shift.id}")
-        self.assertNotContains(response, f"#{confirmed_shift.id}")
-        self.assertNotContains(response, f"#{completed_shift.id}")
+        self.assertContains(response, "04/06/2026")
+        self.assertNotContains(response, "05/06/2026")
+        self.assertNotContains(response, "06/06/2026")
         self.assertContains(response, "filter-active")
         self.assertContains(response, "Needs attention")
         self.assertNotContains(response, "Upcoming</h2>")
