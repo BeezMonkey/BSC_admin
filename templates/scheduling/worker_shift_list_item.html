@@ -3,12 +3,12 @@
   <div class="shift-list-item-top">
     <div class="shift-list-main">
       <strong class="shift-list-title">
-        <span class="shift-list-date">#{{ shift.id }} {{ shift.service_date|date:"d/m/Y" }}</span>
+        <span class="shift-list-date">{{ shift.service_date|date:"d/m/Y" }}</span>
         <span class="shift-list-time">{{ shift.start_time|display_time }} - {{ shift.end_time|display_time }}</span>
       </strong>
       <span class="shift-list-meta">{{ shift.participant.display_name }}</span>
     </div>
-    <a class="shift-list-view-action shift-list-secondary-action" href="{% url 'worker_shift_detail' shift.id %}" aria-label="View shift #{{ shift.id }} details">View</a>
+    <a class="shift-list-view-action shift-list-secondary-action" href="{% url 'worker_shift_detail' shift.id %}" aria-label="View shift for {{ shift.participant.display_name }} on {{ shift.service_date|date:"d/m/Y" }}">View</a>
   </div>
   <div class="shift-list-status-row">
     <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
@@ -20,11 +20,11 @@
     {% if shift.status == "published" %}
       <form method="post" action="{% url 'worker_shift_confirm' shift.id %}">
         {% csrf_token %}
-        <button type="submit" aria-label="Confirm shift #{{ shift.id }}">Confirm</button>
+        <button type="submit" aria-label="Confirm shift for {{ shift.participant.display_name }} on {{ shift.service_date|date:"d/m/Y" }}">Confirm</button>
       </form>
     {% endif %}
     {% if shift.status == "confirmed" %}
-      <a class="primary-action" href="{% url 'worker_service_log_create' shift.id %}" aria-label="Complete log for shift #{{ shift.id }}">Complete Log</a>
+      <a class="primary-action" href="{% url 'worker_service_log_create' shift.id %}" aria-label="Complete log for {{ shift.participant.display_name }} on {{ shift.service_date|date:"d/m/Y" }}">Complete Log</a>
     {% endif %}
   </div>
 </div>
