@@ -1,3 +1,4 @@
+{% load bsc_formatting %}
 <section class="card form-section">
   <h2>Participant and Worker</h2>
   <div class="form-grid">
@@ -6,6 +7,30 @@
     {% include "participants/partials/field.html" with field=form.status %}
   </div>
 </section>
+
+{% if form.participant_overlap_shift %}
+  <aside class="shift-overlap-warning" role="alert">
+    <strong>Participant overlap detected</strong>
+    <p>
+      {{ form.participant_overlap_shift.participant.display_name }} already has an active shift
+      from {{ form.participant_overlap_shift.start_time|display_time }} to {{ form.participant_overlap_shift.end_time|display_time }}
+      with {{ form.participant_overlap_shift.worker.display_name }}.
+      {% if form.participant_overlap_count > 1 %}There are {{ form.participant_overlap_count }} overlapping shifts.{% endif %}
+    </p>
+    <label class="shift-overlap-confirmation">
+      <input
+        type="checkbox"
+        name="{{ form.allow_participant_overlap.html_name }}"
+        value="1"
+        {% if form.allow_participant_overlap.value %}checked{% endif %}
+      >
+      <span>Allow this participant overlap (for example, planned 2:1 support).</span>
+    </label>
+    {% if form.allow_participant_overlap.errors %}
+      <span class="field-error">{{ form.allow_participant_overlap.errors|striptags }}</span>
+    {% endif %}
+  </aside>
+{% endif %}
 
 <section class="card form-section">
   <h2>Date and Time</h2>

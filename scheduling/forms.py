@@ -50,6 +50,8 @@ class SupportItemForm(forms.ModelForm):
 
 
 class ShiftForm(forms.ModelForm):
+    allow_participant_overlap = forms.BooleanField(required=False)
+
     class Meta:
         model = Shift
         fields = [
@@ -78,6 +80,8 @@ class ShiftForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.created_by = kwargs.pop("created_by", None)
+        self.participant_overlap_shift = None
+        self.participant_overlap_count = 0
         super().__init__(*args, **kwargs)
         self.fields["support_item"].queryset = SupportItem.active_items()
         self.fields["worker"].queryset = schedulable_worker_queryset(
@@ -100,7 +104,9 @@ class ShiftForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        participant = cleaned_data.get("participant")
         worker = cleaned_data.get("worker")
+        status = cleaned_data.get("status")
         service_date = cleaned_data.get("service_date")
         start_time = cleaned_data.get("start_time")
         end_time = cleaned_data.get("end_time")
@@ -133,6 +139,39 @@ class ShiftForm(forms.ModelForm):
                 overlap = overlap.exclude(pk=self.instance.pk)
             if overlap.exists():
                 self.add_error("worker", "Worker has an overlapping active shift.")
+
+        if (
+            participant
+            and worker
+            and status in Shift.ACTIVE_CONFLICT_STATUSES
+            and service_date
+            and start_time
+            and end_time
+        ):
+            participant_overlap = Shift.objects.filter(
+                participant=participant,
+                service_date=service_date,
+                status__in=Shift.ACTIVE_CONFLICT_STATUSES,
+                start_time__lt=end_time,
+                end_time__gt=start_time,
+            ).exclude(worker=worker)
+            if self.instance.pk:
+                participant_overlap = participant_overlap.exclude(pk=self.instance.pk)
+            participant_overlap = participant_overlap.order_by(
+                "start_time",
+                "end_time",
+                "id",
+            )
+            self.participant_overlap_count = participant_overlap.count()
+            self.participant_overlap_shift = participant_overlap.first()
+            if (
+                self.participant_overlap_shift
+                and not cleaned_data.get("allow_participant_overlap")
+            ):
+                self.add_error(
+                    "allow_participant_overlap",
+                    "Participant has an overlapping active shift. Confirm this is intentional.",
+                )
 
         return cleaned_data
 

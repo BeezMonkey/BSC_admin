@@ -762,6 +762,35 @@ td.actions a:last-child {
   font-weight: 800;
 }
 
+.shift-overlap-warning {
+  display: grid;
+  gap: 0.45rem;
+  border: 1px solid #f1c75b;
+  border-left: 4px solid #d69e2e;
+  border-radius: 7px;
+  padding: 0.8rem 0.9rem;
+  color: #6f4e00;
+  background: #fff8e6;
+}
+
+.shift-overlap-warning p {
+  margin: 0;
+  color: #725b22;
+}
+
+.shift-overlap-confirmation {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-weight: var(--weight-label);
+}
+
+.shift-overlap-confirmation input {
+  width: 1rem;
+  min-height: 1rem;
+  margin-top: 0.15rem;
+}
+
 .planner-scroll-frame {
   max-width: 100%;
   overflow-x: auto;
