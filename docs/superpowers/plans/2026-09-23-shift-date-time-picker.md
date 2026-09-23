@@ -48,4 +48,4 @@
 
 - [x] Run focused Shift tests, Django system checks, JavaScript syntax checks, and `git diff --check`.
 - [x] Visually inspect full-page and Planner modal pickers at desktop and mobile widths.
-- [ ] Commit, push `codex/date-time-picker`, create a GitHub PR, and attach it to the task.
+- [x] Commit, push `codex/date-time-picker`, create a GitHub PR, and attach it to the task.
