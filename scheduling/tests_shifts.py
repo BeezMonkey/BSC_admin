@@ -184,7 +184,41 @@ class ShiftSchedulingTests(TestCase):
         self.assertContains(response, 'value="2026-06-10"')
         self.assertNotContains(response, 'class="app-shell"')
 
-    def test_shift_create_modal_uses_friendly_empty_options_and_au_date_hint(self):
+    def test_shift_create_renders_custom_date_and_time_pickers(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("shift_create"),
+            {"service_date": "2026-06-10"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-date-time-picker="date"', count=1)
+        self.assertContains(response, 'data-date-time-picker="time"', count=2)
+        self.assertContains(response, 'name="service_date"')
+        self.assertContains(response, 'name="start_time"')
+        self.assertContains(response, 'name="end_time"')
+        self.assertContains(response, '<input type="hidden" name="service_date"')
+        self.assertContains(response, '<input type="hidden" name="start_time"')
+        self.assertContains(response, '<input type="hidden" name="end_time"')
+        self.assertContains(response, "Choose the scheduled service date.")
+        self.assertContains(response, "5-minute intervals", count=2)
+        self.assertContains(response, "js/date_time_picker.")
+
+    def test_shift_create_modal_renders_picker_markup_without_full_page_assets(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("shift_create"),
+            {"service_date": "2026-06-10", "modal": "1"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-date-time-picker="date"', count=1)
+        self.assertContains(response, 'data-date-time-picker="time"', count=2)
+        self.assertNotContains(response, "js/date_time_picker.")
+
+    def test_shift_create_modal_uses_friendly_empty_options_and_custom_date_picker(self):
         self.login_admin()
 
         response = self.client.get(
@@ -194,8 +228,8 @@ class ShiftSchedulingTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'name="service_date"')
-        self.assertContains(response, 'type="date"')
-        self.assertContains(response, 'lang="en-AU"')
+        self.assertContains(response, 'data-date-time-picker="date"')
+        self.assertContains(response, "Choose the scheduled service date.")
         self.assertContains(response, "Select participant")
         self.assertContains(response, "Select worker")
         self.assertContains(response, "Select support item")
