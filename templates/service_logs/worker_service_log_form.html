@@ -46,11 +46,7 @@
         {{ form.participant.errors }}
       </label>
       {% include "scheduling/partials/date_time_picker_field.html" with field=form.service_date picker_type="date" hint="Choose the service date." %}
-      <label class="field" for="{{ form.support_item.id_for_label }}">
-        {{ form.support_item.label }}
-        {{ form.support_item }}
-        {{ form.support_item.errors }}
-      </label>
+      {% include "scheduling/partials/support_item_picker_field.html" with field=form.support_item %}
       <label class="field" for="{{ form.service_type.id_for_label }}">
         {{ form.service_type.label }}
         {{ form.service_type }}
@@ -266,4 +262,7 @@
   })();
 </script>
 <script src="{% static 'js/date_time_picker.js' %}" defer></script>
+{% if is_unscheduled %}
+<script src="{% static 'js/support_item_picker.js' %}" defer data-support-item-picker-script></script>
+{% endif %}
 {% endblock %}

@@ -1,9 +1,13 @@
 from decimal import Decimal
 
+from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.urls import reverse
 
+from accounts.models import UserProfile
 from scheduling.models import SupportItem
 from service_logs.forms import UnscheduledServiceLogForm
+from workers.models import SupportWorker
 
 
 class WorkerSupportItemPickerFormTests(TestCase):
@@ -50,3 +54,31 @@ class WorkerSupportItemPickerFormTests(TestCase):
         self.assertIn('data-category="Community Access"', html)
         self.assertIn(str(self.support_item), html)
         self.assertNotIn(str(self.inactive_item), html)
+
+
+class WorkerSupportItemPickerPageTests(TestCase):
+    def setUp(self):
+        self.worker_user = get_user_model().objects.create_user(
+            username="worker",
+            password="test-password-123",
+            email="worker@example.com",
+        )
+        UserProfile.objects.create(
+            user=self.worker_user,
+            role=UserProfile.Role.SUPPORT_WORKER,
+            is_active_worker=True,
+        )
+        SupportWorker.objects.create(
+            user=self.worker_user,
+            first_name="Wendy",
+            last_name="Worker",
+            email="worker@example.com",
+            status=SupportWorker.Status.ACTIVE,
+        )
+        self.client.login(username="worker", password="test-password-123")
+
+    def test_unscheduled_service_form_loads_support_item_picker_assets(self):
+        response = self.client.get(reverse("worker_unscheduled_service_log_create"))
+
+        self.assertContains(response, "data-support-item-picker")
+        self.assertContains(response, "data-support-item-picker-script")

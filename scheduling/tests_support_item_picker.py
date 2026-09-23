@@ -1,7 +1,10 @@
 from decimal import Decimal
 
+from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.urls import reverse
 
+from accounts.models import UserProfile
 from invoices.forms import SupportCoordinationInvoiceCreateForm
 from scheduling.forms import RecurringShiftForm, ShiftForm
 from scheduling.models import SupportItem
@@ -72,3 +75,36 @@ class AdminSupportItemPickerFormTests(TestCase):
         field = SupportCoordinationInvoiceCreateForm().fields["support_item"]
 
         self.assertNotIn("data-support-item-picker", field.widget.attrs)
+
+
+class AdminSupportItemPickerPageTests(TestCase):
+    def setUp(self):
+        self.admin_user = get_user_model().objects.create_user(
+            username="admin",
+            password="test-password-123",
+            email="admin@example.com",
+        )
+        UserProfile.objects.create(
+            user=self.admin_user,
+            role=UserProfile.Role.ADMIN,
+        )
+        self.client.login(username="admin", password="test-password-123")
+
+    def assert_picker_assets(self, response):
+        self.assertContains(response, "data-support-item-picker")
+        self.assertContains(response, "data-support-item-picker-script")
+
+    def test_shift_form_loads_support_item_picker_assets(self):
+        self.assert_picker_assets(self.client.get(reverse("shift_create")))
+
+    def test_roster_planner_loads_support_item_picker_assets(self):
+        self.assert_picker_assets(self.client.get(reverse("roster_planner")))
+
+    def test_recurring_shift_form_loads_support_item_picker_assets(self):
+        self.assert_picker_assets(self.client.get(reverse("recurring_shift_create")))
+
+    def test_support_coordination_invoice_does_not_load_picker_assets(self):
+        response = self.client.get(reverse("support_coordination_invoice_create"))
+
+        self.assertNotContains(response, "data-support-item-picker")
+        self.assertNotContains(response, "data-support-item-picker-script")
