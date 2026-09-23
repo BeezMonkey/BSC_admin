@@ -183,6 +183,6 @@ At desktop and 390px mobile widths, inspect:
 
 Verify the calendar, Sat/Sun emphasis, five-minute wheels, selected values, validation error display, viewport containment, and unchanged surrounding fields/actions. Add only portal-scoped layout CSS if required, then rerun the focused tests and static checks.
 
-- [ ] **Step 4: Commit and publish**
+- [x] **Step 4: Commit and publish**
 
 Commit the implementation, push `codex/portal-date-time-style`, create a PR against `main`, and attach the PR to the task.
