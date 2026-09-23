@@ -60,6 +60,9 @@
     const root = modalRoot();
     root.innerHTML = html;
     document.body.classList.add("shift-modal-open");
+    if (window.initDateTimePickers) {
+      window.initDateTimePickers(root);
+    }
     focusFirstField();
   }
 

@@ -1,0 +1,61 @@
+<div class="field date-time-picker-field" data-date-time-picker="{{ picker_type }}" data-picker-name="{{ field.name }}">
+  <span id="{{ field.id_for_label }}_label">{{ field.label }}</span>
+  {{ field.as_hidden }}
+  <button
+    class="date-time-picker-trigger"
+    type="button"
+    data-picker-trigger
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    aria-labelledby="{{ field.id_for_label }}_label {{ field.id_for_label }}_display"
+  >
+    <span class="date-time-picker-placeholder" id="{{ field.id_for_label }}_display" data-picker-display>
+      {% if picker_type == "date" %}Select date{% else %}Select time{% endif %}
+    </span>
+    {% if picker_type == "date" %}
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M7 3v3M17 3v3M4 9h16M5 5h14v15H5z"></path>
+      </svg>
+    {% else %}
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="12" r="9"></circle>
+        <path d="M12 7v5l3 2"></path>
+      </svg>
+    {% endif %}
+  </button>
+  {% if hint %}<small class="date-time-picker-hint">{{ hint }}</small>{% endif %}
+  {% if field.errors %}<span class="field-error">{{ field.errors|striptags }}</span>{% endif %}
+
+  {% if picker_type == "date" %}
+    <section class="date-time-picker-popover calendar-picker-popover" data-picker-popover hidden role="dialog" aria-label="Choose {{ field.label|lower }}">
+      <header class="calendar-picker-header">
+        <strong data-calendar-title></strong>
+        <div class="calendar-picker-navigation">
+          <button type="button" data-calendar-previous aria-label="Previous month">&lsaquo;</button>
+          <button type="button" data-calendar-next aria-label="Next month">&rsaquo;</button>
+        </div>
+      </header>
+      <div class="calendar-picker-weekdays" aria-hidden="true">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span class="weekend">Sat</span><span class="weekend">Sun</span>
+      </div>
+      <div class="calendar-picker-grid" data-calendar-grid></div>
+      <footer class="date-picker-footer">
+        <button type="button" data-calendar-clear>Clear</button>
+        <button type="button" data-calendar-today>Today</button>
+      </footer>
+    </section>
+  {% else %}
+    <section class="date-time-picker-popover time-picker-popover" data-picker-popover hidden role="dialog" aria-label="Choose {{ field.label|lower }}">
+      <div class="time-wheel-stage">
+        <div class="time-wheel-highlight" aria-hidden="true"></div>
+        <div class="time-wheel-column" data-wheel-part="hour" aria-label="Hour"></div>
+        <div class="time-wheel-column" data-wheel-part="minute" aria-label="Minute"></div>
+        <div class="time-wheel-column" data-wheel-part="period" aria-label="AM or PM"></div>
+      </div>
+      <footer class="time-picker-footer">
+        <button type="button" data-time-cancel>Cancel</button>
+        <button type="button" data-time-apply>OK</button>
+      </footer>
+    </section>
+  {% endif %}
+</div>

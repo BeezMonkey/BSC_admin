@@ -39,9 +39,9 @@
 <section class="card form-section">
   <h2>Date and Time</h2>
   <div class="form-grid">
-    {% include "participants/partials/field.html" with field=form.service_date %}
-    {% include "participants/partials/field.html" with field=form.start_time %}
-    {% include "participants/partials/field.html" with field=form.end_time %}
+    {% include "scheduling/partials/date_time_picker_field.html" with field=form.service_date picker_type="date" hint="Choose the scheduled service date." %}
+    {% include "scheduling/partials/date_time_picker_field.html" with field=form.start_time picker_type="time" hint="5-minute intervals" %}
+    {% include "scheduling/partials/date_time_picker_field.html" with field=form.end_time picker_type="time" hint="5-minute intervals" %}
     {% include "participants/partials/field.html" with field=form.break_minutes %}
   </div>
 </section>
