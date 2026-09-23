@@ -29,6 +29,207 @@
   --weight-link: 650;
 }
 
+/* Searchable support item picker */
+.support-item-picker-field {
+  position: relative;
+  min-width: 0;
+}
+
+.support-item-picker-native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  opacity: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+}
+
+.support-item-picker {
+  position: relative;
+  min-width: 0;
+  font-weight: 400;
+}
+
+.support-item-picker-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-width: 0;
+  height: 2.38rem;
+  border: 1px solid #d6e1eb;
+  border-radius: 6px;
+  padding: 0.55rem 0.66rem;
+  color: var(--ink);
+  background: #ffffff;
+  text-align: left;
+  font-weight: 400;
+}
+
+.support-item-picker-trigger:hover {
+  border-color: #b7c6d4;
+  color: var(--ink);
+  background: #ffffff;
+}
+
+.support-item-picker-trigger:focus,
+.support-item-picker.is-open .support-item-picker-trigger {
+  border-color: var(--brand);
+  outline: 3px solid rgba(22, 135, 125, 0.14);
+  background: #ffffff;
+}
+
+.support-item-picker-trigger.has-error {
+  border-color: var(--danger-border);
+}
+
+.support-item-picker-trigger-label {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.support-item-picker-trigger.is-placeholder .support-item-picker-trigger-label {
+  color: #8794a6;
+}
+
+.support-item-picker-chevron {
+  flex: 0 0 auto;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin: -0.2rem 0.15rem 0 0.75rem;
+  border-right: 1.5px solid #526173;
+  border-bottom: 1.5px solid #526173;
+  transform: rotate(45deg);
+  transition: transform 120ms ease;
+}
+
+.support-item-picker.is-open .support-item-picker-chevron {
+  margin-top: 0.2rem;
+  transform: rotate(225deg);
+}
+
+.support-item-picker-panel {
+  position: absolute;
+  z-index: 90;
+  top: calc(100% + 0.34rem);
+  left: 0;
+  width: min(32rem, calc(100vw - 2rem));
+  border: 1px solid #c6d2dc;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 16px 32px rgba(28, 45, 57, 0.16);
+  overflow: hidden;
+}
+
+.support-item-picker.align-right .support-item-picker-panel {
+  right: 0;
+  left: auto;
+}
+
+.support-item-picker.open-up .support-item-picker-panel {
+  top: auto;
+  bottom: calc(100% + 0.34rem);
+}
+
+.support-item-picker-search-wrap {
+  padding: 0.55rem;
+  border-bottom: 1px solid var(--line);
+  background: #ffffff;
+}
+
+.support-item-picker-search {
+  height: 2.38rem;
+  padding: 0.5rem 0.62rem;
+  border-color: #aebbc7;
+}
+
+.support-item-picker-results {
+  max-height: 18rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.support-item-picker-group {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  padding: 0.42rem 0.72rem;
+  color: #526173;
+  background: #f1f5f7;
+  font-size: 0.73rem;
+  line-height: 1.25;
+  font-weight: var(--weight-label);
+  text-transform: uppercase;
+}
+
+.support-item-picker-option {
+  display: block;
+  width: 100%;
+  min-height: 2.55rem;
+  border: 0;
+  border-top: 1px solid #edf0f2;
+  border-radius: 0;
+  padding: 0.58rem 0.72rem;
+  color: var(--ink);
+  background: #ffffff;
+  text-align: left;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  font-weight: 400;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.support-item-picker-option:hover,
+.support-item-picker-option:focus {
+  color: var(--ink);
+  background: var(--brand-soft);
+  outline: 2px solid var(--brand);
+  outline-offset: -2px;
+}
+
+.support-item-picker-option[aria-selected="true"] {
+  background: #edf8f6;
+  box-shadow: inset 3px 0 0 var(--brand);
+}
+
+.support-item-picker-empty {
+  margin: 0;
+  padding: 1rem 0.75rem;
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.84rem;
+  font-weight: 400;
+}
+
+@media (max-width: 640px) {
+  .support-item-picker-panel,
+  .support-item-picker.align-right .support-item-picker-panel {
+    position: fixed;
+    top: auto;
+    right: 0.75rem;
+    bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    left: 0.75rem;
+    width: auto;
+    max-height: min(27rem, calc(100vh - 7rem));
+  }
+
+  .support-item-picker-results {
+    max-height: min(20rem, calc(100vh - 12rem));
+  }
+
+  .support-item-picker-option {
+    min-height: 2.75rem;
+    padding-block: 0.66rem;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
