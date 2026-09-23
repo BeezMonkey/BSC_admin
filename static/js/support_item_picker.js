@@ -32,6 +32,20 @@
 
     var triggerLabel = document.createElement("span");
     triggerLabel.className = "support-item-picker-trigger-label";
+    triggerLabel.id = pickerId + "-value";
+
+    var fieldLabel = select.labels && select.labels[0];
+    if (fieldLabel) {
+      if (!fieldLabel.id) {
+        fieldLabel.id = pickerId + "-label";
+      }
+      trigger.setAttribute(
+        "aria-labelledby",
+        fieldLabel.id + " " + triggerLabel.id
+      );
+    } else {
+      trigger.setAttribute("aria-label", "Support item");
+    }
 
     var chevron = document.createElement("span");
     chevron.className = "support-item-picker-chevron";
@@ -65,6 +79,8 @@
     select.insertAdjacentElement("afterend", picker);
 
     select.dataset.supportItemPickerReady = "true";
+    select.setAttribute("aria-hidden", "true");
+    select.tabIndex = -1;
     select.classList.add("support-item-picker-native");
 
     function selectedOption() {

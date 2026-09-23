@@ -120,3 +120,11 @@ class AdminSupportItemPickerPageTests(TestCase):
             ".support-item-picker.open-up .support-item-picker-panel",
             styles,
         )
+
+    def test_picker_combobox_name_includes_the_existing_field_label(self):
+        script = Path("static/js/support_item_picker.js").read_text(encoding="utf-8")
+
+        self.assertIn("select.labels", script)
+        self.assertIn('"aria-labelledby"', script)
+        self.assertIn('select.setAttribute("aria-hidden", "true")', script)
+        self.assertIn("select.tabIndex = -1", script)
