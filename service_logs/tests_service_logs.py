@@ -177,6 +177,67 @@ class ServiceLogCompletionTests(TestCase):
         self.assertContains(response, assigned_participant.display_name)
         self.assertNotContains(response, unassigned_participant.display_name)
 
+    def test_scheduled_service_log_uses_shared_time_pickers(self):
+        shift = self.create_shift(status=Shift.Status.CONFIRMED)
+        self.login_worker()
+
+        response = self.client.get(
+            reverse("worker_service_log_create", args=[shift.id])
+        )
+
+        self.assertContains(response, 'data-date-time-picker="time"', count=2)
+        self.assertNotContains(response, 'data-date-time-picker="date"')
+        self.assertContains(response, '<input type="hidden" name="actual_start_time"')
+        self.assertContains(response, '<input type="hidden" name="actual_end_time"')
+        self.assertContains(response, "js/date_time_picker.")
+
+    def test_unscheduled_service_log_uses_shared_date_and_time_pickers(self):
+        ParticipantWorkerAssignment.objects.create(
+            participant=self.participant,
+            worker=self.worker,
+            start_date=date(2026, 1, 1),
+            is_active=True,
+        )
+        self.login_worker()
+
+        response = self.client.get(reverse("worker_unscheduled_service_log_create"))
+
+        self.assertContains(response, 'data-date-time-picker="date"', count=1)
+        self.assertContains(response, 'data-date-time-picker="time"', count=2)
+        self.assertContains(response, '<input type="hidden" name="service_date"')
+        self.assertContains(response, '<input type="hidden" name="actual_start_time"')
+        self.assertContains(response, '<input type="hidden" name="actual_end_time"')
+        self.assertContains(response, "js/date_time_picker.")
+
+    def test_portal_theme_preserves_compact_date_time_picker_controls(self):
+        portal_css = (
+            Path(__file__).resolve().parents[1] / "static" / "css" / "portal.css"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn(
+            "[data-portal-theme] .date-time-picker-field "
+            ".calendar-picker-popover .calendar-picker-grid .calendar-day {\n"
+            "  min-height: 2rem;\n"
+            "  padding: 0;\n"
+            "  white-space: nowrap;\n"
+            "  overflow-wrap: normal;\n"
+            "  font-weight: 500;\n"
+            "}",
+            portal_css,
+        )
+        self.assertIn(
+            "[data-portal-theme] .date-time-picker-field "
+            ".time-picker-popover .time-wheel-column .time-wheel-option {\n"
+            "  min-height: 32px;\n"
+            "  padding: 0;\n"
+            "  white-space: nowrap;\n"
+            "  overflow-wrap: normal;\n"
+            "  border-radius: 0;\n"
+            "  font-weight: 500;\n"
+            "}",
+            portal_css,
+        )
+
     def test_worker_can_submit_unscheduled_service_log(self):
         ParticipantWorkerAssignment.objects.create(
             participant=self.participant,

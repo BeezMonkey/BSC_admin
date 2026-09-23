@@ -233,6 +233,16 @@ class CoordinatorLogSubmissionTests(TestCase):
             case_notes=case_notes,
         )
 
+    def test_sc_log_form_uses_shared_date_and_time_pickers(self):
+        response = self.client.get(reverse("coordinator_log_create"))
+
+        self.assertContains(response, 'data-date-time-picker="date"', count=1)
+        self.assertContains(response, 'data-date-time-picker="time"', count=2)
+        self.assertContains(response, '<input type="hidden" name="service_date"')
+        self.assertContains(response, '<input type="hidden" name="start_time"')
+        self.assertContains(response, '<input type="hidden" name="end_time"')
+        self.assertContains(response, "js/date_time_picker.")
+
     def test_sc_can_submit_log_for_assigned_participant(self):
         response = self.client.post(
             reverse("coordinator_log_create"),
