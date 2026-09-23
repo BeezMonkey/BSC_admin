@@ -198,9 +198,20 @@
       trigger.setAttribute("aria-expanded", "true");
       picker.classList.add("is-open");
       renderOptions(search.value);
-      picker.classList.remove("align-right");
+      picker.classList.remove("align-right", "open-up");
       if (panel.getBoundingClientRect().right > window.innerWidth - 12) {
         picker.classList.add("align-right");
+      }
+      var lowerBoundary = window.innerHeight - 12;
+      var modalBody = picker.closest(".shift-modal-body");
+      if (modalBody) {
+        lowerBoundary = Math.min(
+          lowerBoundary,
+          modalBody.getBoundingClientRect().bottom - 8
+        );
+      }
+      if (panel.getBoundingClientRect().bottom > lowerBoundary) {
+        picker.classList.add("open-up");
       }
       search.focus();
     }

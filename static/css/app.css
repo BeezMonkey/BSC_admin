@@ -132,6 +132,11 @@
   left: auto;
 }
 
+.support-item-picker.open-up .support-item-picker-panel {
+  top: auto;
+  bottom: calc(100% + 0.34rem);
+}
+
 .support-item-picker-search-wrap {
   padding: 0.55rem;
   border-bottom: 1px solid var(--line);

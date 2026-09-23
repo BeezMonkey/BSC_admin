@@ -1,4 +1,5 @@
 from decimal import Decimal
+from pathlib import Path
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -108,3 +109,14 @@ class AdminSupportItemPickerPageTests(TestCase):
 
         self.assertNotContains(response, "data-support-item-picker")
         self.assertNotContains(response, "data-support-item-picker-script")
+
+    def test_picker_can_open_above_a_clipping_shift_modal_boundary(self):
+        script = Path("static/js/support_item_picker.js").read_text(encoding="utf-8")
+        styles = Path("static/css/app.css").read_text(encoding="utf-8")
+
+        self.assertIn('closest(".shift-modal-body")', script)
+        self.assertIn('classList.add("open-up")', script)
+        self.assertIn(
+            ".support-item-picker.open-up .support-item-picker-panel",
+            styles,
+        )
