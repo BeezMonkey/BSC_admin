@@ -1,4 +1,5 @@
 {% extends "coordinator_base.html" %}
+{% load static %}
 
 {% block title %}Submit Coordination Log - Brisbane Star Care{% endblock %}
 
@@ -24,9 +25,9 @@
       <h2>Service Details</h2>
       <div class="form-grid">
         {% include "participants/partials/field.html" with field=form.participant %}
-        {% include "participants/partials/field.html" with field=form.service_date %}
-        {% include "participants/partials/field.html" with field=form.start_time %}
-        {% include "participants/partials/field.html" with field=form.end_time %}
+        {% include "scheduling/partials/date_time_picker_field.html" with field=form.service_date picker_type="date" hint="Choose the service date." %}
+        {% include "scheduling/partials/date_time_picker_field.html" with field=form.start_time picker_type="time" hint="5-minute intervals" %}
+        {% include "scheduling/partials/date_time_picker_field.html" with field=form.end_time picker_type="time" hint="5-minute intervals" %}
         {% include "participants/partials/field.html" with field=form.break_minutes %}
         {% include "participants/partials/field.html" with field=form.actual_hours %}
         {% include "participants/partials/field.html" with field=form.coordination_type %}
@@ -47,4 +48,5 @@
     </div>
   </form>
 </section>
+<script src="{% static 'js/date_time_picker.js' %}" defer></script>
 {% endblock %}

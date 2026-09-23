@@ -15,7 +15,7 @@
 **Files:**
 - Modify: `service_logs/tests_service_logs.py`
 
-- [ ] **Step 1: Add failing scheduled and unscheduled form tests**
+- [x] **Step 1: Add failing scheduled and unscheduled form tests**
 
 Add tests to `ServiceLogCompletionTests` that log in as the worker and assert:
 
@@ -53,7 +53,7 @@ def test_unscheduled_service_log_uses_shared_date_and_time_pickers(self):
     self.assertContains(response, "js/date_time_picker.")
 ```
 
-- [ ] **Step 2: Run the SW tests and verify RED**
+- [x] **Step 2: Run the SW tests and verify RED**
 
 Run:
 
@@ -68,7 +68,7 @@ Expected: both tests fail because the portal still renders native date/time inpu
 **Files:**
 - Modify: `templates/service_logs/worker_service_log_form.html`
 
-- [ ] **Step 1: Load the shared script and render the date field**
+- [x] **Step 1: Load the shared script and render the date field**
 
 Load `static`, then replace only the unscheduled `service_date` label with:
 
@@ -82,7 +82,7 @@ Add the shared script once at the bottom of the template:
 <script src="{% static 'js/date_time_picker.js' %}" defer></script>
 ```
 
-- [ ] **Step 2: Render the actual-time fields**
+- [x] **Step 2: Render the actual-time fields**
 
 Replace the native actual start and end time labels with:
 
@@ -93,7 +93,7 @@ Replace the native actual start and end time labels with:
 
 Leave participant, support item, service type, break minutes, kilometres, notes, attachments, buttons, and JavaScript attachment handling unchanged.
 
-- [ ] **Step 3: Run the SW tests and verify GREEN**
+- [x] **Step 3: Run the SW tests and verify GREEN**
 
 Run the two focused tests from Task 1. Expected: both pass.
 
@@ -103,7 +103,7 @@ Run the two focused tests from Task 1. Expected: both pass.
 - Modify: `coordinators/tests.py`
 - Modify: `templates/coordinators/sc_coordination_log_form.html`
 
-- [ ] **Step 1: Add the failing SC form test**
+- [x] **Step 1: Add the failing SC form test**
 
 Add to `CoordinatorLogSubmissionTests`:
 
@@ -119,7 +119,7 @@ def test_sc_log_form_uses_shared_date_and_time_pickers(self):
     self.assertContains(response, "js/date_time_picker.")
 ```
 
-- [ ] **Step 2: Run the SC test and verify RED**
+- [x] **Step 2: Run the SC test and verify RED**
 
 Run:
 
@@ -129,7 +129,7 @@ python manage.py test coordinators.tests.CoordinatorLogSubmissionTests.test_sc_l
 
 Expected: fail because the SC template still renders native date/time fields.
 
-- [ ] **Step 3: Render the shared fields and script**
+- [x] **Step 3: Render the shared fields and script**
 
 Load `static`, replace only the three date/time includes with:
 
@@ -141,7 +141,7 @@ Load `static`, replace only the three date/time includes with:
 
 Load `js/date_time_picker.js` once at the bottom. Do not change any other SC fields or actions.
 
-- [ ] **Step 4: Run the SC test and verify GREEN**
+- [x] **Step 4: Run the SC test and verify GREEN**
 
 Run the focused SC test. Expected: pass.
 
@@ -150,7 +150,7 @@ Run the focused SC test. Expected: pass.
 **Files:**
 - Modify only if visual integration requires it: `static/css/portal.css`
 
-- [ ] **Step 1: Run behaviour regression suites**
+- [x] **Step 1: Run behaviour regression suites**
 
 Run:
 
@@ -161,7 +161,7 @@ python manage.py check
 
 Expected: all tests and system checks pass, including existing duration, break, participant assignment, submission, redirect, and status assertions.
 
-- [ ] **Step 2: Run static checks**
+- [x] **Step 2: Run static checks**
 
 Run:
 
@@ -173,7 +173,7 @@ git diff --check
 
 Expected: exit code 0 with no syntax or whitespace errors.
 
-- [ ] **Step 3: Perform browser verification**
+- [x] **Step 3: Perform browser verification**
 
 At desktop and 390px mobile widths, inspect:
 

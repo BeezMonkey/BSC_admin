@@ -1,5 +1,5 @@
 {% extends "worker_base.html" %}
-{% load bsc_formatting %}
+{% load bsc_formatting static %}
 
 {% block title %}{% if is_unscheduled %}Submit Unscheduled Service{% else %}Complete Service Log{% endif %} - Brisbane Star Care{% endblock %}
 
@@ -45,11 +45,7 @@
         {{ form.participant }}
         {{ form.participant.errors }}
       </label>
-      <label class="field" for="{{ form.service_date.id_for_label }}">
-        {{ form.service_date.label }}
-        {{ form.service_date }}
-        {{ form.service_date.errors }}
-      </label>
+      {% include "scheduling/partials/date_time_picker_field.html" with field=form.service_date picker_type="date" hint="Choose the service date." %}
       <label class="field" for="{{ form.support_item.id_for_label }}">
         {{ form.support_item.label }}
         {{ form.support_item }}
@@ -64,16 +60,8 @@
     {% endif %}
 
     <div class="worker-log-field-grid">
-      <label class="field" for="{{ form.actual_start_time.id_for_label }}">
-        {{ form.actual_start_time.label }}
-        {{ form.actual_start_time }}
-        {{ form.actual_start_time.errors }}
-      </label>
-      <label class="field" for="{{ form.actual_end_time.id_for_label }}">
-        {{ form.actual_end_time.label }}
-        {{ form.actual_end_time }}
-        {{ form.actual_end_time.errors }}
-      </label>
+      {% include "scheduling/partials/date_time_picker_field.html" with field=form.actual_start_time picker_type="time" hint="5-minute intervals" %}
+      {% include "scheduling/partials/date_time_picker_field.html" with field=form.actual_end_time picker_type="time" hint="5-minute intervals" %}
       <label class="field" for="{{ form.break_minutes.id_for_label }}">
         {{ form.break_minutes.label }}
         {{ form.break_minutes }}
@@ -277,4 +265,5 @@
     render();
   })();
 </script>
+<script src="{% static 'js/date_time_picker.js' %}" defer></script>
 {% endblock %}

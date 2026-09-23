@@ -734,3 +734,71 @@
     margin-left: -2px;
   }
 }
+
+/* Keep shared date/time picker controls compact inside portal button rules. */
+[data-portal-theme] .date-time-picker-field .calendar-picker-popover .calendar-picker-grid .calendar-day {
+  min-height: 2rem;
+  padding: 0;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  font-weight: 500;
+}
+
+[data-portal-theme] .date-time-picker-field .time-picker-popover .time-wheel-column .time-wheel-option {
+  min-height: 32px;
+  padding: 0;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  border-radius: 0;
+  font-weight: 500;
+}
+
+[data-portal-theme] .date-time-picker-field .calendar-picker-popover .calendar-picker-navigation button {
+  min-height: 2rem;
+  padding: 0;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  font-size: 1.35rem;
+}
+
+[data-portal-theme] .date-time-picker-field .calendar-picker-popover .date-picker-footer button {
+  min-height: 2rem;
+  padding: 0 0.55rem;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+[data-portal-theme] .date-time-picker-field .time-picker-popover .time-picker-footer button {
+  min-height: 1.75rem;
+  padding: 0 0.45rem;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+[data-portal-theme] .date-time-picker-field .calendar-picker-popover .calendar-picker-grid .calendar-day,
+[data-portal-theme] .date-time-picker-field .time-picker-popover .time-wheel-column .time-wheel-option,
+[data-portal-theme] .date-time-picker-field .calendar-picker-popover .date-picker-footer button,
+[data-portal-theme] .date-time-picker-field .time-picker-popover .time-picker-footer button {
+  font-size: inherit;
+}
+
+[data-portal-theme] .date-time-picker-field .calendar-picker-popover .calendar-picker-grid .calendar-day {
+  font-size: 0.78rem;
+}
+
+[data-portal-theme] .date-time-picker-field .time-picker-popover .time-wheel-column .time-wheel-option {
+  font-size: 0.72rem;
+}
+
+[data-portal-theme] .date-time-picker-field .time-picker-popover .time-wheel-column .time-wheel-option.selected {
+  font-size: 0.94rem;
+  font-weight: 650;
+}
+
+[data-portal-theme] .date-time-picker-field .calendar-picker-popover .date-picker-footer button {
+  font-size: 0.75rem;
+}
+
+[data-portal-theme] .date-time-picker-field .time-picker-popover .time-picker-footer button {
+  font-size: 0.72rem;
+}
