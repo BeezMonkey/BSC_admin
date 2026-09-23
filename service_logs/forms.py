@@ -4,6 +4,7 @@ from django import forms
 
 from participants.models import Participant
 from scheduling.models import Shift, SupportItem
+from scheduling.widgets import SupportItemSelect
 
 from .models import ServiceLog
 
@@ -73,6 +74,7 @@ class UnscheduledServiceLogForm(ServiceLogForm):
         widgets = {
             **ServiceLogForm.Meta.widgets,
             "service_date": forms.DateInput(attrs={"type": "date"}),
+            "support_item": SupportItemSelect(),
             "case_notes": forms.Textarea(attrs={"rows": 5}),
             "worker_notes": forms.Textarea(attrs={"rows": 3}),
             "unscheduled_reason": forms.Textarea(attrs={"rows": 3}),

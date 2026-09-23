@@ -6,6 +6,7 @@ from django.db.models import Q
 from core.formatting import format_display_time
 
 from .models import PlannedMultiWorkerSupport, Shift, SupportItem
+from .widgets import SupportItemSelect
 from workers.models import SupportWorker
 
 
@@ -83,6 +84,7 @@ class ShiftForm(forms.ModelForm):
             "service_date": forms.DateInput(attrs={"type": "date", "lang": "en-AU"}),
             "start_time": forms.TimeInput(attrs={"type": "time", "lang": "en-AU"}),
             "end_time": forms.TimeInput(attrs={"type": "time", "lang": "en-AU"}),
+            "support_item": SupportItemSelect(),
             "address": forms.Textarea(attrs={"rows": 3}),
             "instructions": forms.Textarea(attrs={"rows": 3}),
             "admin_notes": forms.Textarea(attrs={"rows": 3}),
@@ -299,7 +301,10 @@ class RecurringShiftForm(forms.Form):
     start_time = forms.TimeField(widget=forms.TimeInput(attrs={"type": "time"}))
     end_time = forms.TimeField(widget=forms.TimeInput(attrs={"type": "time"}))
     break_minutes = forms.IntegerField(min_value=0, initial=0)
-    support_item = forms.ModelChoiceField(queryset=SupportItem.active_items())
+    support_item = forms.ModelChoiceField(
+        queryset=SupportItem.active_items(),
+        widget=SupportItemSelect(),
+    )
     service_type = forms.ChoiceField(choices=Shift.ServiceType.choices)
     location = forms.CharField(required=False, max_length=150)
     address = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 3}))
