@@ -19,7 +19,7 @@ class AdminSupportItemPickerFormTests(TestCase):
                 "Assistance With Self-Care Activities - Standard - "
                 "Weekday Daytime"
             ),
-            category="Assistance With Self-Care Activities",
+            category="Core Supports",
             unit=SupportItem.Unit.HOUR,
             price_limit=Decimal("65.47"),
             gst_code=SupportItem.GSTCode.GST_FREE,
@@ -28,7 +28,7 @@ class AdminSupportItemPickerFormTests(TestCase):
         self.saturday_item = SupportItem.objects.create(
             item_number="01_013_0107_1_1",
             name="Assistance With Self-Care Activities - Standard - Saturday",
-            category="Assistance With Self-Care Activities",
+            category="Core Supports",
             unit=SupportItem.Unit.HOUR,
             price_limit=Decimal("92.66"),
             gst_code=SupportItem.GSTCode.GST_FREE,
@@ -37,7 +37,7 @@ class AdminSupportItemPickerFormTests(TestCase):
         self.inactive_item = SupportItem.objects.create(
             item_number="01_014_0107_1_1",
             name="Assistance With Self-Care Activities - Standard - Sunday",
-            category="Assistance With Self-Care Activities",
+            category="Core Supports",
             unit=SupportItem.Unit.HOUR,
             price_limit=Decimal("119.84"),
             gst_code=SupportItem.GSTCode.GST_FREE,
@@ -58,11 +58,95 @@ class AdminSupportItemPickerFormTests(TestCase):
 
         self.assertIn(f'value="{self.weekday_item.pk}"', html)
         self.assertIn(
-            'data-category="Assistance With Self-Care Activities"',
+            'data-category="Self-care"',
             html,
         )
         self.assertIn(str(self.weekday_item), html)
         self.assertNotIn(str(self.inactive_item), html)
+
+    def test_picker_uses_service_family_headings_without_changing_options(self):
+        access_item = SupportItem.objects.create(
+            item_number="04_104_0125_6_1",
+            name=(
+                "Access Community Social and Rec Activ - Standard - "
+                "Weekday Daytime"
+            ),
+            category="Core Supports",
+            unit=SupportItem.Unit.HOUR,
+            price_limit=Decimal("73.58"),
+            gst_code=SupportItem.GSTCode.GST_FREE,
+            is_active=True,
+        )
+        travel_item = SupportItem.objects.create(
+            item_number="04_799_0125_6_1",
+            name="Provider travel - non-labour costs",
+            category="Core Supports",
+            unit=SupportItem.Unit.EACH,
+            price_limit=Decimal("1.00"),
+            gst_code=SupportItem.GSTCode.GST_FREE,
+            is_active=True,
+        )
+        coordination_item = SupportItem.objects.create(
+            item_number="07_002_0106_8_3",
+            name="Support Coordination Level 2: Coordination of Supports",
+            category="Support Coordination",
+            unit=SupportItem.Unit.HOUR,
+            price_limit=Decimal("100.14"),
+            gst_code=SupportItem.GSTCode.GST_FREE,
+            is_active=True,
+        )
+        other_item = SupportItem.objects.create(
+            item_number="99_001_TEST",
+            name="A future support item",
+            category="Capacity Building",
+            unit=SupportItem.Unit.HOUR,
+            price_limit=Decimal("50.00"),
+            gst_code=SupportItem.GSTCode.GST_FREE,
+            is_active=True,
+        )
+        other_core_item = SupportItem.objects.create(
+            item_number="99_001_CORE",
+            name="A future core support item",
+            category="Core Supports",
+            unit=SupportItem.Unit.HOUR,
+            price_limit=Decimal("50.00"),
+            gst_code=SupportItem.GSTCode.GST_FREE,
+            is_active=True,
+        )
+        uncategorized_item = SupportItem.objects.create(
+            item_number="99_002_TEST",
+            name="Another future support item",
+            category="",
+            unit=SupportItem.Unit.HOUR,
+            price_limit=Decimal("50.00"),
+            gst_code=SupportItem.GSTCode.GST_FREE,
+            is_active=True,
+        )
+
+        html = ShiftForm().fields["support_item"].widget.render(
+            "support_item",
+            access_item.pk,
+        )
+
+        self.assertIn('data-category="Self-care"', html)
+        self.assertIn('data-category="Community access"', html)
+        self.assertIn('data-category="Provider travel"', html)
+        self.assertIn('data-category="Support coordination"', html)
+        self.assertIn('data-category="Capacity Building"', html)
+        self.assertIn('data-category="Other core supports"', html)
+        self.assertIn('data-category="Other support items"', html)
+        self.assertNotIn('data-category="Core Supports"', html)
+        for item in (
+            self.weekday_item,
+            access_item,
+            travel_item,
+            coordination_item,
+            other_item,
+            other_core_item,
+            uncategorized_item,
+        ):
+            self.assertIn(f'value="{item.pk}"', html)
+            self.assertIn(str(item), html)
 
     def test_shift_form_support_item_uses_picker_without_changing_choices(self):
         self.assert_picker_contract(ShiftForm().fields["support_item"])
@@ -128,3 +212,27 @@ class AdminSupportItemPickerPageTests(TestCase):
         self.assertIn('"aria-labelledby"', script)
         self.assertIn('select.setAttribute("aria-hidden", "true")', script)
         self.assertIn("select.tabIndex = -1", script)
+
+    def test_picker_uses_compact_type_without_reducing_touch_targets(self):
+        styles = Path("static/css/app.css").read_text(encoding="utf-8")
+
+        self.assertRegex(
+            styles,
+            r"(?s)\.support-item-picker-group\s*\{[^}]*font-size:\s*0\.7rem;",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)\.support-item-picker-option\s*\{[^}]*font-size:\s*0\.8rem;",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)\.support-item-picker-option\s*\{[^}]*min-height:\s*2\.55rem;",
+        )
+        self.assertRegex(
+            styles,
+            (
+                r"(?s)@media \(max-width: 640px\).*?"
+                r"\.support-item-picker-option\s*\{[^}]*"
+                r"min-height:\s*2\.75rem;"
+            ),
+        )
