@@ -18,7 +18,7 @@ class WorkerSupportItemPickerFormTests(TestCase):
                 "Access Community Social and Recreational Activities - "
                 "Standard - Weekday Daytime"
             ),
-            category="Community Access",
+            category="Core Supports",
             unit=SupportItem.Unit.HOUR,
             price_limit=Decimal("65.47"),
             gst_code=SupportItem.GSTCode.GST_FREE,
@@ -30,7 +30,7 @@ class WorkerSupportItemPickerFormTests(TestCase):
                 "Access Community Social and Recreational Activities - "
                 "Standard - Sunday"
             ),
-            category="Community Access",
+            category="Core Supports",
             unit=SupportItem.Unit.HOUR,
             price_limit=Decimal("119.84"),
             gst_code=SupportItem.GSTCode.GST_FREE,
@@ -51,7 +51,7 @@ class WorkerSupportItemPickerFormTests(TestCase):
         )
 
         self.assertIn(f'value="{self.support_item.pk}"', html)
-        self.assertIn('data-category="Community Access"', html)
+        self.assertIn('data-category="Community access"', html)
         self.assertIn(str(self.support_item), html)
         self.assertNotIn(str(self.inactive_item), html)
 

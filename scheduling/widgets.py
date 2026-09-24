@@ -1,6 +1,27 @@
 from django import forms
 
 
+SUPPORT_ITEM_PICKER_GROUPS = (
+    (("assistance with self-care activities",), "Self-care"),
+    (
+        ("access community social and rec", "community access"),
+        "Community access",
+    ),
+    (("provider travel",), "Provider travel"),
+    (("support coordination",), "Support coordination"),
+)
+
+
+def support_item_picker_group(instance):
+    searchable_text = f"{instance.name} {instance.category}".casefold()
+    for keywords, group_label in SUPPORT_ITEM_PICKER_GROUPS:
+        if any(keyword in searchable_text for keyword in keywords):
+            return group_label
+    if instance.category.casefold() == "core supports":
+        return "Other core supports"
+    return instance.category or "Other support items"
+
+
 class SupportItemSelect(forms.Select):
     def __init__(self, attrs=None, choices=()):
         attrs = {
@@ -30,7 +51,5 @@ class SupportItemSelect(forms.Select):
         )
         instance = getattr(value, "instance", None)
         if instance is not None:
-            option["attrs"]["data-category"] = (
-                instance.category or "Other support items"
-            )
+            option["attrs"]["data-category"] = support_item_picker_group(instance)
         return option
