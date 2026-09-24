@@ -218,7 +218,7 @@ class AdminSupportItemPickerPageTests(TestCase):
 
         self.assertRegex(
             styles,
-            r"(?s)\.support-item-picker-group\s*\{[^}]*font-size:\s*0\.7rem;",
+            r"(?s)\.support-item-picker-group\s*\{[^}]*font-size:\s*0\.8rem;",
         )
         self.assertRegex(
             styles,
@@ -236,3 +236,30 @@ class AdminSupportItemPickerPageTests(TestCase):
                 r"min-height:\s*2\.75rem;"
             ),
         )
+
+    def test_picker_uses_collapsible_service_family_groups(self):
+        script = Path("static/js/support_item_picker.js").read_text(
+            encoding="utf-8"
+        )
+        styles = Path("static/css/app.css").read_text(encoding="utf-8")
+
+        self.assertIn(
+            'categoryElement.className = "support-item-picker-category"',
+            script,
+        )
+        self.assertIn(
+            'groupOptions.className = "support-item-picker-group-options"',
+            script,
+        )
+        self.assertIn('groupToggle.setAttribute("aria-expanded", "false")', script)
+        self.assertIn("setGroupOpen(categoryElement, willOpen)", script)
+        self.assertIn(
+            "setGroupOpen(categoryElement, Boolean(normalizedQuery))",
+            script,
+        )
+        self.assertIn(
+            'results.querySelectorAll(".support-item-picker-category")',
+            script,
+        )
+        self.assertIn(".support-item-picker-group-options[hidden]", styles)
+        self.assertIn(".support-item-picker-group-chevron", styles)

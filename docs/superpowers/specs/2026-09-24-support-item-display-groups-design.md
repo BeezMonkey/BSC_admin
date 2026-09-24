@@ -21,8 +21,17 @@ The existing `SupportItem.category`, item number, name, price, invoice relations
 
 ## Visual treatment
 
-Group headings remain compact, sticky dividers. Option text is reduced slightly while desktop and mobile touch-target heights remain unchanged.
+The picker initially shows only compact service-family rows. Each row includes an
+item count and a chevron; activating it expands that family's unchanged support
+item options and closes any previously open family. Search expands matching
+families automatically. Option text stays compact while desktop and mobile
+touch-target heights remain unchanged.
+
+Category rows are navigation controls rather than selectable values. Only a
+specific support item can update the underlying native select.
 
 ## Verification
 
-Tests cover all four display groups, fallback behavior, unchanged option labels and values, and the Admin and Support Worker forms that use the picker.
+Tests cover all four display groups, fallback behavior, collapsed family
+navigation, unchanged option labels and values, and the Admin and Support Worker
+forms that use the picker.

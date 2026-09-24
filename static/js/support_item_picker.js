@@ -93,10 +93,28 @@
       trigger.classList.toggle("is-placeholder", !option || !option.value);
     }
 
-    function visibleOptionButtons() {
+    function visiblePickerButtons() {
       return Array.from(
-        results.querySelectorAll(".support-item-picker-option:not([hidden])")
+        results.querySelectorAll(
+          ".support-item-picker-group, " +
+            ".support-item-picker-group-options:not([hidden]) " +
+            ".support-item-picker-option"
+        )
       );
+    }
+
+    function focusAdjacentButton(button, direction) {
+      var buttons = visiblePickerButtons();
+      var index = buttons.indexOf(button);
+      var nextIndex = index + direction;
+
+      if (direction < 0 && index === 0) {
+        search.focus();
+        return;
+      }
+      if (nextIndex >= 0 && nextIndex < buttons.length) {
+        buttons[nextIndex].focus();
+      }
     }
 
     function closePicker(restoreFocus) {
@@ -117,12 +135,81 @@
       closePicker(true);
     }
 
-    function createGroupHeading(category) {
-      var heading = document.createElement("div");
-      heading.className = "support-item-picker-group";
-      heading.textContent = category;
-      heading.setAttribute("role", "presentation");
-      return heading;
+    function setGroupOpen(categoryElement, isOpen) {
+      var groupToggle = categoryElement.querySelector(
+        ".support-item-picker-group"
+      );
+      var groupOptions = categoryElement.querySelector(
+        ".support-item-picker-group-options"
+      );
+      categoryElement.classList.toggle("is-open", isOpen);
+      groupToggle.setAttribute("aria-expanded", String(isOpen));
+      groupOptions.hidden = !isOpen;
+    }
+
+    function createOptionGroup(category, options) {
+      var categoryElement = document.createElement("div");
+      categoryElement.className = "support-item-picker-category";
+
+      var groupToggle = document.createElement("button");
+      groupToggle.type = "button";
+      groupToggle.className = "support-item-picker-group";
+      groupToggle.setAttribute("aria-expanded", "false");
+
+      var groupLabel = document.createElement("span");
+      groupLabel.className = "support-item-picker-group-label";
+      groupLabel.textContent = category;
+
+      var groupCount = document.createElement("span");
+      groupCount.className = "support-item-picker-group-count";
+      groupCount.textContent =
+        options.length + (options.length === 1 ? " item" : " items");
+
+      var groupChevron = document.createElement("span");
+      groupChevron.className = "support-item-picker-group-chevron";
+      groupChevron.setAttribute("aria-hidden", "true");
+
+      var groupOptions = document.createElement("div");
+      groupOptions.className = "support-item-picker-group-options";
+      groupOptions.hidden = true;
+      groupOptions.setAttribute("role", "group");
+      groupOptions.setAttribute("aria-label", category);
+      options.forEach(function (option) {
+        groupOptions.appendChild(createOptionButton(option));
+      });
+
+      groupToggle.append(groupLabel, groupCount, groupChevron);
+      categoryElement.append(groupToggle, groupOptions);
+
+      groupToggle.addEventListener("click", function () {
+        var willOpen = groupOptions.hidden;
+        results.querySelectorAll(".support-item-picker-category").forEach(
+          function (otherCategory) {
+            setGroupOpen(otherCategory, false);
+          }
+        );
+        setGroupOpen(categoryElement, willOpen);
+      });
+      groupToggle.addEventListener("keydown", function (event) {
+        if (event.key === "ArrowDown") {
+          event.preventDefault();
+          focusAdjacentButton(groupToggle, 1);
+        } else if (event.key === "ArrowUp") {
+          event.preventDefault();
+          focusAdjacentButton(groupToggle, -1);
+        } else if (event.key === "ArrowRight") {
+          event.preventDefault();
+          setGroupOpen(categoryElement, true);
+        } else if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          setGroupOpen(categoryElement, false);
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+          closePicker(true);
+        }
+      });
+
+      return categoryElement;
     }
 
     function createOptionButton(option) {
@@ -140,18 +227,12 @@
         chooseOption(option);
       });
       button.addEventListener("keydown", function (event) {
-        var buttons = visibleOptionButtons();
-        var index = buttons.indexOf(button);
         if (event.key === "ArrowDown") {
           event.preventDefault();
-          buttons[Math.min(index + 1, buttons.length - 1)].focus();
+          focusAdjacentButton(button, 1);
         } else if (event.key === "ArrowUp") {
           event.preventDefault();
-          if (index === 0) {
-            search.focus();
-          } else {
-            buttons[index - 1].focus();
-          }
+          focusAdjacentButton(button, -1);
         } else if (event.key === "Escape") {
           event.preventDefault();
           closePicker(true);
@@ -162,22 +243,32 @@
 
     function renderOptions(query) {
       var normalizedQuery = query.trim().toLocaleLowerCase();
-      var matchingOptions = selectableOptions.filter(function (option) {
-        return option.text.toLocaleLowerCase().includes(normalizedQuery);
-      });
-      var fragment = document.createDocumentFragment();
-      var currentCategory = null;
+      var optionGroups = new Map();
 
-      matchingOptions.forEach(function (option) {
+      selectableOptions.forEach(function (option) {
         var category = option.dataset.category || "Other support items";
-        if (category !== currentCategory) {
-          fragment.appendChild(createGroupHeading(category));
-          currentCategory = category;
+        var matchesQuery =
+          !normalizedQuery ||
+          option.text.toLocaleLowerCase().includes(normalizedQuery) ||
+          category.toLocaleLowerCase().includes(normalizedQuery);
+
+        if (!matchesQuery) {
+          return;
         }
-        fragment.appendChild(createOptionButton(option));
+        if (!optionGroups.has(category)) {
+          optionGroups.set(category, []);
+        }
+        optionGroups.get(category).push(option);
       });
 
-      if (!matchingOptions.length) {
+      var fragment = document.createDocumentFragment();
+      optionGroups.forEach(function (options, category) {
+        var categoryElement = createOptionGroup(category, options);
+        fragment.appendChild(categoryElement);
+        setGroupOpen(categoryElement, Boolean(normalizedQuery));
+      });
+
+      if (!optionGroups.size) {
         var empty = document.createElement("p");
         empty.className = "support-item-picker-empty";
         empty.textContent = "No support items match your search.";
@@ -255,7 +346,7 @@
     });
 
     search.addEventListener("keydown", function (event) {
-      var buttons = visibleOptionButtons();
+      var buttons = visiblePickerButtons();
       if (event.key === "ArrowDown" && buttons.length) {
         event.preventDefault();
         buttons[0].focus();

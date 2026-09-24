@@ -48,3 +48,17 @@
 - [x] Review the diff for schema, label, value, and invoice changes.
 - [x] Commit and push `codex/support-item-display-groups`.
 - [x] Confirm pull request #255 reflects the new commits.
+
+### Task 5: Collapse support items behind service families
+
+**Files:**
+- Modify: `static/js/support_item_picker.js`
+- Modify: `static/css/app.css`
+- Test: `scheduling/tests_support_item_picker.py`
+
+- [x] Add a failing regression assertion for collapsed category rows and chevrons.
+- [x] Render only category rows when the picker first opens.
+- [x] Allow one category at a time to expand, without making the category selectable.
+- [x] Auto-expand matching categories during search.
+- [x] Preserve keyboard navigation, native select values, and complete option labels.
+- [x] Run the focused picker and support-item seed tests.
