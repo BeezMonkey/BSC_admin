@@ -17,7 +17,7 @@ Each selectable option keeps its exact existing `item number - name - rate perio
 
 ## Data safety
 
-The existing `SupportItem.category`, item number, name, price, invoice relationships, and form querysets remain unchanged. A small helper derives the picker heading from the item's existing name. Unknown items fall back to their stored category, or `Other support items` when the category is blank.
+The existing `SupportItem.category`, item number, name, price, invoice relationships, and form querysets remain unchanged. A small helper derives the picker heading from the item's existing name. Unknown Core items use `Other core supports`; other unknown items retain their stored category, or use `Other support items` when the category is blank.
 
 ## Visual treatment
 

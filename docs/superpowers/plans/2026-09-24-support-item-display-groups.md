@@ -40,11 +40,11 @@
 - [x] Reduce only the picker heading and option font sizes; retain existing row heights and mobile spacing.
 - [x] Run focused and full test suites. The focused suite passes; the full suite has two pre-existing failures outside this change.
 
-### Task 4: Deliver through the existing pull request
+### Task 4: Deliver through a new pull request
 
 **Files:**
 - Modify: the files listed above
 
 - [x] Review the diff for schema, label, value, and invoice changes.
-- [ ] Commit and push `codex/support-item-picker-style`.
-- [ ] Confirm the existing pull request reflects the new commit.
+- [x] Commit and push `codex/support-item-display-groups`.
+- [x] Confirm pull request #255 reflects the new commits.
