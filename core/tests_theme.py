@@ -126,6 +126,32 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn(".field textarea", css)
         self.assertIn("border-color: #d6e1eb;", css)
 
+    def test_admin_selection_controls_share_visual_contract(self):
+        css = Path("static/css/admin.css").read_text(encoding="utf-8")
+
+        self.assertIn(
+            "[data-admin-theme] :is(\n"
+            '  .field input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),\n'
+            "  .field select,\n"
+            "  .date-time-picker-trigger,\n"
+            "  .support-item-picker-trigger\n"
+            ")",
+            css,
+        )
+        self.assertIn("height: 2.38rem;", css)
+        self.assertIn("min-height: 2.38rem;", css)
+        self.assertIn("border-color: var(--line);", css)
+        self.assertIn("border-radius: 5px;", css)
+        self.assertIn("font-size: 14px;", css)
+        self.assertIn(".field select:required:invalid", css)
+        self.assertIn("color: #8794a6;", css)
+        self.assertIn(
+            ".date-time-picker-trigger:focus-visible,\n"
+            "  .support-item-picker-trigger:focus-visible",
+            css,
+        )
+        self.assertIn("box-shadow: none;", css)
+
     def test_form_validation_errors_are_subtle_and_readable(self):
         css = Path("static/css/app.css").read_text(encoding="utf-8")
 

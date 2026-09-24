@@ -145,6 +145,45 @@
   border-radius: 5px;
 }
 
+[data-admin-theme] :is(
+  .field input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+  .field select,
+  .date-time-picker-trigger,
+  .support-item-picker-trigger
+) {
+  height: 2.38rem;
+  min-height: 2.38rem;
+  border-color: var(--line);
+  border-radius: 5px;
+  padding: 0.55rem 0.66rem;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: normal;
+}
+
+[data-admin-theme] .date-time-picker-field :is(
+  .date-time-picker-placeholder,
+  [data-picker-display]:not(.date-time-picker-placeholder)
+) {
+  font-size: inherit;
+}
+
+[data-admin-theme] .field select:required:invalid,
+[data-admin-theme] .field select option[value=""] {
+  color: #8794a6;
+}
+
+[data-admin-theme] .field select option:not([value=""]) {
+  color: var(--ink);
+}
+
+[data-admin-theme] :is(
+  .date-time-picker-trigger:focus-visible,
+  .support-item-picker-trigger:focus-visible
+) {
+  box-shadow: none;
+}
+
 [data-admin-theme] .filter-bar {
   gap: 14px;
   margin-bottom: 24px;
