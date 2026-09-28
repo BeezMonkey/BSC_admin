@@ -4,7 +4,7 @@
 {% block title %}Report Participant Cancellation - Brisbane Star Care{% endblock %}
 
 {% block content %}
-<section class="worker-card worker-desktop-page">
+<section class="worker-card worker-service-log-form-page participant-cancellation-form-page worker-desktop-page">
   <header class="worker-log-form-header">
     <div>
       <h1>Report Participant Cancellation</h1>
@@ -30,7 +30,7 @@
   <form class="worker-log-form" method="post">
     {% csrf_token %}
     {{ form.non_field_errors }}
-    <div class="worker-log-field-grid">
+    <div class="worker-log-field-grid participant-cancellation-field-grid">
       <label class="field" for="{{ form.cancellation_type.id_for_label }}">
         {{ form.cancellation_type.label }}
         {{ form.cancellation_type }}

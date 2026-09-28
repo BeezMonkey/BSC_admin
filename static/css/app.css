@@ -3185,7 +3185,8 @@ tbody tr:last-child td {
 .status-pill.status-archived,
 .status-pill.status-inactive,
 .status-pill.status-not_provided,
-.status-pill.status-completed {
+.status-pill.status-completed,
+.status-pill.status-waived {
   color: #475467;
   background: #eef2f6;
   border-color: #dde5ee;
@@ -3194,7 +3195,8 @@ tbody tr:last-child td {
 .status-pill.status-published,
 .status-pill.status-submitted,
 .status-pill.status-pending,
-.status-pill.status-pending_review {
+.status-pill.status-pending_review,
+.status-pill.status-cancellation_review {
   color: #92400e;
   background: #fef3c7;
   border-color: #fde68a;
@@ -5504,6 +5506,10 @@ tbody tr:last-child td {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.participant-cancellation-field-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .worker-log-notes-grid {
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
 }
@@ -5564,6 +5570,12 @@ tbody tr:last-child td {
 
 .worker-detail-actions form {
   margin: 0;
+}
+
+.worker-cancellation-review-message {
+  display: grid;
+  gap: 0.2rem;
+  width: 100%;
 }
 
 .worker-primary-action {

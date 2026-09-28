@@ -156,6 +156,10 @@ class WorkerCancellationFlowTests(ParticipantCancellationTestBase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Report Participant Cancellation")
         self.assertContains(response, self.participant.display_name)
+        self.assertContains(
+            response,
+            'class="worker-log-field-grid participant-cancellation-field-grid"',
+        )
 
     def test_assigned_worker_submits_participant_cancellation(self):
         self.client.force_login(self.user)
@@ -286,12 +290,33 @@ class AdminCancellationReviewTests(ParticipantCancellationTestBase):
             [self.cancellation],
         )
 
+    def test_admin_dashboard_prioritises_pending_cancellation(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(reverse("admin_dashboard"))
+
+        self.assertContains(response, "Review participant cancellations")
+        self.assertContains(response, "1 cancellation report")
+        self.assertContains(response, reverse("participant_cancellation_list"))
+        self.assertNotContains(response, "No outstanding admin actions.")
+
     def test_worker_cannot_open_admin_queue(self):
         self.client.force_login(self.user)
 
         response = self.client.get(reverse("participant_cancellation_list"))
 
         self.assertEqual(response.status_code, 403)
+
+    def test_admin_detail_reuses_existing_review_patterns(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(
+            reverse("participant_cancellation_detail", args=[self.cancellation.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="card service-log-review-card"')
+        self.assertContains(response, 'class="button-row service-log-review-actions"')
 
     def test_admin_approves_chargeable_cancellation(self):
         self.client.force_login(self.admin_user)

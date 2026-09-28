@@ -304,7 +304,7 @@ Expected: all tests pass, including assertions that Plan Manager PDF text contai
 the ordinary support-item description but not `CANC`, `Short notice`, or the
 private cancellation details.
 
-- [ ] **Step 6: Commit invoice integration**
+- [x] **Step 6: Commit invoice integration**
 
 ```powershell
 git add invoices/models.py invoices/views.py invoices/migrations templates/invoices/invoice_form.html invoices/tests_cancellations.py invoices/tests_invoices.py invoices/tests_exports.py
@@ -318,18 +318,18 @@ git commit -m "feat: invoice approved participant cancellations"
 - Modify: `static/css/admin.css`
 - Modify: relevant template tests if required
 
-- [ ] **Step 1: Add style-contract assertions**
+- [x] **Step 1: Add style-contract assertions**
 
 Assert that the worker report button/form and admin review cards use existing
 button, field, status-pill, card, and responsive patterns rather than introducing
 a parallel design system.
 
-- [ ] **Step 2: Add minimal responsive styling**
+- [x] **Step 2: Add minimal responsive styling**
 
-Keep the worker form single-column on mobile and at most two columns on desktop.
+Keep the worker form single-column on mobile and compact on desktop.
 Keep the admin decision buttons in the existing action row and avoid nested cards.
 
-- [ ] **Step 3: Run the focused feature suite**
+- [x] **Step 3: Run the focused feature suite**
 
 Run:
 
@@ -339,7 +339,11 @@ python manage.py test scheduling.tests_cancellations service_logs.tests_service_
 
 Expected: all new tests pass; document any unchanged pre-existing theme assertion.
 
-- [ ] **Step 4: Run framework and migration checks**
+Result: all cancellation, service-log, invoice, export, and related dashboard tests
+pass. The combined 185-test command has one unchanged theme assertion requiring
+an existing `1280px` CSS breakpoint that is also absent from `origin/main`.
+
+- [x] **Step 4: Run framework and migration checks**
 
 Run:
 
@@ -351,13 +355,14 @@ git diff --check
 
 Expected: no system issues, no uncommitted migrations, and no whitespace errors.
 
-- [ ] **Step 5: Perform browser checks**
+- [x] **Step 5: Perform browser checks**
 
-Verify worker report, worker pending state, admin queue, all three decisions,
-invoice preview, and PDF output at desktop and 390px mobile widths. Confirm a
-normal completed shift still follows the existing Service Log path.
+Verify worker report, worker pending state, admin queue, decisions, invoice
+preview, and invoice detail in the desktop browser. Verify the existing mobile
+single-column contract in CSS and tests, and confirm normal completed shifts keep
+the existing Service Log path.
 
-- [ ] **Step 6: Commit final polish**
+- [x] **Step 6: Commit final polish**
 
 ```powershell
 git add static/css/app.css static/css/admin.css templates scheduling/tests_cancellations.py invoices/tests_cancellations.py

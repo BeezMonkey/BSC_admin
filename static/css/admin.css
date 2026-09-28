@@ -346,12 +346,12 @@
   background: #e3f8ef;
 }
 
-[data-admin-theme] .status-pill:is(.status-draft, .status-archived, .status-inactive, .status-not_provided, .status-completed) {
+[data-admin-theme] .status-pill:is(.status-draft, .status-archived, .status-inactive, .status-not_provided, .status-completed, .status-waived) {
   color: #4b5563;
   background: #edf0f3;
 }
 
-[data-admin-theme] .status-pill:is(.status-published, .status-submitted, .status-pending, .status-pending_review) {
+[data-admin-theme] .status-pill:is(.status-published, .status-submitted, .status-pending, .status-pending_review, .status-cancellation_review) {
   color: #9a5b00;
   background: #fff3d8;
 }

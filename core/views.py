@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, render
 from accounts.decorators import admin_required, worker_required
 from invoices.models import Invoice
 from participants.models import Participant, ParticipantWorkerAssignment
-from scheduling.models import Shift
+from scheduling.models import ParticipantCancellation, Shift
 from service_logs.models import ServiceLog
 from workers.models import SupportWorker
 
@@ -30,6 +30,9 @@ def admin_dashboard(request):
     approved_log_count = ServiceLog.objects.filter(
         status=ServiceLog.Status.APPROVED,
         invoice_lines__isnull=True,
+    ).count()
+    pending_cancellation_count = ParticipantCancellation.objects.filter(
+        status=ParticipantCancellation.Status.PENDING,
     ).count()
     draft_invoice_count = Invoice.objects.filter(status=Invoice.Status.DRAFT).count()
     issued_invoice_count = Invoice.objects.filter(status=Invoice.Status.ISSUED).count()
@@ -62,6 +65,18 @@ def admin_dashboard(request):
         },
     ]
     priority_queue = [
+        {
+            "count": pending_cancellation_count,
+            "label": count_label(
+                pending_cancellation_count,
+                "cancellation report",
+            ),
+            "action": "Review participant cancellations",
+            "description": "Worker cancellation reports waiting for an admin decision.",
+            "url_name": "participant_cancellation_list",
+            "query": "",
+            "kind": "review",
+        },
         {
             "count": submitted_log_count,
             "label": count_label(submitted_log_count, "submitted log"),
