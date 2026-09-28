@@ -234,7 +234,7 @@ python manage.py test scheduling.tests_cancellations.AdminCancellationReviewTest
 
 Expected: all tests pass.
 
-- [ ] **Step 5: Commit the admin review**
+- [x] **Step 5: Commit the admin review**
 
 ```powershell
 git add scheduling/views.py scheduling/urls.py templates/admin_base.html templates/scheduling scheduling/tests_cancellations.py
@@ -252,11 +252,11 @@ git commit -m "feat: add admin cancellation review"
 - Test: `invoices/tests_invoices.py`
 - Test: `invoices/tests_exports.py`
 
-- [ ] **Step 1: Write failing invoice integration tests**
+- [x] **Step 1: Write failing invoice integration tests**
 
 Test that approved cancellations appear for the participant/date range, use the
 shift planned hours and original support-item rate, can be invoiced only once,
-move to invoiced status, are released when a draft/issued invoice is cancelled,
+are linked only once, become billable again when a draft/issued invoice is cancelled,
 and keep cancellation wording and `CANC` out of the PDF content.
 
 ```python
@@ -271,13 +271,13 @@ def test_approved_cancellation_uses_rostered_quantity_and_rate(self):
     self.assertEqual(line.line_type, InvoiceLine.LineType.CANCELLATION)
 ```
 
-- [ ] **Step 2: Run invoice cancellation tests and verify failure**
+- [x] **Step 2: Run invoice cancellation tests and verify failure**
 
 Run: `python manage.py test invoices.tests_cancellations`
 
 Expected: missing invoice source and manager method.
 
-- [ ] **Step 3: Add the typed invoice source**
+- [x] **Step 3: Add the typed invoice source**
 
 Add a nullable `participant_cancellation` foreign key, a cancellation line type,
 a conditional unique constraint, and expand the exactly-one-source constraint.
@@ -285,14 +285,14 @@ Implement `create_from_participant_cancellation()` with the shift support item a
 planned hours. Keep `description=support_item.name`, so existing PDF rendering is
 unchanged.
 
-- [ ] **Step 4: Extend invoice selection and release behavior**
+- [x] **Step 4: Extend invoice selection and release behavior**
 
 Load approved, uninvoiced cancellations alongside approved service logs for the
 same participant and period. Render a compact preview row without travel inputs.
-Create both source types atomically. Mark cancellation records invoiced on
-creation and return them to approved when an invoice is cancelled or deleted.
+Create both source types atomically. The unique invoice-line source marks a
+cancellation as invoiced; deleting those lines makes it billable again.
 
-- [ ] **Step 5: Run invoice and export tests**
+- [x] **Step 5: Run invoice and export tests**
 
 Run:
 

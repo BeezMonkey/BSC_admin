@@ -59,6 +59,11 @@
     <dt>Reviewed by</dt><dd>{{ cancellation.reviewed_by|default:"-" }}</dd>
     <dt>Reviewed at</dt><dd>{{ cancellation.reviewed_at|date:"d/m/Y H:i"|default:"-" }}</dd>
   </dl>
+  {% if cancellation.status == "approved" %}
+    <div class="button-row">
+      <a class="button" href="{% url 'invoice_create' %}?participant={{ cancellation.shift.participant_id }}&period_start={{ cancellation.shift.service_date|date:'Y-m-d' }}&period_end={{ cancellation.shift.service_date|date:'Y-m-d' }}">Create Invoice</a>
+    </div>
+  {% endif %}
 </section>
 {% endif %}
 {% endblock %}

@@ -30,7 +30,7 @@ from core.navigation import get_safe_return_url
 from core.pagination import paginate_queryset
 from core.sorting import apply_sorting
 from service_logs.models import ServiceLog
-from scheduling.models import SupportItem
+from scheduling.models import ParticipantCancellation, SupportItem
 
 from .forms import (
     InvoiceCreateForm,
@@ -289,6 +289,21 @@ def get_billable_logs(participant, period_start, period_end):
     ).select_related("participant", "worker", "support_item")
 
 
+def get_billable_cancellations(participant, period_start, period_end):
+    return ParticipantCancellation.objects.filter(
+        shift__participant=participant,
+        shift__service_date__gte=period_start,
+        shift__service_date__lte=period_end,
+        status=ParticipantCancellation.Status.APPROVED,
+        invoice_lines__isnull=True,
+    ).select_related(
+        "shift",
+        "shift__participant",
+        "shift__worker",
+        "shift__support_item",
+    ).order_by("shift__service_date", "shift__start_time", "id")
+
+
 def get_billable_coordination_logs(participant, period_start, period_end):
     return CoordinationLog.objects.filter(
         participant=participant,
@@ -355,10 +370,11 @@ def build_selected_invoice_form_data(service_logs):
     }
 
 
-def build_invoice_rows(service_logs, data=None):
-    return [
+def build_invoice_rows(service_logs, data=None, participant_cancellations=None):
+    rows = [
         {
             "service_log": service_log,
+            "participant_cancellation": None,
             "travel_form": TravelClaimForm(
                 data=data,
                 prefix=f"travel-{service_log.id}",
@@ -367,6 +383,25 @@ def build_invoice_rows(service_logs, data=None):
         }
         for service_log in service_logs
     ]
+    rows.extend(
+        {
+            "service_log": None,
+            "participant_cancellation": cancellation,
+            "travel_form": None,
+        }
+        for cancellation in (participant_cancellations or [])
+    )
+    return sorted(
+        rows,
+        key=lambda row: (
+            row["service_log"].service_date
+            if row["service_log"]
+            else row["participant_cancellation"].shift.service_date,
+            row["service_log"].id
+            if row["service_log"]
+            else row["participant_cancellation"].id,
+        ),
+    )
 
 
 def build_selected_invoice_groups(service_logs):
@@ -501,6 +536,7 @@ def invoice_create(request):
         form = InvoiceCreateForm(request.GET or None)
 
     service_logs = ServiceLog.objects.none()
+    participant_cancellations = ParticipantCancellation.objects.none()
     if selected_error:
         active_selected_ids = []
         if request.method == "GET" and form.is_valid():
@@ -520,6 +556,11 @@ def invoice_create(request):
             form.cleaned_data["period_start"],
             form.cleaned_data["period_end"],
         )
+        participant_cancellations = get_billable_cancellations(
+            form.cleaned_data["participant"],
+            form.cleaned_data["period_start"],
+            form.cleaned_data["period_end"],
+        )
 
     if request.method == "POST":
         if selected_error:
@@ -529,6 +570,11 @@ def invoice_create(request):
                 service_logs = selected_service_logs
             else:
                 service_logs = get_billable_logs(
+                    form.cleaned_data["participant"],
+                    form.cleaned_data["period_start"],
+                    form.cleaned_data["period_end"],
+                )
+                participant_cancellations = get_billable_cancellations(
                     form.cleaned_data["participant"],
                     form.cleaned_data["period_start"],
                     form.cleaned_data["period_end"],
@@ -544,14 +590,19 @@ def invoice_create(request):
             if selected_service_logs and len(service_logs) != len(selected_service_logs):
                 selected_error = "Selected service logs do not match the invoice participant and period."
                 service_logs = ServiceLog.objects.none()
-            elif not service_logs:
+            elif not service_logs and not participant_cancellations:
                 messages.error(request, "No approved logs found for this invoice.")
             else:
-                invoice_rows = build_invoice_rows(service_logs, request.POST)
-                if all(row["travel_form"].is_valid() for row in invoice_rows):
+                invoice_rows = build_invoice_rows(
+                    service_logs,
+                    request.POST,
+                    participant_cancellations=participant_cancellations,
+                )
+                service_rows = [row for row in invoice_rows if row["service_log"]]
+                if all(row["travel_form"].is_valid() for row in service_rows):
                     travel_claims = {
                         row["service_log"].id: row["travel_form"].cleaned_data["amount"]
-                        for row in invoice_rows
+                        for row in service_rows
                         if row["travel_form"].cleaned_data["amount"] > Decimal("0.00")
                     }
                     travel_support_item = None
@@ -589,6 +640,11 @@ def invoice_create(request):
                                     )
                                 service_log.status = ServiceLog.Status.INVOICED
                                 service_log.save(update_fields=["status", "updated_at"])
+                            for cancellation in participant_cancellations:
+                                InvoiceLine.objects.create_from_participant_cancellation(
+                                    invoice=invoice,
+                                    cancellation=cancellation,
+                                )
                         write_audit_log(
                             request.user,
                             AuditLog.Action.INVOICE_CREATED,
@@ -601,6 +657,7 @@ def invoice_create(request):
     invoice_rows = build_invoice_rows(
         service_logs,
         request.POST if request.method == "POST" else None,
+        participant_cancellations=participant_cancellations,
     )
 
     return render(
@@ -609,6 +666,7 @@ def invoice_create(request):
         {
             "form": form,
             "service_logs": service_logs,
+            "participant_cancellations": participant_cancellations,
             "invoice_rows": invoice_rows,
             "selected_invoice_groups": selected_invoice_groups,
             "selected_error": selected_error,
@@ -806,6 +864,7 @@ def invoice_queryset():
             queryset=InvoiceLine.objects.select_related(
                 "service_log",
                 "coordination_log",
+                "participant_cancellation__shift",
             ),
         ),
     )
@@ -863,7 +922,11 @@ def invoice_csv(request, invoice_id):
             "source_date",
         ]
     )
-    for line in invoice.lines.select_related("service_log", "coordination_log"):
+    for line in invoice.lines.select_related(
+        "service_log",
+        "coordination_log",
+        "participant_cancellation__shift",
+    ):
         writer.writerow(
             [
                 invoice.invoice_number,
@@ -1100,6 +1163,8 @@ def invoice_line_source_date(line):
         return format_au_date(line.service_log.service_date)
     if line.coordination_log_id:
         return format_au_date(line.coordination_log.service_date)
+    if line.participant_cancellation_id:
+        return format_au_date(line.participant_cancellation.shift.service_date)
     return "-"
 
 
@@ -1346,7 +1411,13 @@ def invoice_pdf(request, invoice_id):
         if (value or "").strip()
     ]
     footer_minimum_top = invoice_footer_minimum_top(payment_detail_rows)
-    invoice_lines = list(invoice.lines.select_related("service_log", "coordination_log"))
+    invoice_lines = list(
+        invoice.lines.select_related(
+            "service_log",
+            "coordination_log",
+            "participant_cancellation__shift",
+        )
+    )
     for line_index, line in enumerate(invoice_lines):
         description_lines = wrap_pdf_text(
             line.description,
