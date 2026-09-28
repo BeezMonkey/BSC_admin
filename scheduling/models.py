@@ -47,6 +47,7 @@ class Shift(models.Model):
         DRAFT = "draft", "Draft"
         PUBLISHED = "published", "Published"
         CONFIRMED = "confirmed", "Confirmed"
+        CANCELLATION_REVIEW = "cancellation_review", "Cancellation review"
         COMPLETED = "completed", "Completed"
         CANCELLED = "cancelled", "Cancelled"
         NO_SHOW = "no_show", "No show"
@@ -63,10 +64,16 @@ class Shift(models.Model):
         CAPACITY_BUILDING = "capacity_building", "Capacity building"
         OTHER = "other", "Other"
 
-    ACTIVE_CONFLICT_STATUSES = (Status.DRAFT, Status.PUBLISHED, Status.CONFIRMED)
+    ACTIVE_CONFLICT_STATUSES = (
+        Status.DRAFT,
+        Status.PUBLISHED,
+        Status.CONFIRMED,
+        Status.CANCELLATION_REVIEW,
+    )
     WORKER_VISIBLE_STATUSES = (
         Status.PUBLISHED,
         Status.CONFIRMED,
+        Status.CANCELLATION_REVIEW,
         Status.COMPLETED,
         Status.CANCELLED,
         Status.NO_SHOW,
@@ -126,6 +133,63 @@ class Shift(models.Model):
 
     def get_absolute_url(self):
         return reverse("shift_detail", args=[self.id])
+
+
+class ParticipantCancellation(models.Model):
+    class CancellationType(models.TextChoices):
+        SHORT_NOTICE = "short_notice", "Short notice cancellation"
+        NO_SHOW = "no_show", "Participant did not attend"
+
+    class Reason(models.TextChoices):
+        HEALTH = "health", "Health"
+        FAMILY = "family", "Family circumstances"
+        TRANSPORT = "transport", "Transport"
+        OTHER = "other", "Other"
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending review"
+        APPROVED = "approved", "Approved for charging"
+        WAIVED = "waived", "Charge waived"
+        REJECTED = "rejected", "Rejected"
+
+    shift = models.OneToOneField(
+        Shift,
+        on_delete=models.PROTECT,
+        related_name="participant_cancellation",
+    )
+    cancellation_type = models.CharField(max_length=20, choices=CancellationType.choices)
+    reason = models.CharField(max_length=20, choices=Reason.choices)
+    details = models.TextField()
+    received_at = models.DateTimeField()
+    previous_shift_status = models.CharField(max_length=20, choices=Shift.Status.choices)
+    claim_type = models.CharField(max_length=10, default="CANC", editable=False)
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+    admin_note = models.TextField(blank=True)
+    submitted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="submitted_participant_cancellations",
+    )
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="reviewed_participant_cancellations",
+        null=True,
+        blank=True,
+    )
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-submitted_at", "-id"]
+
+    def __str__(self):
+        return f"Cancellation for shift {self.shift_id} ({self.get_status_display()})"
 
 
 class PlannedMultiWorkerSupport(models.Model):

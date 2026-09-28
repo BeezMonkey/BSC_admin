@@ -35,7 +35,7 @@
 - Create: `core/migrations/0007_alter_auditlog_action.py`
 - Test: `scheduling/tests_cancellations.py`
 
-- [ ] **Step 1: Write failing model tests**
+- [x] **Step 1: Write failing model tests**
 
 Cover one record per shift, allowed choice values, captured previous shift status,
 planned-hours access through the shift, and the `CANC` internal claim type:
@@ -63,13 +63,13 @@ def test_shift_accepts_only_one_participant_cancellation(self):
         )
 ```
 
-- [ ] **Step 2: Run the model test and verify it fails**
+- [x] **Step 2: Run the model test and verify it fails**
 
 Run: `python manage.py test scheduling.tests_cancellations.ParticipantCancellationModelTests`
 
 Expected: failure because `ParticipantCancellation` does not exist.
 
-- [ ] **Step 3: Add the minimal model and audit choices**
+- [x] **Step 3: Add the minimal model and audit choices**
 
 Implement a one-to-one shift relation and these explicit choices:
 
@@ -99,7 +99,7 @@ Add submitter/reviewer timestamps and notes. Add
 `Shift.Status.CANCELLATION_REVIEW`, include it in worker-visible and active
 conflict statuses, and add audit actions for submit, approve, waive, and reject.
 
-- [ ] **Step 4: Generate migrations and run model tests**
+- [x] **Step 4: Generate migrations and run model tests**
 
 Run:
 
