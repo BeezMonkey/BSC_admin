@@ -24,6 +24,7 @@ from workers.models import SupportWorker
 
 from .forms import (
     ParticipantCancellationForm,
+    ParticipantCancellationReviewForm,
     PlannedMultiWorkerSupportReviewForm,
     RecurringShiftForm,
     ShiftForm,
@@ -1210,6 +1211,146 @@ def worker_participant_cancellation_create(request, shift_id):
         "scheduling/participant_cancellation_form.html",
         {"form": form, "shift": shift},
     )
+
+
+@admin_required
+def participant_cancellation_list(request):
+    cancellations = ParticipantCancellation.objects.select_related(
+        "shift",
+        "shift__participant",
+        "shift__worker",
+        "shift__support_item",
+        "submitted_by",
+        "reviewed_by",
+    )
+    pending_cancellations = cancellations.filter(
+        status=ParticipantCancellation.Status.PENDING
+    ).order_by("submitted_at", "id")
+    reviewed_cancellations = cancellations.exclude(
+        status=ParticipantCancellation.Status.PENDING
+    )[:50]
+    return render(
+        request,
+        "scheduling/participant_cancellation_list.html",
+        {
+            "pending_cancellations": pending_cancellations,
+            "reviewed_cancellations": reviewed_cancellations,
+        },
+    )
+
+
+@admin_required
+def participant_cancellation_detail(request, cancellation_id):
+    cancellation = get_object_or_404(
+        ParticipantCancellation.objects.select_related(
+            "shift",
+            "shift__participant",
+            "shift__worker",
+            "shift__support_item",
+            "submitted_by",
+            "reviewed_by",
+        ),
+        id=cancellation_id,
+    )
+    return render(
+        request,
+        "scheduling/participant_cancellation_detail.html",
+        {
+            "cancellation": cancellation,
+            "review_form": ParticipantCancellationReviewForm(),
+        },
+    )
+
+
+def review_participant_cancellation(request, cancellation_id, decision):
+    decisions = {
+        "approve": {
+            "status": ParticipantCancellation.Status.APPROVED,
+            "shift_status": Shift.Status.CANCELLED,
+            "audit_action": AuditLog.Action.PARTICIPANT_CANCELLATION_APPROVED,
+            "message": "Cancellation approved for charging.",
+        },
+        "waive": {
+            "status": ParticipantCancellation.Status.WAIVED,
+            "shift_status": Shift.Status.CANCELLED,
+            "audit_action": AuditLog.Action.PARTICIPANT_CANCELLATION_WAIVED,
+            "message": "Cancellation recorded and charge waived.",
+        },
+        "reject": {
+            "status": ParticipantCancellation.Status.REJECTED,
+            "shift_status": None,
+            "audit_action": AuditLog.Action.PARTICIPANT_CANCELLATION_REJECTED,
+            "message": "Cancellation report rejected.",
+        },
+    }
+    decision_config = decisions[decision]
+    form = ParticipantCancellationReviewForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, "Review note could not be saved.")
+        return redirect(
+            "participant_cancellation_detail",
+            cancellation_id=cancellation_id,
+        )
+    if decision == "reject" and not form.cleaned_data["admin_note"].strip():
+        messages.error(request, "Add an admin note before rejecting the report.")
+        return redirect(
+            "participant_cancellation_detail",
+            cancellation_id=cancellation_id,
+        )
+
+    with transaction.atomic():
+        cancellation = get_object_or_404(
+            ParticipantCancellation.objects.select_for_update().select_related("shift"),
+            id=cancellation_id,
+            status=ParticipantCancellation.Status.PENDING,
+        )
+        shift = Shift.objects.select_for_update().get(id=cancellation.shift_id)
+        cancellation.status = decision_config["status"]
+        cancellation.admin_note = form.cleaned_data["admin_note"].strip()
+        cancellation.reviewed_by = request.user
+        cancellation.reviewed_at = timezone.now()
+        cancellation.save(
+            update_fields=[
+                "status",
+                "admin_note",
+                "reviewed_by",
+                "reviewed_at",
+                "updated_at",
+            ]
+        )
+        shift.status = (
+            cancellation.previous_shift_status
+            if decision == "reject"
+            else decision_config["shift_status"]
+        )
+        shift.save(update_fields=["status", "updated_at"])
+        write_audit_log(
+            request.user,
+            decision_config["audit_action"],
+            cancellation,
+            f"{decision_config['message']} Shift {shift.id}.",
+        )
+
+    messages.success(request, decision_config["message"])
+    return redirect("participant_cancellation_list")
+
+
+@admin_required
+@require_POST
+def participant_cancellation_approve(request, cancellation_id):
+    return review_participant_cancellation(request, cancellation_id, "approve")
+
+
+@admin_required
+@require_POST
+def participant_cancellation_waive(request, cancellation_id):
+    return review_participant_cancellation(request, cancellation_id, "waive")
+
+
+@admin_required
+@require_POST
+def participant_cancellation_reject(request, cancellation_id):
+    return review_participant_cancellation(request, cancellation_id, "reject")
 
 
 @worker_required

@@ -176,7 +176,7 @@ python manage.py test scheduling.tests_cancellations.WorkerCancellationFlowTests
 
 Expected: all tests pass; normal scheduled and unscheduled service logs remain unchanged.
 
-- [ ] **Step 5: Commit the worker flow**
+- [x] **Step 5: Commit the worker flow**
 
 ```powershell
 git add scheduling/forms.py scheduling/views.py scheduling/urls.py service_logs/views.py templates/scheduling
@@ -193,7 +193,7 @@ git commit -m "feat: let workers report participant cancellations"
 - Create: `templates/scheduling/participant_cancellation_detail.html`
 - Test: `scheduling/tests_cancellations.py`
 
-- [ ] **Step 1: Write failing admin-review tests**
+- [x] **Step 1: Write failing admin-review tests**
 
 Cover the pending queue, admin-only permissions, approve-and-charge, waive,
 reject, reviewer/timestamp fields, shift transitions, and audit entries.
@@ -211,20 +211,20 @@ def test_admin_approves_chargeable_cancellation(self):
     self.assertEqual(self.cancellation.shift.status, Shift.Status.CANCELLED)
 ```
 
-- [ ] **Step 2: Run admin-review tests and verify failure**
+- [x] **Step 2: Run admin-review tests and verify failure**
 
 Run: `python manage.py test scheduling.tests_cancellations.AdminCancellationReviewTests`
 
 Expected: missing review endpoints and templates.
 
-- [ ] **Step 3: Implement queue and three decisions**
+- [x] **Step 3: Implement queue and three decisions**
 
 List pending first, then recent reviewed records. Use POST-only decision endpoints
 inside transactions. Approve and waive set the shift to cancelled; reject restores
 `previous_shift_status`. Render the original shift and worker submission in a
 compact review card, with no eligibility wizard or attachments.
 
-- [ ] **Step 4: Run admin-review and shift regression tests**
+- [x] **Step 4: Run admin-review and shift regression tests**
 
 Run:
 

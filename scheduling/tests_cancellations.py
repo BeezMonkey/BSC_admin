@@ -254,3 +254,123 @@ class WorkerCancellationFlowTests(ParticipantCancellationTestBase):
 
         self.assertContains(response, "Cancellation awaiting admin review")
         self.assertNotContains(response, "Complete Service Log")
+
+
+class AdminCancellationReviewTests(ParticipantCancellationTestBase):
+    def setUp(self):
+        super().setUp()
+        self.admin_user = User.objects.create_user(
+            username="cancellation.admin",
+            password="test-password",
+        )
+        UserProfile.objects.create(
+            user=self.admin_user,
+            role=UserProfile.Role.ADMIN,
+        )
+        self.cancellation = ParticipantCancellation.objects.create(
+            **self.cancellation_values()
+        )
+        self.shift.status = Shift.Status.CANCELLATION_REVIEW
+        self.shift.save(update_fields=["status", "updated_at"])
+
+    def test_admin_queue_lists_pending_cancellation(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(reverse("participant_cancellation_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Participant Cancellations")
+        self.assertContains(response, self.participant.display_name)
+        self.assertEqual(
+            list(response.context["pending_cancellations"]),
+            [self.cancellation],
+        )
+
+    def test_worker_cannot_open_admin_queue(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("participant_cancellation_list"))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_admin_approves_chargeable_cancellation(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.post(
+            reverse("participant_cancellation_approve", args=[self.cancellation.id]),
+            {"admin_note": "Service agreement checked."},
+        )
+
+        self.assertRedirects(response, reverse("participant_cancellation_list"))
+        self.cancellation.refresh_from_db()
+        self.shift.refresh_from_db()
+        self.assertEqual(
+            self.cancellation.status,
+            ParticipantCancellation.Status.APPROVED,
+        )
+        self.assertEqual(self.cancellation.admin_note, "Service agreement checked.")
+        self.assertEqual(self.cancellation.reviewed_by, self.admin_user)
+        self.assertIsNotNone(self.cancellation.reviewed_at)
+        self.assertEqual(self.shift.status, Shift.Status.CANCELLED)
+        self.assertTrue(
+            AuditLog.objects.filter(
+                action=AuditLog.Action.PARTICIPANT_CANCELLATION_APPROVED,
+                object_id=str(self.cancellation.id),
+                actor=self.admin_user,
+            ).exists()
+        )
+
+    def test_admin_waives_charge(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.post(
+            reverse("participant_cancellation_waive", args=[self.cancellation.id]),
+            {"admin_note": "Waived as a goodwill adjustment."},
+        )
+
+        self.assertRedirects(response, reverse("participant_cancellation_list"))
+        self.cancellation.refresh_from_db()
+        self.shift.refresh_from_db()
+        self.assertEqual(self.cancellation.status, ParticipantCancellation.Status.WAIVED)
+        self.assertEqual(self.shift.status, Shift.Status.CANCELLED)
+        self.assertTrue(
+            AuditLog.objects.filter(
+                action=AuditLog.Action.PARTICIPANT_CANCELLATION_WAIVED,
+                object_id=str(self.cancellation.id),
+            ).exists()
+        )
+
+    def test_admin_rejects_and_restores_previous_shift_status(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.post(
+            reverse("participant_cancellation_reject", args=[self.cancellation.id]),
+            {"admin_note": "Worker confirmed the service still occurred."},
+        )
+
+        self.assertRedirects(response, reverse("participant_cancellation_list"))
+        self.cancellation.refresh_from_db()
+        self.shift.refresh_from_db()
+        self.assertEqual(
+            self.cancellation.status,
+            ParticipantCancellation.Status.REJECTED,
+        )
+        self.assertEqual(self.shift.status, Shift.Status.CONFIRMED)
+        self.assertTrue(
+            AuditLog.objects.filter(
+                action=AuditLog.Action.PARTICIPANT_CANCELLATION_REJECTED,
+                object_id=str(self.cancellation.id),
+            ).exists()
+        )
+
+    def test_reviewed_cancellation_cannot_be_decided_again(self):
+        self.cancellation.status = ParticipantCancellation.Status.APPROVED
+        self.cancellation.save(update_fields=["status", "updated_at"])
+        self.client.force_login(self.admin_user)
+
+        response = self.client.post(
+            reverse("participant_cancellation_reject", args=[self.cancellation.id]),
+            {"admin_note": "Second decision."},
+        )
+
+        self.assertEqual(response.status_code, 404)

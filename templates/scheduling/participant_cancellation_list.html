@@ -1,0 +1,78 @@
+{% extends "admin_base.html" %}
+{% load bsc_formatting %}
+
+{% block title %}Participant Cancellations - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Participant Cancellations</h1>
+    <p>Review worker reports and decide whether the rostered service is chargeable.</p>
+  </div>
+</div>
+
+<section class="card table-card">
+  <h2>Waiting for review</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Participant</th>
+        <th>Worker</th>
+        <th>Type</th>
+        <th>Status</th>
+        <th class="actions-heading">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cancellation in pending_cancellations %}
+      <tr>
+        <td>{{ cancellation.shift.service_date|date:"d/m/Y" }}<br><small>{{ cancellation.shift.start_time|display_time }} - {{ cancellation.shift.end_time|display_time }}</small></td>
+        <td>{{ cancellation.shift.participant.display_name }}</td>
+        <td>{{ cancellation.shift.worker.display_name }}</td>
+        <td>{{ cancellation.get_cancellation_type_display }}</td>
+        <td><span class="status-pill status-pending">{{ cancellation.get_status_display }}</span></td>
+        <td class="actions"><a href="{% url 'participant_cancellation_detail' cancellation.id %}">Review</a></td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6">
+          <div class="empty-state">
+            <strong>No cancellations need review.</strong>
+            <p>New participant cancellation reports will appear here.</p>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% if reviewed_cancellations %}
+<section class="card table-card">
+  <h2>Recently reviewed</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Participant</th>
+        <th>Worker</th>
+        <th>Decision</th>
+        <th class="actions-heading">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cancellation in reviewed_cancellations %}
+      <tr>
+        <td>{{ cancellation.shift.service_date|date:"d/m/Y" }}</td>
+        <td>{{ cancellation.shift.participant.display_name }}</td>
+        <td>{{ cancellation.shift.worker.display_name }}</td>
+        <td><span class="status-pill status-{{ cancellation.status }}">{{ cancellation.get_status_display }}</span></td>
+        <td class="actions"><a href="{% url 'participant_cancellation_detail' cancellation.id %}">View</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+{% endblock %}

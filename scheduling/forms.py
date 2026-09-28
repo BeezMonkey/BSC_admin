@@ -40,6 +40,14 @@ class ParticipantCancellationForm(forms.ModelForm):
         self.fields["received_at"].input_formats = ["%Y-%m-%dT%H:%M"]
 
 
+class ParticipantCancellationReviewForm(forms.Form):
+    admin_note = forms.CharField(
+        label="Admin note",
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 3}),
+    )
+
+
 class SupportItemForm(forms.ModelForm):
     class Meta:
         model = SupportItem

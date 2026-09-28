@@ -1,0 +1,64 @@
+{% extends "admin_base.html" %}
+{% load bsc_formatting %}
+
+{% block title %}Participant Cancellation - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ cancellation.shift.participant.display_name }}</h1>
+    <p>{{ cancellation.shift.service_date|date:"d/m/Y" }} | {{ cancellation.get_status_display }}</p>
+  </div>
+  <a class="button secondary" href="{% url 'participant_cancellation_list' %}">Back to Cancellations</a>
+</div>
+
+<div class="detail-grid">
+  <section class="card">
+    <h2>Rostered shift</h2>
+    <dl class="detail-list">
+      <dt>Worker</dt><dd>{{ cancellation.shift.worker.display_name }}</dd>
+      <dt>Time</dt><dd>{{ cancellation.shift.start_time|display_time }} - {{ cancellation.shift.end_time|display_time }}</dd>
+      <dt>Rostered hours</dt><dd>{{ cancellation.shift.planned_hours }}</dd>
+      <dt>Support item</dt><dd>{{ cancellation.shift.support_item }}</dd>
+    </dl>
+  </section>
+  <section class="card">
+    <h2>Worker report</h2>
+    <dl class="detail-list">
+      <dt>Cancellation type</dt><dd>{{ cancellation.get_cancellation_type_display }}</dd>
+      <dt>Reason</dt><dd>{{ cancellation.get_reason_display }}</dd>
+      <dt>Notified at</dt><dd>{{ cancellation.received_at|date:"d/m/Y H:i" }}</dd>
+      <dt>Details</dt><dd>{{ cancellation.details }}</dd>
+      <dt>Submitted at</dt><dd>{{ cancellation.submitted_at|date:"d/m/Y H:i" }}</dd>
+    </dl>
+  </section>
+</div>
+
+{% if cancellation.status == "pending" %}
+<section class="card service-log-review-card">
+  <h2>Review</h2>
+  <form method="post" class="service-log-reject-form">
+    {% csrf_token %}
+    <label class="field" for="{{ review_form.admin_note.id_for_label }}">
+      {{ review_form.admin_note.label }}
+      {{ review_form.admin_note }}
+    </label>
+    <div class="button-row service-log-review-actions">
+      <button type="submit" formaction="{% url 'participant_cancellation_approve' cancellation.id %}">Approve Charge</button>
+      <button class="secondary" type="submit" formaction="{% url 'participant_cancellation_waive' cancellation.id %}">Waive Charge</button>
+      <button class="danger" type="submit" formaction="{% url 'participant_cancellation_reject' cancellation.id %}">Reject Report</button>
+    </div>
+  </form>
+</section>
+{% else %}
+<section class="card">
+  <h2>Review outcome</h2>
+  <dl class="detail-list">
+    <dt>Decision</dt><dd>{{ cancellation.get_status_display }}</dd>
+    <dt>Admin note</dt><dd>{{ cancellation.admin_note|default:"-" }}</dd>
+    <dt>Reviewed by</dt><dd>{{ cancellation.reviewed_by|default:"-" }}</dd>
+    <dt>Reviewed at</dt><dd>{{ cancellation.reviewed_at|date:"d/m/Y H:i"|default:"-" }}</dd>
+  </dl>
+</section>
+{% endif %}
+{% endblock %}
