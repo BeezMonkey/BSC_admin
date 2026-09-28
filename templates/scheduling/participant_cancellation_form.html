@@ -1,0 +1,61 @@
+{% extends "worker_base.html" %}
+{% load bsc_formatting %}
+
+{% block title %}Report Participant Cancellation - Brisbane Star Care{% endblock %}
+
+{% block content %}
+<section class="worker-card worker-desktop-page">
+  <header class="worker-log-form-header">
+    <div>
+      <h1>Report Participant Cancellation</h1>
+      <p>{{ shift.participant.display_name }}</p>
+    </div>
+  </header>
+
+  <dl class="worker-log-shift-summary">
+    <div>
+      <dt>Date</dt>
+      <dd>{{ shift.service_date|date:"d/m/Y" }}</dd>
+    </div>
+    <div>
+      <dt>Rostered time</dt>
+      <dd>{{ shift.start_time|display_time }} - {{ shift.end_time|display_time }}</dd>
+    </div>
+    <div>
+      <dt>Service</dt>
+      <dd>{{ shift.get_service_type_display }}</dd>
+    </div>
+  </dl>
+
+  <form class="worker-log-form" method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="worker-log-field-grid">
+      <label class="field" for="{{ form.cancellation_type.id_for_label }}">
+        {{ form.cancellation_type.label }}
+        {{ form.cancellation_type }}
+        {{ form.cancellation_type.errors }}
+      </label>
+      <label class="field" for="{{ form.reason.id_for_label }}">
+        {{ form.reason.label }}
+        {{ form.reason }}
+        {{ form.reason.errors }}
+      </label>
+      <label class="field" for="{{ form.received_at.id_for_label }}">
+        {{ form.received_at.label }}
+        {{ form.received_at }}
+        {{ form.received_at.errors }}
+      </label>
+    </div>
+    <label class="field" for="{{ form.details.id_for_label }}">
+      {{ form.details.label }}
+      {{ form.details }}
+      {{ form.details.errors }}
+    </label>
+    <div class="button-row worker-log-form-actions worker-bottom-actions">
+      <button type="submit">Send for Review</button>
+      <a class="button secondary" href="{% url 'worker_shift_detail' shift.id %}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

@@ -3,6 +3,7 @@ from decimal import Decimal
 from urllib.parse import urlencode
 
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -22,12 +23,13 @@ from participants.models import Participant
 from workers.models import SupportWorker
 
 from .forms import (
+    ParticipantCancellationForm,
     PlannedMultiWorkerSupportReviewForm,
     RecurringShiftForm,
     ShiftForm,
     SupportItemForm,
 )
-from .models import PlannedMultiWorkerSupport, Shift, SupportItem
+from .models import ParticipantCancellation, PlannedMultiWorkerSupport, Shift, SupportItem
 from .multi_worker import (
     approve_multi_worker_support,
     approve_overlap_groups,
@@ -1152,6 +1154,62 @@ def worker_shift_detail(request, shift_id):
         status__in=Shift.WORKER_VISIBLE_STATUSES,
     )
     return render(request, "scheduling/worker_shift_detail.html", {"shift": shift})
+
+
+@worker_required
+def worker_participant_cancellation_create(request, shift_id):
+    worker = getattr(request.user, "supportworker", None)
+    eligible_shifts = Shift.objects.select_related(
+        "participant",
+        "worker",
+        "support_item",
+    ).filter(
+        id=shift_id,
+        worker=worker,
+        source=Shift.Source.SCHEDULED,
+        status__in=[Shift.Status.PUBLISHED, Shift.Status.CONFIRMED],
+        participant_cancellation__isnull=True,
+        service_log__isnull=True,
+    )
+    shift = get_object_or_404(eligible_shifts)
+
+    if request.method == "POST":
+        form = ParticipantCancellationForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                locked_shift = get_object_or_404(
+                    Shift.objects.select_for_update().filter(
+                        id=shift.id,
+                        worker=worker,
+                        source=Shift.Source.SCHEDULED,
+                        status__in=[Shift.Status.PUBLISHED, Shift.Status.CONFIRMED],
+                        participant_cancellation__isnull=True,
+                        service_log__isnull=True,
+                    )
+                )
+                cancellation = form.save(commit=False)
+                cancellation.shift = locked_shift
+                cancellation.previous_shift_status = locked_shift.status
+                cancellation.submitted_by = request.user
+                cancellation.save()
+                locked_shift.status = Shift.Status.CANCELLATION_REVIEW
+                locked_shift.save(update_fields=["status", "updated_at"])
+                write_audit_log(
+                    request.user,
+                    AuditLog.Action.PARTICIPANT_CANCELLATION_SUBMITTED,
+                    cancellation,
+                    f"Reported participant cancellation for shift {locked_shift.id}.",
+                )
+            messages.success(request, "Cancellation sent to admin for review.")
+            return redirect("worker_shift_detail", shift_id=shift.id)
+    else:
+        form = ParticipantCancellationForm(initial={"received_at": timezone.now()})
+
+    return render(
+        request,
+        "scheduling/participant_cancellation_form.html",
+        {"form": form, "shift": shift},
+    )
 
 
 @worker_required

@@ -4,19 +4,21 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.test import TestCase
+from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import UserProfile
+from core.models import AuditLog
 from participants.models import Participant
 from scheduling import models as scheduling_models
-from scheduling.models import Shift, SupportItem
+from scheduling.models import ParticipantCancellation, Shift, SupportItem
 from workers.models import SupportWorker
 
 
 User = get_user_model()
 
 
-class ParticipantCancellationModelTests(TestCase):
+class ParticipantCancellationTestBase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username="worker.cancellation",
@@ -76,6 +78,8 @@ class ParticipantCancellationModelTests(TestCase):
             "submitted_by": self.user,
         }
 
+
+class ParticipantCancellationModelTests(ParticipantCancellationTestBase):
     def test_model_records_internal_cancellation_claim_data(self):
         model = self.get_model()
 
@@ -111,3 +115,142 @@ class ParticipantCancellationModelTests(TestCase):
 
     def test_shift_has_cancellation_review_status(self):
         self.assertEqual(Shift.Status.CANCELLATION_REVIEW, "cancellation_review")
+
+
+class WorkerCancellationFlowTests(ParticipantCancellationTestBase):
+    def setUp(self):
+        super().setUp()
+        self.other_user = User.objects.create_user(
+            username="other.worker",
+            password="test-password",
+        )
+        UserProfile.objects.create(
+            user=self.other_user,
+            role=UserProfile.Role.SUPPORT_WORKER,
+            is_active_worker=True,
+        )
+        self.other_worker = SupportWorker.objects.create(
+            user=self.other_user,
+            first_name="Other",
+            last_name="Worker",
+            email="other.worker@example.com",
+        )
+
+    def submission_payload(self, **overrides):
+        payload = {
+            "cancellation_type": ParticipantCancellation.CancellationType.SHORT_NOTICE,
+            "reason": ParticipantCancellation.Reason.HEALTH,
+            "details": "Participant called to cancel before the shift.",
+            "received_at": "2026-09-28T09:30",
+        }
+        payload.update(overrides)
+        return payload
+
+    def test_assigned_worker_can_open_cancellation_form(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("worker_participant_cancellation_create", args=[self.shift.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Report Participant Cancellation")
+        self.assertContains(response, self.participant.display_name)
+
+    def test_assigned_worker_submits_participant_cancellation(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("worker_participant_cancellation_create", args=[self.shift.id]),
+            self.submission_payload(),
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("worker_shift_detail", args=[self.shift.id]),
+        )
+        cancellation = ParticipantCancellation.objects.get(shift=self.shift)
+        self.assertEqual(cancellation.previous_shift_status, Shift.Status.CONFIRMED)
+        self.assertEqual(cancellation.submitted_by, self.user)
+        self.shift.refresh_from_db()
+        self.assertEqual(self.shift.status, Shift.Status.CANCELLATION_REVIEW)
+        self.assertTrue(
+            AuditLog.objects.filter(
+                action=AuditLog.Action.PARTICIPANT_CANCELLATION_SUBMITTED,
+                object_type="ParticipantCancellation",
+                object_id=str(cancellation.id),
+                actor=self.user,
+            ).exists()
+        )
+
+    def test_details_are_required(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("worker_participant_cancellation_create", args=[self.shift.id]),
+            self.submission_payload(details=""),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "This field is required.")
+        self.assertFalse(ParticipantCancellation.objects.exists())
+        self.shift.refresh_from_db()
+        self.assertEqual(self.shift.status, Shift.Status.CONFIRMED)
+
+    def test_unassigned_worker_cannot_report_cancellation(self):
+        self.client.force_login(self.other_user)
+
+        response = self.client.post(
+            reverse("worker_participant_cancellation_create", args=[self.shift.id]),
+            self.submission_payload(),
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(ParticipantCancellation.objects.exists())
+
+    def test_unscheduled_shift_cannot_use_cancellation_workflow(self):
+        self.shift.source = Shift.Source.UNSCHEDULED
+        self.shift.save(update_fields=["source", "updated_at"])
+        self.client.force_login(self.user)
+
+        response = self.client.post(
+            reverse("worker_participant_cancellation_create", args=[self.shift.id]),
+            self.submission_payload(),
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_duplicate_cancellation_is_blocked(self):
+        ParticipantCancellation.objects.create(**self.cancellation_values())
+        self.shift.status = Shift.Status.CANCELLATION_REVIEW
+        self.shift.save(update_fields=["status", "updated_at"])
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("worker_participant_cancellation_create", args=[self.shift.id])
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_pending_cancellation_blocks_service_log_creation(self):
+        ParticipantCancellation.objects.create(**self.cancellation_values())
+        self.shift.status = Shift.Status.CANCELLATION_REVIEW
+        self.shift.save(update_fields=["status", "updated_at"])
+        self.client.force_login(self.user)
+
+        response = self.client.get(
+            reverse("worker_service_log_create", args=[self.shift.id])
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_shift_detail_replaces_actions_with_review_message(self):
+        ParticipantCancellation.objects.create(**self.cancellation_values())
+        self.shift.status = Shift.Status.CANCELLATION_REVIEW
+        self.shift.save(update_fields=["status", "updated_at"])
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("worker_shift_detail", args=[self.shift.id]))
+
+        self.assertContains(response, "Cancellation awaiting admin review")
+        self.assertNotContains(response, "Complete Service Log")

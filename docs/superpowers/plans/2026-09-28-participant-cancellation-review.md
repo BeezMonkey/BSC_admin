@@ -110,7 +110,7 @@ python manage.py test scheduling.tests_cancellations.ParticipantCancellationMode
 
 Expected: migrations created and model tests pass.
 
-- [ ] **Step 5: Commit the domain model**
+- [x] **Step 5: Commit the domain model**
 
 ```powershell
 git add scheduling/models.py scheduling/migrations core/models.py core/migrations scheduling/tests_cancellations.py
@@ -128,7 +128,7 @@ git commit -m "feat: add participant cancellation records"
 - Create: `templates/scheduling/participant_cancellation_form.html`
 - Test: `scheduling/tests_cancellations.py`
 
-- [ ] **Step 1: Write failing worker-flow tests**
+- [x] **Step 1: Write failing worker-flow tests**
 
 Test that only the assigned worker can report a published or confirmed scheduled
 shift, details are required, submission stores the original status and moves the
@@ -152,13 +152,13 @@ def test_assigned_worker_submits_participant_cancellation(self):
     self.assertEqual(self.shift.status, Shift.Status.CANCELLATION_REVIEW)
 ```
 
-- [ ] **Step 2: Run worker-flow tests and verify failure**
+- [x] **Step 2: Run worker-flow tests and verify failure**
 
 Run: `python manage.py test scheduling.tests_cancellations.WorkerCancellationFlowTests`
 
 Expected: missing URL/view/form failures.
 
-- [ ] **Step 3: Implement the compact worker flow**
+- [x] **Step 3: Implement the compact worker flow**
 
 Use a `ModelForm` exposing only cancellation type, reason, details, and received
 time. Save the cancellation and shift status in one transaction. Query the shift
@@ -166,7 +166,7 @@ by the logged-in worker and valid source/status, and reject any shift with an
 existing service log or cancellation. Add one secondary button and replace the
 completion action with a pending-review message after submission.
 
-- [ ] **Step 4: Run worker and existing service-log tests**
+- [x] **Step 4: Run worker and existing service-log tests**
 
 Run:
 

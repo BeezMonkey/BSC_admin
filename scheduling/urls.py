@@ -19,6 +19,7 @@ from .views import (
     worker_shift_confirm,
     worker_shift_detail,
     worker_shift_list,
+    worker_participant_cancellation_create,
 )
 
 urlpatterns = [
@@ -55,5 +56,10 @@ urlpatterns = [
         "sw/shifts/<int:shift_id>/confirm/",
         worker_shift_confirm,
         name="worker_shift_confirm",
+    ),
+    path(
+        "sw/shifts/<int:shift_id>/participant-cancellation/",
+        worker_participant_cancellation_create,
+        name="worker_participant_cancellation_create",
     ),
 ]
