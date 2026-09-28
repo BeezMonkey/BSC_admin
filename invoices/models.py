@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from coordinators.models import CoordinationLog
+from scheduling.models import ParticipantCancellation
 from service_logs.models import ServiceLog
 
 
@@ -141,7 +142,10 @@ class InvoiceLineManager(models.Manager):
             raise ValueError(
                 "Support coordination invoice lines can only be added to support coordination invoices."
             )
-        if invoice.pk and invoice.lines.filter(service_log__isnull=False).exists():
+        if invoice.pk and invoice.lines.filter(
+            models.Q(service_log__isnull=False)
+            | models.Q(participant_cancellation__isnull=False)
+        ).exists():
             raise ValueError("Support coordination invoices cannot contain service log lines.")
 
     def create_from_service_log(self, invoice, service_log):
@@ -157,6 +161,29 @@ class InvoiceLineManager(models.Manager):
             invoice=invoice,
             service_log=service_log,
             line_type=InvoiceLine.LineType.SERVICE,
+            support_item_number=support_item.item_number,
+            description=support_item.name,
+            unit=support_item.unit,
+            unit_price=unit_price,
+            quantity=quantity,
+            gst_code=support_item.gst_code,
+            line_total=line_total,
+        )
+
+    def create_from_participant_cancellation(self, invoice, cancellation):
+        self._ensure_service_invoice(invoice)
+        shift = cancellation.shift
+        support_item = shift.support_item
+        quantity = shift.planned_hours
+        unit_price = support_item.price_limit
+        line_total = (quantity * unit_price).quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP,
+        )
+        return self.create(
+            invoice=invoice,
+            participant_cancellation=cancellation,
+            line_type=InvoiceLine.LineType.CANCELLATION,
             support_item_number=support_item.item_number,
             description=support_item.name,
             unit=support_item.unit,
@@ -221,6 +248,7 @@ class InvoiceLineManager(models.Manager):
 class InvoiceLine(models.Model):
     class LineType(models.TextChoices):
         SERVICE = "service", "Service"
+        CANCELLATION = "cancellation", "Participant cancellation"
         TRAVEL_NON_LABOUR = "travel_non_labour", "Provider travel - non-labour"
         SUPPORT_COORDINATION = "support_coordination", "Support Coordination"
 
@@ -238,6 +266,13 @@ class InvoiceLine(models.Model):
     )
     coordination_log = models.ForeignKey(
         CoordinationLog,
+        on_delete=models.PROTECT,
+        related_name="invoice_lines",
+        null=True,
+        blank=True,
+    )
+    participant_cancellation = models.ForeignKey(
+        ParticipantCancellation,
         on_delete=models.PROTECT,
         related_name="invoice_lines",
         null=True,
@@ -271,10 +306,28 @@ class InvoiceLine(models.Model):
                 condition=models.Q(coordination_log__isnull=False),
                 name="unique_invoice_line_per_coordination_log",
             ),
+            models.UniqueConstraint(
+                fields=["participant_cancellation"],
+                condition=models.Q(participant_cancellation__isnull=False),
+                name="unique_invoice_line_per_participant_cancellation",
+            ),
             models.CheckConstraint(
                 check=(
-                    models.Q(service_log__isnull=False, coordination_log__isnull=True)
-                    | models.Q(service_log__isnull=True, coordination_log__isnull=False)
+                    models.Q(
+                        service_log__isnull=False,
+                        coordination_log__isnull=True,
+                        participant_cancellation__isnull=True,
+                    )
+                    | models.Q(
+                        service_log__isnull=True,
+                        coordination_log__isnull=False,
+                        participant_cancellation__isnull=True,
+                    )
+                    | models.Q(
+                        service_log__isnull=True,
+                        coordination_log__isnull=True,
+                        participant_cancellation__isnull=False,
+                    )
                 ),
                 name="invoice_line_has_exactly_one_source",
             ),

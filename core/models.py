@@ -7,6 +7,22 @@ class AuditLog(models.Model):
         SERVICE_LOG_APPROVED = "service_log_approved", "Service log approved"
         SERVICE_LOG_REJECTED = "service_log_rejected", "Service log rejected"
         SHIFT_CANCELLED = "shift_cancelled", "Shift cancelled"
+        PARTICIPANT_CANCELLATION_SUBMITTED = (
+            "participant_cancellation_submitted",
+            "Participant cancellation submitted",
+        )
+        PARTICIPANT_CANCELLATION_APPROVED = (
+            "participant_cancellation_approved",
+            "Participant cancellation approved",
+        )
+        PARTICIPANT_CANCELLATION_WAIVED = (
+            "participant_cancellation_waived",
+            "Participant cancellation charge waived",
+        )
+        PARTICIPANT_CANCELLATION_REJECTED = (
+            "participant_cancellation_rejected",
+            "Participant cancellation rejected",
+        )
         MULTI_WORKER_SUPPORT_APPROVED = (
             "multi_worker_support_approved",
             "Multi-worker support approved",

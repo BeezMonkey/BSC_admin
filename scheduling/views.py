@@ -3,6 +3,7 @@ from decimal import Decimal
 from urllib.parse import urlencode
 
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -22,12 +23,14 @@ from participants.models import Participant
 from workers.models import SupportWorker
 
 from .forms import (
+    ParticipantCancellationForm,
+    ParticipantCancellationReviewForm,
     PlannedMultiWorkerSupportReviewForm,
     RecurringShiftForm,
     ShiftForm,
     SupportItemForm,
 )
-from .models import PlannedMultiWorkerSupport, Shift, SupportItem
+from .models import ParticipantCancellation, PlannedMultiWorkerSupport, Shift, SupportItem
 from .multi_worker import (
     approve_multi_worker_support,
     approve_overlap_groups,
@@ -1152,6 +1155,202 @@ def worker_shift_detail(request, shift_id):
         status__in=Shift.WORKER_VISIBLE_STATUSES,
     )
     return render(request, "scheduling/worker_shift_detail.html", {"shift": shift})
+
+
+@worker_required
+def worker_participant_cancellation_create(request, shift_id):
+    worker = getattr(request.user, "supportworker", None)
+    eligible_shifts = Shift.objects.select_related(
+        "participant",
+        "worker",
+        "support_item",
+    ).filter(
+        id=shift_id,
+        worker=worker,
+        source=Shift.Source.SCHEDULED,
+        status__in=[Shift.Status.PUBLISHED, Shift.Status.CONFIRMED],
+        participant_cancellation__isnull=True,
+        service_log__isnull=True,
+    )
+    shift = get_object_or_404(eligible_shifts)
+
+    if request.method == "POST":
+        form = ParticipantCancellationForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                locked_shift = get_object_or_404(
+                    Shift.objects.select_for_update().filter(
+                        id=shift.id,
+                        worker=worker,
+                        source=Shift.Source.SCHEDULED,
+                        status__in=[Shift.Status.PUBLISHED, Shift.Status.CONFIRMED],
+                        participant_cancellation__isnull=True,
+                        service_log__isnull=True,
+                    )
+                )
+                cancellation = form.save(commit=False)
+                cancellation.shift = locked_shift
+                cancellation.previous_shift_status = locked_shift.status
+                cancellation.submitted_by = request.user
+                cancellation.save()
+                locked_shift.status = Shift.Status.CANCELLATION_REVIEW
+                locked_shift.save(update_fields=["status", "updated_at"])
+                write_audit_log(
+                    request.user,
+                    AuditLog.Action.PARTICIPANT_CANCELLATION_SUBMITTED,
+                    cancellation,
+                    f"Reported participant cancellation for shift {locked_shift.id}.",
+                )
+            messages.success(request, "Cancellation sent to admin for review.")
+            return redirect("worker_shift_detail", shift_id=shift.id)
+    else:
+        form = ParticipantCancellationForm(initial={"received_at": timezone.now()})
+
+    return render(
+        request,
+        "scheduling/participant_cancellation_form.html",
+        {"form": form, "shift": shift},
+    )
+
+
+@admin_required
+def participant_cancellation_list(request):
+    cancellations = ParticipantCancellation.objects.select_related(
+        "shift",
+        "shift__participant",
+        "shift__worker",
+        "shift__support_item",
+        "submitted_by",
+        "reviewed_by",
+    )
+    pending_cancellations = cancellations.filter(
+        status=ParticipantCancellation.Status.PENDING
+    ).order_by("submitted_at", "id")
+    reviewed_cancellations = cancellations.exclude(
+        status=ParticipantCancellation.Status.PENDING
+    )[:50]
+    return render(
+        request,
+        "scheduling/participant_cancellation_list.html",
+        {
+            "pending_cancellations": pending_cancellations,
+            "reviewed_cancellations": reviewed_cancellations,
+        },
+    )
+
+
+@admin_required
+def participant_cancellation_detail(request, cancellation_id):
+    cancellation = get_object_or_404(
+        ParticipantCancellation.objects.select_related(
+            "shift",
+            "shift__participant",
+            "shift__worker",
+            "shift__support_item",
+            "submitted_by",
+            "reviewed_by",
+        ),
+        id=cancellation_id,
+    )
+    return render(
+        request,
+        "scheduling/participant_cancellation_detail.html",
+        {
+            "cancellation": cancellation,
+            "review_form": ParticipantCancellationReviewForm(),
+        },
+    )
+
+
+def review_participant_cancellation(request, cancellation_id, decision):
+    decisions = {
+        "approve": {
+            "status": ParticipantCancellation.Status.APPROVED,
+            "shift_status": Shift.Status.CANCELLED,
+            "audit_action": AuditLog.Action.PARTICIPANT_CANCELLATION_APPROVED,
+            "message": "Cancellation approved for charging.",
+        },
+        "waive": {
+            "status": ParticipantCancellation.Status.WAIVED,
+            "shift_status": Shift.Status.CANCELLED,
+            "audit_action": AuditLog.Action.PARTICIPANT_CANCELLATION_WAIVED,
+            "message": "Cancellation recorded and charge waived.",
+        },
+        "reject": {
+            "status": ParticipantCancellation.Status.REJECTED,
+            "shift_status": None,
+            "audit_action": AuditLog.Action.PARTICIPANT_CANCELLATION_REJECTED,
+            "message": "Cancellation report rejected.",
+        },
+    }
+    decision_config = decisions[decision]
+    form = ParticipantCancellationReviewForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, "Review note could not be saved.")
+        return redirect(
+            "participant_cancellation_detail",
+            cancellation_id=cancellation_id,
+        )
+    if decision == "reject" and not form.cleaned_data["admin_note"].strip():
+        messages.error(request, "Add an admin note before rejecting the report.")
+        return redirect(
+            "participant_cancellation_detail",
+            cancellation_id=cancellation_id,
+        )
+
+    with transaction.atomic():
+        cancellation = get_object_or_404(
+            ParticipantCancellation.objects.select_for_update().select_related("shift"),
+            id=cancellation_id,
+            status=ParticipantCancellation.Status.PENDING,
+        )
+        shift = Shift.objects.select_for_update().get(id=cancellation.shift_id)
+        cancellation.status = decision_config["status"]
+        cancellation.admin_note = form.cleaned_data["admin_note"].strip()
+        cancellation.reviewed_by = request.user
+        cancellation.reviewed_at = timezone.now()
+        cancellation.save(
+            update_fields=[
+                "status",
+                "admin_note",
+                "reviewed_by",
+                "reviewed_at",
+                "updated_at",
+            ]
+        )
+        shift.status = (
+            cancellation.previous_shift_status
+            if decision == "reject"
+            else decision_config["shift_status"]
+        )
+        shift.save(update_fields=["status", "updated_at"])
+        write_audit_log(
+            request.user,
+            decision_config["audit_action"],
+            cancellation,
+            f"{decision_config['message']} Shift {shift.id}.",
+        )
+
+    messages.success(request, decision_config["message"])
+    return redirect("participant_cancellation_list")
+
+
+@admin_required
+@require_POST
+def participant_cancellation_approve(request, cancellation_id):
+    return review_participant_cancellation(request, cancellation_id, "approve")
+
+
+@admin_required
+@require_POST
+def participant_cancellation_waive(request, cancellation_id):
+    return review_participant_cancellation(request, cancellation_id, "waive")
+
+
+@admin_required
+@require_POST
+def participant_cancellation_reject(request, cancellation_id):
+    return review_participant_cancellation(request, cancellation_id, "reject")
 
 
 @worker_required

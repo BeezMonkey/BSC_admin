@@ -5,7 +5,7 @@ from django.db.models import Q
 
 from core.formatting import format_display_time
 
-from .models import PlannedMultiWorkerSupport, Shift, SupportItem
+from .models import ParticipantCancellation, PlannedMultiWorkerSupport, Shift, SupportItem
 from .widgets import SupportItemSelect
 from workers.models import SupportWorker
 
@@ -15,6 +15,37 @@ def schedulable_worker_queryset(include_worker=None):
     if include_worker and include_worker.pk:
         filters |= Q(pk=include_worker.pk)
     return SupportWorker.objects.filter(filters).order_by("last_name", "first_name")
+
+
+class ParticipantCancellationForm(forms.ModelForm):
+    class Meta:
+        model = ParticipantCancellation
+        fields = ["cancellation_type", "reason", "details", "received_at"]
+        labels = {
+            "cancellation_type": "Cancellation type",
+            "reason": "Reason",
+            "details": "Cancellation details",
+            "received_at": "When were you notified?",
+        }
+        widgets = {
+            "details": forms.Textarea(attrs={"rows": 4}),
+            "received_at": forms.DateTimeInput(
+                format="%Y-%m-%dT%H:%M",
+                attrs={"type": "datetime-local"},
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["received_at"].input_formats = ["%Y-%m-%dT%H:%M"]
+
+
+class ParticipantCancellationReviewForm(forms.Form):
+    admin_note = forms.CharField(
+        label="Admin note",
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 3}),
+    )
 
 
 class SupportItemForm(forms.ModelForm):

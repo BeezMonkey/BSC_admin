@@ -21,6 +21,12 @@
     <dt>Service</dt><dd>{{ shift.get_service_type_display }}</dd>
   </dl>
   <div class="worker-detail-actions">
+    {% if shift.status == "cancellation_review" %}
+      <div class="message info worker-cancellation-review-message" role="status">
+        <strong>Cancellation awaiting admin review</strong>
+        <span>No further action is needed for this shift.</span>
+      </div>
+    {% endif %}
     {% if shift.status == "published" %}
       <form method="post" action="{% url 'worker_shift_confirm' shift.id %}">
         {% csrf_token %}
@@ -29,6 +35,7 @@
     {% endif %}
     {% if shift.status == "published" or shift.status == "confirmed" %}
       <a class="button worker-primary-action" href="{% url 'worker_service_log_create' shift.id %}">Complete Service Log</a>
+      <a class="button secondary" href="{% url 'worker_participant_cancellation_create' shift.id %}">Report participant cancellation</a>
     {% endif %}
   </div>
 </section>

@@ -40,7 +40,7 @@
 {% endif %}
 
 <section class="card table-card invoice-preview-table">
-  <h2>Approved Logs</h2>
+    <h2>Approved Billing Records</h2>
   {% if selected_invoice_groups %}
     <div class="invoice-selected-groups">
       {% for group in selected_invoice_groups %}
@@ -101,7 +101,7 @@
         </article>
       {% endfor %}
     </div>
-  {% elif service_logs %}
+  {% elif service_logs or participant_cancellations %}
     <form method="post">
       {% csrf_token %}
       <input type="hidden" name="participant" value="{{ form.cleaned_data.participant.id }}">
@@ -125,22 +125,32 @@
         <tbody>
           {% for row in invoice_rows %}
             <tr>
-              <td class="invoice-preview-date-cell">{{ row.service_log.service_date|date:"d/m/Y" }}</td>
-              <td class="invoice-preview-worker-cell">{{ row.service_log.worker.display_name }}</td>
-              <td class="invoice-preview-support-cell">{{ row.service_log.support_item }}</td>
-              <td class="invoice-preview-hours-cell">{{ row.service_log.actual_hours }}</td>
-              <td class="invoice-preview-travel-cell">{{ row.service_log.kilometres|floatformat:2 }}</td>
-              <td class="invoice-travel-claim">
-                {% if row.service_log.kilometres > 0 %}
-                  {{ row.travel_form.amount.errors }}
-                  {{ row.travel_form.amount.label_tag }}
-                  {{ row.travel_form.amount }}
-                  <small>Admin enters the approved amount.</small>
-                {% else %}
-                  <span class="invoice-travel-empty">No travel recorded</span>
-                {% endif %}
-              </td>
-              <td class="invoice-preview-notes-cell">{{ row.service_log.case_notes|truncatechars:80 }}</td>
+              {% if row.service_log %}
+                <td class="invoice-preview-date-cell">{{ row.service_log.service_date|date:"d/m/Y" }}</td>
+                <td class="invoice-preview-worker-cell">{{ row.service_log.worker.display_name }}</td>
+                <td class="invoice-preview-support-cell">{{ row.service_log.support_item }}</td>
+                <td class="invoice-preview-hours-cell">{{ row.service_log.actual_hours }}</td>
+                <td class="invoice-preview-travel-cell">{{ row.service_log.kilometres|floatformat:2 }}</td>
+                <td class="invoice-travel-claim">
+                  {% if row.service_log.kilometres > 0 %}
+                    {{ row.travel_form.amount.errors }}
+                    {{ row.travel_form.amount.label_tag }}
+                    {{ row.travel_form.amount }}
+                    <small>Admin enters the approved amount.</small>
+                  {% else %}
+                    <span class="invoice-travel-empty">No travel recorded</span>
+                  {% endif %}
+                </td>
+                <td class="invoice-preview-notes-cell">{{ row.service_log.case_notes|truncatechars:80 }}</td>
+              {% else %}
+                <td class="invoice-preview-date-cell">{{ row.participant_cancellation.shift.service_date|date:"d/m/Y" }}</td>
+                <td class="invoice-preview-worker-cell">{{ row.participant_cancellation.shift.worker.display_name }}</td>
+                <td class="invoice-preview-support-cell">{{ row.participant_cancellation.shift.support_item }}</td>
+                <td class="invoice-preview-hours-cell">{{ row.participant_cancellation.shift.planned_hours }}</td>
+                <td class="invoice-preview-travel-cell">0.00</td>
+                <td class="invoice-travel-claim"><span class="invoice-travel-empty">No travel claim</span></td>
+                <td class="invoice-preview-notes-cell">Approved rostered charge</td>
+              {% endif %}
             </tr>
           {% endfor %}
         </tbody>

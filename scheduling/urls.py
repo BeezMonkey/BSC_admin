@@ -1,6 +1,11 @@
 from django.urls import path
 
 from .views import (
+    participant_cancellation_approve,
+    participant_cancellation_detail,
+    participant_cancellation_list,
+    participant_cancellation_reject,
+    participant_cancellation_waive,
     planned_multi_worker_support_review,
     recurring_shift_create,
     roster_list,
@@ -19,10 +24,36 @@ from .views import (
     worker_shift_confirm,
     worker_shift_detail,
     worker_shift_list,
+    worker_participant_cancellation_create,
 )
 
 urlpatterns = [
     path("roster/", roster_list, name="roster_list"),
+    path(
+        "roster/participant-cancellations/",
+        participant_cancellation_list,
+        name="participant_cancellation_list",
+    ),
+    path(
+        "roster/participant-cancellations/<int:cancellation_id>/",
+        participant_cancellation_detail,
+        name="participant_cancellation_detail",
+    ),
+    path(
+        "roster/participant-cancellations/<int:cancellation_id>/approve/",
+        participant_cancellation_approve,
+        name="participant_cancellation_approve",
+    ),
+    path(
+        "roster/participant-cancellations/<int:cancellation_id>/waive/",
+        participant_cancellation_waive,
+        name="participant_cancellation_waive",
+    ),
+    path(
+        "roster/participant-cancellations/<int:cancellation_id>/reject/",
+        participant_cancellation_reject,
+        name="participant_cancellation_reject",
+    ),
     path("roster/planner/", roster_planner, name="roster_planner"),
     path(
         "roster/planner/multi-worker/<int:first_shift_id>/<int:second_shift_id>/review/",
@@ -55,5 +86,10 @@ urlpatterns = [
         "sw/shifts/<int:shift_id>/confirm/",
         worker_shift_confirm,
         name="worker_shift_confirm",
+    ),
+    path(
+        "sw/shifts/<int:shift_id>/participant-cancellation/",
+        worker_participant_cancellation_create,
+        name="worker_participant_cancellation_create",
     ),
 ]
