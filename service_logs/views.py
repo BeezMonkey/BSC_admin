@@ -1,10 +1,11 @@
 from contextlib import suppress
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, Sum
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -32,7 +33,9 @@ from invoices.views import (
     wrap_pdf_text,
 )
 from scheduling.models import Shift
+from participants.models import Participant
 
+from .filters import DATE_RANGE_CHOICES, format_hours, resolve_service_date_filter
 from .forms import ServiceLogForm, UnscheduledServiceLogForm
 from .models import ServiceLog
 from .notifications import notify_admin_service_log_submitted
@@ -52,48 +55,105 @@ def service_log_list(request):
         "support_item",
     )
     status = request.GET.get("status", "").strip()
-    has_filters = bool(status)
     if status:
         service_logs = service_logs.filter(status=status)
+
+    participants = Participant.objects.all()
+    participant_value = request.GET.get("participant", "").strip()
+    selected_participant = None
+    if participant_value:
+        try:
+            selected_participant = participants.filter(
+                pk=int(participant_value),
+            ).first()
+        except (TypeError, ValueError):
+            selected_participant = None
+        service_logs = (
+            service_logs.filter(participant=selected_participant)
+            if selected_participant
+            else service_logs.none()
+        )
+
+    date_filter = resolve_service_date_filter(
+        request.GET.get("date_range", "all").strip(),
+        request.GET.get("date_from", "").strip(),
+        request.GET.get("date_to", "").strip(),
+        today=timezone.localdate(),
+    )
+    if date_filter["start"]:
+        service_logs = service_logs.filter(service_date__gte=date_filter["start"])
+    if date_filter["end"]:
+        service_logs = service_logs.filter(service_date__lte=date_filter["end"])
+
+    has_filters = bool(
+        status
+        or participant_value
+        or date_filter["key"] != "all"
+        or date_filter["start_value"]
+        or date_filter["end_value"]
+    )
     status_label = dict(ServiceLog.Status.choices).get(status)
     filter_summary = f"Showing {status_label.lower()} service logs." if status_label else ""
+
+    preserved_filters = {}
+    if participant_value:
+        preserved_filters["participant"] = participant_value
+    if date_filter["key"] != "all":
+        preserved_filters["date_range"] = date_filter["key"]
+    if date_filter["start_value"]:
+        preserved_filters["date_from"] = date_filter["start_value"]
+    if date_filter["end_value"]:
+        preserved_filters["date_to"] = date_filter["end_value"]
+
+    def status_url(status_value=""):
+        query_params = preserved_filters.copy()
+        if status_value:
+            query_params["status"] = status_value
+        query_string = urlencode(query_params)
+        base_url = reverse("service_log_list")
+        return f"{base_url}?{query_string}" if query_string else base_url
+
     status_overview = [
         {
             "label": "All logs",
             "count_label": f"{total_count} record{'s' if total_count != 1 else ''}",
             "description": "Full service log history",
-            "url": reverse("service_log_list"),
+            "url": status_url(),
             "active": not status,
         },
         {
             "label": "Submitted",
             "count_label": f"{status_counts.get(ServiceLog.Status.SUBMITTED, 0)} waiting",
             "description": "Waiting for admin review",
-            "url": f"{reverse('service_log_list')}?status={ServiceLog.Status.SUBMITTED}",
+            "url": status_url(ServiceLog.Status.SUBMITTED),
             "active": status == ServiceLog.Status.SUBMITTED,
         },
         {
             "label": "Approved",
             "count_label": f"{status_counts.get(ServiceLog.Status.APPROVED, 0)} ready",
             "description": "Ready to invoice",
-            "url": f"{reverse('service_log_list')}?status={ServiceLog.Status.APPROVED}",
+            "url": status_url(ServiceLog.Status.APPROVED),
             "active": status == ServiceLog.Status.APPROVED,
         },
         {
             "label": "Invoiced",
             "count_label": f"{status_counts.get(ServiceLog.Status.INVOICED, 0)} billed",
             "description": "Already converted to invoices",
-            "url": f"{reverse('service_log_list')}?status={ServiceLog.Status.INVOICED}",
+            "url": status_url(ServiceLog.Status.INVOICED),
             "active": status == ServiceLog.Status.INVOICED,
         },
         {
             "label": "Rejected",
             "count_label": f"{status_counts.get(ServiceLog.Status.REJECTED, 0)} returned",
             "description": "Needs worker correction",
-            "url": f"{reverse('service_log_list')}?status={ServiceLog.Status.REJECTED}",
+            "url": status_url(ServiceLog.Status.REJECTED),
             "active": status == ServiceLog.Status.REJECTED,
         },
     ]
+    filtered_summary = service_logs.aggregate(
+        record_count=Count("id"),
+        total_hours=Sum("actual_hours"),
+    )
     service_logs, sorting = apply_sorting(
         request,
         service_logs,
@@ -105,6 +165,9 @@ def service_log_list(request):
         },
     )
     service_logs, pagination = paginate_queryset(request, service_logs)
+    clear_filter_url = reverse("service_log_list")
+    if status:
+        clear_filter_url = f"{clear_filter_url}?{urlencode({'status': status})}"
     return render(
         request,
         "service_logs/service_log_list.html",
@@ -113,10 +176,19 @@ def service_log_list(request):
             "pagination": pagination,
             "sorting": sorting,
             "status": status,
+            "status_label": status_label,
             "has_filters": has_filters,
-            "status_choices": ServiceLog.Status.choices,
             "status_overview": status_overview,
             "filter_summary": filter_summary,
+            "participants": participants,
+            "selected_participant_id": participant_value,
+            "date_range_choices": DATE_RANGE_CHOICES,
+            "date_range": date_filter["key"],
+            "date_from": date_filter["start_value"],
+            "date_to": date_filter["end_value"],
+            "filtered_record_count": filtered_summary["record_count"],
+            "filtered_hours": format_hours(filtered_summary["total_hours"]),
+            "clear_filter_url": clear_filter_url,
             "current_list_url": request.get_full_path(),
         },
     )
