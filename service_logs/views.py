@@ -33,7 +33,7 @@ from invoices.views import (
     wrap_pdf_text,
 )
 from participants.models import Participant
-from scheduling.models import Shift
+from scheduling.models import ParticipantCancellation, Shift
 
 from .filters import DATE_RANGE_CHOICES, format_hours, resolve_service_date_filter
 from .forms import ServiceLogForm, UnscheduledServiceLogForm
@@ -84,6 +84,37 @@ def service_log_list(request):
         service_logs = service_logs.filter(service_date__gte=date_filter["start"])
     if date_filter["end"]:
         service_logs = service_logs.filter(service_date__lte=date_filter["end"])
+
+    billable_cancellations = ParticipantCancellation.objects.none()
+    if status == ServiceLog.Status.APPROVED:
+        billable_cancellations = ParticipantCancellation.objects.filter(
+            status=ParticipantCancellation.Status.APPROVED,
+            invoice_lines__isnull=True,
+        ).select_related(
+            "shift",
+            "shift__participant",
+            "shift__worker",
+            "shift__support_item",
+        )
+        if participant_value:
+            billable_cancellations = (
+                billable_cancellations.filter(shift__participant=selected_participant)
+                if selected_participant
+                else billable_cancellations.none()
+            )
+        if date_filter["start"]:
+            billable_cancellations = billable_cancellations.filter(
+                shift__service_date__gte=date_filter["start"],
+            )
+        if date_filter["end"]:
+            billable_cancellations = billable_cancellations.filter(
+                shift__service_date__lte=date_filter["end"],
+            )
+        billable_cancellations = billable_cancellations.order_by(
+            "shift__service_date",
+            "shift__start_time",
+            "id",
+        )
 
     has_filters = bool(
         status
@@ -186,6 +217,7 @@ def service_log_list(request):
             "date_to": date_filter["end_value"],
             "filtered_record_count": filtered_summary["record_count"],
             "filtered_hours": format_hours(filtered_summary["total_hours"]),
+            "billable_cancellations": billable_cancellations,
             "clear_filter_url": clear_filter_url,
             "current_list_url": request.get_full_path(),
         },

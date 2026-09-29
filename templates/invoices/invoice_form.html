@@ -15,6 +15,9 @@
   {% for service_log_id in selected_service_log_ids %}
     <input type="hidden" name="service_log_ids" value="{{ service_log_id }}">
   {% endfor %}
+  {% for cancellation_id in selected_participant_cancellation_ids %}
+    <input type="hidden" name="participant_cancellation_ids" value="{{ cancellation_id }}">
+  {% endfor %}
   <label>
     Participant
     {{ form.participant.errors }}
@@ -48,7 +51,14 @@
           <div class="invoice-selected-group-header">
             <div>
               <h3>{{ group.participant.display_name }}</h3>
-              <p>{{ group.count }} log{{ group.count|pluralize }} | {{ group.period_label }} | {{ group.total_hours }} hours</p>
+              <p>
+                {% if group.cancellation_count %}
+                  {{ group.count }} billing record{{ group.count|pluralize }}
+                {% else %}
+                  {{ group.count }} log{{ group.count|pluralize }}
+                {% endif %}
+                | {{ group.period_label }} | {{ group.total_hours }} hours
+              </p>
             </div>
           </div>
           <form method="post">
@@ -58,6 +68,9 @@
             <input type="hidden" name="period_end" value="{{ group.period_end|date:'Y-m-d' }}">
             {% for service_log_id in group.selected_service_log_ids %}
               <input type="hidden" name="service_log_ids" value="{{ service_log_id }}">
+            {% endfor %}
+            {% for cancellation_id in group.selected_participant_cancellation_ids %}
+              <input type="hidden" name="participant_cancellation_ids" value="{{ cancellation_id }}">
             {% endfor %}
             <table>
               <thead>
@@ -74,22 +87,32 @@
               <tbody>
                 {% for row in group.invoice_rows %}
                   <tr>
-                    <td class="invoice-preview-date-cell">{{ row.service_log.service_date|date:"d/m/Y" }}</td>
-                    <td class="invoice-preview-worker-cell">{{ row.service_log.worker.display_name }}</td>
-                    <td class="invoice-preview-support-cell">{{ row.service_log.support_item }}</td>
-                    <td class="invoice-preview-hours-cell">{{ row.service_log.actual_hours }}</td>
-                    <td class="invoice-preview-travel-cell">{{ row.service_log.kilometres|floatformat:2 }}</td>
-                    <td class="invoice-travel-claim">
-                      {% if row.service_log.kilometres > 0 %}
-                        {{ row.travel_form.amount.errors }}
-                        {{ row.travel_form.amount.label_tag }}
-                        {{ row.travel_form.amount }}
-                        <small>Admin enters the approved amount.</small>
-                      {% else %}
-                        <span class="invoice-travel-empty">No travel recorded</span>
-                      {% endif %}
-                    </td>
-                    <td class="invoice-preview-notes-cell">{{ row.service_log.case_notes|truncatechars:80 }}</td>
+                    {% if row.service_log %}
+                      <td class="invoice-preview-date-cell">{{ row.service_log.service_date|date:"d/m/Y" }}</td>
+                      <td class="invoice-preview-worker-cell">{{ row.service_log.worker.display_name }}</td>
+                      <td class="invoice-preview-support-cell">{{ row.service_log.support_item }}</td>
+                      <td class="invoice-preview-hours-cell">{{ row.service_log.actual_hours }}</td>
+                      <td class="invoice-preview-travel-cell">{{ row.service_log.kilometres|floatformat:2 }}</td>
+                      <td class="invoice-travel-claim">
+                        {% if row.service_log.kilometres > 0 %}
+                          {{ row.travel_form.amount.errors }}
+                          {{ row.travel_form.amount.label_tag }}
+                          {{ row.travel_form.amount }}
+                          <small>Admin enters the approved amount.</small>
+                        {% else %}
+                          <span class="invoice-travel-empty">No travel recorded</span>
+                        {% endif %}
+                      </td>
+                      <td class="invoice-preview-notes-cell">{{ row.service_log.case_notes|truncatechars:80 }}</td>
+                    {% else %}
+                      <td class="invoice-preview-date-cell">{{ row.participant_cancellation.shift.service_date|date:"d/m/Y" }}</td>
+                      <td class="invoice-preview-worker-cell">{{ row.participant_cancellation.shift.worker.display_name }}</td>
+                      <td class="invoice-preview-support-cell">{{ row.participant_cancellation.shift.support_item }}</td>
+                      <td class="invoice-preview-hours-cell">{{ row.participant_cancellation.shift.planned_hours }}</td>
+                      <td class="invoice-preview-travel-cell">0.00</td>
+                      <td class="invoice-travel-claim"><span class="invoice-travel-empty">No travel claim</span></td>
+                      <td class="invoice-preview-notes-cell">Approved rostered charge</td>
+                    {% endif %}
                   </tr>
                 {% endfor %}
               </tbody>
@@ -109,6 +132,9 @@
       <input type="hidden" name="period_end" value="{{ form.cleaned_data.period_end|date:'Y-m-d' }}">
       {% for service_log_id in selected_service_log_ids %}
         <input type="hidden" name="service_log_ids" value="{{ service_log_id }}">
+      {% endfor %}
+      {% for cancellation_id in selected_participant_cancellation_ids %}
+        <input type="hidden" name="participant_cancellation_ids" value="{{ cancellation_id }}">
       {% endfor %}
       <table>
         <thead>
