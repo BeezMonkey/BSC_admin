@@ -335,6 +335,41 @@ def get_selected_billable_logs(service_log_ids, require_single_participant=True)
     return service_logs, ""
 
 
+def get_selected_billable_cancellations(
+    participant_cancellation_ids,
+    require_single_participant=True,
+):
+    try:
+        unique_ids = [
+            int(cancellation_id)
+            for cancellation_id in dict.fromkeys(participant_cancellation_ids)
+        ]
+    except (TypeError, ValueError):
+        return [], "Selected cancellation charges are no longer available for invoicing."
+
+    cancellations = ParticipantCancellation.objects.filter(
+        id__in=unique_ids,
+        status=ParticipantCancellation.Status.APPROVED,
+        invoice_lines__isnull=True,
+    ).select_related(
+        "shift",
+        "shift__participant",
+        "shift__worker",
+        "shift__support_item",
+    )
+    cancellations = list(
+        cancellations.order_by("shift__service_date", "shift__start_time", "id")
+    )
+    if len(cancellations) != len(unique_ids):
+        return [], "Selected cancellation charges are no longer available for invoicing."
+    participant_ids = {
+        cancellation.shift.participant_id for cancellation in cancellations
+    }
+    if require_single_participant and len(participant_ids) > 1:
+        return [], "Selected cancellation charges must belong to one participant."
+    return cancellations, ""
+
+
 def get_selected_billable_coordination_logs(
     coordination_log_ids,
     require_single_participant=True,
@@ -362,11 +397,21 @@ def get_selected_billable_coordination_logs(
     return coordination_logs, ""
 
 
-def build_selected_invoice_form_data(service_logs):
+def build_selected_invoice_form_data(service_logs, participant_cancellations=None):
+    participant_cancellations = participant_cancellations or []
+    service_dates = [log.service_date for log in service_logs]
+    service_dates.extend(
+        cancellation.shift.service_date for cancellation in participant_cancellations
+    )
+    participant_id = (
+        service_logs[0].participant_id
+        if service_logs
+        else participant_cancellations[0].shift.participant_id
+    )
     return {
-        "participant": service_logs[0].participant_id,
-        "period_start": min(log.service_date for log in service_logs).isoformat(),
-        "period_end": max(log.service_date for log in service_logs).isoformat(),
+        "participant": participant_id,
+        "period_start": min(service_dates).isoformat(),
+        "period_end": max(service_dates).isoformat(),
     }
 
 
@@ -404,7 +449,8 @@ def build_invoice_rows(service_logs, data=None, participant_cancellations=None):
     )
 
 
-def build_selected_invoice_groups(service_logs):
+def build_selected_invoice_groups(service_logs, participant_cancellations=None):
+    participant_cancellations = participant_cancellations or []
     groups = OrderedDict()
     ordered_logs = sorted(
         service_logs,
@@ -420,15 +466,41 @@ def build_selected_invoice_groups(service_logs):
             {
                 "participant": service_log.participant,
                 "service_logs": [],
+                "participant_cancellations": [],
             },
         )
         group["service_logs"].append(service_log)
 
+    ordered_cancellations = sorted(
+        participant_cancellations,
+        key=lambda cancellation: (
+            cancellation.shift.participant.display_name,
+            cancellation.shift.service_date,
+            cancellation.id,
+        ),
+    )
+    for cancellation in ordered_cancellations:
+        participant = cancellation.shift.participant
+        group = groups.setdefault(
+            participant.id,
+            {
+                "participant": participant,
+                "service_logs": [],
+                "participant_cancellations": [],
+            },
+        )
+        group["participant_cancellations"].append(cancellation)
+
     invoice_groups = []
     for group in groups.values():
         logs = group["service_logs"]
-        period_start = min(log.service_date for log in logs)
-        period_end = max(log.service_date for log in logs)
+        cancellations = group["participant_cancellations"]
+        service_dates = [log.service_date for log in logs]
+        service_dates.extend(
+            cancellation.shift.service_date for cancellation in cancellations
+        )
+        period_start = min(service_dates)
+        period_end = max(service_dates)
         period_label = format_au_date(period_start)
         if period_start != period_end:
             period_label = f"{period_label} - {format_au_date(period_end)}"
@@ -438,10 +510,27 @@ def build_selected_invoice_groups(service_logs):
                 "period_start": period_start,
                 "period_end": period_end,
                 "period_label": period_label,
-                "total_hours": sum((log.actual_hours for log in logs), Decimal("0.00")),
-                "count": len(logs),
+                "total_hours": sum(
+                    (log.actual_hours for log in logs),
+                    Decimal("0.00"),
+                )
+                + sum(
+                    (
+                        cancellation.shift.planned_hours
+                        for cancellation in cancellations
+                    ),
+                    Decimal("0.00"),
+                ),
+                "count": len(logs) + len(cancellations),
+                "cancellation_count": len(cancellations),
                 "selected_service_log_ids": [log.id for log in logs],
-                "invoice_rows": build_invoice_rows(logs),
+                "selected_participant_cancellation_ids": [
+                    cancellation.id for cancellation in cancellations
+                ],
+                "invoice_rows": build_invoice_rows(
+                    logs,
+                    participant_cancellations=cancellations,
+                ),
             }
         )
     return invoice_groups
@@ -508,11 +597,17 @@ def build_selected_coordination_invoice_groups(coordination_logs):
 @finance_required
 def invoice_create(request):
     selected_ids = request.GET.getlist("service_log_ids")
+    selected_cancellation_ids = request.GET.getlist("participant_cancellation_ids")
     if request.method == "POST":
         selected_ids = request.POST.getlist("service_log_ids")
+        selected_cancellation_ids = request.POST.getlist(
+            "participant_cancellation_ids"
+        )
     selected_service_logs = []
+    selected_cancellations = []
     selected_error = ""
     active_selected_ids = selected_ids
+    active_selected_cancellation_ids = selected_cancellation_ids
     selected_invoice_groups = []
 
     if selected_ids:
@@ -520,17 +615,37 @@ def invoice_create(request):
             selected_ids,
             require_single_participant=request.method == "POST",
         )
+    if selected_cancellation_ids and not selected_error:
+        selected_cancellations, selected_error = get_selected_billable_cancellations(
+            selected_cancellation_ids,
+            require_single_participant=request.method == "POST",
+        )
+
+    selected_participant_ids = {
+        log.participant_id for log in selected_service_logs
+    } | {
+        cancellation.shift.participant_id
+        for cancellation in selected_cancellations
+    }
+    if request.method == "POST" and len(selected_participant_ids) > 1:
+        selected_error = "Selected billing records must belong to one participant."
+    selected_records = bool(selected_service_logs or selected_cancellations)
 
     if (
         request.method == "GET"
-        and selected_service_logs
-        and len({log.participant_id for log in selected_service_logs}) == 1
+        and selected_records
+        and len(selected_participant_ids) == 1
     ):
-        form = InvoiceCreateForm(build_selected_invoice_form_data(selected_service_logs))
+        form = InvoiceCreateForm(
+            build_selected_invoice_form_data(
+                selected_service_logs,
+                selected_cancellations,
+            )
+        )
         form.is_valid()
     elif request.method == "POST":
         form = InvoiceCreateForm(request.POST)
-    elif request.method == "GET" and selected_service_logs:
+    elif request.method == "GET" and selected_records:
         form = InvoiceCreateForm()
     else:
         form = InvoiceCreateForm(request.GET or None)
@@ -539,6 +654,7 @@ def invoice_create(request):
     participant_cancellations = ParticipantCancellation.objects.none()
     if selected_error:
         active_selected_ids = []
+        active_selected_cancellation_ids = []
         if request.method == "GET" and form.is_valid():
             selected_error = ""
             service_logs = get_billable_logs(
@@ -546,10 +662,14 @@ def invoice_create(request):
                 form.cleaned_data["period_start"],
                 form.cleaned_data["period_end"],
             )
-    elif selected_service_logs:
+    elif selected_records:
         service_logs = selected_service_logs
+        participant_cancellations = selected_cancellations
         if request.method == "GET":
-            selected_invoice_groups = build_selected_invoice_groups(selected_service_logs)
+            selected_invoice_groups = build_selected_invoice_groups(
+                selected_service_logs,
+                selected_cancellations,
+            )
     elif form.is_valid():
         service_logs = get_billable_logs(
             form.cleaned_data["participant"],
@@ -566,8 +686,9 @@ def invoice_create(request):
         if selected_error:
             service_logs = ServiceLog.objects.none()
         elif form.is_valid():
-            if selected_service_logs:
+            if selected_records:
                 service_logs = selected_service_logs
+                participant_cancellations = selected_cancellations
             else:
                 service_logs = get_billable_logs(
                     form.cleaned_data["participant"],
@@ -587,9 +708,23 @@ def invoice_create(request):
                 <= service_log.service_date
                 <= form.cleaned_data["period_end"]
             ]
-            if selected_service_logs and len(service_logs) != len(selected_service_logs):
+            participant_cancellations = [
+                cancellation
+                for cancellation in participant_cancellations
+                if cancellation.shift.participant_id
+                == form.cleaned_data["participant"].id
+                and form.cleaned_data["period_start"]
+                <= cancellation.shift.service_date
+                <= form.cleaned_data["period_end"]
+            ]
+            selected_records_match = (
+                len(service_logs) == len(selected_service_logs)
+                and len(participant_cancellations) == len(selected_cancellations)
+            )
+            if selected_records and not selected_records_match:
                 selected_error = "Selected service logs do not match the invoice participant and period."
                 service_logs = ServiceLog.objects.none()
+                participant_cancellations = ParticipantCancellation.objects.none()
             elif not service_logs and not participant_cancellations:
                 messages.error(request, "No approved logs found for this invoice.")
             else:
@@ -671,6 +806,9 @@ def invoice_create(request):
             "selected_invoice_groups": selected_invoice_groups,
             "selected_error": selected_error,
             "selected_service_log_ids": active_selected_ids,
+            "selected_participant_cancellation_ids": (
+                active_selected_cancellation_ids
+            ),
         },
     )
 

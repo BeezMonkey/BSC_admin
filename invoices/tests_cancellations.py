@@ -126,6 +126,33 @@ class ParticipantCancellationInvoiceTests(TestCase):
         service_log.save(update_fields=["status", "updated_at"])
         return service_log
 
+    def create_cancellation_for_participant(self, participant, service_date):
+        shift = Shift.objects.create(
+            participant=participant,
+            worker=self.worker,
+            service_date=service_date,
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            planned_hours=Decimal("1.00"),
+            support_item=self.support_item,
+            service_type=Shift.ServiceType.PERSONAL_CARE,
+            status=Shift.Status.CANCELLED,
+            created_by=self.admin_user,
+        )
+        return ParticipantCancellation.objects.create(
+            shift=shift,
+            cancellation_type=ParticipantCancellation.CancellationType.SHORT_NOTICE,
+            reason=ParticipantCancellation.Reason.OTHER,
+            details="Participant cancelled.",
+            received_at=timezone.now(),
+            previous_shift_status=Shift.Status.CONFIRMED,
+            status=ParticipantCancellation.Status.APPROVED,
+            admin_note="Approved for billing.",
+            submitted_by=self.worker_user,
+            reviewed_by=self.admin_user,
+            reviewed_at=timezone.now(),
+        )
+
     def test_line_uses_rostered_quantity_rate_and_normal_description(self):
         invoice = self.create_invoice()
 
@@ -223,6 +250,138 @@ class ParticipantCancellationInvoiceTests(TestCase):
         self.assertTrue(
             invoice.lines.filter(participant_cancellation=self.cancellation).exists()
         )
+
+    def test_selected_cancellation_only_opens_invoice_preview(self):
+        self.client.force_login(self.accountant_user)
+
+        response = self.client.get(
+            reverse("invoice_create"),
+            {"participant_cancellation_ids": self.cancellation.id},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context["selected_participant_cancellation_ids"],
+            [str(self.cancellation.id)],
+        )
+        self.assertContains(response, "Approved rostered charge")
+        self.assertContains(
+            response,
+            f'name="participant_cancellation_ids" value="{self.cancellation.id}"',
+            html=False,
+        )
+
+    def test_selected_service_log_and_cancellation_open_combined_preview(self):
+        service_log = self.create_service_log()
+        self.client.force_login(self.accountant_user)
+
+        response = self.client.get(
+            reverse("invoice_create"),
+            {
+                "service_log_ids": service_log.id,
+                "participant_cancellation_ids": self.cancellation.id,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["invoice_rows"]), 2)
+        self.assertContains(response, "Completed afternoon support.")
+        self.assertContains(response, "Approved rostered charge")
+
+    def test_selected_service_log_and_cancellation_create_one_combined_invoice(self):
+        service_log = self.create_service_log()
+        self.client.force_login(self.accountant_user)
+
+        response = self.client.post(
+            reverse("invoice_create"),
+            {
+                "participant": self.participant.id,
+                "period_start": "2026-09-28",
+                "period_end": "2026-09-28",
+                "service_log_ids": service_log.id,
+                "participant_cancellation_ids": self.cancellation.id,
+                f"travel-{service_log.id}-amount": "0.00",
+            },
+        )
+
+        invoice = Invoice.objects.get()
+        self.assertRedirects(response, invoice.get_absolute_url())
+        self.assertEqual(invoice.lines.count(), 2)
+        self.assertTrue(invoice.lines.filter(service_log=service_log).exists())
+        self.assertTrue(
+            invoice.lines.filter(participant_cancellation=self.cancellation).exists()
+        )
+
+    def test_explicit_service_log_selection_does_not_add_unselected_cancellation(self):
+        service_log = self.create_service_log()
+        self.client.force_login(self.accountant_user)
+
+        response = self.client.post(
+            reverse("invoice_create"),
+            {
+                "participant": self.participant.id,
+                "period_start": "2026-09-28",
+                "period_end": "2026-09-28",
+                "service_log_ids": service_log.id,
+                f"travel-{service_log.id}-amount": "0.00",
+            },
+        )
+
+        invoice = Invoice.objects.get()
+        self.assertRedirects(response, invoice.get_absolute_url())
+        self.assertEqual(invoice.lines.count(), 1)
+        self.assertTrue(invoice.lines.filter(service_log=service_log).exists())
+        self.assertFalse(invoice.lines.filter(participant_cancellation__isnull=False).exists())
+
+    def test_stale_selected_cancellation_is_rejected(self):
+        self.cancellation.status = ParticipantCancellation.Status.REJECTED
+        self.cancellation.save(update_fields=["status", "updated_at"])
+        self.client.force_login(self.accountant_user)
+
+        response = self.client.post(
+            reverse("invoice_create"),
+            {
+                "participant": self.participant.id,
+                "period_start": "2026-09-28",
+                "period_end": "2026-09-28",
+                "participant_cancellation_ids": self.cancellation.id,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "Selected cancellation charges are no longer available for invoicing.",
+        )
+        self.assertFalse(Invoice.objects.exists())
+
+    def test_selected_cancellations_for_multiple_participants_are_grouped(self):
+        other_participant = Participant.objects.create(
+            first_name="Haylie",
+            last_name="Taylor",
+            ndis_number="431038153",
+            status=Participant.Status.ACTIVE,
+        )
+        other_cancellation = self.create_cancellation_for_participant(
+            other_participant,
+            date(2026, 9, 29),
+        )
+        self.client.force_login(self.accountant_user)
+
+        response = self.client.get(
+            reverse("invoice_create"),
+            {
+                "participant_cancellation_ids": [
+                    self.cancellation.id,
+                    other_cancellation.id,
+                ]
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["selected_invoice_groups"]), 2)
+        self.assertContains(response, self.participant.display_name)
+        self.assertContains(response, other_participant.display_name)
 
     def test_cancelling_invoice_releases_cancellation_for_rebilling(self):
         invoice = self.create_invoice()
