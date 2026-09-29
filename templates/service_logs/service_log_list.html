@@ -70,6 +70,59 @@
     </div>
     <button type="submit">Create Invoice from Selected</button>
   </div>
+  {% if billable_cancellations %}
+    <section class="service-log-cancellation-section" aria-labelledby="approved-cancellation-charges-title">
+      <div class="service-log-cancellation-heading">
+        <div>
+          <h3 id="approved-cancellation-charges-title">Approved cancellation charges</h3>
+          <p>Select rostered charges to include with this invoice.</p>
+        </div>
+        <span>{{ billable_cancellations|length }} ready</span>
+      </div>
+      <div class="service-log-cancellation-table-wrap">
+        <table class="service-log-cancellation-table">
+          <thead>
+            <tr>
+              <th>Select</th>
+              <th>Service date</th>
+              <th>Participant</th>
+              <th>Worker</th>
+              <th>Status</th>
+              <th class="numeric-cell">Hours</th>
+              <th>Notes</th>
+              <th class="actions-heading">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cancellation in billable_cancellations %}
+              <tr>
+                <td class="service-log-select-cell">
+                  <input type="checkbox" name="participant_cancellation_ids" value="{{ cancellation.id }}">
+                </td>
+                <td class="service-log-date-cell">
+                  <a href="{% url 'participant_cancellation_detail' cancellation.id %}">{{ cancellation.shift.service_date|date:"d/m/Y" }}</a>
+                </td>
+                <td class="service-log-person-cell">
+                  <strong class="service-log-person-name">{{ cancellation.shift.participant.display_name }}</strong>
+                </td>
+                <td class="service-log-person-cell">
+                  <strong class="service-log-person-name">{{ cancellation.shift.worker.display_name }}</strong>
+                </td>
+                <td class="service-log-status-cell">
+                  <span class="status-pill status-approved">Approved</span>
+                </td>
+                <td class="service-log-hours-cell numeric-cell">{{ cancellation.shift.planned_hours }}</td>
+                <td class="notes-cell"><span class="service-log-notes-preview">Approved rostered charge</span></td>
+                <td class="actions service-log-actions-cell">
+                  <a href="{% url 'participant_cancellation_detail' cancellation.id %}">View</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  {% endif %}
   <table class="service-log-table">
     <thead>
       <tr>
