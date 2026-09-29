@@ -1179,7 +1179,7 @@ def worker_participant_cancellation_create(request, shift_id):
         if form.is_valid():
             with transaction.atomic():
                 locked_shift = get_object_or_404(
-                    Shift.objects.select_for_update().filter(
+                    Shift.objects.select_for_update(of=("self",)).filter(
                         id=shift.id,
                         worker=worker,
                         source=Shift.Source.SCHEDULED,
