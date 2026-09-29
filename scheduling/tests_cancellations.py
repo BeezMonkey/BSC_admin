@@ -1,5 +1,6 @@
 from datetime import date, datetime, time
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
@@ -186,6 +187,25 @@ class WorkerCancellationFlowTests(ParticipantCancellationTestBase):
                 actor=self.user,
             ).exists()
         )
+
+    def test_submission_locks_only_the_shift_table(self):
+        self.client.force_login(self.user)
+
+        with patch.object(
+            Shift.objects,
+            "select_for_update",
+            wraps=Shift.objects.select_for_update,
+        ) as select_for_update:
+            response = self.client.post(
+                reverse(
+                    "worker_participant_cancellation_create",
+                    args=[self.shift.id],
+                ),
+                self.submission_payload(),
+            )
+
+        self.assertEqual(response.status_code, 302)
+        select_for_update.assert_called_once_with(of=("self",))
 
     def test_details_are_required(self):
         self.client.force_login(self.user)
