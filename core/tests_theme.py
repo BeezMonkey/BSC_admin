@@ -73,6 +73,15 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn("td.actions", css)
         self.assertIn("justify-content: flex-end;", css)
 
+    def test_service_log_invoice_filter_layout_assets_exist(self):
+        css = Path("static/css/app.css").read_text(encoding="utf-8")
+
+        self.assertIn(".service-log-filter-bar {", css)
+        self.assertIn("grid-template-columns:", css)
+        self.assertIn(".service-log-filter-actions", css)
+        self.assertIn(".service-log-filter-summary", css)
+        self.assertIn(".service-log-filter-bar .service-log-filter-actions", css)
+
     def test_participant_worker_tooltip_does_not_use_help_cursor(self):
         css = Path("static/css/app.css").read_text(encoding="utf-8")
 

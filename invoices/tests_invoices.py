@@ -1148,8 +1148,14 @@ class InvoiceGenerationTests(TestCase):
 
         self.assertContains(response, f'action="{reverse("invoice_create")}"')
         self.assertContains(response, 'name="service_log_ids"')
-        self.assertContains(response, f'value="{approved_log.id}"')
-        self.assertNotContains(response, f'value="{submitted_log.id}"')
+        self.assertContains(
+            response,
+            f'name="service_log_ids" value="{approved_log.id}"',
+        )
+        self.assertNotContains(
+            response,
+            f'name="service_log_ids" value="{submitted_log.id}"',
+        )
         self.assertContains(response, "Create Invoice from Selected")
 
     def test_invoice_list_formats_total_to_two_decimal_places(self):

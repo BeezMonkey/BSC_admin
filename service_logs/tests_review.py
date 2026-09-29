@@ -88,6 +88,44 @@ class ServiceLogReviewTests(TestCase):
     def login_worker(self):
         self.client.login(username="worker", password="test-password-123")
 
+    def create_service_log(
+        self,
+        *,
+        participant=None,
+        service_date=date(2026, 6, 2),
+        actual_hours=Decimal("1.00"),
+        status=ServiceLog.Status.SUBMITTED,
+        case_notes="Additional service log.",
+    ):
+        participant = participant or self.participant
+        shift = Shift.objects.create(
+            participant=participant,
+            worker=self.worker,
+            service_date=service_date,
+            start_time=time(9, 0),
+            end_time=time(10, 0),
+            break_minutes=0,
+            planned_hours=actual_hours,
+            support_item=self.support_item,
+            service_type=Shift.ServiceType.PERSONAL_CARE,
+            status=Shift.Status.COMPLETED,
+            created_by=self.admin_user,
+        )
+        service_log = ServiceLog.objects.create_from_shift(
+            shift=shift,
+            actual_start_time=time(9, 0),
+            actual_end_time=time(10, 0),
+            break_minutes=0,
+            actual_hours=actual_hours,
+            kilometres=Decimal("0"),
+            case_notes=case_notes,
+            worker_notes="",
+        )
+        if service_log.status != status:
+            service_log.status = status
+            service_log.save(update_fields=["status", "updated_at"])
+        return service_log
+
     def test_admin_can_approve_submitted_service_log(self):
         self.login_admin()
 
@@ -195,7 +233,13 @@ class ServiceLogReviewTests(TestCase):
 
         response = self.client.get(
             reverse("service_log_list"),
-            {"status": ServiceLog.Status.APPROVED},
+            {
+                "status": ServiceLog.Status.APPROVED,
+                "participant": self.participant.id,
+                "date_range": "custom",
+                "date_from": "2026-06-01",
+                "date_to": "2026-06-30",
+            },
         )
 
         self.assertContains(response, "Submitted for review.")
@@ -455,8 +499,174 @@ class ServiceLogReviewTests(TestCase):
             {"status": ServiceLog.Status.APPROVED},
         )
 
-        self.assertContains(response, "Showing approved service logs.")
+        self.assertContains(response, "Showing")
+        self.assertContains(response, "<strong>1 approved log</strong>", html=True)
+        self.assertContains(response, "2 hours")
         self.assertContains(response, reverse("service_log_list"))
+
+    def test_service_log_list_filters_by_participant_and_service_date(self):
+        other_participant = Participant.objects.create(
+            first_name="Julie",
+            last_name="Steinback",
+            status=Participant.Status.ACTIVE,
+        )
+        inside_log = self.create_service_log(
+            participant=other_participant,
+            service_date=date(2026, 9, 15),
+            actual_hours=Decimal("3.00"),
+            status=ServiceLog.Status.APPROVED,
+            case_notes="Inside requested period.",
+        )
+        self.create_service_log(
+            participant=other_participant,
+            service_date=date(2026, 10, 1),
+            actual_hours=Decimal("2.00"),
+            status=ServiceLog.Status.APPROVED,
+            case_notes="Outside requested period.",
+        )
+        self.service_log.status = ServiceLog.Status.APPROVED
+        self.service_log.save(update_fields=["status", "updated_at"])
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("service_log_list"),
+            {
+                "status": ServiceLog.Status.APPROVED,
+                "participant": other_participant.id,
+                "date_range": "custom",
+                "date_from": "2026-09-01",
+                "date_to": "2026-09-30",
+            },
+        )
+
+        self.assertEqual(response.context["pagination"]["record_count"], 1)
+        self.assertEqual(response.context["service_logs"][0], inside_log)
+        self.assertEqual(
+            response.context["selected_participant_id"],
+            str(other_participant.id),
+        )
+        self.assertContains(response, "Inside requested period.")
+        self.assertNotContains(response, "Outside requested period.")
+        self.assertNotIn(self.service_log, response.context["service_logs"])
+
+    def test_service_log_list_custom_dates_are_inclusive(self):
+        self.service_log.service_date = date(2026, 9, 1)
+        self.service_log.save(update_fields=["service_date", "updated_at"])
+        end_log = self.create_service_log(
+            service_date=date(2026, 9, 30),
+            case_notes="End boundary.",
+        )
+        self.create_service_log(
+            service_date=date(2026, 10, 1),
+            case_notes="After boundary.",
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("service_log_list"),
+            {
+                "date_range": "custom",
+                "date_from": "2026-09-01",
+                "date_to": "2026-09-30",
+            },
+        )
+
+        self.assertEqual(response.context["pagination"]["record_count"], 2)
+        self.assertIn(end_log, response.context["service_logs"])
+        self.assertNotContains(response, "After boundary.")
+
+    def test_service_log_list_handles_unknown_participant_and_invalid_dates(self):
+        self.login_admin()
+
+        unknown_participant_response = self.client.get(
+            reverse("service_log_list"),
+            {"participant": "999999"},
+        )
+        invalid_date_response = self.client.get(
+            reverse("service_log_list"),
+            {
+                "date_range": "custom",
+                "date_from": "not-a-date",
+                "date_to": "2026-99-99",
+            },
+        )
+
+        self.assertEqual(
+            unknown_participant_response.context["pagination"]["record_count"],
+            0,
+        )
+        self.assertTrue(unknown_participant_response.context["has_filters"])
+        self.assertEqual(invalid_date_response.status_code, 200)
+        self.assertEqual(
+            invalid_date_response.context["pagination"]["record_count"],
+            1,
+        )
+        self.assertEqual(invalid_date_response.context["date_from"], "not-a-date")
+        self.assertEqual(invalid_date_response.context["date_to"], "2026-99-99")
+
+    def test_status_cards_preserve_participant_and_service_date_filters(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("service_log_list"),
+            {
+                "participant": self.participant.id,
+                "date_range": "custom",
+                "date_from": "2026-06-01",
+                "date_to": "2026-06-30",
+            },
+        )
+
+        approved_card = next(
+            item
+            for item in response.context["status_overview"]
+            if item["label"] == "Approved"
+        )
+        self.assertIn(f"participant={self.participant.id}", approved_card["url"])
+        self.assertIn("date_range=custom", approved_card["url"])
+        self.assertIn("date_from=2026-06-01", approved_card["url"])
+        self.assertIn("date_to=2026-06-30", approved_card["url"])
+        self.assertIn("status=approved", approved_card["url"])
+
+    def test_clear_filter_url_retains_only_the_current_status(self):
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("service_log_list"),
+            {
+                "status": ServiceLog.Status.APPROVED,
+                "participant": self.participant.id,
+                "date_range": "this_month",
+            },
+        )
+
+        self.assertEqual(
+            response.context["clear_filter_url"],
+            f'{reverse("service_log_list")}?status=approved',
+        )
+
+    def test_filtered_summary_uses_all_matches_before_pagination(self):
+        self.service_log.status = ServiceLog.Status.APPROVED
+        self.service_log.save(update_fields=["status", "updated_at"])
+        for day_number in range(2, 23):
+            self.create_service_log(
+                service_date=date(2026, 6, day_number),
+                actual_hours=Decimal("1.00"),
+                status=ServiceLog.Status.APPROVED,
+            )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("service_log_list"),
+            {
+                "status": ServiceLog.Status.APPROVED,
+                "participant": self.participant.id,
+            },
+        )
+
+        self.assertEqual(len(response.context["service_logs"]), 20)
+        self.assertEqual(response.context["filtered_record_count"], 22)
+        self.assertEqual(response.context["filtered_hours"], "23")
 
     def test_service_log_list_shows_status_overview_cards(self):
         self.service_log.status = ServiceLog.Status.APPROVED
@@ -516,9 +726,22 @@ class ServiceLogReviewTests(TestCase):
         self.service_log.save(update_fields=["status", "updated_at"])
         self.login_admin()
 
-        response = self.client.get(reverse("service_log_list"))
+        response = self.client.get(
+            reverse("service_log_list"),
+            {"status": ServiceLog.Status.APPROVED},
+        )
 
         self.assertContains(response, 'class="filter-bar service-log-filter-bar"')
+        self.assertContains(response, 'name="participant"')
+        self.assertContains(response, 'name="date_range"')
+        self.assertContains(response, 'name="date_from"')
+        self.assertContains(response, 'name="date_to"')
+        self.assertContains(response, 'name="status" value="approved"')
+        self.assertNotContains(response, '<select name="status">')
+        self.assertContains(response, 'class="service-log-filter-actions"')
+        self.assertContains(response, 'class="service-log-filter-summary"')
+        self.assertContains(response, "Showing")
+        self.assertContains(response, "hours")
         self.assertContains(response, 'class="bulk-actions service-log-bulk-actions"')
         self.assertContains(response, "Billing action")
         self.assertContains(response, "Select approved rows to create an invoice.")
@@ -593,13 +816,24 @@ class ServiceLogReviewTests(TestCase):
 
         response = self.client.get(
             reverse("service_log_list"),
-            {"status": ServiceLog.Status.APPROVED},
+            {
+                "status": ServiceLog.Status.APPROVED,
+                "participant": self.participant.id,
+                "date_range": "custom",
+                "date_from": "2026-06-01",
+                "date_to": "2026-06-30",
+            },
         )
 
         self.assertEqual(response.context["service_logs"].paginator.count, 25)
         self.assertEqual(len(response.context["service_logs"]), 20)
         self.assertContains(response, "Showing 1-20 of 25 records")
-        self.assertContains(response, "?status=approved&amp;page=2")
+        self.assertContains(response, "status=approved")
+        self.assertContains(response, f"participant={self.participant.id}")
+        self.assertContains(response, "date_range=custom")
+        self.assertContains(response, "date_from=2026-06-01")
+        self.assertContains(response, "date_to=2026-06-30")
+        self.assertContains(response, "page=2")
         self.assertNotContains(response, "Submitted log outside filter.")
 
     def test_service_log_list_can_sort_by_date_and_preserve_filters(self):
@@ -634,12 +868,26 @@ class ServiceLogReviewTests(TestCase):
 
         response = self.client.get(
             reverse("service_log_list"),
-            {"status": ServiceLog.Status.APPROVED, "sort": "date", "direction": "asc"},
+            {
+                "status": ServiceLog.Status.APPROVED,
+                "participant": self.participant.id,
+                "date_range": "custom",
+                "date_from": "2026-06-01",
+                "date_to": "2026-06-30",
+                "sort": "date",
+                "direction": "asc",
+            },
         )
         content = response.content.decode()
 
         self.assertLess(content.index("01/06/2026"), content.index("03/06/2026"))
-        self.assertContains(response, "?status=approved&amp;sort=date&amp;direction=desc")
+        self.assertContains(response, "status=approved")
+        self.assertContains(response, f"participant={self.participant.id}")
+        self.assertContains(response, "date_range=custom")
+        self.assertContains(response, "date_from=2026-06-01")
+        self.assertContains(response, "date_to=2026-06-30")
+        self.assertContains(response, "sort=date")
+        self.assertContains(response, "direction=desc")
 
     def test_service_log_list_distinguishes_empty_filter_results(self):
         self.login_admin()
