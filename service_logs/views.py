@@ -32,8 +32,8 @@ from invoices.views import (
     safe_filename_part,
     wrap_pdf_text,
 )
-from scheduling.models import Shift
 from participants.models import Participant
+from scheduling.models import Shift
 
 from .filters import DATE_RANGE_CHOICES, format_hours, resolve_service_date_filter
 from .forms import ServiceLogForm, UnscheduledServiceLogForm
@@ -93,7 +93,6 @@ def service_log_list(request):
         or date_filter["end_value"]
     )
     status_label = dict(ServiceLog.Status.choices).get(status)
-    filter_summary = f"Showing {status_label.lower()} service logs." if status_label else ""
 
     preserved_filters = {}
     if participant_value:
@@ -179,7 +178,6 @@ def service_log_list(request):
             "status_label": status_label,
             "has_filters": has_filters,
             "status_overview": status_overview,
-            "filter_summary": filter_summary,
             "participants": participants,
             "selected_participant_id": participant_value,
             "date_range_choices": DATE_RANGE_CHOICES,

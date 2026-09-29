@@ -499,7 +499,9 @@ class ServiceLogReviewTests(TestCase):
             {"status": ServiceLog.Status.APPROVED},
         )
 
-        self.assertContains(response, "Showing approved service logs.")
+        self.assertContains(response, "Showing")
+        self.assertContains(response, "<strong>1 approved log</strong>", html=True)
+        self.assertContains(response, "2 hours")
         self.assertContains(response, reverse("service_log_list"))
 
     def test_service_log_list_filters_by_participant_and_service_date(self):
@@ -545,7 +547,7 @@ class ServiceLogReviewTests(TestCase):
         )
         self.assertContains(response, "Inside requested period.")
         self.assertNotContains(response, "Outside requested period.")
-        self.assertNotContains(response, "Ava Nguyen")
+        self.assertNotIn(self.service_log, response.context["service_logs"])
 
     def test_service_log_list_custom_dates_are_inclusive(self):
         self.service_log.service_date = date(2026, 9, 1)
@@ -724,9 +726,22 @@ class ServiceLogReviewTests(TestCase):
         self.service_log.save(update_fields=["status", "updated_at"])
         self.login_admin()
 
-        response = self.client.get(reverse("service_log_list"))
+        response = self.client.get(
+            reverse("service_log_list"),
+            {"status": ServiceLog.Status.APPROVED},
+        )
 
         self.assertContains(response, 'class="filter-bar service-log-filter-bar"')
+        self.assertContains(response, 'name="participant"')
+        self.assertContains(response, 'name="date_range"')
+        self.assertContains(response, 'name="date_from"')
+        self.assertContains(response, 'name="date_to"')
+        self.assertContains(response, 'name="status" value="approved"')
+        self.assertNotContains(response, '<select name="status">')
+        self.assertContains(response, 'class="service-log-filter-actions"')
+        self.assertContains(response, 'class="service-log-filter-summary"')
+        self.assertContains(response, "Showing")
+        self.assertContains(response, "hours")
         self.assertContains(response, 'class="bulk-actions service-log-bulk-actions"')
         self.assertContains(response, "Billing action")
         self.assertContains(response, "Select approved rows to create an invoice.")

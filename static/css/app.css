@@ -1857,7 +1857,41 @@ input[type="checkbox"] {
 }
 
 .service-log-filter-bar {
-  margin-bottom: 0.7rem;
+  display: grid;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(135px, 0.8fr) minmax(145px, 0.9fr) minmax(145px, 0.9fr) auto;
+  align-items: end;
+  gap: 0.58rem;
+  margin-bottom: 0.38rem;
+}
+
+.service-log-filter-bar > label {
+  min-width: 0;
+}
+
+.service-log-filter-actions {
+  display: flex;
+  align-items: end;
+  gap: 0.5rem;
+}
+
+.service-log-filter-bar .service-log-filter-actions > button,
+.service-log-filter-bar .service-log-filter-actions > .button {
+  height: 2.38rem;
+  min-height: 2.38rem;
+  padding: 0 0.86rem;
+}
+
+.service-log-filter-summary {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.34rem;
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.service-log-filter-summary strong {
+  color: var(--brand-dark);
 }
 
 .service-log-bulk-actions {
@@ -6086,6 +6120,19 @@ tbody tr:last-child td {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.58rem;
   }
+
+  .service-log-filter-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .service-log-filter-bar .service-log-filter-actions {
+    grid-column: 1 / -1;
+  }
+
+  .service-log-filter-bar .service-log-filter-actions > button,
+  .service-log-filter-bar .service-log-filter-actions > .button {
+    flex: 1;
+  }
 }
 
 @media (max-width: 760px) {
@@ -6099,6 +6146,14 @@ tbody tr:last-child td {
 
   .document-manager-layout {
     grid-template-columns: 1fr;
+  }
+
+  .service-log-filter-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .service-log-filter-summary {
+    justify-content: flex-start;
   }
 
   .document-owner-switch {

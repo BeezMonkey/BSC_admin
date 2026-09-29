@@ -27,24 +27,39 @@
 </section>
 
 <form method="get" class="filter-bar service-log-filter-bar">
-  <label>Status
-    <select name="status">
-      <option value="">All</option>
-      {% for value, label in status_choices %}
-        <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+  {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+  <label>Participant
+    <select name="participant">
+      <option value="">All participants</option>
+      {% for participant in participants %}
+        <option value="{{ participant.id }}"{% if selected_participant_id == participant.id|stringformat:"s" %} selected{% endif %}>{{ participant.display_name }}</option>
       {% endfor %}
     </select>
   </label>
-  <button type="submit">Filter</button>
-  <a class="button secondary" href="{% url 'service_log_list' %}">Clear</a>
+  <label>Date range
+    <select name="date_range">
+      {% for value, label in date_range_choices %}
+        <option value="{{ value }}"{% if date_range == value %} selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Service date from
+    <input type="date" name="date_from" value="{{ date_from }}">
+  </label>
+  <label>Service date to
+    <input type="date" name="date_to" value="{{ date_to }}">
+  </label>
+  <div class="service-log-filter-actions">
+    <button type="submit">Filter</button>
+    <a class="button secondary" href="{{ clear_filter_url }}">Clear</a>
+  </div>
 </form>
 
-{% if filter_summary %}
-<div class="filter-summary">
-  <span>{{ filter_summary }}</span>
-  <a href="{% url 'service_log_list' %}">Clear filter</a>
+<div class="service-log-filter-summary" aria-live="polite">
+  Showing <strong>{{ filtered_record_count }}{% if status_label %} {{ status_label|lower }}{% endif %} log{{ filtered_record_count|pluralize }}</strong>
+  <span aria-hidden="true">&middot;</span>
+  {{ filtered_hours }} hours
 </div>
-{% endif %}
 
 <form method="get" action="{% url 'invoice_create' %}">
 <section class="card table-card service-log-table-card">
