@@ -360,8 +360,11 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn("minmax(140px, 1fr)", css)
         self.assertIn("border-radius: 5px;", css)
         self.assertIn("margin: -1rem -1rem 1rem;", css)
-        self.assertIn("@media (max-width: 1280px)", css)
-        self.assertIn("grid-template-columns: repeat(3, minmax(0, 1fr));", css)
+        self.assertIn("@media (max-width: 1050px)", css)
+        self.assertIn(
+            ".planner-filter-bar-compact {\n    grid-template-columns: repeat(2, minmax(0, 1fr));\n  }",
+            css,
+        )
         self.assertIn(".planner-filter-bar-compact button,\n  .planner-filter-bar-compact .button", css)
         self.assertIn(".planner-filter-actions", css)
         self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr));", css)
