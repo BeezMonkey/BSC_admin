@@ -172,4 +172,3 @@ Open the Service Logs Approved view with demo records. Verify desktop and 760px 
 - [ ] **Step 5: Commit any scoped verification fixes**
 
 If visual verification requires a scoped correction, commit only files already in scope with message `style: polish mixed billing selection`.
-
