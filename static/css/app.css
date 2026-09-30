@@ -1915,54 +1915,6 @@ input[type="checkbox"] {
   font-size: 0.82rem;
 }
 
-.service-log-cancellation-section {
-  margin: 0 -0.78rem;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  background: #fbfcfd;
-}
-
-.service-log-cancellation-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.72rem 0.78rem 0.62rem;
-}
-
-.service-log-cancellation-heading h3,
-.service-log-cancellation-heading p {
-  margin: 0;
-}
-
-.service-log-cancellation-heading h3 {
-  font-size: 0.88rem;
-}
-
-.service-log-cancellation-heading p,
-.service-log-cancellation-heading > span {
-  color: var(--muted);
-  font-size: 0.78rem;
-}
-
-.service-log-cancellation-heading > span {
-  white-space: nowrap;
-}
-
-.service-log-cancellation-table-wrap {
-  overflow-x: auto;
-}
-
-.service-log-cancellation-table {
-  min-width: 860px;
-}
-
-.service-log-cancellation-table th,
-.service-log-cancellation-table td {
-  padding-top: 0.58rem;
-  padding-bottom: 0.58rem;
-}
-
 .table-card {
   overflow-x: auto;
   border: 1px solid #d5e0ea;
@@ -3071,6 +3023,11 @@ table {
   overflow-wrap: anywhere;
   color: #314052;
   line-height: 1.35;
+}
+
+.service-log-cancellation-note {
+  color: #8a5a16;
+  font-weight: 500;
 }
 
 .roster-table {
