@@ -1,4 +1,5 @@
 from contextlib import suppress
+from decimal import Decimal
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -33,12 +34,61 @@ from invoices.views import (
     wrap_pdf_text,
 )
 from participants.models import Participant
-from scheduling.models import Shift
+from scheduling.models import ParticipantCancellation, Shift
 
 from .filters import DATE_RANGE_CHOICES, format_hours, resolve_service_date_filter
 from .forms import ServiceLogForm, UnscheduledServiceLogForm
 from .models import ServiceLog
 from .notifications import notify_admin_service_log_submitted
+
+
+def build_service_log_table_row(service_log):
+    return {
+        "kind": "service_log",
+        "id": service_log.id,
+        "service_log": service_log,
+        "cancellation": None,
+        "service_date": service_log.service_date,
+        "participant": service_log.participant,
+        "worker": service_log.worker,
+        "status": service_log.status,
+        "status_label": service_log.get_status_display(),
+        "hours": service_log.actual_hours,
+        "notes": service_log.case_notes,
+    }
+
+
+def build_cancellation_table_row(cancellation):
+    return {
+        "kind": "cancellation",
+        "id": cancellation.id,
+        "service_log": None,
+        "cancellation": cancellation,
+        "service_date": cancellation.shift.service_date,
+        "participant": cancellation.shift.participant,
+        "worker": cancellation.shift.worker,
+        "status": ServiceLog.Status.APPROVED,
+        "status_label": "Approved",
+        "hours": cancellation.shift.planned_hours,
+        "notes": "Approved rostered charge",
+    }
+
+
+def sort_service_log_table_rows(rows, sort_key, direction):
+    def person_name(person):
+        return (person.last_name.casefold(), person.first_name.casefold())
+
+    def row_key(row):
+        suffix = (row["service_date"], row["kind"], row["id"])
+        if sort_key == "participant":
+            return (*person_name(row["participant"]), *suffix)
+        if sort_key == "worker":
+            return (*person_name(row["worker"]), *suffix)
+        if sort_key == "status":
+            return (row["status"], *suffix)
+        return suffix
+
+    return sorted(rows, key=row_key, reverse=direction == "desc")
 
 
 @admin_required
@@ -85,6 +135,37 @@ def service_log_list(request):
     if date_filter["end"]:
         service_logs = service_logs.filter(service_date__lte=date_filter["end"])
 
+    billable_cancellations = ParticipantCancellation.objects.none()
+    if status == ServiceLog.Status.APPROVED:
+        billable_cancellations = ParticipantCancellation.objects.filter(
+            status=ParticipantCancellation.Status.APPROVED,
+            invoice_lines__isnull=True,
+        ).select_related(
+            "shift",
+            "shift__participant",
+            "shift__worker",
+            "shift__support_item",
+        )
+        if participant_value:
+            billable_cancellations = (
+                billable_cancellations.filter(shift__participant=selected_participant)
+                if selected_participant
+                else billable_cancellations.none()
+            )
+        if date_filter["start"]:
+            billable_cancellations = billable_cancellations.filter(
+                shift__service_date__gte=date_filter["start"],
+            )
+        if date_filter["end"]:
+            billable_cancellations = billable_cancellations.filter(
+                shift__service_date__lte=date_filter["end"],
+            )
+        billable_cancellations = billable_cancellations.order_by(
+            "shift__service_date",
+            "shift__start_time",
+            "id",
+        )
+
     has_filters = bool(
         status
         or participant_value
@@ -112,6 +193,14 @@ def service_log_list(request):
         base_url = reverse("service_log_list")
         return f"{base_url}?{query_string}" if query_string else base_url
 
+    approved_cancellation_count = ParticipantCancellation.objects.filter(
+        status=ParticipantCancellation.Status.APPROVED,
+        invoice_lines__isnull=True,
+    ).count()
+    approved_ready_count = (
+        status_counts.get(ServiceLog.Status.APPROVED, 0)
+        + approved_cancellation_count
+    )
     status_overview = [
         {
             "label": "All logs",
@@ -129,7 +218,7 @@ def service_log_list(request):
         },
         {
             "label": "Approved",
-            "count_label": f"{status_counts.get(ServiceLog.Status.APPROVED, 0)} ready",
+            "count_label": f"{approved_ready_count} ready",
             "description": "Ready to invoice",
             "url": status_url(ServiceLog.Status.APPROVED),
             "active": status == ServiceLog.Status.APPROVED,
@@ -153,6 +242,18 @@ def service_log_list(request):
         record_count=Count("id"),
         total_hours=Sum("actual_hours"),
     )
+    cancellation_summary = billable_cancellations.aggregate(
+        record_count=Count("id"),
+        total_hours=Sum("shift__planned_hours"),
+    )
+    filtered_record_count = (
+        (filtered_summary["record_count"] or 0)
+        + (cancellation_summary["record_count"] or 0)
+    )
+    filtered_hours = (
+        (filtered_summary["total_hours"] or Decimal("0"))
+        + (cancellation_summary["total_hours"] or Decimal("0"))
+    )
     service_logs, sorting = apply_sorting(
         request,
         service_logs,
@@ -163,7 +264,28 @@ def service_log_list(request):
             "status": ("status", "service_date"),
         },
     )
-    service_logs, pagination = paginate_queryset(request, service_logs)
+    if status == ServiceLog.Status.APPROVED:
+        billing_rows = [
+            build_service_log_table_row(service_log)
+            for service_log in service_logs
+        ]
+        billing_rows.extend(
+            build_cancellation_table_row(cancellation)
+            for cancellation in billable_cancellations
+        )
+        billing_rows = sort_service_log_table_rows(
+            billing_rows,
+            sorting["sort"] or "date",
+            sorting["direction"] if sorting["sort"] else "desc",
+        )
+        billing_rows, pagination = paginate_queryset(request, billing_rows)
+        service_logs, _ = paginate_queryset(request, service_logs)
+    else:
+        service_logs, pagination = paginate_queryset(request, service_logs)
+        billing_rows = [
+            build_service_log_table_row(service_log)
+            for service_log in service_logs
+        ]
     clear_filter_url = reverse("service_log_list")
     if status:
         clear_filter_url = f"{clear_filter_url}?{urlencode({'status': status})}"
@@ -184,8 +306,10 @@ def service_log_list(request):
             "date_range": date_filter["key"],
             "date_from": date_filter["start_value"],
             "date_to": date_filter["end_value"],
-            "filtered_record_count": filtered_summary["record_count"],
-            "filtered_hours": format_hours(filtered_summary["total_hours"]),
+            "filtered_record_count": filtered_record_count,
+            "filtered_hours": format_hours(filtered_hours),
+            "billing_rows": billing_rows,
+            "billable_cancellations": billable_cancellations,
             "clear_filter_url": clear_filter_url,
             "current_list_url": request.get_full_path(),
         },

@@ -3025,6 +3025,11 @@ table {
   line-height: 1.35;
 }
 
+.service-log-cancellation-note {
+  color: #8a5a16;
+  font-weight: 500;
+}
+
 .roster-table {
   min-width: 860px;
 }
@@ -6105,6 +6110,14 @@ tbody tr:last-child td {
 }
 
 @media (max-width: 1050px) {
+  .invoice-preview-filter {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .invoice-preview-filter > button {
+    width: 100%;
+  }
+
   .planner-filter-bar-compact {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -6136,6 +6149,10 @@ tbody tr:last-child td {
 }
 
 @media (max-width: 760px) {
+  .invoice-preview-filter {
+    grid-template-columns: 1fr;
+  }
+
   .app-shell {
     grid-template-columns: 1fr;
   }

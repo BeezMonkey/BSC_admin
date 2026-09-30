@@ -9,7 +9,8 @@ from django.urls import reverse
 from accounts.models import UserProfile
 from documents.models import Document
 from participants.models import Participant
-from scheduling.models import Shift, SupportItem
+from invoices.models import Invoice, InvoiceLine
+from scheduling.models import ParticipantCancellation, Shift, SupportItem
 from service_logs.models import ServiceLog
 from workers.models import SupportWorker
 
@@ -125,6 +126,41 @@ class ServiceLogReviewTests(TestCase):
             service_log.status = status
             service_log.save(update_fields=["status", "updated_at"])
         return service_log
+
+    def create_participant_cancellation(
+        self,
+        *,
+        participant=None,
+        service_date=date(2026, 9, 15),
+        status=ParticipantCancellation.Status.APPROVED,
+        details="Private cancellation details.",
+    ):
+        participant = participant or self.participant
+        shift = Shift.objects.create(
+            participant=participant,
+            worker=self.worker,
+            service_date=service_date,
+            start_time=time(9, 0),
+            end_time=time(12, 0),
+            break_minutes=0,
+            planned_hours=Decimal("3.00"),
+            support_item=self.support_item,
+            service_type=Shift.ServiceType.PERSONAL_CARE,
+            status=Shift.Status.CANCELLED,
+            created_by=self.admin_user,
+        )
+        return ParticipantCancellation.objects.create(
+            shift=shift,
+            cancellation_type=ParticipantCancellation.CancellationType.SHORT_NOTICE,
+            reason=ParticipantCancellation.Reason.HEALTH,
+            details=details,
+            received_at=datetime(2026, 9, 14, 9, 0, tzinfo=datetime_timezone.utc),
+            previous_shift_status=Shift.Status.CONFIRMED,
+            status=status,
+            admin_note="Internal review note.",
+            submitted_by=self.worker_user,
+            reviewed_by=self.admin_user if status != ParticipantCancellation.Status.PENDING else None,
+        )
 
     def test_admin_can_approve_submitted_service_log(self):
         self.login_admin()
@@ -500,7 +536,7 @@ class ServiceLogReviewTests(TestCase):
         )
 
         self.assertContains(response, "Showing")
-        self.assertContains(response, "<strong>1 approved log</strong>", html=True)
+        self.assertContains(response, "<strong>1 approved record</strong>", html=True)
         self.assertContains(response, "2 hours")
         self.assertContains(response, reverse("service_log_list"))
 
@@ -548,6 +584,154 @@ class ServiceLogReviewTests(TestCase):
         self.assertContains(response, "Inside requested period.")
         self.assertNotContains(response, "Outside requested period.")
         self.assertNotIn(self.service_log, response.context["service_logs"])
+
+    def test_approved_workbench_shows_matching_billable_cancellation_charge(self):
+        cancellation = self.create_participant_cancellation()
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("service_log_list"),
+            {
+                "status": ServiceLog.Status.APPROVED,
+                "participant": self.participant.id,
+                "date_range": "custom",
+                "date_from": "2026-09-01",
+                "date_to": "2026-09-30",
+            },
+        )
+
+        self.assertNotContains(response, "Approved cancellation charges")
+        self.assertContains(
+            response,
+            f'name="participant_cancellation_ids" value="{cancellation.id}"',
+        )
+        self.assertContains(response, "Approved rostered charge")
+        self.assertContains(response, "3.00")
+        self.assertNotContains(response, cancellation.get_cancellation_type_display())
+        self.assertNotContains(response, cancellation.details)
+        self.assertNotContains(response, cancellation.admin_note)
+
+    def test_approved_workbench_merges_logs_and_cancellations_into_one_table(self):
+        self.service_log.status = ServiceLog.Status.APPROVED
+        self.service_log.save(update_fields=["status", "updated_at"])
+        cancellation = self.create_participant_cancellation(
+            service_date=date(2026, 6, 2),
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("service_log_list"),
+            {
+                "status": ServiceLog.Status.APPROVED,
+                "participant": self.participant.id,
+                "sort": "date",
+                "direction": "asc",
+            },
+        )
+        content = response.content.decode()
+
+        self.assertNotContains(response, "Approved cancellation charges")
+        self.assertEqual(content.count('class="service-log-table"'), 1)
+        self.assertContains(
+            response,
+            f'name="service_log_ids" value="{self.service_log.id}"',
+        )
+        self.assertContains(
+            response,
+            f'name="participant_cancellation_ids" value="{cancellation.id}"',
+        )
+        self.assertLess(content.index("01/06/2026"), content.index("02/06/2026"))
+        self.assertContains(
+            response,
+            'class="service-log-notes-preview service-log-cancellation-note"',
+        )
+
+    def test_approved_workbench_summary_includes_cancellation_charges(self):
+        self.service_log.status = ServiceLog.Status.APPROVED
+        self.service_log.save(update_fields=["status", "updated_at"])
+        self.create_participant_cancellation(service_date=date(2026, 6, 2))
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("service_log_list"),
+            {
+                "status": ServiceLog.Status.APPROVED,
+                "participant": self.participant.id,
+            },
+        )
+        approved_card = next(
+            item
+            for item in response.context["status_overview"]
+            if item["label"] == "Approved"
+        )
+
+        self.assertEqual(approved_card["count_label"], "2 ready")
+        self.assertEqual(response.context["filtered_record_count"], 2)
+        self.assertEqual(response.context["filtered_hours"], "5")
+        self.assertEqual(response.context["pagination"]["record_count"], 2)
+        self.assertContains(response, "<strong>2 approved records</strong>", html=True)
+
+    def test_approved_workbench_excludes_non_billable_or_non_matching_cancellations(self):
+        pending = self.create_participant_cancellation(
+            service_date=date(2026, 9, 10),
+            status=ParticipantCancellation.Status.PENDING,
+            details="Pending cancellation.",
+        )
+        out_of_range = self.create_participant_cancellation(
+            service_date=date(2026, 10, 1),
+            details="Outside period.",
+        )
+        other_participant = Participant.objects.create(
+            first_name="Julie",
+            last_name="Steinback",
+            status=Participant.Status.ACTIVE,
+        )
+        other_person = self.create_participant_cancellation(
+            participant=other_participant,
+            service_date=date(2026, 9, 12),
+            details="Other participant.",
+        )
+        invoiced = self.create_participant_cancellation(
+            service_date=date(2026, 9, 20),
+            details="Already invoiced.",
+        )
+        invoice = Invoice.objects.create(
+            participant=self.participant,
+            period_start=invoiced.shift.service_date,
+            period_end=invoiced.shift.service_date,
+            created_by=self.admin_user,
+        )
+        InvoiceLine.objects.create_from_participant_cancellation(
+            invoice=invoice,
+            cancellation=invoiced,
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("service_log_list"),
+            {
+                "status": ServiceLog.Status.APPROVED,
+                "participant": self.participant.id,
+                "date_range": "custom",
+                "date_from": "2026-09-01",
+                "date_to": "2026-09-30",
+            },
+        )
+
+        for cancellation in (pending, out_of_range, other_person, invoiced):
+            self.assertNotContains(
+                response,
+                f'name="participant_cancellation_ids" value="{cancellation.id}"',
+            )
+
+    def test_cancellation_charge_section_is_limited_to_approved_status_view(self):
+        self.create_participant_cancellation()
+        self.login_admin()
+
+        response = self.client.get(reverse("service_log_list"))
+
+        self.assertNotContains(response, "Approved cancellation charges")
+        self.assertNotContains(response, 'name="participant_cancellation_ids"')
 
     def test_service_log_list_custom_dates_are_inclusive(self):
         self.service_log.service_date = date(2026, 9, 1)
@@ -897,7 +1081,10 @@ class ServiceLogReviewTests(TestCase):
             {"status": ServiceLog.Status.APPROVED},
         )
 
-        self.assertContains(response, "No service logs match the current filters.")
+        self.assertContains(
+            response,
+            "No approved billing records match the current filters.",
+        )
         self.assertContains(response, "Clear filters")
         self.assertNotContains(response, "Service logs appear here after workers complete")
 
