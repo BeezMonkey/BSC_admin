@@ -56,7 +56,7 @@
 </form>
 
 <div class="service-log-filter-summary" aria-live="polite">
-  Showing <strong>{{ filtered_record_count }}{% if status_label %} {{ status_label|lower }}{% endif %} log{{ filtered_record_count|pluralize }}</strong>
+  Showing <strong>{{ filtered_record_count }}{% if status_label %} {{ status_label|lower }}{% endif %} {% if status == "approved" %}record{{ filtered_record_count|pluralize }}{% else %}log{{ filtered_record_count|pluralize }}{% endif %}</strong>
   <span aria-hidden="true">&middot;</span>
   {{ filtered_hours }} hours
 </div>
@@ -70,59 +70,6 @@
     </div>
     <button type="submit">Create Invoice from Selected</button>
   </div>
-  {% if billable_cancellations %}
-    <section class="service-log-cancellation-section" aria-labelledby="approved-cancellation-charges-title">
-      <div class="service-log-cancellation-heading">
-        <div>
-          <h3 id="approved-cancellation-charges-title">Approved cancellation charges</h3>
-          <p>Select rostered charges to include with this invoice.</p>
-        </div>
-        <span>{{ billable_cancellations|length }} ready</span>
-      </div>
-      <div class="service-log-cancellation-table-wrap">
-        <table class="service-log-cancellation-table">
-          <thead>
-            <tr>
-              <th>Select</th>
-              <th>Service date</th>
-              <th>Participant</th>
-              <th>Worker</th>
-              <th>Status</th>
-              <th class="numeric-cell">Hours</th>
-              <th>Notes</th>
-              <th class="actions-heading">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for cancellation in billable_cancellations %}
-              <tr>
-                <td class="service-log-select-cell">
-                  <input type="checkbox" name="participant_cancellation_ids" value="{{ cancellation.id }}">
-                </td>
-                <td class="service-log-date-cell">
-                  <a href="{% url 'participant_cancellation_detail' cancellation.id %}">{{ cancellation.shift.service_date|date:"d/m/Y" }}</a>
-                </td>
-                <td class="service-log-person-cell">
-                  <strong class="service-log-person-name">{{ cancellation.shift.participant.display_name }}</strong>
-                </td>
-                <td class="service-log-person-cell">
-                  <strong class="service-log-person-name">{{ cancellation.shift.worker.display_name }}</strong>
-                </td>
-                <td class="service-log-status-cell">
-                  <span class="status-pill status-approved">Approved</span>
-                </td>
-                <td class="service-log-hours-cell numeric-cell">{{ cancellation.shift.planned_hours }}</td>
-                <td class="notes-cell"><span class="service-log-notes-preview">Approved rostered charge</span></td>
-                <td class="actions service-log-actions-cell">
-                  <a href="{% url 'participant_cancellation_detail' cancellation.id %}">View</a>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  {% endif %}
   <table class="service-log-table">
     <thead>
       <tr>
@@ -137,45 +84,61 @@
       </tr>
     </thead>
     <tbody>
-      {% for service_log in service_logs %}
+      {% for row in billing_rows %}
         <tr>
           <td class="service-log-select-cell">
-            {% if service_log.status == "approved" %}
-              <input type="checkbox" name="service_log_ids" value="{{ service_log.id }}">
+            {% if row.kind == "cancellation" %}
+              <input type="checkbox" name="participant_cancellation_ids" value="{{ row.id }}">
+            {% elif row.status == "approved" %}
+              <input type="checkbox" name="service_log_ids" value="{{ row.id }}">
             {% endif %}
           </td>
           <td class="service-log-date-cell">
             <div class="service-log-date-stack">
-              <a href="{% url 'service_log_detail' service_log.id %}?next={{ current_list_url|urlencode }}">{{ service_log.service_date|date:"d/m/Y" }}</a>
-              <span>Submitted {{ service_log.submitted_at|date:"d/m/Y H:i" }}</span>
+              {% if row.kind == "cancellation" %}
+                <a href="{% url 'participant_cancellation_detail' row.id %}">{{ row.service_date|date:"d/m/Y" }}</a>
+              {% else %}
+                <a href="{% url 'service_log_detail' row.id %}?next={{ current_list_url|urlencode }}">{{ row.service_date|date:"d/m/Y" }}</a>
+                <span>Submitted {{ row.service_log.submitted_at|date:"d/m/Y H:i" }}</span>
+              {% endif %}
             </div>
           </td>
           <td class="service-log-person-cell">
             <div class="service-log-person-stack">
-              <strong class="service-log-person-name">{{ service_log.participant.display_name }}</strong>
+              <strong class="service-log-person-name">{{ row.participant.display_name }}</strong>
               <span class="service-log-role-label">Participant</span>
             </div>
           </td>
           <td class="service-log-person-cell">
             <div class="service-log-person-stack">
-              <strong class="service-log-person-name">{{ service_log.worker.display_name }}</strong>
+              <strong class="service-log-person-name">{{ row.worker.display_name }}</strong>
               <span class="service-log-role-label">Support worker</span>
             </div>
           </td>
           <td class="service-log-status-cell">
             <div class="status-source-stack">
-              <span class="status-pill status-{{ service_log.status }}">{{ service_log.get_status_display }}</span>
-              {% if service_log.source == "unscheduled" %}
+              <span class="status-pill status-{{ row.status }}">{{ row.status_label }}</span>
+              {% if row.service_log.source == "unscheduled" %}
                 <span class="source-pill source-unscheduled">Unscheduled</span>
               {% endif %}
             </div>
           </td>
-          <td class="service-log-hours-cell numeric-cell">{{ service_log.actual_hours }}</td>
-          <td class="notes-cell"><div class="service-log-notes-preview">{{ service_log.case_notes|truncatechars:80 }}</div></td>
+          <td class="service-log-hours-cell numeric-cell">{{ row.hours }}</td>
+          <td class="notes-cell">
+            {% if row.kind == "cancellation" %}
+              <span class="service-log-notes-preview service-log-cancellation-note">{{ row.notes }}</span>
+            {% else %}
+              <div class="service-log-notes-preview">{{ row.notes|truncatechars:80 }}</div>
+            {% endif %}
+          </td>
           <td class="actions service-log-actions-cell">
-            <a href="{% url 'service_log_detail' service_log.id %}?next={{ current_list_url|urlencode }}">View</a>
-            {% if service_log.status == "approved" %}
-              <a class="primary-action" href="{% url 'invoice_create' %}?participant={{ service_log.participant_id }}&period_start={{ service_log.service_date|date:'Y-m-d' }}&period_end={{ service_log.service_date|date:'Y-m-d' }}">Create Invoice</a>
+            {% if row.kind == "cancellation" %}
+              <a href="{% url 'participant_cancellation_detail' row.id %}">View</a>
+            {% else %}
+              <a href="{% url 'service_log_detail' row.id %}?next={{ current_list_url|urlencode }}">View</a>
+            {% endif %}
+            {% if row.kind == "service_log" and row.status == "approved" %}
+              <a class="primary-action" href="{% url 'invoice_create' %}?participant={{ row.participant.id }}&period_start={{ row.service_date|date:'Y-m-d' }}&period_end={{ row.service_date|date:'Y-m-d' }}">Create Invoice</a>
             {% endif %}
           </td>
         </tr>
@@ -184,8 +147,13 @@
           <td colspan="8">
             <div class="empty-state">
               {% if has_filters %}
-                <strong>No service logs match the current filters.</strong>
-                <p>Clear the filters to review all submitted worker service records.</p>
+                {% if status == "approved" %}
+                  <strong>No approved billing records match the current filters.</strong>
+                  <p>Clear the filters to review approved service logs and rostered charges.</p>
+                {% else %}
+                  <strong>No service logs match the current filters.</strong>
+                  <p>Clear the filters to review all submitted worker service records.</p>
+                {% endif %}
                 <div class="empty-state-actions">
                   <a class="button secondary" href="{% url 'service_log_list' %}">Clear filters</a>
                 </div>

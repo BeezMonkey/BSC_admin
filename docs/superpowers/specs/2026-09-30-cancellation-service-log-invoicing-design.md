@@ -23,7 +23,7 @@ Allow admins to prepare one participant invoice from the Service Logs workbench 
 
 When the active status card is `Approved`, the Billing action area will also show approved, uninvoiced participant cancellations that match the current Participant and Service Date filters.
 
-Cancellation charges will appear in a compact admin-only section in the same billing form as the service-log table. Each row will show:
+Cancellation charges will appear in the same admin-only billing table as approved service logs, sorted and paginated with the service-log rows. Each row will show:
 
 - selectable checkbox;
 - rostered service date;
@@ -31,7 +31,7 @@ Cancellation charges will appear in a compact admin-only section in the same bil
 - worker;
 - `Approved` status;
 - rostered hours;
-- neutral admin text such as `Approved rostered charge`.
+- neutral admin text such as `Approved rostered charge`, using a subtle text colour to distinguish it from delivered-service notes.
 
 The row will not show cancellation type, reason, worker-entered details, claim code, or admin review note. The existing Cancellation page remains the place for reviewing those details.
 

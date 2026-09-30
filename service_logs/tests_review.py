@@ -536,7 +536,7 @@ class ServiceLogReviewTests(TestCase):
         )
 
         self.assertContains(response, "Showing")
-        self.assertContains(response, "<strong>1 approved log</strong>", html=True)
+        self.assertContains(response, "<strong>1 approved record</strong>", html=True)
         self.assertContains(response, "2 hours")
         self.assertContains(response, reverse("service_log_list"))
 
@@ -600,7 +600,7 @@ class ServiceLogReviewTests(TestCase):
             },
         )
 
-        self.assertContains(response, "Approved cancellation charges")
+        self.assertNotContains(response, "Approved cancellation charges")
         self.assertContains(
             response,
             f'name="participant_cancellation_ids" value="{cancellation.id}"',
@@ -610,6 +610,66 @@ class ServiceLogReviewTests(TestCase):
         self.assertNotContains(response, cancellation.get_cancellation_type_display())
         self.assertNotContains(response, cancellation.details)
         self.assertNotContains(response, cancellation.admin_note)
+
+    def test_approved_workbench_merges_logs_and_cancellations_into_one_table(self):
+        self.service_log.status = ServiceLog.Status.APPROVED
+        self.service_log.save(update_fields=["status", "updated_at"])
+        cancellation = self.create_participant_cancellation(
+            service_date=date(2026, 6, 2),
+        )
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("service_log_list"),
+            {
+                "status": ServiceLog.Status.APPROVED,
+                "participant": self.participant.id,
+                "sort": "date",
+                "direction": "asc",
+            },
+        )
+        content = response.content.decode()
+
+        self.assertNotContains(response, "Approved cancellation charges")
+        self.assertEqual(content.count('class="service-log-table"'), 1)
+        self.assertContains(
+            response,
+            f'name="service_log_ids" value="{self.service_log.id}"',
+        )
+        self.assertContains(
+            response,
+            f'name="participant_cancellation_ids" value="{cancellation.id}"',
+        )
+        self.assertLess(content.index("01/06/2026"), content.index("02/06/2026"))
+        self.assertContains(
+            response,
+            'class="service-log-notes-preview service-log-cancellation-note"',
+        )
+
+    def test_approved_workbench_summary_includes_cancellation_charges(self):
+        self.service_log.status = ServiceLog.Status.APPROVED
+        self.service_log.save(update_fields=["status", "updated_at"])
+        self.create_participant_cancellation(service_date=date(2026, 6, 2))
+        self.login_admin()
+
+        response = self.client.get(
+            reverse("service_log_list"),
+            {
+                "status": ServiceLog.Status.APPROVED,
+                "participant": self.participant.id,
+            },
+        )
+        approved_card = next(
+            item
+            for item in response.context["status_overview"]
+            if item["label"] == "Approved"
+        )
+
+        self.assertEqual(approved_card["count_label"], "2 ready")
+        self.assertEqual(response.context["filtered_record_count"], 2)
+        self.assertEqual(response.context["filtered_hours"], "5")
+        self.assertEqual(response.context["pagination"]["record_count"], 2)
+        self.assertContains(response, "<strong>2 approved records</strong>", html=True)
 
     def test_approved_workbench_excludes_non_billable_or_non_matching_cancellations(self):
         pending = self.create_participant_cancellation(
@@ -1021,7 +1081,10 @@ class ServiceLogReviewTests(TestCase):
             {"status": ServiceLog.Status.APPROVED},
         )
 
-        self.assertContains(response, "No service logs match the current filters.")
+        self.assertContains(
+            response,
+            "No approved billing records match the current filters.",
+        )
         self.assertContains(response, "Clear filters")
         self.assertNotContains(response, "Service logs appear here after workers complete")
 
