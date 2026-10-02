@@ -20,7 +20,7 @@
 **Files:**
 - Create: `docs/prototypes/admin-mobile-navigation-demo.html`
 
-- [ ] **Step 1: Create the semantic mobile shell and drawer**
+- [x] **Step 1: Create the semantic mobile shell and drawer**
 
 Use a fixed mobile header, a backdrop, and one left drawer controlled by both the hamburger button and edge gesture. Keep the Admin navigation order and labels identical to production:
 
@@ -63,7 +63,7 @@ Use a fixed mobile header, a backdrop, and one left drawer controlled by both th
 </aside>
 ```
 
-- [ ] **Step 2: Match the Admin visual language and stable mobile dimensions**
+- [x] **Step 2: Match the Admin visual language and stable mobile dimensions**
 
 Use the existing neutral Admin palette and a drawer width that remains usable on narrow screens:
 
@@ -98,7 +98,7 @@ Use the existing neutral Admin palette and a drawer width that remains usable on
 }
 ```
 
-- [ ] **Step 3: Implement one drawer controller for button and gesture input**
+- [x] **Step 3: Implement one drawer controller for button and gesture input**
 
 Keep gesture constants conservative and use the same state transitions for every opening method:
 
@@ -138,7 +138,7 @@ function settleDrawer(progress, velocityX) {
 
 Pointer handling must cancel on vertical intent, `pointercancel`, non-primary input, or a second pointer. Pointer capture begins only after horizontal intent is confirmed. Opening and closing update `aria-expanded`, `hidden`, focus, backdrop state, and body scroll lock.
 
-- [ ] **Step 4: Make preview navigation demonstrable without real navigation**
+- [x] **Step 4: Make preview navigation demonstrable without real navigation**
 
 Selecting a drawer item changes only the preview heading and active state, then closes the drawer:
 
@@ -153,7 +153,7 @@ navLinks.forEach((link) => {
 });
 ```
 
-- [ ] **Step 5: Run static source checks**
+- [x] **Step 5: Run static source checks**
 
 Run:
 

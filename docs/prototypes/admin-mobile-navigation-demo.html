@@ -1,0 +1,852 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Admin mobile navigation preview</title>
+  <style>
+    :root {
+      --brand: #0f766e;
+      --brand-dark: #0b5f59;
+      --brand-soft: #e7f5f3;
+      --accent: #b7791f;
+      --ink: #18181b;
+      --muted: #667085;
+      --line: #dfe3e8;
+      --surface: #f4f6f8;
+      --drawer-width: min(84vw, 320px);
+      --preview-left: max(0px, calc((100vw - 430px) / 2));
+      --preview-width: min(100vw, 430px);
+      --shadow: 0 18px 46px rgba(15, 23, 42, 0.18);
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      color: var(--ink);
+      background: #e9edf1;
+    }
+
+    button,
+    a {
+      font: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .preview-stage {
+      position: relative;
+      width: min(100%, 430px);
+      min-height: 100svh;
+      margin: 0 auto;
+      overflow: hidden;
+      background: #ffffff;
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.06), 0 16px 42px rgba(15, 23, 42, 0.12);
+      isolation: isolate;
+    }
+
+    .mobile-header {
+      position: sticky;
+      top: 0;
+      z-index: 15;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      border-bottom: 1px solid var(--line);
+      padding: max(10px, env(safe-area-inset-top)) 16px 10px;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(12px);
+    }
+
+    .menu-button,
+    .close-button {
+      position: relative;
+      display: grid;
+      flex: 0 0 auto;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0;
+      color: var(--ink);
+      background: #f8fafc;
+    }
+
+    .menu-button:hover,
+    .menu-button:focus-visible,
+    .close-button:hover,
+    .close-button:focus-visible {
+      border-color: #9ad4cc;
+      color: var(--brand-dark);
+      background: var(--brand-soft);
+      outline: 3px solid rgba(15, 118, 110, 0.16);
+      outline-offset: 1px;
+    }
+
+    .menu-icon,
+    .menu-icon::before,
+    .menu-icon::after {
+      display: block;
+      width: 20px;
+      height: 2px;
+      border-radius: 2px;
+      background: currentColor;
+    }
+
+    .menu-icon {
+      position: relative;
+    }
+
+    .menu-icon::before,
+    .menu-icon::after {
+      position: absolute;
+      left: 0;
+      content: "";
+    }
+
+    .menu-icon::before {
+      top: -6px;
+    }
+
+    .menu-icon::after {
+      top: 6px;
+    }
+
+    .mobile-identity {
+      display: grid;
+      min-width: 0;
+      gap: 1px;
+    }
+
+    .mobile-identity strong {
+      font-size: 15px;
+      line-height: 1.25;
+    }
+
+    .mobile-identity span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .page-content {
+      display: grid;
+      gap: 18px;
+      padding: 26px 16px 42px;
+    }
+
+    .page-heading h1 {
+      margin: 0;
+      font-size: 29px;
+      letter-spacing: 0;
+      line-height: 1.15;
+    }
+
+    .page-heading p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .section-heading {
+      display: grid;
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.35fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.35;
+    }
+
+    .section-heading p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .summary-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .summary-item,
+    .priority-panel,
+    .priority-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .summary-item {
+      display: grid;
+      gap: 2px;
+      min-height: 86px;
+      padding: 16px 18px;
+    }
+
+    .summary-item strong {
+      font-size: 19px;
+      line-height: 1.35;
+    }
+
+    .summary-item span {
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .priority-panel {
+      padding: 20px 22px;
+    }
+
+    .priority-panel h2 {
+      margin: 0;
+      font-size: 21px;
+    }
+
+    .priority-panel > p {
+      margin: 4px 0 14px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .priority-item {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 14px;
+      border-left: 4px solid var(--accent);
+      padding: 15px 16px;
+    }
+
+    .priority-count {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 7px;
+      color: var(--brand-dark);
+      background: #ccfbf1;
+      font-size: 16px;
+    }
+
+    .priority-copy {
+      display: grid;
+      gap: 2px;
+    }
+
+    .priority-copy strong {
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .priority-copy span {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .edge-swipe-zone {
+      position: fixed;
+      z-index: 22;
+      top: 64px;
+      bottom: 0;
+      left: var(--preview-left);
+      width: 24px;
+      touch-action: pan-y;
+    }
+
+    .edge-swipe-zone[hidden] {
+      display: none;
+    }
+
+    .drawer-backdrop {
+      position: fixed;
+      z-index: 28;
+      top: 0;
+      bottom: 0;
+      left: var(--preview-left);
+      width: var(--preview-width);
+      border: 0;
+      padding: 0;
+      background: rgba(15, 23, 42, 0.34);
+      opacity: 0;
+      transition: opacity 190ms ease;
+    }
+
+    .drawer-backdrop[hidden],
+    .mobile-drawer[hidden] {
+      display: none;
+    }
+
+    .mobile-drawer {
+      position: fixed;
+      z-index: 30;
+      top: 0;
+      bottom: 0;
+      left: var(--preview-left);
+      display: flex;
+      width: var(--drawer-width);
+      max-width: calc(100% - 44px);
+      flex-direction: column;
+      overflow: hidden;
+      color: var(--ink);
+      background: #ffffff;
+      box-shadow: var(--shadow);
+      transform: translate3d(-100%, 0, 0);
+      transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: transform;
+      touch-action: pan-y;
+    }
+
+    .preview-stage.drawer-open .drawer-backdrop {
+      opacity: 1;
+    }
+
+    .preview-stage.drawer-open .mobile-drawer {
+      transform: translate3d(0, 0, 0);
+    }
+
+    .preview-stage.drawer-dragging .drawer-backdrop,
+    .preview-stage.drawer-dragging .mobile-drawer {
+      transition: none;
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      padding: max(16px, env(safe-area-inset-top)) 16px 14px;
+    }
+
+    .drawer-brand {
+      display: grid;
+      gap: 1px;
+      min-width: 0;
+    }
+
+    .drawer-brand strong {
+      font-size: 15px;
+      line-height: 1.3;
+    }
+
+    .drawer-brand span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .close-button {
+      font-size: 26px;
+      font-weight: 300;
+      line-height: 1;
+    }
+
+    .drawer-nav {
+      display: grid;
+      align-content: start;
+      flex: 1 1 auto;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 10px 12px 18px;
+      scrollbar-width: thin;
+    }
+
+    .section-label {
+      padding: 15px 10px 7px;
+      color: #71717a;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .section-label:first-child {
+      padding-top: 6px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      min-height: 44px;
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1.25;
+    }
+
+    .nav-link:hover,
+    .nav-link:focus-visible {
+      color: var(--brand-dark);
+      background: #f6faf9;
+      outline: 2px solid rgba(15, 118, 110, 0.2);
+      outline-offset: -2px;
+    }
+
+    .nav-link.active {
+      color: var(--brand-dark);
+      background: var(--brand-soft);
+      box-shadow: inset 3px 0 0 var(--brand);
+      font-weight: 700;
+    }
+
+    .drawer-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-top: 1px solid var(--line);
+      padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+      background: #fafafa;
+    }
+
+    .drawer-footer span {
+      min-width: 0;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .drawer-footer button {
+      min-width: 78px;
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 8px 14px;
+      color: var(--ink);
+      background: #ffffff;
+      font-weight: 700;
+    }
+
+    .drawer-footer button:hover,
+    .drawer-footer button:focus-visible {
+      border-color: #9ad4cc;
+      color: var(--brand-dark);
+      background: var(--brand-soft);
+      outline: 3px solid rgba(15, 118, 110, 0.16);
+      outline-offset: 1px;
+    }
+
+    body.drawer-scroll-locked {
+      overflow: hidden;
+    }
+
+    @media (max-width: 380px) {
+      .page-heading h1 {
+        font-size: 26px;
+      }
+
+      .section-heading {
+        grid-template-columns: 1fr;
+        gap: 5px;
+      }
+    }
+
+    @media (min-width: 431px) {
+      .preview-stage {
+        min-height: calc(100svh - 32px);
+        margin-block: 16px;
+        border-radius: 10px;
+      }
+
+      .edge-swipe-zone {
+        top: 80px;
+        bottom: 16px;
+      }
+
+      .drawer-backdrop,
+      .mobile-drawer {
+        top: 16px;
+        bottom: 16px;
+      }
+
+      .drawer-backdrop {
+        border-radius: 10px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .mobile-drawer,
+      .drawer-backdrop {
+        transition-duration: 0.01ms;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-stage" id="previewStage">
+    <header class="mobile-header">
+      <button
+        class="menu-button"
+        id="menuButton"
+        type="button"
+        aria-label="Open Admin menu"
+        aria-controls="adminDrawer"
+        aria-expanded="false"
+      >
+        <span class="menu-icon" aria-hidden="true"></span>
+      </button>
+      <div class="mobile-identity">
+        <strong>BSC Admin</strong>
+        <span>Administration</span>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <header class="page-heading">
+        <h1 id="pageTitle">Today at BSC</h1>
+        <p id="pageDescription">Review current admin follow-up work and continue the NDIS operations loop.</p>
+      </header>
+
+      <section aria-labelledby="overviewTitle">
+        <div class="section-heading">
+          <h2 id="overviewTitle">Operations overview</h2>
+          <p>Key counts for the current admin workflow.</p>
+        </div>
+      </section>
+
+      <section class="summary-grid" aria-label="Operations summary">
+        <article class="summary-item">
+          <strong>9 active participants</strong>
+          <span>Current participant records</span>
+        </article>
+        <article class="summary-item">
+          <strong>5 active support workers</strong>
+          <span>Workers available for operations</span>
+        </article>
+        <article class="summary-item">
+          <strong>2 submitted logs</strong>
+          <span>Waiting for review</span>
+        </article>
+        <article class="summary-item">
+          <strong>33 ready to invoice</strong>
+          <span>Approved logs not billed</span>
+        </article>
+      </section>
+
+      <section class="priority-panel" aria-labelledby="priorityTitle">
+        <h2 id="priorityTitle">Priority queue</h2>
+        <p>Start here when you need to know what to handle first.</p>
+        <article class="priority-item">
+          <span class="priority-count">2</span>
+          <div class="priority-copy">
+            <strong>Review submitted service logs</strong>
+            <span>Worker notes waiting for admin approval.</span>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <div class="edge-swipe-zone" id="edgeSwipeZone" aria-hidden="true"></div>
+    <button class="drawer-backdrop" id="drawerBackdrop" type="button" aria-label="Close Admin menu" hidden></button>
+
+    <aside class="mobile-drawer" id="adminDrawer" aria-label="Admin menu" aria-hidden="true" hidden>
+      <header class="drawer-header">
+        <div class="drawer-brand">
+          <strong>Brisbane Star Care</strong>
+          <span>NDIS Admin</span>
+        </div>
+        <button class="close-button" id="closeButton" type="button" aria-label="Close Admin menu">&times;</button>
+      </header>
+
+      <nav class="drawer-nav" aria-label="Admin navigation">
+        <span class="section-label">Operations</span>
+        <a class="nav-link active" href="#dashboard" data-title="Today at BSC">Dashboard</a>
+        <a class="nav-link" href="#participants" data-title="Participants">Participants</a>
+        <a class="nav-link" href="#workers" data-title="Support Workers">Support Workers</a>
+        <a class="nav-link" href="#roster" data-title="Roster">Roster</a>
+        <a class="nav-link" href="#logs" data-title="Service Logs">Service Logs</a>
+        <a class="nav-link" href="#cancellations" data-title="Participant Cancellations">Cancellations</a>
+
+        <span class="section-label">Business</span>
+        <a class="nav-link" href="#invoices" data-title="Invoices">Invoices</a>
+        <a class="nav-link" href="#items" data-title="Support Items">Support Items</a>
+
+        <span class="section-label">Coordination</span>
+        <a class="nav-link" href="#coordinators" data-title="Support Coordinators">Support Coordinators</a>
+        <a class="nav-link" href="#coordination-logs" data-title="Coordination Logs">Coordination Logs</a>
+        <a class="nav-link" href="#sc-invoices" data-title="SC Invoices">SC Invoices</a>
+
+        <span class="section-label">System</span>
+        <a class="nav-link" href="#audit" data-title="Audit Logs">Audit Logs</a>
+      </nav>
+
+      <footer class="drawer-footer">
+        <span>admin</span>
+        <button type="button">Logout</button>
+      </footer>
+    </aside>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const EDGE_ZONE = 24;
+      const INTENT_DISTANCE = 10;
+      const OPEN_RATIO = 0.35;
+      const CLOSE_RATIO = 0.65;
+      const FLICK_VELOCITY = 0.45;
+      const TRANSITION_MS = 240;
+
+      const stage = document.getElementById("previewStage");
+      const menuButton = document.getElementById("menuButton");
+      const closeButton = document.getElementById("closeButton");
+      const backdrop = document.getElementById("drawerBackdrop");
+      const drawer = document.getElementById("adminDrawer");
+      const edgeZone = document.getElementById("edgeSwipeZone");
+      const pageTitle = document.getElementById("pageTitle");
+      const pageDescription = document.getElementById("pageDescription");
+      const navLinks = Array.from(drawer.querySelectorAll(".nav-link"));
+
+      const state = {
+        open: false,
+        tracking: false,
+        dragging: false,
+        mode: null,
+        pointerId: null,
+        pointerTarget: null,
+        startX: 0,
+        startY: 0,
+        lastX: 0,
+        lastTime: 0,
+        velocityX: 0,
+        progress: 0,
+        hideTimer: null,
+      };
+
+      function drawerWidth() {
+        return Math.max(drawer.getBoundingClientRect().width, 1);
+      }
+
+      function revealLayers() {
+        window.clearTimeout(state.hideTimer);
+        drawer.hidden = false;
+        backdrop.hidden = false;
+        drawer.setAttribute("aria-hidden", "false");
+      }
+
+      function hideLayersAfterTransition() {
+        window.clearTimeout(state.hideTimer);
+        state.hideTimer = window.setTimeout(() => {
+          if (!state.open && !state.dragging) {
+            drawer.hidden = true;
+            backdrop.hidden = true;
+            drawer.setAttribute("aria-hidden", "true");
+          }
+        }, TRANSITION_MS);
+      }
+
+      function clearInlineDragStyles() {
+        drawer.style.removeProperty("transform");
+        backdrop.style.removeProperty("opacity");
+      }
+
+      function setDrawerOpen(open, options = {}) {
+        const { moveFocus = true } = options;
+        state.open = open;
+        state.progress = open ? 1 : 0;
+        state.dragging = false;
+        stage.classList.remove("drawer-dragging");
+        clearInlineDragStyles();
+        menuButton.setAttribute("aria-expanded", String(open));
+        edgeZone.hidden = open;
+
+        if (open) {
+          revealLayers();
+          requestAnimationFrame(() => {
+            stage.classList.add("drawer-open");
+          });
+          document.body.classList.add("drawer-scroll-locked");
+          if (moveFocus) {
+            window.setTimeout(() => closeButton.focus(), 225);
+          }
+        } else {
+          stage.classList.remove("drawer-open");
+          document.body.classList.remove("drawer-scroll-locked");
+          hideLayersAfterTransition();
+          if (moveFocus) {
+            menuButton.focus();
+          }
+        }
+      }
+
+      function resetTracking() {
+        if (state.pointerTarget && state.pointerId !== null && state.pointerTarget.hasPointerCapture?.(state.pointerId)) {
+          state.pointerTarget.releasePointerCapture(state.pointerId);
+        }
+        state.tracking = false;
+        state.dragging = false;
+        state.mode = null;
+        state.pointerId = null;
+        state.pointerTarget = null;
+        stage.classList.remove("drawer-dragging");
+      }
+
+      function beginTracking(event, mode) {
+        if (!event.isPrimary || state.tracking) {
+          return;
+        }
+
+        if (mode === "open") {
+          const stageLeft = stage.getBoundingClientRect().left;
+          if (event.clientX - stageLeft > EDGE_ZONE) {
+            return;
+          }
+        }
+
+        state.tracking = true;
+        state.dragging = false;
+        state.mode = mode;
+        state.pointerId = event.pointerId;
+        state.pointerTarget = event.currentTarget;
+        state.startX = event.clientX;
+        state.startY = event.clientY;
+        state.lastX = event.clientX;
+        state.lastTime = event.timeStamp;
+        state.velocityX = 0;
+        state.progress = mode === "open" ? 0 : 1;
+      }
+
+      function resolveIntent(dx, dy) {
+        const absX = Math.abs(dx);
+        const absY = Math.abs(dy);
+        if (absY > INTENT_DISTANCE && absY > absX) {
+          return "vertical";
+        }
+        if (absX > INTENT_DISTANCE && absX > absY) {
+          return "horizontal";
+        }
+        return "pending";
+      }
+
+      function beginDrag(event) {
+        state.dragging = true;
+        revealLayers();
+        stage.classList.add("drawer-dragging");
+        document.body.classList.add("drawer-scroll-locked");
+        state.pointerTarget.setPointerCapture?.(event.pointerId);
+      }
+
+      function updateDrag(event) {
+        if (!state.tracking || event.pointerId !== state.pointerId) {
+          return;
+        }
+
+        const dx = event.clientX - state.startX;
+        const dy = event.clientY - state.startY;
+        const intent = resolveIntent(dx, dy);
+
+        if (!state.dragging) {
+          if (intent === "vertical") {
+            resetTracking();
+            return;
+          }
+          if (intent !== "horizontal") {
+            return;
+          }
+          if ((state.mode === "open" && dx <= 0) || (state.mode === "close" && dx >= 0)) {
+            resetTracking();
+            return;
+          }
+          beginDrag(event);
+        }
+
+        event.preventDefault();
+        const width = drawerWidth();
+        state.progress = state.mode === "open"
+          ? Math.min(Math.max(dx / width, 0), 1)
+          : Math.min(Math.max(1 + dx / width, 0), 1);
+
+        const elapsed = Math.max(event.timeStamp - state.lastTime, 1);
+        state.velocityX = (event.clientX - state.lastX) / elapsed;
+        state.lastX = event.clientX;
+        state.lastTime = event.timeStamp;
+
+        drawer.style.transform = `translate3d(${(state.progress - 1) * 100}%, 0, 0)`;
+        backdrop.style.opacity = String(state.progress);
+      }
+
+      function finishTracking(event) {
+        if (!state.tracking || event.pointerId !== state.pointerId) {
+          return;
+        }
+
+        if (!state.dragging) {
+          resetTracking();
+          return;
+        }
+
+        const shouldOpen = state.mode === "open"
+          ? state.progress >= OPEN_RATIO || state.velocityX >= FLICK_VELOCITY
+          : state.progress > CLOSE_RATIO && state.velocityX > -FLICK_VELOCITY;
+
+        resetTracking();
+        requestAnimationFrame(() => setDrawerOpen(shouldOpen, { moveFocus: shouldOpen }));
+      }
+
+      function cancelTracking() {
+        if (!state.tracking) {
+          return;
+        }
+        const returnOpen = state.open || state.mode === "close";
+        resetTracking();
+        setDrawerOpen(returnOpen, { moveFocus: false });
+      }
+
+      menuButton.addEventListener("click", () => setDrawerOpen(true));
+      closeButton.addEventListener("click", () => setDrawerOpen(false));
+      backdrop.addEventListener("click", () => setDrawerOpen(false));
+
+      edgeZone.addEventListener("pointerdown", (event) => beginTracking(event, "open"));
+      edgeZone.addEventListener("pointermove", updateDrag);
+      edgeZone.addEventListener("pointerup", finishTracking);
+      edgeZone.addEventListener("pointercancel", cancelTracking);
+
+      drawer.addEventListener("pointerdown", (event) => beginTracking(event, "close"));
+      drawer.addEventListener("pointermove", updateDrag);
+      drawer.addEventListener("pointerup", finishTracking);
+      drawer.addEventListener("pointercancel", cancelTracking);
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && state.open) {
+          setDrawerOpen(false);
+        }
+      });
+
+      navLinks.forEach((link) => {
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          navLinks.forEach((item) => item.classList.toggle("active", item === link));
+          pageTitle.textContent = link.dataset.title || link.textContent.trim();
+          pageDescription.textContent = `${link.textContent.trim()} workspace preview.`;
+          setDrawerOpen(false);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
