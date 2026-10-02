@@ -1,21 +1,22 @@
 (function () {
   "use strict";
 
-  const EDGE_ZONE = 24;
-  const INTENT_DISTANCE = 10;
+  const INSET_START = 32;
+  const INSET_END = 112;
+  const INTENT_DISTANCE = 12;
   const OPEN_RATIO = 0.35;
   const CLOSE_RATIO = 0.65;
   const FLICK_VELOCITY = 0.45;
   const TRANSITION_MS = 240;
+  const SUPPRESS_CLICK_MS = 400;
 
   const menuButton = document.querySelector(".admin-mobile-menu-button");
   const drawer = document.querySelector(".admin-mobile-drawer");
+  const surface = document.querySelector(".admin-mobile-surface");
   const backdrop = document.querySelector(".admin-mobile-drawer-backdrop");
-  const edgeZone = document.querySelector(".admin-edge-swipe-zone");
   const closeButton = document.querySelector(".admin-mobile-close-button");
-  const closeControls = document.querySelectorAll("[data-admin-menu-close]");
 
-  if (!menuButton || !drawer || !backdrop || !edgeZone || !closeButton) {
+  if (!menuButton || !drawer || !surface || !backdrop || !closeButton) {
     return;
   }
 
@@ -33,10 +34,21 @@
     velocityX: 0,
     progress: 0,
     hideTimer: null,
+    suppressBackdropClick: false,
+    suppressClickTimer: null,
   };
 
   function drawerWidth() {
     return Math.max(drawer.getBoundingClientRect().width, 1);
+  }
+
+  function isIgnoredGestureTarget(target) {
+    if (!(target instanceof Element)) {
+      return false;
+    }
+    return Boolean(target.closest(
+      "a, button, input, select, textarea, summary, [contenteditable], .table-wrap, [data-admin-swipe-ignore]"
+    ));
   }
 
   function revealLayers() {
@@ -58,7 +70,7 @@
   }
 
   function clearInlineDragStyles() {
-    drawer.style.removeProperty("transform");
+    surface.style.removeProperty("transform");
     backdrop.style.removeProperty("opacity");
   }
 
@@ -70,15 +82,12 @@
     state.progress = open ? 1 : 0;
     state.dragging = false;
     document.body.classList.remove("admin-nav-dragging");
-    clearInlineDragStyles();
     menuButton.setAttribute("aria-expanded", String(open));
-    edgeZone.hidden = open;
 
     if (open) {
       revealLayers();
-      window.requestAnimationFrame(function () {
-        document.body.classList.add("admin-nav-open");
-      });
+      document.body.classList.add("admin-nav-open");
+      clearInlineDragStyles();
       if (moveFocus) {
         window.setTimeout(function () {
           closeButton.focus();
@@ -88,6 +97,7 @@
     }
 
     document.body.classList.remove("admin-nav-open");
+    clearInlineDragStyles();
     hideLayersAfterTransition();
     if (moveFocus) {
       menuButton.focus();
@@ -117,7 +127,14 @@
       return;
     }
 
-    if (mode === "open" && event.clientX > EDGE_ZONE) {
+    if (
+      mode === "open" &&
+      (
+        event.clientX < INSET_START ||
+        event.clientX > INSET_END ||
+        isIgnoredGestureTarget(event.target)
+      )
+    ) {
       return;
     }
 
@@ -147,10 +164,21 @@
     return "pending";
   }
 
+  function suppressNextBackdropClick() {
+    window.clearTimeout(state.suppressClickTimer);
+    state.suppressBackdropClick = true;
+    state.suppressClickTimer = window.setTimeout(function () {
+      state.suppressBackdropClick = false;
+    }, SUPPRESS_CLICK_MS);
+  }
+
   function beginDrag(event) {
     state.dragging = true;
     revealLayers();
     document.body.classList.add("admin-nav-dragging");
+    if (state.mode === "close") {
+      suppressNextBackdropClick();
+    }
     if (state.pointerTarget.setPointerCapture) {
       state.pointerTarget.setPointerCapture(event.pointerId);
     }
@@ -191,7 +219,7 @@
     state.lastX = event.clientX;
     state.lastTime = event.timeStamp;
 
-    drawer.style.transform = "translate3d(" + ((state.progress - 1) * 100) + "%, 0, 0)";
+    surface.style.transform = "translate3d(" + (state.progress * width) + "px, 0, 0)";
     backdrop.style.opacity = String(state.progress);
   }
 
@@ -221,6 +249,8 @@
     }
 
     const returnOpen = state.open || state.mode === "close";
+    window.clearTimeout(state.suppressClickTimer);
+    state.suppressBackdropClick = false;
     resetTracking();
     setDrawerOpen(returnOpen, { moveFocus: false });
   }
@@ -229,25 +259,26 @@
     setDrawerOpen(true);
   });
 
-  closeControls.forEach(function (control) {
-    control.addEventListener("click", function () {
-      setDrawerOpen(false);
-    });
+  closeButton.addEventListener("click", function () {
+    setDrawerOpen(false);
   });
 
-  edgeZone.addEventListener("pointerdown", function (event) {
-    beginTracking(event, "open");
+  backdrop.addEventListener("click", function (event) {
+    if (state.suppressBackdropClick) {
+      event.preventDefault();
+      state.suppressBackdropClick = false;
+      window.clearTimeout(state.suppressClickTimer);
+      return;
+    }
+    setDrawerOpen(false);
   });
-  edgeZone.addEventListener("pointermove", updateDrag);
-  edgeZone.addEventListener("pointerup", finishTracking);
-  edgeZone.addEventListener("pointercancel", cancelTracking);
 
-  drawer.addEventListener("pointerdown", function (event) {
-    beginTracking(event, "close");
+  surface.addEventListener("pointerdown", function (event) {
+    beginTracking(event, state.open ? "close" : "open");
   });
-  drawer.addEventListener("pointermove", updateDrag);
-  drawer.addEventListener("pointerup", finishTracking);
-  drawer.addEventListener("pointercancel", cancelTracking);
+  surface.addEventListener("pointermove", updateDrag, { passive: false });
+  surface.addEventListener("pointerup", finishTracking);
+  surface.addEventListener("pointercancel", cancelTracking);
 
   document.addEventListener("keydown", function (event) {
     if (event.key === "Escape" && state.open) {
@@ -261,14 +292,15 @@
       return;
     }
     resetTracking();
+    window.clearTimeout(state.suppressClickTimer);
     state.open = false;
+    state.suppressBackdropClick = false;
     document.body.classList.remove("admin-nav-open");
     clearInlineDragStyles();
     menuButton.setAttribute("aria-expanded", "false");
     drawer.hidden = true;
     backdrop.hidden = true;
     drawer.setAttribute("aria-hidden", "true");
-    edgeZone.hidden = false;
   };
 
   if (desktopQuery.addEventListener) {
