@@ -35,8 +35,10 @@ from invoices.views import (
 )
 from participants.models import Participant
 from scheduling.models import ParticipantCancellation, Shift
+from workers.models import SupportWorker
 
 from .filters import DATE_RANGE_CHOICES, format_hours, resolve_service_date_filter
+from .follow_up import missing_log_summary
 from .forms import ServiceLogForm, UnscheduledServiceLogForm
 from .models import ServiceLog
 from .notifications import notify_admin_service_log_submitted
@@ -124,6 +126,20 @@ def service_log_list(request):
             else service_logs.none()
         )
 
+    workers = SupportWorker.objects.all()
+    worker_value = request.GET.get("worker", "").strip()
+    selected_worker = None
+    if worker_value:
+        try:
+            selected_worker = workers.filter(pk=int(worker_value)).first()
+        except (TypeError, ValueError, OverflowError):
+            selected_worker = None
+        service_logs = (
+            service_logs.filter(worker=selected_worker)
+            if selected_worker
+            else service_logs.none()
+        )
+
     date_filter = resolve_service_date_filter(
         request.GET.get("date_range", "all").strip(),
         request.GET.get("date_from", "").strip(),
@@ -152,6 +168,12 @@ def service_log_list(request):
                 if selected_participant
                 else billable_cancellations.none()
             )
+        if worker_value:
+            billable_cancellations = (
+                billable_cancellations.filter(shift__worker=selected_worker)
+                if selected_worker
+                else billable_cancellations.none()
+            )
         if date_filter["start"]:
             billable_cancellations = billable_cancellations.filter(
                 shift__service_date__gte=date_filter["start"],
@@ -166,9 +188,30 @@ def service_log_list(request):
             "id",
         )
 
+    # Follow-up uses the same people/date scope, independently of log status.
+    missing_shifts = Shift.objects.all()
+    if participant_value:
+        missing_shifts = (
+            missing_shifts.filter(participant=selected_participant)
+            if selected_participant
+            else missing_shifts.none()
+        )
+    if worker_value:
+        missing_shifts = (
+            missing_shifts.filter(worker=selected_worker)
+            if selected_worker
+            else missing_shifts.none()
+        )
+    if date_filter["start"]:
+        missing_shifts = missing_shifts.filter(service_date__gte=date_filter["start"])
+    if date_filter["end"]:
+        missing_shifts = missing_shifts.filter(service_date__lte=date_filter["end"])
+    follow_up = missing_log_summary(missing_shifts)
+
     has_filters = bool(
         status
         or participant_value
+        or worker_value
         or date_filter["key"] != "all"
         or date_filter["start_value"]
         or date_filter["end_value"]
@@ -178,6 +221,8 @@ def service_log_list(request):
     preserved_filters = {}
     if participant_value:
         preserved_filters["participant"] = participant_value
+    if worker_value:
+        preserved_filters["worker"] = worker_value
     if date_filter["key"] != "all":
         preserved_filters["date_range"] = date_filter["key"]
     if date_filter["start_value"]:
@@ -302,6 +347,9 @@ def service_log_list(request):
             "status_overview": status_overview,
             "participants": participants,
             "selected_participant_id": participant_value,
+            "workers": workers,
+            "selected_worker_id": worker_value,
+            **follow_up,
             "date_range_choices": DATE_RANGE_CHOICES,
             "date_range": date_filter["key"],
             "date_from": date_filter["start_value"],

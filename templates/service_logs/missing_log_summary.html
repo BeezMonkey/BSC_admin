@@ -1,0 +1,36 @@
+{% load bsc_formatting %}
+{% if missing_log_count %}
+<details class="service-log-missing">
+  <summary>
+    <span>
+      <strong>{{ missing_worker_count }} worker{{ missing_worker_count|pluralize }} with {{ missing_log_count }} unsubmitted log{{ missing_log_count|pluralize }}</strong>
+      <small>Scheduled shifts that have ended, with no service log submitted.</small>
+    </span>
+  </summary>
+  <div class="service-log-missing-groups">
+    {% for group in missing_log_groups %}
+    <details class="service-log-missing-worker">
+      <summary>
+        <strong>{{ group.worker.display_name }}</strong>
+        <span>{{ group.count }} unsubmitted</span>
+        <small>Earliest {{ group.shifts.0.service_date|date:"d/m/Y" }}</small>
+      </summary>
+      <ul class="service-log-missing-shifts">
+        {% for shift in group.shifts %}
+        <li>
+          <span>{{ shift.service_date|date:"d/m/Y" }}</span>
+          <span>{{ shift.start_time|display_time }} &ndash; {{ shift.end_time|display_time }}</span>
+          <span>{{ shift.participant.display_name }}</span>
+          <a href="{% url 'shift_detail' shift.id %}">View shift<span class="sr-only">: {{ shift.participant.display_name }}, {{ shift.service_date|date:"d/m/Y" }}</span></a>
+        </li>
+        {% endfor %}
+      </ul>
+    </details>
+    {% endfor %}
+  </div>
+</details>
+{% else %}
+<div class="service-log-missing service-log-missing-clear">
+  No unsubmitted logs in the current filters.
+</div>
+{% endif %}

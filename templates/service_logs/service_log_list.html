@@ -1,4 +1,5 @@
 {% extends "admin_base.html" %}
+{% load static %}
 
 {% block title %}Service Logs - Brisbane Star Care{% endblock %}
 
@@ -26,13 +27,21 @@
   </div>
 </section>
 
-<form method="get" class="filter-bar service-log-filter-bar">
+<form method="get" class="filter-bar service-log-filter-bar" data-service-log-filters>
   {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
   <label>Participant
     <select name="participant">
       <option value="">All participants</option>
       {% for participant in participants %}
         <option value="{{ participant.id }}"{% if selected_participant_id == participant.id|stringformat:"s" %} selected{% endif %}>{{ participant.display_name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Worker
+    <select name="worker">
+      <option value="">All workers</option>
+      {% for worker in workers %}
+        <option value="{{ worker.id }}"{% if selected_worker_id == worker.id|stringformat:"s" %} selected{% endif %}>{{ worker.display_name }}</option>
       {% endfor %}
     </select>
   </label>
@@ -60,6 +69,8 @@
   <span aria-hidden="true">&middot;</span>
   {{ filtered_hours }} hours
 </div>
+
+{% include "service_logs/missing_log_summary.html" %}
 
 <form method="get" action="{% url 'invoice_create' %}">
 <section class="card table-card service-log-table-card">
@@ -173,4 +184,5 @@
 </section>
 </form>
 {% include "core/pagination.html" %}
+<script src="{% static 'js/service_log_filters.js' %}" defer></script>
 {% endblock %}
