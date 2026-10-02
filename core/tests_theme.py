@@ -323,8 +323,10 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn('class="field support-item-notes-field"', template)
 
     def test_admin_sidebar_groups_real_v1_modules(self):
-        template = Path("templates/admin_base.html").read_text(encoding="utf-8")
+        shell_template = Path("templates/admin_base.html").read_text(encoding="utf-8")
+        template = Path("templates/core/partials/admin_navigation_links.html").read_text(encoding="utf-8")
 
+        self.assertEqual(shell_template.count('{% include "core/partials/admin_navigation_links.html" %}'), 2)
         self.assertIn('class="sidebar-section-label">Operations</span>', template)
         self.assertIn('class="sidebar-section-label">Business</span>', template)
         self.assertIn(">Dashboard</a>", template)
@@ -415,6 +417,20 @@ class ThemeTokenTests(SimpleTestCase):
 
         template = Path("templates/worker_base.html").read_text(encoding="utf-8")
         self.assertIn('class="worker-mobile-menu-icon"', template)
+
+    def test_admin_mobile_navigation_assets_exist(self):
+        css = Path("static/css/admin.css").read_text(encoding="utf-8")
+        script = Path("static/js/admin_nav.js").read_text(encoding="utf-8")
+
+        self.assertIn(".admin-mobile-header", css)
+        self.assertIn(".admin-mobile-drawer", css)
+        self.assertIn(".admin-mobile-drawer-backdrop", css)
+        self.assertIn(".admin-mobile-surface", css)
+        self.assertNotIn(".admin-edge-swipe-zone", css)
+        self.assertIn("@media (max-width: 760px)", css)
+        self.assertIn("prefers-reduced-motion", css)
+        self.assertIn('event.key === "Escape"', script)
+        self.assertNotIn("const EDGE_ZONE", script)
 
     def test_worker_mobile_content_polish_assets_exist(self):
         css = Path("static/css/app.css").read_text(encoding="utf-8")

@@ -25,3 +25,18 @@ class AdminAppearanceIsolationTests(SimpleTestCase):
                 html = self.render_shell(template)
                 self.assertNotIn(static("css/admin.css"), html)
                 self.assertNotIn("data-admin-theme", html)
+
+    def test_admin_shell_includes_mobile_navigation(self):
+        html = self.render_shell("admin_base.html")
+
+        self.assertIn('class="admin-mobile-header"', html)
+        self.assertIn('class="admin-mobile-menu-button"', html)
+        self.assertIn('class="admin-mobile-drawer"', html)
+        self.assertIn('class="admin-mobile-drawer-backdrop"', html)
+        self.assertIn('class="admin-mobile-surface"', html)
+        self.assertNotIn('class="admin-edge-swipe-zone"', html)
+        self.assertIn('aria-controls="admin-mobile-drawer"', html)
+        self.assertIn(static("js/admin_nav.js"), html)
+        self.assertEqual(html.count('aria-label="Admin navigation"'), 2)
+        self.assertEqual(html.count(">Dashboard</a>"), 2)
+        self.assertEqual(html.count(">Invoices</a>"), 2)
