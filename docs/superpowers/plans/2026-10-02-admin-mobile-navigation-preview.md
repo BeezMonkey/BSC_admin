@@ -164,7 +164,7 @@ Select-String -Path 'docs/prototypes/admin-mobile-navigation-demo.html' -Pattern
 
 Expected: `git diff --check` has no output; all four required safety/accessibility markers are present.
 
-- [ ] **Step 6: Commit the preview**
+- [x] **Step 6: Commit the preview**
 
 ```powershell
 git add -- 'docs/prototypes/admin-mobile-navigation-demo.html'
@@ -177,6 +177,8 @@ git commit -m "docs: preview admin mobile navigation"
 - Test: `docs/prototypes/admin-mobile-navigation-demo.html`
 
 - [ ] **Step 1: Open the standalone preview in the in-app browser**
+
+Verification note: the Codex in-app browser blocks direct `file://` navigation by policy. The preview remains a standalone local file and requires user-side opening for visual and touch verification.
 
 Open the file URL for `docs/prototypes/admin-mobile-navigation-demo.html` at a mobile-sized viewport.
 
