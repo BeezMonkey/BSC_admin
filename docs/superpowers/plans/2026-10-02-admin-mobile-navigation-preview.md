@@ -262,6 +262,8 @@ git diff --check
 
 Expected: tests pass, Django reports no issues, no migrations are generated, and the diff check is clean.
 
-- [ ] **Step 7: Push and open a staging PR**
+- [x] **Step 7: Push and open a staging PR**
 
 Push `codex/admin-mobile-nav-preview` and create a PR with base `staging`, explicitly noting that production is unchanged until staging validation and a later staging-to-main merge.
+
+Completed in [PR #267](https://github.com/BeezMonkey/BSC_admin/pull/267), targeting `staging`.
