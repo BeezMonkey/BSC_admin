@@ -54,3 +54,14 @@ Create a standalone HTML preview for the Admin mobile navigation. The preview mu
 - Verify vertical scrolling near the edge does not open the drawer.
 - Verify backdrop, close button, navigation selection, and Escape behavior.
 - Inspect at narrow mobile and tablet-sized viewports for clipping and overlap.
+
+## Staging Integration
+
+After preview approval, implement the same pattern in the real Admin shell for staging validation:
+
+- Extract the existing Admin navigation links into one shared Django template partial so desktop and mobile menus cannot drift apart.
+- Add a mobile-only Admin header, backdrop, drawer, edge gesture zone, and logout control to `admin_base.html`.
+- Keep the existing desktop sidebar and all destination URLs, permission behavior, active-state conditions, and form actions unchanged.
+- Put Admin-specific responsive styling in `static/css/admin.css` and gesture behavior in `static/js/admin_nav.js`.
+- Keep the existing `760px` Admin breakpoint and do not add a bottom navigation bar.
+- Validate template hooks, asset inclusion, gesture safety constants, Django checks, and focused Admin appearance tests before opening a PR to `staging`.

@@ -212,3 +212,56 @@ git log -2 --oneline
 ```
 
 Expected: the branch contains the design-spec commit and preview commit, with no unrelated modified files.
+
+### Task 3: Integrate the approved navigation into the Admin shell
+
+**Files:**
+- Create: `templates/core/partials/admin_navigation_links.html`
+- Create: `static/js/admin_nav.js`
+- Modify: `templates/admin_base.html`
+- Modify: `static/css/admin.css`
+- Modify: `core/tests_admin_appearance.py`
+- Modify: `core/tests_theme.py`
+
+- [x] **Step 1: Add failing shell and asset tests**
+
+Assert that rendered Admin pages include the mobile menu button, drawer, shared navigation partial output, backdrop, edge zone, and `admin_nav.js`. Assert that Admin CSS and JavaScript contain the mobile hooks and conservative gesture constants.
+
+- [x] **Step 2: Run focused tests and confirm the new assertions fail**
+
+Run:
+
+```powershell
+python manage.py test core.tests_admin_appearance core.tests_theme -v 2
+```
+
+Expected: failures report missing Admin mobile navigation markup or assets.
+
+- [x] **Step 3: Extract shared navigation links and add mobile shell markup**
+
+Move the existing section labels, links, URL destinations, and active-state conditions unchanged into `templates/core/partials/admin_navigation_links.html`. Include that partial from both the existing desktop navigation and the new mobile drawer.
+
+- [x] **Step 4: Add Admin-only responsive styling**
+
+Add mobile header, drawer, backdrop, active link, footer, edge zone, safe-area, and reduced-motion rules to `static/css/admin.css`. Display them only at `max-width: 760px`; leave desktop behavior unchanged.
+
+- [x] **Step 5: Add the shared button and edge-swipe controller**
+
+Create `static/js/admin_nav.js` with the approved `24px` edge zone, horizontal-intent check, `35%` open threshold, pointer cancellation, body scroll lock, accessibility state updates, focus handling, and resize cleanup.
+
+- [x] **Step 6: Run focused tests and Django checks**
+
+Run:
+
+```powershell
+python manage.py test core.tests_admin_appearance core.tests_theme -v 2
+python manage.py check
+python manage.py makemigrations --check --dry-run
+git diff --check
+```
+
+Expected: tests pass, Django reports no issues, no migrations are generated, and the diff check is clean.
+
+- [ ] **Step 7: Push and open a staging PR**
+
+Push `codex/admin-mobile-nav-preview` and create a PR with base `staging`, explicitly noting that production is unchanged until staging validation and a later staging-to-main merge.
