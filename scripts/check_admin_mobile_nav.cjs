@@ -10,8 +10,10 @@ const markup = fs.readFileSync(path.join(root, "templates/admin_base.html"), "ut
   .match(/<div class="app-shell"[\s\S]*?<script/)[0].replace(/<script$/, "")
   .replace(/{% include "core\/partials\/admin_navigation_links.html" %}/g,
     '<a class="sidebar-link" href="/destination">Dashboard</a><a class="sidebar-link" href="/destination">Service Logs</a>')
+  .replace(/{% if messages %}[\s\S]*?{% endif %}/, "")
   .replace(/{% block content %}{% endblock %}/,
     '<div class="page-header"><h1>Service Logs</h1><p>Review support records.</p></div>' +
+    '<a id="test-card" href="/card-destination" style="display:block;padding:20px">5 active participants</a>' +
     '<div style="height:100px">Content area</div><label>Notes<input id="test-input" value="Test note"></label>' +
     '<div class="table-wrap" style="overflow:auto;margin-top:20px"><table style="width:900px"><tr><td>Service date</td><td>Participant</td><td>Hours</td></tr></table></div>' +
     '<div id="scroll-region" style="overflow:auto;margin-top:20px"><div style="width:900px;height:50px">Horizontal planner</div></div>' +
@@ -58,23 +60,22 @@ const html = '<!doctype html><meta name="viewport" content="width=device-width, 
       await page.waitForTimeout(300);
     };
     await swipe(65, 110, 210, 0);
-    assert.equal(page.url(), origin + "/current", "swipe must not navigate backward");
-    assert.equal(await expanded(), "true", "touch swipe opens the drawer");
+    assert.equal(await expanded(), "false", "touch swipe must not open the drawer");
     assert.equal(await page.locator(".admin-mobile-surface").evaluate(el => getComputedStyle(el).transform), "none", "content remains stationary with the original overlay style");
-    console.log("PASS native touch opens overlay without history navigation");
-    await swipe(200, 25, -180, 0);
-    assert.equal(await expanded(), "false", "left swipe closes drawer");
-    console.log("PASS native touch closes overlay");
     await swipe(180, 110, 170, 0);
-    assert.equal(await expanded(), "true", "content swipe is not limited to a narrow lane");
-    await clickClose();
-    await swipe(65, 200, 200, 0);
-    assert.equal(await expanded(), "true", "plain content with native touch-action also supports swipe");
-    await clickClose();
-    console.log("PASS inset and central content gestures");
-    await swipe(65, 110, 25, 0, 12, 50);
-    assert.equal(await expanded(), "false", "short slow drag snaps closed");
-    console.log("PASS incomplete drag snaps back");
+    assert.equal(await expanded(), "false", "central swipe must not open the drawer");
+    const card = await page.locator("#test-card").boundingBox();
+    await swipe(card.x + 30, card.y + 20, 180, 0);
+    assert.equal(await expanded(), "false", "link-card swipe must not open the drawer");
+    await page.locator("#test-card").tap();
+    await page.waitForURL(origin + "/card-destination");
+    console.log("PASS page swipes leave menu closed and link cards remain clickable");
+    await page.mouse.move(65, 110);
+    await page.mouse.down();
+    await page.mouse.move(275, 110, { steps: 12 });
+    await page.mouse.up();
+    assert.equal(await expanded(), "false", "mouse drag must not open the drawer");
+    console.log("PASS pointer dragging leaves menu closed");
     await swipe(80, 600, 0, -250);
     assert.ok(await page.evaluate(() => scrollY) > 50, "vertical page scroll must work");
     assert.equal(await expanded(), "false");
@@ -83,6 +84,8 @@ const html = '<!doctype html><meta name="viewport" content="width=device-width, 
     const input = await page.locator("#test-input").boundingBox();
     await swipe(input.x + 40, input.y + 20, 150, 0);
     assert.equal(await expanded(), "false", "input gestures must not open the drawer");
+    await page.locator("#test-input").fill("Updated note");
+    assert.equal(await page.locator("#test-input").inputValue(), "Updated note");
     for (const selector of [".table-wrap", "#scroll-region"]) {
       const box = await page.locator(selector).boundingBox();
       await swipe(290, box.y + 20, -180, 0);
@@ -90,26 +93,14 @@ const html = '<!doctype html><meta name="viewport" content="width=device-width, 
       await swipe(65, box.y + 20, 180, 0);
       assert.equal(await expanded(), "false", "horizontal scroll region must not open drawer");
     }
-    console.log("PASS input and horizontal scroll guards");
-    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 65, y: 110, id: 1 }] });
-    await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 145, y: 110, id: 1 }] });
-    await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
-    await page.waitForTimeout(300);
-    assert.equal(await expanded(), "false");
-    assert.equal(await page.locator(".admin-mobile-drawer").evaluate(el => el.hidden), true);
-    console.log("PASS cancelled touch resets");
-    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 65, y: 110, id: 1 }] });
-    await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 130, y: 110, id: 1 }] });
-    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 130, y: 110, id: 1 }, { x: 220, y: 180, id: 2 }] });
-    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
-    await page.waitForTimeout(300);
-    assert.equal(await expanded(), "false", "second finger cancels the drawer gesture");
-    assert.equal(await page.locator(".admin-mobile-surface").evaluate(el => el.inert), false);
-    console.log("PASS multi-touch cancellation");
+    console.log("PASS input editing and native horizontal scrolling");
     await page.locator(".admin-mobile-menu-button").tap();
     await page.waitForTimeout(300);
     assert.equal(await expanded(), "true");
     assert.equal(await page.locator(".admin-mobile-surface").evaluate(el => el.inert), true);
+    await swipe(200, 25, -180, 0);
+    assert.equal(await expanded(), "true", "swipe must not close the drawer");
+    await page.locator(".admin-mobile-close-button").focus();
     await page.keyboard.press("Shift+Tab");
     assert.equal(await page.locator(".admin-mobile-logout button").evaluate(el => el === document.activeElement), true);
     await page.keyboard.press("Tab");
@@ -118,6 +109,8 @@ const html = '<!doctype html><meta name="viewport" content="width=device-width, 
     await page.keyboard.press("Escape");
     await page.waitForTimeout(300);
     assert.equal(await expanded(), "false");
+    assert.equal(await page.locator(".admin-mobile-menu-button").evaluate(el => el === document.activeElement), true);
+    assert.equal(await page.locator(".admin-mobile-surface").evaluate(el => el.inert), false);
     await page.locator(".admin-mobile-menu-button").tap();
     await page.waitForTimeout(300);
     await page.locator(".admin-mobile-drawer-backdrop").tap({ position: { x: 365, y: 200 } });
@@ -134,6 +127,14 @@ const html = '<!doctype html><meta name="viewport" content="width=device-width, 
     console.log("PASS browser-edge exclusion");
     for (const width of [320, 390, 760]) {
       await page.setViewportSize({ width, height: 844 });
+      await page.evaluate(() => scrollTo(0, 0));
+      const headerBounds = await page.locator(".admin-mobile-header").boundingBox();
+      const contentBounds = await page.locator(".page-header").boundingBox();
+      assert.ok(contentBounds.y - headerBounds.y - headerBounds.height >= 20, "page heading needs space below the mobile header");
+      if (process.env.ADMIN_NAV_CAPTURE_DIR) {
+        fs.mkdirSync(process.env.ADMIN_NAV_CAPTURE_DIR, { recursive: true });
+        await page.screenshot({ path: path.join(process.env.ADMIN_NAV_CAPTURE_DIR, "page-" + width + ".png") });
+      }
       await page.locator(".admin-mobile-menu-button").tap();
       await page.waitForTimeout(300);
       const bounds = await page.locator(".admin-mobile-drawer").boundingBox();
@@ -144,6 +145,9 @@ const html = '<!doctype html><meta name="viewport" content="width=device-width, 
         await page.screenshot({ path: path.join(process.env.ADMIN_NAV_CAPTURE_DIR, "drawer-" + width + ".png") });
       }
       await clickClose();
+      assert.equal(await expanded(), "false");
+      assert.equal(await page.locator(".admin-mobile-drawer").evaluate(el => el.hidden), true);
+      assert.equal(await page.locator(".admin-mobile-surface").evaluate(el => el.inert), false);
     }
     console.log("PASS 320px, 390px and 760px layouts");
     await page.locator(".admin-mobile-menu-button").tap();
