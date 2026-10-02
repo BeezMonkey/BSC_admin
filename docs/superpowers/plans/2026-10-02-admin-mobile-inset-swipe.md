@@ -24,7 +24,7 @@
 - Modify: `core/tests_admin_appearance.py`
 - Modify: `core/tests_theme.py`
 
-- [ ] **Step 1: Replace the old shell expectation**
+- [x] **Step 1: Replace the old shell expectation**
 
 Update `test_admin_shell_includes_mobile_navigation` to require the new surface and reject the obsolete edge zone:
 
@@ -33,7 +33,7 @@ self.assertIn('class="admin-mobile-surface"', html)
 self.assertNotIn('class="admin-edge-swipe-zone"', html)
 ```
 
-- [ ] **Step 2: Replace the old asset expectations**
+- [x] **Step 2: Replace the old asset expectations**
 
 Update `test_admin_mobile_navigation_assets_exist` with the new safety contract:
 
@@ -49,7 +49,7 @@ self.assertIn('{ passive: false }', script)
 self.assertNotIn("const EDGE_ZONE", script)
 ```
 
-- [ ] **Step 3: Run the focused tests and verify RED**
+- [x] **Step 3: Run the focused tests and verify RED**
 
 Run:
 
@@ -59,7 +59,7 @@ python manage.py test core.tests_admin_appearance core.tests_theme --verbosity 1
 
 Expected: failures identify the missing `.admin-mobile-surface`, the still-present edge zone, and missing inset constants.
 
-- [ ] **Step 4: Commit the failing tests**
+- [x] **Step 4: Commit the failing tests**
 
 ```powershell
 git add core/tests_admin_appearance.py core/tests_theme.py
@@ -72,7 +72,7 @@ git commit -m "test: define admin inset swipe behavior"
 - Modify: `templates/admin_base.html`
 - Modify: `static/css/admin.css`
 
-- [ ] **Step 1: Replace the edge zone with a surface wrapper**
+- [x] **Step 1: Replace the edge zone with a surface wrapper**
 
 Keep the desktop sidebar and drawer as siblings. Wrap the existing mobile header, backdrop, and content as follows:
 
@@ -90,7 +90,7 @@ Keep the desktop sidebar and drawer as siblings. Wrap the existing mobile header
 
 Do not change navigation URLs, active-state conditions, logout behavior, messages, or `{% block content %}`.
 
-- [ ] **Step 2: Define desktop-neutral and mobile-layer styling**
+- [x] **Step 2: Define desktop-neutral and mobile-layer styling**
 
 Use `display: contents` by default so desktop grid children retain their existing placement. At `max-width: 760px`, make the wrapper a foreground surface:
 
@@ -114,7 +114,7 @@ Use `display: contents` by default so desktop grid children retain their existin
 }
 ```
 
-- [ ] **Step 3: Keep the drawer below and move the surface when open**
+- [x] **Step 3: Keep the drawer below and move the surface when open**
 
 Define one shared drawer width and apply it to both the drawer and surface translation:
 
@@ -140,7 +140,7 @@ Define one shared drawer width and apply it to both the drawer and surface trans
 
 Make the backdrop absolute within the surface so it moves with the content and intercepts taps only while open. Update reduced-motion and dragging selectors to target the surface and backdrop.
 
-- [ ] **Step 4: Run the focused tests**
+- [x] **Step 4: Run the focused tests**
 
 Run:
 
@@ -155,7 +155,7 @@ Expected: shell/CSS assertions pass; JavaScript assertions remain red until Task
 **Files:**
 - Modify: `static/js/admin_nav.js`
 
-- [ ] **Step 1: Replace edge dependencies and constants**
+- [x] **Step 1: Replace edge dependencies and constants**
 
 Query `.admin-mobile-surface`, remove `.admin-edge-swipe-zone`, and define:
 
@@ -167,7 +167,7 @@ const INTENT_DISTANCE = 12;
 
 The controller must return early if the surface is missing.
 
-- [ ] **Step 2: Exclude interactive and horizontal-scroll targets**
+- [x] **Step 2: Exclude interactive and horizontal-scroll targets**
 
 Add one target guard:
 
@@ -184,7 +184,7 @@ function isIgnoredGestureTarget(target) {
 
 For opening only, require `clientX >= INSET_START`, `clientX <= INSET_END`, and a target that is not ignored. The first 32px therefore remains available to Safari.
 
-- [ ] **Step 3: Translate the surface during drag**
+- [x] **Step 3: Translate the surface during drag**
 
 Replace drawer translation with pixel-based surface translation:
 
@@ -195,7 +195,7 @@ backdrop.style.opacity = String(state.progress);
 
 Clear the surface's inline transform after settling. Keep the existing open ratio, close ratio, velocity threshold, cancellation behavior, focus handling, body scroll lock, Escape support, and desktop reset.
 
-- [ ] **Step 4: Bind pointer tracking to the surface**
+- [x] **Step 4: Bind pointer tracking to the surface**
 
 Use one pointer source for both directions:
 
@@ -210,7 +210,7 @@ surface.addEventListener("pointercancel", cancelTracking);
 
 Suppress the backdrop click generated after a real close drag so an incomplete drag can settle open without an immediate click closing it. A simple backdrop tap must still close normally.
 
-- [ ] **Step 5: Run focused tests and JavaScript syntax validation**
+- [x] **Step 5: Run focused tests and JavaScript syntax validation**
 
 Run:
 
@@ -221,7 +221,7 @@ node --check static/js/admin_nav.js
 
 Expected: all focused tests pass and Node reports no syntax errors.
 
-- [ ] **Step 6: Commit the implementation**
+- [x] **Step 6: Commit the implementation**
 
 ```powershell
 git add templates/admin_base.html static/css/admin.css static/js/admin_nav.js
@@ -233,7 +233,7 @@ git commit -m "fix: move admin drawer gesture away from Safari edge"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-10-02-admin-mobile-inset-swipe.md`
 
-- [ ] **Step 1: Run repository checks**
+- [x] **Step 1: Run repository checks**
 
 ```powershell
 python manage.py collectstatic --noinput --verbosity 0
@@ -244,7 +244,7 @@ git diff --check origin/staging...HEAD
 
 Expected: no issues, no migrations, and no whitespace errors.
 
-- [ ] **Step 2: Run the full Django suite**
+- [x] **Step 2: Run the full Django suite**
 
 ```powershell
 python manage.py test --verbosity 1
@@ -252,7 +252,7 @@ python manage.py test --verbosity 1
 
 Expected: all tests pass.
 
-- [ ] **Step 3: Verify mobile behavior in a local browser**
+- [x] **Step 3: Verify mobile behavior in a local browser**
 
 At approximately 390x844, verify:
 
@@ -265,7 +265,7 @@ At approximately 390x844, verify:
 - drawer navigation scrolls independently;
 - resizing above 760px restores the unchanged desktop layout.
 
-- [ ] **Step 4: Record completion and commit**
+- [x] **Step 4: Record completion and commit**
 
 Mark completed steps in this plan, then run:
 
