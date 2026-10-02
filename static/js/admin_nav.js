@@ -2,310 +2,235 @@
   "use strict";
 
   const INSET_START = 32;
-  const INSET_END = 112;
-  const INTENT_DISTANCE = 12;
+  const INTENT_DISTANCE = 6;
   const OPEN_RATIO = 0.35;
   const CLOSE_RATIO = 0.65;
   const FLICK_VELOCITY = 0.45;
   const TRANSITION_MS = 240;
-  const SUPPRESS_CLICK_MS = 400;
-
+  const SUPPRESS_CLICK_MS = 450;
+  const shell = document.querySelector("[data-admin-theme]");
   const menuButton = document.querySelector(".admin-mobile-menu-button");
   const drawer = document.querySelector(".admin-mobile-drawer");
   const surface = document.querySelector(".admin-mobile-surface");
   const backdrop = document.querySelector(".admin-mobile-drawer-backdrop");
   const closeButton = document.querySelector(".admin-mobile-close-button");
 
-  if (!menuButton || !drawer || !surface || !backdrop || !closeButton) {
+  if (!shell || !menuButton || !drawer || !surface || !backdrop || !closeButton) {
     return;
   }
 
-  const state = {
-    open: false,
-    tracking: false,
-    dragging: false,
-    mode: null,
-    pointerId: null,
-    pointerTarget: null,
-    startX: 0,
-    startY: 0,
-    lastX: 0,
-    lastTime: 0,
-    velocityX: 0,
-    progress: 0,
-    hideTimer: null,
-    suppressBackdropClick: false,
-    suppressClickTimer: null,
-  };
-
-  function drawerWidth() {
-    return Math.max(drawer.getBoundingClientRect().width, 1);
-  }
+  const mobileQuery = window.matchMedia("(max-width: 760px)");
+  let open = false;
+  let gesture = null;
+  let hideTimer = null;
+  let focusTimer = null;
+  let suppressClickUntil = 0;
 
   function isIgnoredGestureTarget(target) {
-    if (!(target instanceof Element)) {
-      return false;
+    if (!(target instanceof Element)) return true;
+    if (target.closest(
+      "a, button, input, select, textarea, summary, [contenteditable], [role='slider'], dialog, .table-wrap, .planner-scroll-frame, [data-admin-swipe-ignore]"
+    )) return true;
+
+    // Other pages may supply scroll containers without the shared table class.
+    for (let element = target; element && element !== shell; element = element.parentElement) {
+      if (element.scrollWidth > element.clientWidth + 1 && /auto|scroll/.test(getComputedStyle(element).overflowX)) {
+        return true;
+      }
     }
-    return Boolean(target.closest(
-      "a, button, input, select, textarea, summary, [contenteditable], .table-wrap, [data-admin-swipe-ignore]"
-    ));
+    return false;
   }
 
   function revealLayers() {
-    window.clearTimeout(state.hideTimer);
-    drawer.hidden = false;
-    backdrop.hidden = false;
+    window.clearTimeout(hideTimer);
+    drawer.hidden = backdrop.hidden = false;
     drawer.setAttribute("aria-hidden", "false");
   }
 
-  function hideLayersAfterTransition() {
-    window.clearTimeout(state.hideTimer);
-    state.hideTimer = window.setTimeout(function () {
-      if (!state.open && !state.dragging) {
-        drawer.hidden = true;
-        backdrop.hidden = true;
-        drawer.setAttribute("aria-hidden", "true");
-      }
-    }, TRANSITION_MS);
-  }
-
-  function clearInlineDragStyles() {
-    surface.style.removeProperty("transform");
-    backdrop.style.removeProperty("opacity");
-  }
-
-  function setDrawerOpen(open, options) {
-    const settings = options || {};
-    const moveFocus = settings.moveFocus !== false;
-
-    state.open = open;
-    state.progress = open ? 1 : 0;
-    state.dragging = false;
-    document.body.classList.remove("admin-nav-dragging");
-    menuButton.setAttribute("aria-expanded", String(open));
-
-    if (open) {
-      revealLayers();
-      document.body.classList.add("admin-nav-open");
-      clearInlineDragStyles();
-      if (moveFocus) {
-        window.setTimeout(function () {
-          closeButton.focus();
-        }, TRANSITION_MS);
-      }
-      return;
-    }
-
-    document.body.classList.remove("admin-nav-open");
-    clearInlineDragStyles();
-    hideLayersAfterTransition();
-    if (moveFocus) {
-      menuButton.focus();
-    }
-  }
-
-  function resetTracking() {
-    if (
-      state.pointerTarget &&
-      state.pointerId !== null &&
-      state.pointerTarget.hasPointerCapture &&
-      state.pointerTarget.hasPointerCapture(state.pointerId)
-    ) {
-      state.pointerTarget.releasePointerCapture(state.pointerId);
-    }
-
-    state.tracking = false;
-    state.dragging = false;
-    state.mode = null;
-    state.pointerId = null;
-    state.pointerTarget = null;
-    document.body.classList.remove("admin-nav-dragging");
-  }
-
-  function beginTracking(event, mode) {
-    if (!event.isPrimary || state.tracking) {
-      return;
-    }
-
-    if (
-      mode === "open" &&
-      (
-        event.clientX < INSET_START ||
-        event.clientX > INSET_END ||
-        isIgnoredGestureTarget(event.target)
-      )
-    ) {
-      return;
-    }
-
-    state.tracking = true;
-    state.dragging = false;
-    state.mode = mode;
-    state.pointerId = event.pointerId;
-    state.pointerTarget = event.currentTarget;
-    state.startX = event.clientX;
-    state.startY = event.clientY;
-    state.lastX = event.clientX;
-    state.lastTime = event.timeStamp;
-    state.velocityX = 0;
-    state.progress = mode === "open" ? 0 : 1;
-  }
-
-  function resolveIntent(deltaX, deltaY) {
-    const horizontalDistance = Math.abs(deltaX);
-    const verticalDistance = Math.abs(deltaY);
-
-    if (verticalDistance > INTENT_DISTANCE && verticalDistance > horizontalDistance) {
-      return "vertical";
-    }
-    if (horizontalDistance > INTENT_DISTANCE && horizontalDistance > verticalDistance) {
-      return "horizontal";
-    }
-    return "pending";
-  }
-
-  function suppressNextBackdropClick() {
-    window.clearTimeout(state.suppressClickTimer);
-    state.suppressBackdropClick = true;
-    state.suppressClickTimer = window.setTimeout(function () {
-      state.suppressBackdropClick = false;
-    }, SUPPRESS_CLICK_MS);
-  }
-
-  function beginDrag(event) {
-    state.dragging = true;
+  function setDrawerOpen(value, moveFocus) {
+    window.clearTimeout(focusTimer);
     revealLayers();
-    document.body.classList.add("admin-nav-dragging");
-    if (state.mode === "close") {
-      suppressNextBackdropClick();
+    // Establish the closed position before a button-initiated opening transition.
+    drawer.getBoundingClientRect();
+    open = value;
+    document.body.classList.remove("admin-nav-dragging");
+    document.body.classList.toggle("admin-nav-open", open);
+    drawer.style.removeProperty("transform");
+    backdrop.style.removeProperty("opacity");
+    menuButton.setAttribute("aria-expanded", String(open));
+    surface.inert = open;
+    if (open && moveFocus) {
+      focusTimer = window.setTimeout(function () {
+        closeButton.focus({ preventScroll: true });
+      }, TRANSITION_MS);
     }
-    if (state.pointerTarget.setPointerCapture) {
-      state.pointerTarget.setPointerCapture(event.pointerId);
+    if (!open) {
+      if (moveFocus) menuButton.focus({ preventScroll: true });
+      hideTimer = window.setTimeout(function () {
+        if (!open && !gesture) {
+          drawer.hidden = backdrop.hidden = true;
+          drawer.setAttribute("aria-hidden", "true");
+        }
+      }, TRANSITION_MS);
     }
-  }
-
-  function updateDrag(event) {
-    if (!state.tracking || event.pointerId !== state.pointerId) {
-      return;
-    }
-
-    const deltaX = event.clientX - state.startX;
-    const deltaY = event.clientY - state.startY;
-    const intent = resolveIntent(deltaX, deltaY);
-
-    if (!state.dragging) {
-      if (intent === "vertical") {
-        resetTracking();
-        return;
-      }
-      if (intent !== "horizontal") {
-        return;
-      }
-      if ((state.mode === "open" && deltaX <= 0) || (state.mode === "close" && deltaX >= 0)) {
-        resetTracking();
-        return;
-      }
-      beginDrag(event);
-    }
-
-    event.preventDefault();
-    const width = drawerWidth();
-    state.progress = state.mode === "open"
-      ? Math.min(Math.max(deltaX / width, 0), 1)
-      : Math.min(Math.max(1 + deltaX / width, 0), 1);
-
-    const elapsed = Math.max(event.timeStamp - state.lastTime, 1);
-    state.velocityX = (event.clientX - state.lastX) / elapsed;
-    state.lastX = event.clientX;
-    state.lastTime = event.timeStamp;
-
-    surface.style.transform = "translate3d(" + (state.progress * width) + "px, 0, 0)";
-    backdrop.style.opacity = String(state.progress);
-  }
-
-  function finishTracking(event) {
-    if (!state.tracking || event.pointerId !== state.pointerId) {
-      return;
-    }
-
-    if (!state.dragging) {
-      resetTracking();
-      return;
-    }
-
-    const shouldOpen = state.mode === "open"
-      ? state.progress >= OPEN_RATIO || state.velocityX >= FLICK_VELOCITY
-      : state.progress > CLOSE_RATIO && state.velocityX > -FLICK_VELOCITY;
-
-    resetTracking();
-    window.requestAnimationFrame(function () {
-      setDrawerOpen(shouldOpen, { moveFocus: false });
-    });
   }
 
   function cancelTracking() {
-    if (!state.tracking) {
-      return;
-    }
-
-    const returnOpen = state.open || state.mode === "close";
-    window.clearTimeout(state.suppressClickTimer);
-    state.suppressBackdropClick = false;
-    resetTracking();
-    setDrawerOpen(returnOpen, { moveFocus: false });
+    if (!gesture) return;
+    gesture = null;
+    setDrawerOpen(open, false);
   }
 
-  menuButton.addEventListener("click", function () {
-    setDrawerOpen(true);
-  });
+  function beginTracking(x, y, target, id, source) {
+    if (!mobileQuery.matches || gesture) return;
+    if (!open && (!surface.contains(target) || x < INSET_START || x > window.innerWidth - 24)) return;
+    if (target !== backdrop && isIgnoredGestureTarget(target)) return;
+    gesture = {
+      x, y, id, source,
+      start: open ? 1 : 0,
+      progress: open ? 1 : 0,
+      dragging: false,
+      lastX: x,
+      lastTime: performance.now(),
+      velocity: 0,
+    };
+  }
 
-  closeButton.addEventListener("click", function () {
-    setDrawerOpen(false);
-  });
+  function updateDrag(x, y, event) {
+    if (!gesture) return;
+    const deltaX = x - gesture.x;
+    const deltaY = y - gesture.y;
+    if (!gesture.dragging) {
+      if (Math.abs(deltaY) > Math.abs(deltaX) || (gesture.start === 0 ? deltaX < 0 : deltaX > 0)) {
+        cancelTracking();
+        return;
+      }
+      if (Math.abs(deltaX) < INTENT_DISTANCE) return;
+      if (!event.cancelable) {
+        cancelTracking();
+        return;
+      }
+      gesture.dragging = true;
+      window.clearTimeout(focusTimer);
+      revealLayers();
+      document.body.classList.add("admin-nav-dragging");
+    }
+    if (event.cancelable) event.preventDefault();
+    const now = performance.now();
+    gesture.velocity = (x - gesture.lastX) / Math.max(now - gesture.lastTime, 1);
+    gesture.lastX = x;
+    gesture.lastTime = now;
+    const width = Math.max(drawer.getBoundingClientRect().width, 1);
+    gesture.progress = Math.min(1, Math.max(0, gesture.start + deltaX / width));
+    drawer.style.transform = "translate3d(" + ((gesture.progress - 1) * 100) + "%, 0, 0)";
+    backdrop.style.opacity = String(gesture.progress);
+  }
 
-  backdrop.addEventListener("click", function (event) {
-    if (state.suppressBackdropClick) {
-      event.preventDefault();
-      state.suppressBackdropClick = false;
-      window.clearTimeout(state.suppressClickTimer);
+  function finishTracking() {
+    if (!gesture) return;
+    const finished = gesture;
+    gesture = null;
+    if (!finished.dragging) return;
+    suppressClickUntil = performance.now() + SUPPRESS_CLICK_MS;
+    const velocity = performance.now() - finished.lastTime < 100 ? finished.velocity : 0;
+    const shouldOpen = finished.start === 0
+      ? finished.progress >= OPEN_RATIO || velocity > FLICK_VELOCITY
+      : finished.progress > CLOSE_RATIO && velocity > -FLICK_VELOCITY;
+    setDrawerOpen(shouldOpen, false);
+  }
+
+  // Pointer cancellation does not cancel Touch Events. Claim the first horizontal
+  // touchmove explicitly so the browser cannot take over an eligible page gesture.
+  shell.addEventListener("touchstart", function (event) {
+    if (event.touches.length !== 1) {
+      cancelTracking();
       return;
     }
-    setDrawerOpen(false);
+    const touch = event.touches[0];
+    beginTracking(touch.clientX, touch.clientY, event.target, touch.identifier, "touch");
+  }, { passive: true });
+
+  shell.addEventListener("touchmove", function (event) {
+    if (!gesture || gesture.source !== "touch") return;
+    if (event.touches.length !== 1) {
+      cancelTracking();
+      return;
+    }
+    const touch = Array.from(event.touches).find(function (item) { return item.identifier === gesture.id; });
+    if (touch) updateDrag(touch.clientX, touch.clientY, event);
+  }, { passive: false });
+
+  shell.addEventListener("touchend", function (event) {
+    if (gesture && gesture.source === "touch" && Array.from(event.changedTouches).some(function (item) { return item.identifier === gesture.id; })) {
+      finishTracking();
+    }
+  });
+  shell.addEventListener("touchcancel", cancelTracking);
+
+  shell.addEventListener("pointerdown", function (event) {
+    if (event.pointerType === "touch" || !event.isPrimary || event.button !== 0) return;
+    beginTracking(event.clientX, event.clientY, event.target, event.pointerId, "pointer");
+  });
+  document.addEventListener("pointermove", function (event) {
+    if (gesture && gesture.source === "pointer" && event.pointerId === gesture.id) {
+      updateDrag(event.clientX, event.clientY, event);
+    }
+  }, { passive: false });
+  document.addEventListener("pointerup", function (event) {
+    if (gesture && gesture.source === "pointer" && event.pointerId === gesture.id) finishTracking();
+  });
+  document.addEventListener("pointercancel", function (event) {
+    if (gesture && gesture.source === "pointer" && event.pointerId === gesture.id) cancelTracking();
   });
 
-  surface.addEventListener("pointerdown", function (event) {
-    beginTracking(event, state.open ? "close" : "open");
-  });
-  surface.addEventListener("pointermove", updateDrag, { passive: false });
-  surface.addEventListener("pointerup", finishTracking);
-  surface.addEventListener("pointercancel", cancelTracking);
+  shell.addEventListener("click", function (event) {
+    if (performance.now() < suppressClickUntil) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }, true);
+  menuButton.addEventListener("click", function () { setDrawerOpen(true, true); });
+  closeButton.addEventListener("click", function () { setDrawerOpen(false, true); });
+  backdrop.addEventListener("click", function () { setDrawerOpen(false, true); });
 
   document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape" && state.open) {
-      setDrawerOpen(false);
+    if (event.key === "Escape" && (open || gesture)) {
+      cancelTracking();
+      setDrawerOpen(false, true);
+    }
+    if (event.key === "Tab" && open) {
+      const items = Array.from(drawer.querySelectorAll("a[href], button:not(:disabled)"));
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
   });
 
-  const desktopQuery = window.matchMedia("(min-width: 761px)");
-  const resetAtDesktopWidth = function (event) {
-    if (!event.matches) {
-      return;
-    }
-    resetTracking();
-    window.clearTimeout(state.suppressClickTimer);
-    state.open = false;
-    state.suppressBackdropClick = false;
-    document.body.classList.remove("admin-nav-open");
-    clearInlineDragStyles();
+  function resetNavigation() {
+    gesture = null;
+    open = false;
+    suppressClickUntil = 0;
+    window.clearTimeout(hideTimer);
+    window.clearTimeout(focusTimer);
+    document.body.classList.remove("admin-nav-open", "admin-nav-dragging");
+    drawer.style.removeProperty("transform");
+    backdrop.style.removeProperty("opacity");
     menuButton.setAttribute("aria-expanded", "false");
-    drawer.hidden = true;
-    backdrop.hidden = true;
+    surface.inert = false;
+    drawer.hidden = backdrop.hidden = true;
     drawer.setAttribute("aria-hidden", "true");
-  };
-
-  if (desktopQuery.addEventListener) {
-    desktopQuery.addEventListener("change", resetAtDesktopWidth);
-  } else {
-    desktopQuery.addListener(resetAtDesktopWidth);
   }
+  if (mobileQuery.addEventListener) {
+    mobileQuery.addEventListener("change", resetNavigation);
+  } else {
+    mobileQuery.addListener(resetNavigation);
+  }
+  window.addEventListener("blur", cancelTracking);
+  window.addEventListener("pagehide", resetNavigation);
 })();
