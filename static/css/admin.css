@@ -568,6 +568,11 @@ body.admin-nav-dragging {
     transition: none;
   }
 
+  body.admin-nav-dragging [data-admin-theme] .admin-mobile-surface {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
   [data-admin-theme] .admin-mobile-drawer-header {
     display: flex;
     align-items: flex-start;
