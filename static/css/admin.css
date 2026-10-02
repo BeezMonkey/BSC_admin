@@ -264,6 +264,171 @@
   margin-bottom: 24px;
 }
 
+[data-admin-theme] .service-log-filter-bar[data-service-log-filters] {
+  grid-template-columns: repeat(2, minmax(150px, 1fr)) minmax(125px, 0.8fr) repeat(2, minmax(145px, 0.9fr)) auto;
+}
+
+[data-admin-theme] .service-log-missing {
+  margin: 0 0 20px;
+  border: 1px solid #e9d8aa;
+  border-left: 3px solid #b77912;
+  border-radius: 5px;
+  background: #fffdf7;
+  color: #754c0c;
+  font-size: 13px;
+}
+
+[data-admin-theme] .service-log-missing summary {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 16px;
+  list-style: none;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+[data-admin-theme] .service-log-missing summary::-webkit-details-marker {
+  display: none;
+}
+
+[data-admin-theme] .service-log-missing summary::before {
+  content: "+";
+  font-size: 20px;
+  line-height: 1;
+  text-align: center;
+}
+
+[data-admin-theme] .service-log-missing details[open] > summary::before,
+[data-admin-theme] .service-log-missing[open] > summary::before {
+  content: "\2212";
+}
+
+[data-admin-theme] .service-log-missing summary:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: -3px;
+}
+
+[data-admin-theme] .service-log-missing summary small {
+  display: block;
+  margin-top: 3px;
+  color: #716858;
+  font-size: 12px;
+}
+
+[data-admin-theme] .service-log-missing-groups {
+  background: #fff;
+  color: var(--ink);
+}
+
+[data-admin-theme] .service-log-missing-worker {
+  border-top: 1px solid var(--line);
+}
+
+[data-admin-theme] .service-log-missing-worker > summary {
+  grid-template-columns: 18px minmax(0, 1fr) auto auto;
+  gap: 12px;
+}
+
+[data-admin-theme] .service-log-missing-worker > summary > span {
+  color: #754c0c;
+}
+
+[data-admin-theme] .service-log-missing-worker > summary > small {
+  margin: 0;
+  color: var(--muted);
+}
+
+[data-admin-theme] .service-log-missing-shifts {
+  margin: 0;
+  padding: 0 16px 8px 46px;
+  list-style: none;
+}
+
+[data-admin-theme] .service-log-missing-shifts li {
+  display: grid;
+  grid-template-columns: 100px 170px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+[data-admin-theme] .service-log-missing-shifts a {
+  color: var(--brand-dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+[data-admin-theme] .service-log-missing-shifts .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+[data-admin-theme] .service-log-missing-clear {
+  padding: 12px 16px;
+  border-color: #c9e4dc;
+  background: #f7fcfa;
+  color: #276c55;
+}
+
+@media (max-width: 1400px) {
+  [data-admin-theme] .service-log-filter-bar[data-service-log-filters] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  [data-admin-theme] [data-service-log-filters] .service-log-filter-actions {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  [data-admin-theme] .service-log-filter-bar[data-service-log-filters] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  [data-admin-theme] [data-service-log-filters] > label:nth-of-type(3),
+  [data-admin-theme] [data-service-log-filters] .service-log-filter-actions {
+    grid-column: 1 / -1;
+  }
+
+  [data-admin-theme] .service-log-missing-worker > summary {
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+  }
+
+  [data-admin-theme] .service-log-missing-worker > summary > small {
+    grid-column: 2 / -1;
+  }
+
+  [data-admin-theme] .service-log-missing-shifts {
+    padding-left: 16px;
+  }
+
+  [data-admin-theme] .service-log-missing-shifts li {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  [data-admin-theme] .service-log-missing-shifts a {
+    justify-self: end;
+    padding: 10px 0;
+  }
+}
+
+@media (max-width: 380px) {
+  [data-admin-theme] .service-log-filter-bar[data-service-log-filters] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 [data-admin-theme] .table-card {
   border-color: var(--line);
   border-radius: 5px;
