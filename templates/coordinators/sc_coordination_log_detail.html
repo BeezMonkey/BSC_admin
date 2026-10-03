@@ -1,4 +1,7 @@
 {% extends "coordinator_base.html" %}
+{% load static %}
+
+{% block extra_styles %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/coordination_revisions.css' %}">{% endblock %}
 
 {% block title %}Coordination Log - Brisbane Star Care{% endblock %}
 
@@ -10,9 +13,12 @@
       <p>{{ log.service_date|date:"d/m/Y" }} | {{ log.participant.display_name }}</p>
     </div>
     <div class="button-row">
+      {% if log.can_coordinator_edit %}<a class="button" href="{% url 'coordinator_log_edit' log.id %}">Edit Log</a>{% endif %}
       <a class="button secondary" href="{% url 'coordinator_log_list' %}">Back to Logs</a>
     </div>
   </header>
+
+  {% if not log.can_coordinator_edit %}<p class="sc-revision-notice" role="note">This log is read-only because it has been invoiced. Contact Admin for a correction.</p>{% endif %}
 
   <div class="detail-grid">
     <section class="card">
@@ -65,5 +71,6 @@
       <p class="detail-empty">No coordinator notes provided.</p>
     {% endif %}
   </section>
+  {% include "coordinators/partials/log_history.html" %}
 </section>
 {% endblock %}

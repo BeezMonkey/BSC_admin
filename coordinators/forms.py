@@ -9,7 +9,8 @@ from django.db import transaction
 from accounts.models import UserProfile
 from participants.models import Participant
 
-from .models import CoordinationLog, ParticipantCoordinatorAssignment, SupportCoordinator
+from .models import CoordinationLog, CoordinationLogChange, ParticipantCoordinatorAssignment, SupportCoordinator
+from .log_revisions import EDITABLE_FIELDS
 from .querysets import assigned_participants_for
 
 
@@ -263,3 +264,32 @@ class CoordinationLogForm(forms.ModelForm):
                 )
 
         return cleaned_data
+
+
+class CoordinationLogEditForm(CoordinationLogForm):
+    revision_reason = forms.CharField(widget=forms.Textarea(attrs={"rows": 2}), max_length=2000)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["participant"].disabled = True
+        self.original_values = {field: getattr(self.instance, field) for field in EDITABLE_FIELDS}
+
+    def clean(self):
+        data = super().clean()
+        posted_participant = self.data.get("participant")
+        if posted_participant and str(posted_participant) != str(self.instance.participant_id):
+            self.add_error("participant", "Participant cannot be changed on an existing log.")
+        if not self.errors and not any(
+            data.get(field) != value for field, value in self.original_values.items()
+        ):
+            raise forms.ValidationError("No changes to submit.")
+        return data
+
+
+class CoordinationLogCorrectionForm(forms.Form):
+    kind = forms.ChoiceField(label="Correction type", choices=[
+        (CoordinationLogChange.Kind.CORRECTION, "Add correction note"),
+        (CoordinationLogChange.Kind.BILLING_REVIEW, "Billing correction - invoice review required"),
+    ])
+    reason = forms.CharField(max_length=2000, widget=forms.Textarea(attrs={"rows": 2}))
+    details = forms.CharField(max_length=10000, widget=forms.Textarea(attrs={"rows": 5}))

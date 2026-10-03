@@ -10,6 +10,7 @@ from core.models import AuditLog
 from participants.models import Participant
 
 from .models import CoordinationLog, ParticipantCoordinatorAssignment, SupportCoordinator
+from .log_revisions import revision_token
 
 
 def create_coordinator(username="coord"):
@@ -452,6 +453,7 @@ class CoordinationLogAdminReviewTests(TestCase):
 
         response = self.client.post(
             reverse("coordination_log_approve", args=[self.log.id]),
+            {"revision_token": revision_token(self.log)},
             follow=True,
         )
 
@@ -466,7 +468,7 @@ class CoordinationLogAdminReviewTests(TestCase):
     def test_admin_reject_requires_reason(self):
         response = self.client.post(
             reverse("coordination_log_reject", args=[self.log.id]),
-            {"rejection_reason": ""},
+            {"rejection_reason": "", "revision_token": revision_token(self.log)},
             follow=True,
         )
 
@@ -478,7 +480,7 @@ class CoordinationLogAdminReviewTests(TestCase):
     def test_admin_can_reject_submitted_coordination_log(self):
         response = self.client.post(
             reverse("coordination_log_reject", args=[self.log.id]),
-            {"rejection_reason": "Needs more detail."},
+            {"rejection_reason": "Needs more detail.", "revision_token": revision_token(self.log)},
             follow=True,
         )
 
@@ -815,7 +817,8 @@ class CoordinatorAuditTests(TestCase):
         log = self.create_submitted_log()
         self.client.force_login(self.admin_user)
 
-        self.client.post(reverse("coordination_log_approve", args=[log.id]))
+        self.client.post(reverse("coordination_log_approve", args=[log.id]),
+                         {"revision_token": revision_token(log)})
 
         self.assert_audit_log(
             actor=self.admin_user,
@@ -831,7 +834,7 @@ class CoordinatorAuditTests(TestCase):
 
         self.client.post(
             reverse("coordination_log_reject", args=[log.id]),
-            {"rejection_reason": rejection_reason},
+            {"rejection_reason": rejection_reason, "revision_token": revision_token(log)},
         )
 
         self.assert_audit_log(
@@ -840,10 +843,11 @@ class CoordinatorAuditTests(TestCase):
             obj=log,
             summary_fragment=f"Rejected coordination log {log.id}.",
         )
-        self.assertIn(
+        self.assertNotIn(
             rejection_reason,
             AuditLog.objects.get(action="coordination_log_rejected").summary,
         )
+        self.assertEqual(log.changes.get().reason, rejection_reason)
 
     def test_admin_reject_without_reason_does_not_write_audit_log(self):
         log = self.create_submitted_log()
@@ -851,7 +855,7 @@ class CoordinatorAuditTests(TestCase):
 
         self.client.post(
             reverse("coordination_log_reject", args=[log.id]),
-            {"rejection_reason": ""},
+            {"rejection_reason": "", "revision_token": revision_token(log)},
         )
 
         self.assertFalse(

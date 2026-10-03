@@ -1,5 +1,8 @@
 {% extends "admin_base.html" %}
 {% load bsc_formatting %}
+{% load static %}
+
+{% block extra_styles %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/coordination_revisions.css' %}">{% endblock %}
 
 {% block title %}Coordination Log - Brisbane Star Care{% endblock %}
 
@@ -10,6 +13,7 @@
     <p>{{ log.service_date|date:"d/m/Y" }} | {{ log.get_status_display }}</p>
   </div>
   <div class="button-row">
+    {% if invoice_locked %}<a class="button secondary" href="{% url 'coordination_log_correction' log.id %}">Record Correction</a>{% endif %}
     <a class="button secondary" href="{{ return_url }}">Back to Coordination Logs</a>
   </div>
 </div>
@@ -45,18 +49,20 @@
   </section>
 </div>
 
-{% if log.status == "submitted" %}
+{% if log.status == "submitted" and not invoice_locked %}
 <section class="card service-log-review-card">
   <h2>Review</h2>
   <div class="service-log-review-actions coordinator-log-actions">
     <form method="post" action="{% url 'coordination_log_approve' log.id %}">
       {% csrf_token %}
+      <input type="hidden" name="revision_token" value="{{ revision_token }}">
       <button type="submit">Approve</button>
     </form>
     <details class="service-log-reject-disclosure">
       <summary class="button danger-outline">Reject</summary>
       <form method="post" action="{% url 'coordination_log_reject' log.id %}" class="service-log-reject-form">
         {% csrf_token %}
+        <input type="hidden" name="revision_token" value="{{ revision_token }}">
         <label>Reject with reason
           <input type="text" name="rejection_reason" required>
         </label>
@@ -66,5 +72,6 @@
   </div>
 </section>
 {% endif %}
+{% include "coordinators/partials/log_history.html" %}
 </div>
 {% endblock %}

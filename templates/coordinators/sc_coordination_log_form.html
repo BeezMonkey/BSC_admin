@@ -1,14 +1,18 @@
 {% extends "coordinator_base.html" %}
 {% load static %}
 
-{% block title %}Submit Coordination Log - Brisbane Star Care{% endblock %}
+{% block title %}{% if editing %}Edit{% else %}Submit{% endif %} Coordination Log - Brisbane Star Care{% endblock %}
 
 {% block content %}
 <section class="worker-content">
   <header class="page-header">
     <div>
-      <h1>Submit Coordination Log</h1>
-      <p>Record support coordination work for an assigned participant.</p>
+      <h1>{% if editing %}Edit{% else %}Submit{% endif %} Coordination Log</h1>
+      {% if editing %}
+        <p>{{ log.participant.display_name }} | {{ log.service_date|date:"d/m/Y" }}</p>
+      {% else %}
+        <p>Record support coordination work for an assigned participant.</p>
+      {% endif %}
     </div>
     <div class="button-row">
       <a class="button secondary" href="{% url 'coordinator_log_list' %}">Back to Logs</a>
@@ -17,8 +21,10 @@
 
   <form class="record-form" method="post" novalidate>
     {% csrf_token %}
+    {% if editing %}<input type="hidden" name="revision_token" value="{{ revision_token }}">{% endif %}
     {% if form.non_field_errors %}
       <div class="error">{{ form.non_field_errors }}</div>
+      {% if stale_record %}<p><a href="{% url 'coordinator_log_edit' log.id %}">Reload latest version</a></p>{% endif %}
     {% endif %}
 
     <section class="card form-section">
@@ -42,9 +48,23 @@
       </div>
     </section>
 
+    {% if editing %}
+    <section class="card form-section">
+      <h2>Revision</h2>
+      <div class="form-grid single">
+        {% include "participants/partials/field.html" with field=form.revision_reason %}
+      </div>
+      {% if log.status == "approved" %}<p class="muted">Saving removes the current approval. Admin must approve the revised record before invoicing.</p>{% endif %}
+    </section>
+    {% endif %}
+
     <div class="form-actions">
-      <button type="submit">Submit Coordination Log</button>
-      <a class="button secondary" href="{% url 'coordinator_log_list' %}">Back</a>
+      <button type="submit">{% if editing %}Save and Resubmit{% else %}Submit Coordination Log{% endif %}</button>
+      {% if editing %}
+        <a class="button secondary" href="{% url 'coordinator_log_detail' log.id %}">Cancel</a>
+      {% else %}
+        <a class="button secondary" href="{% url 'coordinator_log_list' %}">Back</a>
+      {% endif %}
     </div>
   </form>
 </section>

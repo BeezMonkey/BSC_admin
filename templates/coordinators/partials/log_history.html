@@ -1,0 +1,25 @@
+{% if changes %}
+<section class="sc-log-history">
+  <h2>Change history</h2>
+  {% for change in changes %}
+  <details class="sc-log-change">
+    <summary>
+      <strong>{{ change.get_kind_display }}</strong>
+      <span class="muted">{{ change.actor.get_full_name|default:change.actor.username }} | {{ change.created_at|date:"d/m/Y H:i" }}</span>
+    </summary>
+    {% if change.reason %}<p><strong>Reason:</strong> {{ change.reason|linebreaksbr }}</p>{% endif %}
+    {% if change.details %}<p>{{ change.details|linebreaksbr }}</p>{% endif %}
+    {% if change.kind == "billing_review" %}<p class="sc-revision-notice">Invoice review required. This entry does not change the original log or invoice.</p>{% endif %}
+    {% for field in change.field_changes %}
+    <div class="sc-log-change-field">
+      <h3>{{ field.label }}</h3>
+      <div class="sc-log-change-values">
+        <div><span class="muted">Before</span><p>{{ field.before|default_if_none:"-"|default:"-"|linebreaksbr }}</p></div>
+        <div><span class="muted">After</span><p>{{ field.after|default_if_none:"-"|default:"-"|linebreaksbr }}</p></div>
+      </div>
+    </div>
+    {% endfor %}
+  </details>
+  {% endfor %}
+</section>
+{% endif %}

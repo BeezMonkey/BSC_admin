@@ -69,6 +69,8 @@ class AuditLog(models.Model):
             "coordination_log_rejected",
             "Coordination log rejected",
         )
+        COORDINATION_LOG_REVISED = "coordination_log_revised", "Coordination log revised"
+        COORDINATION_LOG_CORRECTED = "coordination_log_corrected", "Coordination log correction recorded"
 
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL,

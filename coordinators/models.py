@@ -2,6 +2,8 @@ from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.dateparse import parse_date, parse_datetime, parse_time
+from django.utils.formats import date_format
 
 
 class SupportCoordinator(models.Model):
@@ -138,3 +140,67 @@ class CoordinationLog(models.Model):
 
     def get_absolute_url(self):
         return reverse("coordination_log_detail", args=[self.id])
+
+    @property
+    def can_coordinator_edit(self):
+        return self.status in (
+            self.Status.SUBMITTED, self.Status.APPROVED, self.Status.REJECTED,
+        ) and not self.invoice_lines.exists()
+
+
+class CoordinationLogChange(models.Model):
+    class Kind(models.TextChoices):
+        REVISION = "revision", "Revised and resubmitted"
+        APPROVAL = "approval", "Approved"
+        REJECTION = "rejection", "Rejected"
+        CORRECTION = "correction", "Correction note"
+        BILLING_REVIEW = "billing_review", "Invoice review required"
+
+    log = models.ForeignKey(CoordinationLog, on_delete=models.PROTECT, related_name="changes")
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    kind = models.CharField(max_length=20, choices=Kind.choices)
+    reason = models.TextField(blank=True)
+    details = models.TextField(blank=True)
+    before = models.JSONField(default=dict)
+    after = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+
+    @staticmethod
+    def display_value(field, value):
+        if value is None or value == "":
+            return "-"
+        if field == "service_date":
+            return date_format(parse_date(value), "d/m/Y")
+        if field in ("start_time", "end_time"):
+            return date_format(parse_time(value), "H:i")
+        if field in ("reviewed_at", "submitted_at"):
+            return date_format(timezone.localtime(parse_datetime(value)), "d/m/Y H:i")
+        if field == "status":
+            return dict(CoordinationLog.Status.choices).get(value, value)
+        if field == "coordination_type":
+            return dict(CoordinationLog.CoordinationType.choices).get(value, value)
+        return str(value)
+
+    @property
+    def field_changes(self):
+        labels = {
+            "service_date": "Service date", "start_time": "Start time",
+            "end_time": "End time", "break_minutes": "Break minutes",
+            "actual_hours": "Actual hours", "coordination_type": "Coordination type",
+            "case_notes": "Case notes", "coordinator_notes": "Coordinator notes",
+            "status": "Status", "reviewed_by": "Reviewed by",
+            "reviewed_at": "Reviewed at", "rejection_reason": "Rejection reason",
+            "submitted_at": "Submitted at",
+        }
+        return [
+            {
+                "label": label,
+                "before": self.display_value(key, self.before.get(key)),
+                "after": self.display_value(key, self.after.get(key)),
+            }
+            for key, label in labels.items()
+            if self.before.get(key) != self.after.get(key)
+        ]
