@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import CoordinationLog, ParticipantCoordinatorAssignment, SupportCoordinator
+from .models import CoordinationLog, CoordinationLogChange, ParticipantCoordinatorAssignment, SupportCoordinator
 
 
 @admin.register(SupportCoordinator)
@@ -24,6 +24,15 @@ class ParticipantCoordinatorAssignmentAdmin(admin.ModelAdmin):
 
 @admin.register(CoordinationLog)
 class CoordinationLogAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     list_display = (
         "service_date",
         "participant",
@@ -40,3 +49,17 @@ class CoordinationLogAdmin(admin.ModelAdmin):
         "coordinator__last_name",
         "case_notes",
     )
+
+
+@admin.register(CoordinationLogChange)
+class CoordinationLogChangeAdmin(admin.ModelAdmin):
+    list_display = ("log", "kind", "actor", "created_at")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

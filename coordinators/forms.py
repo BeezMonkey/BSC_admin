@@ -1,4 +1,3 @@
-from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
 
 from django import forms
@@ -9,7 +8,8 @@ from django.db import transaction
 from accounts.models import UserProfile
 from participants.models import Participant
 
-from .models import CoordinationLog, ParticipantCoordinatorAssignment, SupportCoordinator
+from .models import CoordinationLog, CoordinationLogChange, ParticipantCoordinatorAssignment, SupportCoordinator
+from .log_revisions import EDITABLE_FIELDS
 from .querysets import assigned_participants_for
 
 
@@ -186,80 +186,117 @@ class ParticipantCoordinatorAssignmentForm(forms.ModelForm):
 
 class CoordinationLogForm(forms.ModelForm):
     HOUR_DECIMAL_PLACES = Decimal("0.01")
+    duration_hours = forms.IntegerField(
+        label="Hours", min_value=0, max_value=24, initial=0,
+        widget=forms.NumberInput(attrs={"inputmode": "numeric", "step": 1}),
+    )
+    duration_minutes = forms.IntegerField(
+        label="Minutes", min_value=0, max_value=59, initial=0,
+        widget=forms.NumberInput(attrs={"inputmode": "numeric", "step": 1}),
+    )
 
     class Meta:
         model = CoordinationLog
         fields = [
             "participant",
             "service_date",
-            "start_time",
-            "end_time",
-            "break_minutes",
-            "actual_hours",
+            "duration_hours",
+            "duration_minutes",
             "coordination_type",
             "case_notes",
-            "coordinator_notes",
         ]
         widgets = {
             "service_date": forms.DateInput(attrs={"type": "date"}),
-            "start_time": forms.TimeInput(attrs={"type": "time"}),
-            "end_time": forms.TimeInput(attrs={"type": "time"}),
-            "case_notes": forms.Textarea(attrs={"rows": 5}),
-            "coordinator_notes": forms.Textarea(attrs={"rows": 3}),
+            "case_notes": forms.Textarea(attrs={
+                "rows": 5,
+                "placeholder": "Record the work completed, outcome, and any follow-up.",
+            }),
         }
 
     def __init__(self, *args, **kwargs):
         coordinator = kwargs.pop("coordinator", None)
         super().__init__(*args, **kwargs)
+        self.fields["participant"].empty_label = "Select participant"
         self.fields["participant"].queryset = assigned_participants_for(
             coordinator,
         ).order_by("last_name", "first_name")
+        self.original_duration = self.instance.duration_parts
+        if self.instance.pk:
+            self.initial["duration_hours"], self.initial["duration_minutes"] = self.original_duration
 
     def clean(self):
         cleaned_data = super().clean()
-        service_date = cleaned_data.get("service_date")
-        start_time = cleaned_data.get("start_time")
-        end_time = cleaned_data.get("end_time")
-        break_minutes = cleaned_data.get("break_minutes")
-        actual_hours = cleaned_data.get("actual_hours")
-
-        duration_minutes = None
-        if service_date and start_time and end_time:
-            starts_at = datetime.combine(service_date, start_time)
-            ends_at = datetime.combine(service_date, end_time)
-            duration_minutes = int((ends_at - starts_at).total_seconds() // 60)
-            if duration_minutes <= 0:
-                self.add_error("end_time", "End time must be after start time.")
-                duration_minutes = None
-
-        break_is_valid = True
-        if duration_minutes is not None and break_minutes is not None:
-            if break_minutes >= duration_minutes:
-                self.add_error(
-                    "break_minutes",
-                    "Break minutes must be less than the total duration.",
-                )
-                break_is_valid = False
-
-        if actual_hours is not None and actual_hours <= 0:
-            self.add_error("actual_hours", "Actual hours must be greater than zero.")
-
-        if (
-            duration_minutes is not None
-            and break_minutes is not None
-            and break_is_valid
-            and actual_hours is not None
-            and actual_hours > 0
-        ):
-            worked_minutes = duration_minutes - break_minutes
-            expected_hours = (Decimal(worked_minutes) / Decimal("60")).quantize(
-                self.HOUR_DECIMAL_PLACES,
-                rounding=ROUND_HALF_UP,
+        hours = cleaned_data.get("duration_hours")
+        minutes = cleaned_data.get("duration_minutes")
+        if hours is None or minutes is None:
+            return cleaned_data
+        total_minutes = hours * 60 + minutes
+        if total_minutes < 1:
+            self.add_error("duration_minutes", "Enter a service duration of at least 1 minute.")
+        elif total_minutes > 24 * 60:
+            self.add_error("duration_hours", "Service duration cannot exceed 24 hours.")
+        elif self.instance.pk and (hours, minutes) == self.original_duration:
+            # Note-only edits must not round an existing invoice quantity again.
+            cleaned_data["actual_hours"] = self.instance.actual_hours
+        else:
+            cleaned_data["actual_hours"] = (Decimal(total_minutes) / Decimal("60")).quantize(
+                self.HOUR_DECIMAL_PLACES, rounding=ROUND_HALF_UP,
             )
-            if actual_hours != expected_hours:
-                self.add_error(
-                    "actual_hours",
-                    "Actual hours must match the time worked after breaks.",
-                )
-
         return cleaned_data
+
+    def save(self, commit=True):
+        log = super().save(commit=False)
+        log.actual_hours = self.cleaned_data["actual_hours"]
+        if commit:
+            log.save()
+            self.save_m2m()
+        return log
+
+
+class CoordinationLogEditForm(CoordinationLogForm):
+    revision_reason = forms.ChoiceField(choices=[
+        ("", "Select a reason"),
+        ("appointment_changed", "Appointment changed"),
+        ("correct_time", "Correct date / time / hours"),
+        ("update_notes", "Update notes"),
+        ("admin_feedback", "Address admin feedback"),
+        ("other", "Other"),
+    ])
+    revision_details = forms.CharField(
+        label="Additional details (required)", required=False,
+        widget=forms.Textarea(attrs={"rows": 2}), max_length=2000,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["participant"].disabled = True
+        details = self.fields["revision_details"]
+        details.required = self["revision_reason"].value() == "other"
+        details.disabled = not details.required
+        if details.disabled:
+            # Preset reasons must not retain stale or forged hidden details.
+            self.initial["revision_details"] = ""
+        self.original_values = {
+            field: getattr(self.instance, field)
+            for field in EDITABLE_FIELDS if field in self.fields or field == "actual_hours"
+        }
+
+    def clean(self):
+        data = super().clean()
+        posted_participant = self.data.get("participant")
+        if posted_participant and str(posted_participant) != str(self.instance.participant_id):
+            self.add_error("participant", "Participant cannot be changed on an existing log.")
+        if not self.errors and not any(
+            data.get(field) != value for field, value in self.original_values.items()
+        ):
+            raise forms.ValidationError("No changes to submit.")
+        return data
+
+
+class CoordinationLogCorrectionForm(forms.Form):
+    kind = forms.ChoiceField(label="Correction type", choices=[
+        (CoordinationLogChange.Kind.CORRECTION, "Add correction note"),
+        (CoordinationLogChange.Kind.BILLING_REVIEW, "Billing correction - invoice review required"),
+    ])
+    reason = forms.CharField(max_length=2000, widget=forms.Textarea(attrs={"rows": 2}))
+    details = forms.CharField(max_length=10000, widget=forms.Textarea(attrs={"rows": 5}))

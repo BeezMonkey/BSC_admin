@@ -1,24 +1,36 @@
 {% extends "coordinator_base.html" %}
 {% load static %}
 
-{% block title %}Submit Coordination Log - Brisbane Star Care{% endblock %}
+{% block title %}{% if editing %}Edit{% else %}Submit{% endif %} Coordination Log - Brisbane Star Care{% endblock %}
+
+{% block extra_styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/sc_log_form.css' %}?v=4">
+  {% if editing %}<link rel="stylesheet" href="{% static 'css/sc_log_revision.css' %}">{% endif %}
+{% endblock %}
 
 {% block content %}
 <section class="worker-content">
   <header class="page-header">
     <div>
-      <h1>Submit Coordination Log</h1>
-      <p>Record support coordination work for an assigned participant.</p>
+      <h1>{% if editing %}Edit{% else %}Submit{% endif %} Coordination Log</h1>
+      {% if editing %}
+        <p>{{ log.participant.display_name }} | {{ log.service_date|date:"d/m/Y" }}</p>
+      {% else %}
+        <p>Record support coordination work for an assigned participant.</p>
+      {% endif %}
     </div>
     <div class="button-row">
       <a class="button secondary" href="{% url 'coordinator_log_list' %}">Back to Logs</a>
     </div>
   </header>
 
-  <form class="record-form" method="post" novalidate>
+  <form class="record-form sc-log-form" method="post" novalidate>
     {% csrf_token %}
+    {% if editing %}<input type="hidden" name="revision_token" value="{{ revision_token }}">{% endif %}
     {% if form.non_field_errors %}
       <div class="error">{{ form.non_field_errors }}</div>
+      {% if stale_record %}<p><a href="{% url 'coordinator_log_edit' log.id %}">Reload latest version</a></p>{% endif %}
     {% endif %}
 
     <section class="card form-section">
@@ -26,11 +38,14 @@
       <div class="form-grid">
         {% include "participants/partials/field.html" with field=form.participant %}
         {% include "scheduling/partials/date_time_picker_field.html" with field=form.service_date picker_type="date" hint="Choose the service date." %}
-        {% include "scheduling/partials/date_time_picker_field.html" with field=form.start_time picker_type="time" hint="5-minute intervals" %}
-        {% include "scheduling/partials/date_time_picker_field.html" with field=form.end_time picker_type="time" hint="5-minute intervals" %}
-        {% include "participants/partials/field.html" with field=form.break_minutes %}
-        {% include "participants/partials/field.html" with field=form.actual_hours %}
         {% include "participants/partials/field.html" with field=form.coordination_type %}
+        <fieldset class="sc-service-duration">
+          <legend>Service duration</legend>
+          <div class="sc-service-duration-inputs">
+            {% include "participants/partials/field.html" with field=form.duration_hours %}
+            {% include "participants/partials/field.html" with field=form.duration_minutes %}
+          </div>
+        </fieldset>
       </div>
     </section>
 
@@ -38,15 +53,34 @@
       <h2>Notes</h2>
       <div class="form-grid single">
         {% include "participants/partials/field.html" with field=form.case_notes %}
-        {% include "participants/partials/field.html" with field=form.coordinator_notes %}
       </div>
     </section>
 
+    {% if editing %}
+    <section class="sc-log-revision" aria-labelledby="sc-revision-heading">
+      <h2 id="sc-revision-heading">Revision</h2>
+      <div class="sc-log-revision-fields">
+        {% include "participants/partials/field.html" with field=form.revision_reason field_class="sc-log-revision-reason" %}
+        <div id="sc-revision-details"{% if form.revision_reason.value != "other" %} hidden{% endif %}>
+          {% include "participants/partials/field.html" with field=form.revision_details %}
+        </div>
+      </div>
+      {% if log.status == "approved" %}<p class="muted">Saving removes the current approval. Admin must approve the revised record before invoicing.</p>{% endif %}
+    </section>
+    {% endif %}
+
     <div class="form-actions">
-      <button type="submit">Submit Coordination Log</button>
-      <a class="button secondary" href="{% url 'coordinator_log_list' %}">Back</a>
+      <button type="submit">{% if editing %}Save and Resubmit{% else %}Submit Coordination Log{% endif %}</button>
+      {% if editing %}
+        <a class="button secondary" href="{% url 'coordinator_log_detail' log.id %}">Cancel</a>
+      {% else %}
+        <a class="button secondary" href="{% url 'coordinator_log_list' %}">Back</a>
+      {% endif %}
     </div>
   </form>
 </section>
 <script src="{% static 'js/date_time_picker.js' %}" defer></script>
+<script src="{% static 'js/sc_date_picker.js' %}" defer></script>
+<script src="{% static 'js/sc_log_form.js' %}" defer></script>
+{% if editing %}<script src="{% static 'js/sc_log_revision.js' %}" defer></script>{% endif %}
 {% endblock %}
