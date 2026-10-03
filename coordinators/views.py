@@ -144,7 +144,8 @@ def coordinator_log_edit(request, log_id):
             log.save()
             record_log_change(
                 log, request.user, CoordinationLogChange.Kind.REVISION, before,
-                reason=form.cleaned_data["revision_reason"],
+                reason=dict(form.fields["revision_reason"].choices)[form.cleaned_data["revision_reason"]],
+                details=form.cleaned_data["revision_details"],
             )
             messages.success(request, "Changes submitted for admin review.")
             return redirect("coordinator_log_detail", log_id=log.pk)

@@ -1,0 +1,4 @@
+<div class="sc-history-text" data-history-text data-text-label="{{ label }}{% if side != 'value' %} ({{ side }}){% endif %}">
+  <div class="sc-history-text-value" id="sc-change-{{ change.pk }}-{{ field_key }}-{{ side }}" data-history-text-value>{{ value|default_if_none:"-"|linebreaksbr }}</div>
+  <button type="button" class="sc-history-text-toggle" data-history-text-toggle aria-expanded="false" aria-controls="sc-change-{{ change.pk }}-{{ field_key }}-{{ side }}" hidden>Show full text</button>
+</div>

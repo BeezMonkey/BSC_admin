@@ -1,3 +1,5 @@
+from decimal import Decimal, ROUND_HALF_UP
+
 from django.conf import settings
 from django.db import models
 from django.urls import reverse
@@ -103,8 +105,8 @@ class CoordinationLog(models.Model):
         related_name="coordination_logs",
     )
     service_date = models.DateField()
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
     break_minutes = models.PositiveIntegerField(default=0)
     actual_hours = models.DecimalField(max_digits=6, decimal_places=2)
     coordination_type = models.CharField(
@@ -140,6 +142,18 @@ class CoordinationLog(models.Model):
 
     def get_absolute_url(self):
         return reverse("coordination_log_detail", args=[self.id])
+
+    @property
+    def duration_parts(self):
+        minutes = int(((self.actual_hours or Decimal("0")) * 60).quantize(
+            Decimal("1"), rounding=ROUND_HALF_UP,
+        ))
+        return divmod(minutes, 60)
+
+    @property
+    def service_duration_display(self):
+        hours, minutes = self.duration_parts
+        return f"{hours}h {minutes}m" if hours else f"{minutes}m"
 
     @property
     def can_coordinator_edit(self):
@@ -197,6 +211,7 @@ class CoordinationLogChange(models.Model):
         }
         return [
             {
+                "key": key,
                 "label": label,
                 "before": self.display_value(key, self.before.get(key)),
                 "after": self.display_value(key, self.after.get(key)),
@@ -204,3 +219,21 @@ class CoordinationLogChange(models.Model):
             for key, label in labels.items()
             if self.before.get(key) != self.after.get(key)
         ]
+
+    @property
+    def content_changes(self):
+        review_keys = {"status", "reviewed_by", "reviewed_at", "rejection_reason", "submitted_at"}
+        return [field for field in self.field_changes if field["key"] not in review_keys]
+
+    @property
+    def review_changes(self):
+        content_keys = {field["key"] for field in self.content_changes}
+        return [field for field in self.field_changes if field["key"] not in content_keys]
+
+    @property
+    def changed_fields_summary(self):
+        fields = self.content_changes
+        summary = ", ".join(field["label"] for field in fields[:2])
+        if len(fields) > 2:
+            summary += f" + {len(fields) - 2} more"
+        return summary

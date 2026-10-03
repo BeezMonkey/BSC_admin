@@ -38,10 +38,10 @@ class CoordinationLogRevisionTests(TestCase):
         token = response.context.get("revision_token", "missing") if response.context else "missing"
         data = {
             "participant": self.participant.pk, "service_date": "2026-10-01",
-            "start_time": "09:00", "end_time": "10:00", "break_minutes": "0",
-            "actual_hours": "1.00", "coordination_type": "general",
+            "duration_hours": "1", "duration_minutes": "0", "coordination_type": "general",
             "case_notes": "Revised case note.", "coordinator_notes": "",
-            "revision_reason": "Corrected the provider outcome.", "revision_token": token,
+            "revision_reason": "other", "revision_details": "Corrected the provider outcome.",
+            "revision_token": token,
         }
         data.update(overrides)
         return data
@@ -78,15 +78,97 @@ class CoordinationLogRevisionTests(TestCase):
         self.assertEqual(change.before["case_notes"], "Original case note.")
         self.assertEqual(change.after["case_notes"], self.log.case_notes)
         self.assertEqual(change.actor, self.sc.user)
-        self.assertEqual(change.reason, "Corrected the provider outcome.")
+        self.assertEqual(change.reason, "Other")
+        self.assertEqual(change.details, "Corrected the provider outcome.")
         self.assertTrue(AuditLog.objects.filter(action="coordination_log_revised").exists())
+
+    def test_preset_reasons_do_not_require_details(self):
+        reasons = {
+            "appointment_changed": "Appointment changed",
+            "correct_time": "Correct date / time / hours",
+            "update_notes": "Update notes",
+            "admin_feedback": "Address admin feedback",
+        }
+        for reason, label in reasons.items():
+            with self.subTest(reason=reason):
+                response = self.client.post(self.edit_url, self.edit_data(
+                    revision_reason=reason, revision_details="", case_notes=f"Updated for {reason}.",
+                ))
+                self.assertEqual(response.status_code, 302)
+                change = self.log.changes.first()
+                self.assertEqual(change.reason, label)
+                self.assertEqual(change.details, "")
+
+    def test_reason_picker_starts_empty_and_only_exists_on_edit(self):
+        response = self.client.get(self.edit_url)
+        self.assertContains(response, '<select name="revision_reason"')
+        self.assertContains(response, '<option value="" selected>Select a reason</option>', html=True)
+        self.assertNotContains(response, "Add details")
+        response = self.client.get(reverse("coordinator_log_create"))
+        self.assertNotContains(response, 'name="revision_reason"')
+        self.assertNotContains(response, "sc_log_revision.js")
+
+    def test_invalid_or_missing_reason_does_not_save(self):
+        for reason in ("", "invented", "Updated appointment details"):
+            with self.subTest(reason=reason):
+                response = self.client.post(self.edit_url, self.edit_data(revision_reason=reason))
+                self.assertEqual(response.status_code, 200)
+                self.assertIn("revision_reason", response.context["form"].errors)
+        self.log.refresh_from_db()
+        self.assertEqual(self.log.case_notes, "Original case note.")
+        self.assertFalse(self.log.changes.exists())
+
+    def test_other_requires_details_and_preserves_entered_changes(self):
+        response = self.client.post(self.edit_url, self.edit_data(revision_details="   "))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("revision_details", response.context["form"].errors)
+        self.assertContains(response, "Additional details (required)")
+        self.assertEqual(response.context["form"]["revision_reason"].value(), "other")
+        self.assertEqual(response.context["form"]["case_notes"].value(), "Revised case note.")
+        self.log.refresh_from_db()
+        self.assertEqual(self.log.case_notes, "Original case note.")
+        self.assertFalse(self.log.changes.exists())
+
+    def test_other_details_are_trimmed_and_recorded(self):
+        response = self.client.post(self.edit_url, self.edit_data(
+            revision_reason="other", revision_details="  Participant changed appointment.  ",
+        ))
+        self.assertEqual(response.status_code, 302)
+        change = self.log.changes.get()
+        self.assertEqual(change.reason, "Other")
+        self.assertEqual(change.details, "Participant changed appointment.")
+
+    def test_other_revision_details_length_is_limited(self):
+        response = self.client.post(self.edit_url, self.edit_data(
+            revision_reason="other", revision_details="x" * 2001,
+        ))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("revision_details", response.context["form"].errors)
+        self.assertFalse(self.log.changes.exists())
+
+    def test_presets_ignore_hidden_details_including_oversized_values(self):
+        for reason in ("appointment_changed", "correct_time", "update_notes", "admin_feedback"):
+            for details in ("Stale hidden explanation.", "x" * 2001):
+                with self.subTest(reason=reason, length=len(details)):
+                    response = self.client.post(self.edit_url, self.edit_data(
+                        revision_reason=reason, revision_details=details,
+                        case_notes=f"Updated for {reason}, details length {len(details)}.",
+                    ))
+                    self.assertEqual(response.status_code, 302)
+                    self.assertEqual(self.log.changes.first().details, "")
+
+    def test_revision_details_are_escaped_in_history(self):
+        self.client.post(self.edit_url, self.edit_data(revision_details='<script>alert("details")</script>'))
+        response = self.client.get(reverse("coordinator_log_detail", args=[self.log.pk]))
+        self.assertContains(response, "&lt;script&gt;")
+        self.assertNotContains(response, '<script>alert("details")</script>')
 
     def test_approved_edit_clears_approval_but_preserves_it_in_history(self):
         self.log.status = "approved"
         self.log.reviewed_by = self.admin
         self.log.reviewed_at = timezone.now()
         self.log.save()
-        self.client.post(self.edit_url, self.edit_data(end_time="11:00", actual_hours="2.00"))
+        self.client.post(self.edit_url, self.edit_data(duration_hours="2"))
         self.log.refresh_from_db()
         self.assertEqual(self.log.status, "submitted")
         self.assertIsNone(self.log.reviewed_by)
@@ -105,11 +187,11 @@ class CoordinationLogRevisionTests(TestCase):
         self.assertEqual(self.log.rejection_reason, "")
         self.assertEqual(self.log.changes.get().before["rejection_reason"], "Clarify outcome.")
 
-    def test_required_reason_and_no_change_and_existing_time_validation(self):
+    def test_required_reason_and_no_change_and_duration_validation(self):
         cases = [
             {"revision_reason": "   "}, {"case_notes": "Original case note."},
-            {"end_time": "08:00"}, {"break_minutes": "60"},
-            {"actual_hours": "9.00"}, {"case_notes": "   "},
+            {"duration_hours": "-1"}, {"duration_minutes": "60"},
+            {"duration_hours": "0", "duration_minutes": "0"}, {"case_notes": "   "},
         ]
         for overrides in cases:
             with self.subTest(overrides=overrides):

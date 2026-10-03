@@ -1,0 +1,20 @@
+<table class="sc-log-diff" aria-label="{{ table_label }}">
+  <thead>
+    <tr><th scope="col">Field</th><th scope="col">Before</th><th scope="col">After</th></tr>
+  </thead>
+  <tbody>
+    {% for field in fields %}
+    <tr>
+      <th scope="row">{{ field.label }}</th>
+      <td>
+        <span class="sc-log-mobile-label" aria-hidden="true">Before</span>
+        {% include "coordinators/partials/history_text.html" with value=field.before field_key=field.key side="before" label=field.label %}
+      </td>
+      <td class="sc-log-after">
+        <span class="sc-log-mobile-label" aria-hidden="true">After</span>
+        {% include "coordinators/partials/history_text.html" with value=field.after field_key=field.key side="after" label=field.label %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

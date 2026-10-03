@@ -1,0 +1,55 @@
+.sc-log-revision {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+  padding-block: 0.25rem;
+}
+
+.sc-log-revision h2 {
+  margin: 0;
+  font-size: 0.96rem;
+  line-height: 1.25;
+  font-weight: var(--weight-heading);
+}
+
+.sc-log-revision-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 28rem) minmax(0, 1fr);
+  gap: 0.75rem 1rem;
+  align-items: start;
+}
+
+.sc-log-revision .sc-log-revision-reason {
+  width: 100%;
+  max-width: 28rem;
+  min-width: 0;
+}
+
+.sc-log-revision #sc-revision-details {
+  min-width: 0;
+}
+
+.sc-log-revision #sc-revision-details > .field {
+  min-width: 0;
+}
+
+.sc-log-revision #sc-revision-details[hidden] {
+  display: none;
+}
+
+.sc-log-revision p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@media (max-width: 760px) {
+  .sc-log-revision-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sc-log-revision .sc-log-revision-reason {
+    max-width: none;
+  }
+
+}

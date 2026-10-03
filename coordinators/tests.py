@@ -212,10 +212,8 @@ class CoordinatorLogSubmissionTests(TestCase):
         return {
             "participant": participant.id,
             "service_date": "2026-09-04",
-            "start_time": "09:00",
-            "end_time": "10:30",
-            "break_minutes": "0",
-            "actual_hours": "1.50",
+            "duration_hours": "1",
+            "duration_minutes": "30",
             "coordination_type": CoordinationLog.CoordinationType.GENERAL,
             "case_notes": "Called provider and updated the participant plan notes.",
             "coordinator_notes": "Follow up again next week.",
@@ -234,14 +232,14 @@ class CoordinatorLogSubmissionTests(TestCase):
             case_notes=case_notes,
         )
 
-    def test_sc_log_form_uses_shared_date_and_time_pickers(self):
+    def test_sc_log_form_uses_shared_date_picker_and_duration(self):
         response = self.client.get(reverse("coordinator_log_create"))
 
         self.assertContains(response, 'data-date-time-picker="date"', count=1)
-        self.assertContains(response, 'data-date-time-picker="time"', count=2)
+        self.assertNotContains(response, 'data-date-time-picker="time"')
         self.assertContains(response, '<input type="hidden" name="service_date"')
-        self.assertContains(response, '<input type="hidden" name="start_time"')
-        self.assertContains(response, '<input type="hidden" name="end_time"')
+        self.assertContains(response, 'name="duration_hours"')
+        self.assertContains(response, 'name="duration_minutes"')
         self.assertContains(response, "js/date_time_picker.")
 
     def test_sc_can_submit_log_for_assigned_participant(self):
@@ -267,51 +265,46 @@ class CoordinatorLogSubmissionTests(TestCase):
         self.assertFalse(CoordinationLog.objects.exists())
         self.assertContains(response, "Select a valid choice")
 
-    def test_sc_cannot_submit_log_when_end_time_is_not_after_start_time(self):
+    def test_sc_cannot_submit_log_with_negative_duration(self):
         payload = self.valid_payload(self.assigned)
-        payload["end_time"] = "09:00"
+        payload["duration_hours"] = "-1"
 
         response = self.client.post(reverse("coordinator_log_create"), payload)
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(CoordinationLog.objects.exists())
-        self.assertContains(response, "End time must be after start time.")
+        self.assertIn("duration_hours", response.context["form"].errors)
 
-    def test_sc_cannot_submit_log_when_break_exceeds_duration(self):
+    def test_sc_cannot_submit_log_with_invalid_minutes(self):
         payload = self.valid_payload(self.assigned)
-        payload["break_minutes"] = "90"
+        payload["duration_minutes"] = "90"
 
         response = self.client.post(reverse("coordinator_log_create"), payload)
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(CoordinationLog.objects.exists())
-        self.assertContains(
-            response,
-            "Break minutes must be less than the total duration.",
-        )
+        self.assertIn("duration_minutes", response.context["form"].errors)
 
-    def test_sc_cannot_submit_log_when_actual_hours_do_not_match_duration(self):
+    def test_sc_cannot_submit_log_exceeding_one_day(self):
         payload = self.valid_payload(self.assigned)
-        payload["actual_hours"] = "1.25"
+        payload["duration_hours"] = "24"
 
         response = self.client.post(reverse("coordinator_log_create"), payload)
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(CoordinationLog.objects.exists())
-        self.assertContains(
-            response,
-            "Actual hours must match the time worked after breaks.",
-        )
+        self.assertContains(response, "Service duration cannot exceed 24 hours.")
 
-    def test_sc_cannot_submit_log_with_non_positive_actual_hours(self):
+    def test_sc_cannot_submit_log_with_zero_duration(self):
         payload = self.valid_payload(self.assigned)
-        payload["actual_hours"] = "0.00"
+        payload["duration_hours"] = "0"
+        payload["duration_minutes"] = "0"
 
         response = self.client.post(reverse("coordinator_log_create"), payload)
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(CoordinationLog.objects.exists())
-        self.assertContains(response, "Actual hours must be greater than zero.")
+        self.assertContains(response, "Enter a service duration of at least 1 minute.")
 
     def test_sc_log_list_shows_only_current_coordinators_logs(self):
         own_log = self.create_log(
@@ -689,10 +682,8 @@ class CoordinatorAuditTests(TestCase):
         return {
             "participant": self.participant.id,
             "service_date": "2026-09-04",
-            "start_time": "09:00",
-            "end_time": "10:30",
-            "break_minutes": "0",
-            "actual_hours": "1.50",
+            "duration_hours": "1",
+            "duration_minutes": "30",
             "coordination_type": CoordinationLog.CoordinationType.GENERAL,
             "case_notes": "Audit-covered coordination work.",
             "coordinator_notes": "",
