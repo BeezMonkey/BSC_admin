@@ -99,12 +99,13 @@ class CoordinationLogDurationTests(TestCase):
         self.assertEqual(edit_form["coordination_type"].value(), CoordinationLog.CoordinationType.PROVIDER_CONTACT)
         self.assertTrue(edit_form.fields["participant"].disabled)
 
-    def test_anchored_calendar_is_sc_only(self):
+    def test_shared_calendar_keeps_sc_form_appearance_sc_only(self):
         for url in (self.create_url, self.edit_url):
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertContains(response, 'class="record-form sc-log-form"', count=1)
-                self.assertContains(response, 'src="/static/js/sc_date_picker.js" defer', count=1)
+                self.assertContains(response, 'src="/static/js/date_time_picker.js" defer', count=1)
+                self.assertNotContains(response, 'js/sc_date_picker.js')
         for name in (
             "service_logs/worker_service_log_form.html", "scheduling/shift_form.html",
             "scheduling/roster_planner.html", "scheduling/partials/date_time_picker_field.html",

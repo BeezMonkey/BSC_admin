@@ -75,20 +75,6 @@
   color: var(--muted);
 }
 
-/* The SC positioning script supplies viewport coordinates and size inline. */
-.sc-log-form .date-time-picker-popover,
-.sc-log-form .date-time-picker-popover.open-up {
-  position: fixed;
-  top: auto;
-  right: auto;
-  bottom: auto;
-  left: auto;
-  transform: none;
-  max-width: none;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
 .sc-log-form .sc-service-duration {
   width: 100%;
   max-width: 200px;

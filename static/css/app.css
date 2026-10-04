@@ -3800,6 +3800,20 @@ tbody tr:last-child td {
   }
 }
 
+/* Calendar coordinates come from the shared picker; time pickers keep their layout. */
+[data-date-time-picker="date"] .calendar-picker-popover,
+[data-date-time-picker="date"] .calendar-picker-popover.open-up {
+  position: fixed;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  transform: none;
+  max-width: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 .form-section-note {
   margin: 0.4rem 0 0;
   color: var(--muted);

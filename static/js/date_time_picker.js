@@ -11,6 +11,8 @@
     year: "numeric",
   });
   let activePicker = null;
+  let calendarPositionFrame = null;
+  let calendarObserver = null;
 
   function parseDate(value) {
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || "");
@@ -73,13 +75,96 @@
 
   function closePicker() {
     if (!activePicker) return;
+    if (calendarPositionFrame !== null) {
+      cancelAnimationFrame(calendarPositionFrame);
+      calendarPositionFrame = null;
+    }
+    if (calendarObserver) {
+      calendarObserver.disconnect();
+      calendarObserver = null;
+    }
     activePicker.popover.hidden = true;
     activePicker.trigger.setAttribute("aria-expanded", "false");
     activePicker = null;
   }
 
+  function calendarBounds(instance) {
+    const margin = 8;
+    const viewport = window.visualViewport;
+    const left = viewport ? viewport.offsetLeft : 0;
+    const top = viewport ? viewport.offsetTop : 0;
+    const bounds = {
+      left: left + margin,
+      right: Math.min(document.documentElement.clientWidth, left + (viewport ? viewport.width : window.innerWidth)) - margin,
+      top: top + margin,
+      bottom: top + (viewport ? viewport.height : window.innerHeight) - margin,
+    };
+    [".worker-mobile-header", ".admin-mobile-header", ".worker-bottom-nav"].forEach(function (selector) {
+      const element = document.querySelector(selector);
+      if (!element) return;
+      const style = getComputedStyle(element);
+      if (!["fixed", "sticky"].includes(style.position) || style.display === "none" || style.visibility === "hidden") return;
+      const rect = element.getBoundingClientRect();
+      if (!rect.height || rect.bottom <= bounds.top || rect.top >= bounds.bottom) return;
+      if (selector === ".worker-bottom-nav") bounds.bottom = Math.min(bounds.bottom, rect.top - margin);
+      else bounds.top = Math.max(bounds.top, rect.bottom + margin);
+    });
+    const modalBody = instance.trigger.closest(".shift-modal-body");
+    if (modalBody) {
+      const rect = modalBody.getBoundingClientRect();
+      bounds.top = Math.max(bounds.top, rect.top + margin);
+      bounds.bottom = Math.min(bounds.bottom, rect.bottom - margin);
+      bounds.left = Math.max(bounds.left, rect.left + margin);
+      bounds.right = Math.min(bounds.right, rect.right - margin);
+    }
+    return bounds;
+  }
+
+  function positionCalendar(instance) {
+    const popover = instance.popover;
+    if (!instance.trigger.isConnected || !popover.isConnected) {
+      closePicker();
+      return;
+    }
+    const bounds = calendarBounds(instance);
+    const rect = instance.trigger.getBoundingClientRect();
+    const gap = 6;
+    if (rect.bottom <= bounds.top || rect.top >= bounds.bottom || rect.right <= bounds.left || rect.left >= bounds.right || bounds.right - bounds.left < 48) {
+      closePicker();
+      return;
+    }
+    popover.style.width = Math.min(292, bounds.right - bounds.left) + "px";
+    popover.style.maxHeight = "none";
+    const natural = popover.getBoundingClientRect();
+    const below = Math.max(0, bounds.bottom - rect.bottom - gap);
+    const above = Math.max(0, rect.top - bounds.top - gap);
+    const openAbove = natural.height > below && above > below;
+    const available = Math.floor(openAbove ? above : below);
+    if (available < 48) {
+      closePicker();
+      return;
+    }
+    const height = Math.min(natural.height, available);
+    popover.style.maxHeight = available + "px";
+    popover.style.left = Math.max(bounds.left, Math.min(rect.left, bounds.right - natural.width)) + "px";
+    popover.style.top = (openAbove ? rect.top - gap - height : rect.bottom + gap) + "px";
+  }
+
+  function scheduleCalendarPosition(event) {
+    if (!activePicker || !activePicker.isCalendar || calendarPositionFrame !== null) return;
+    if (event && event.type === "scroll" && event.target && event.target.nodeType && activePicker.popover.contains(event.target)) return;
+    calendarPositionFrame = requestAnimationFrame(function () {
+      calendarPositionFrame = null;
+      if (activePicker && activePicker.isCalendar) positionCalendar(activePicker);
+    });
+  }
+
   function placePopover(instance) {
     instance.popover.classList.remove("open-up");
+    if (instance.isCalendar) {
+      positionCalendar(instance);
+      return;
+    }
     requestAnimationFrame(function () {
       const popoverRect = instance.popover.getBoundingClientRect();
       const triggerRect = instance.trigger.getBoundingClientRect();
@@ -112,6 +197,14 @@
     activePicker = instance;
     instance.afterOpen();
     placePopover(instance);
+    if (activePicker === instance && instance.isCalendar && typeof ResizeObserver !== "undefined") {
+      // Only the open calendar is observed, including calendars loaded in a modal.
+      calendarObserver = new ResizeObserver(scheduleCalendarPosition);
+      calendarObserver.observe(instance.trigger);
+      calendarObserver.observe(instance.popover);
+      const modalBody = instance.trigger.closest(".shift-modal-body");
+      if (modalBody) calendarObserver.observe(modalBody);
+    }
   }
 
   function setDisplay(display, text, hasValue) {
@@ -187,9 +280,11 @@
         gridEnd.setDate(gridStart.getDate() + cellCount - 1);
         holidayReminders.updateMonth(container, visibleMonth.getFullYear(), visibleMonth.getMonth(), isoDate(gridStart), isoDate(gridEnd));
       }
+      scheduleCalendarPosition();
     }
 
     const instance = {
+      isCalendar: true,
       popover: popover,
       trigger: trigger,
       prepare: function () {
@@ -358,6 +453,12 @@
   });
 
   window.initDateTimePickers = initDateTimePickers;
+  window.addEventListener("resize", scheduleCalendarPosition);
+  window.addEventListener("scroll", scheduleCalendarPosition, { capture: true, passive: true });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", scheduleCalendarPosition);
+    window.visualViewport.addEventListener("scroll", scheduleCalendarPosition);
+  }
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () { initDateTimePickers(document); });
   } else {
