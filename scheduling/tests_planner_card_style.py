@@ -56,3 +56,19 @@ class PlannerCardStyleTests(SimpleTestCase):
     def test_time_segments_and_action_targets_are_preserved(self):
         self.assertIn(".planner-time-part { white-space: nowrap; }", self.css)
         self.assertNotRegex(self.css, r"\.planner-shift-action(?:\s|:)")
+
+    def test_bottom_padding_compensates_for_icon_target_whitespace(self):
+        self.assertRegex(
+            self.css,
+            r"\.planner-shift-tile \{[^}]*padding: 0\.65rem 0\.55rem 0\.3rem;",
+        )
+
+    def test_all_planner_views_reserve_width_for_four_action_targets(self):
+        self.assertRegex(
+            self.css,
+            r"\.planner-date-grid \{[^}]*grid-template-columns: repeat\(7, minmax\(10rem, 1fr\)\);[^}]*min-width: 70rem;",
+        )
+        self.assertRegex(
+            self.css,
+            r"\.planner-resource-grid \{[^}]*--planner-resource-day-width: 10rem;",
+        )
