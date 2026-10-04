@@ -1,5 +1,10 @@
 {% extends "admin_base.html" %}
-{% load static %}
+{% load static holiday_tags %}
+
+{% block extra_styles %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/holiday_reminders.css' %}">
+{% endblock %}
 
 {% block title %}Quick Roster Planner - Brisbane Star Care{% endblock %}
 
@@ -151,6 +156,8 @@
                 </button>
                 <a class="planner-add-shift planner-add-shift-square js-shift-modal-trigger" href="{{ day.add_shift_url }}" data-modal-url="{{ day.add_shift_url }}{% if '?' in day.add_shift_url %}&{% else %}?{% endif %}modal=1" title="Add Shift" aria-label="Create shift on {{ day.date|date:'d/m/Y' }}">+</a>
               </span>
+              {% holidays_on day.date as holidays %}
+              {% include "scheduling/partials/holiday_badges.html" %}
             </header>
             <div class="planner-day-shifts">
               {% for shift in day.shifts %}
@@ -189,6 +196,8 @@
                   </button>
                   <a class="planner-add-shift planner-add-shift-square js-shift-modal-trigger" href="{{ day.add_shift_url }}" data-modal-url="{{ day.add_shift_url }}{% if '?' in day.add_shift_url %}&{% else %}?{% endif %}modal=1" title="Add Shift" aria-label="Create shift on {{ day.date|date:'d/m/Y' }}">+</a>
                 </span>
+                {% holidays_on day.date as holidays %}
+                {% include "scheduling/partials/holiday_badges.html" %}
               </div>
             {% endfor %}
           </div>
@@ -226,8 +235,12 @@
       </div>
     {% endif %}
   </div>
+  {% holiday_coverage_warning display_date_from display_date_to as holiday_warning %}
+  {% if holiday_warning %}<p class="holiday-coverage-warning">{{ holiday_warning }}</p>{% endif %}
+  <p class="holiday-source-note">Holiday reminders: QLD statewide, Brisbane, Logan and Gold Coast. <a href="https://www.qld.gov.au/recreation/travel/holidays/public" target="_blank" rel="noopener noreferrer">QLD public holidays</a> &middot; <a href="https://www.qld.gov.au/recreation/travel/holidays/show" target="_blank" rel="noopener noreferrer">Show holidays</a></p>
 </section>
 <div id="shift-modal-root"></div>
+{% include "scheduling/partials/holiday_assets.html" %}
 <script src="{% static 'js/date_time_picker.js' %}" defer></script>
 <script src="{% static 'js/support_item_picker.js' %}" defer data-support-item-picker-script></script>
 <script src="{% static 'js/shift_modal.js' %}" defer></script>

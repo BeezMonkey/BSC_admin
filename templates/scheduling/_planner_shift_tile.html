@@ -1,6 +1,7 @@
+{% load bsc_formatting %}
 <article class="planner-shift-tile{% if shift.has_conflict %} planner-shift-conflict{% endif %}">
   <div class="planner-shift-copy">
-    <strong class="planner-shift-time">{{ shift.display_time }}</strong>
+    <strong class="planner-shift-time" title="{{ shift.display_time }}"><span class="planner-time-part">{{ shift.start_time|display_time|cut:" " }}</span> - <span class="planner-time-part">{{ shift.end_time|display_time|cut:" " }}</span></strong>
     {% if is_participant_view %}
       <p class="planner-shift-primary">{{ shift.worker.display_name }}</p>
       <p class="planner-shift-meta">{{ shift.get_service_type_display }}</p>
