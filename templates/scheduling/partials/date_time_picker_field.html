@@ -1,6 +1,8 @@
-<div class="field date-time-picker-field" data-date-time-picker="{{ picker_type }}" data-picker-name="{{ field.name }}">
+{% load holiday_tags %}
+<div class="field date-time-picker-field" data-date-time-picker="{{ picker_type }}" data-picker-name="{{ field.name }}"{% if holiday_reminders %} data-holiday-reminders{% endif %}>
   <span id="{{ field.id_for_label }}_label">{{ field.label }}</span>
   {{ field.as_hidden }}
+  {% if holiday_reminders %}<div class="holiday-picker-anchor">{% endif %}
   <button
     class="date-time-picker-trigger"
     type="button"
@@ -23,8 +25,10 @@
       </svg>
     {% endif %}
   </button>
-  {% if hint %}<small class="date-time-picker-hint">{{ hint }}</small>{% endif %}
-  {% if field.errors %}<span class="field-error">{{ field.errors|striptags }}</span>{% endif %}
+  {% if not holiday_reminders %}
+    {% if hint %}<small class="date-time-picker-hint">{{ hint }}</small>{% endif %}
+    {% if field.errors %}<span class="field-error">{{ field.errors|striptags }}</span>{% endif %}
+  {% endif %}
 
   {% if picker_type == "date" %}
     <section class="date-time-picker-popover calendar-picker-popover" data-picker-popover hidden role="dialog" aria-label="Choose {{ field.label|lower }}">
@@ -39,6 +43,7 @@
         <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span class="weekend">Sat</span><span class="weekend">Sun</span>
       </div>
       <div class="calendar-picker-grid" data-calendar-grid></div>
+      {% if holiday_reminders %}<div class="calendar-holiday-list" data-calendar-holidays hidden></div>{% endif %}
       <footer class="date-picker-footer">
         <button type="button" data-calendar-clear>Clear</button>
         <button type="button" data-calendar-today>Today</button>
@@ -57,5 +62,16 @@
         <button type="button" data-time-apply>OK</button>
       </footer>
     </section>
+  {% endif %}
+  {% if holiday_reminders %}
+    </div>
+    {% if hint %}<small class="date-time-picker-hint">{{ hint }}</small>{% endif %}
+    {% if field.errors %}<span class="field-error">{{ field.errors|striptags }}</span>{% endif %}
+    {% holidays_on field.value as holidays %}
+    {% holiday_coverage_warning field.value as holiday_warning %}
+    <div class="holiday-selection" data-selected-holidays aria-live="polite"{% if not holidays and not holiday_warning %} hidden{% endif %}>
+      {% include "scheduling/partials/holiday_badges.html" %}
+      {% if holiday_warning %}<p class="holiday-coverage-warning">{{ holiday_warning }}</p>{% endif %}
+    </div>
   {% endif %}
 </div>

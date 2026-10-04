@@ -1,0 +1,10 @@
+{% if holidays %}
+<div class="holiday-badges">
+  {% for holiday in holidays %}
+    <span class="holiday-badge {% if holiday.region == 'QLD' %}holiday-statewide{% else %}holiday-regional{% endif %}">
+      <strong>{{ holiday.name }}</strong>
+      <small>{% if holiday.region == 'QLD' %}QLD statewide{% else %}{{ holiday.region }} only{% endif %}{% if holiday.hours != 'All day' %} &middot; {{ holiday.hours }}{% endif %}</small>
+    </span>
+  {% endfor %}
+</div>
+{% endif %}

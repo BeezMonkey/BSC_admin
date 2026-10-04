@@ -1,5 +1,10 @@
 {% extends "admin_base.html" %}
-{% load static %}
+{% load static holiday_tags %}
+
+{% block extra_styles %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/holiday_reminders.css' %}">
+{% endblock %}
 
 {% block title %}Create Recurring Shifts - Brisbane Star Care{% endblock %}
 
@@ -35,8 +40,8 @@
     <p>Start date and end date define the recurring schedule window.</p>
     <div class="form-grid">
       {% include "participants/partials/field.html" with field=form.frequency %}
-      {% include "participants/partials/field.html" with field=form.start_date %}
-      {% include "participants/partials/field.html" with field=form.end_date %}
+      {% include "scheduling/partials/date_time_picker_field.html" with field=form.start_date picker_type="date" holiday_reminders=True %}
+      {% include "scheduling/partials/date_time_picker_field.html" with field=form.end_date picker_type="date" holiday_reminders=True %}
       {% include "participants/partials/field.html" with field=form.start_time %}
       {% include "participants/partials/field.html" with field=form.end_time %}
       {% include "participants/partials/field.html" with field=form.break_minutes %}
@@ -62,11 +67,15 @@
 <section class="card table-card recurring-preview-table">
   <h2>Preview</h2>
   <p>Conflicting dates will be skipped when draft shifts are created.</p>
+  <p class="holiday-item-reminder">Holiday reminders do not change support items or rates. Check each date and service location before creating shifts.</p>
+  {% holiday_coverage_warning form.start_date.value form.end_date.value as holiday_warning %}
+  {% if holiday_warning %}<p class="holiday-coverage-warning">{{ holiday_warning }}</p>{% endif %}
   <table>
     <thead>
       <tr>
         <th>Date</th>
         <th>Status</th>
+        <th>Holiday reminder</th>
       </tr>
     </thead>
     <tbody>
@@ -74,6 +83,7 @@
         <tr>
           <td>{{ item.service_date|date:"d/m/Y" }}</td>
           <td>{{ item.status }}</td>
+          <td>{% holidays_on item.service_date as holidays %}{% include "scheduling/partials/holiday_badges.html" %}</td>
         </tr>
       {% endfor %}
     </tbody>
@@ -88,5 +98,7 @@
   </form>
 </section>
 {% endif %}
+{% include "scheduling/partials/holiday_assets.html" %}
+<script src="{% static 'js/date_time_picker.js' %}" defer></script>
 <script src="{% static 'js/support_item_picker.js' %}" defer data-support-item-picker-script></script>
 {% endblock %}

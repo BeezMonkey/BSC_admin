@@ -1,0 +1,4 @@
+{% load static holiday_tags %}
+{% holiday_calendar_data as holiday_data %}
+{{ holiday_data|json_script:"qld-holiday-data" }}
+<script src="{% static 'js/holiday_reminders.js' %}" defer></script>
