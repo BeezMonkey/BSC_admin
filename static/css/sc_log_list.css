@@ -1,0 +1,85 @@
+/* Keep SC list sizing independent of shared participant and worker tables. */
+[data-portal-theme] .sc-log-list .coordinator-log-table {
+  min-width: 60rem;
+}
+
+[data-portal-theme] .sc-log-list .coordinator-log-table :is(th, td):nth-child(1) {
+  width: 7rem;
+  white-space: nowrap;
+}
+
+[data-portal-theme] .sc-log-list .coordinator-log-table :is(th, td):nth-child(2),
+[data-portal-theme] .sc-log-list .coordinator-log-table :is(th, td):nth-child(3) {
+  width: 18%;
+  overflow-wrap: anywhere;
+}
+
+[data-portal-theme] .sc-log-list .coordinator-log-table :is(th, td):nth-child(4) {
+  width: 4.5rem;
+}
+
+[data-portal-theme] .sc-log-list .coordinator-log-table :is(th, td):nth-child(5) {
+  width: 7rem;
+}
+
+[data-portal-theme] .sc-log-list .coordinator-log-table :is(th, td):nth-child(6) {
+  width: auto;
+  overflow-wrap: anywhere;
+}
+
+[data-portal-theme] .sc-log-list .coordinator-log-table :is(th, td):nth-child(7) {
+  width: 10rem;
+  padding-right: 16px;
+  padding-left: 16px;
+  text-align: right;
+}
+
+[data-portal-theme] .sc-log-list .sc-log-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+[data-portal-theme] .sc-log-list td.actions .sc-log-action {
+  flex: 0 0 auto;
+  min-width: 56px;
+  min-height: 36px;
+  margin: 0;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: #3f3f46;
+  background: var(--panel);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+  text-decoration: none;
+}
+
+[data-portal-theme] .sc-log-list td.actions .sc-log-action--edit {
+  border-color: #cce3df;
+  color: var(--brand-dark);
+  background: var(--brand-soft);
+}
+
+[data-portal-theme] .sc-log-list td.actions .sc-log-action:hover {
+  border-color: var(--brand);
+  color: var(--brand-dark);
+  background: var(--brand-soft);
+}
+
+[data-portal-theme] .sc-log-list td.actions .sc-log-action--edit:hover {
+  background: #d8ece8;
+}
+
+[data-portal-theme] .sc-log-list td.actions .sc-log-action:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px), (pointer: coarse) {
+  [data-portal-theme] .sc-log-list td.actions .sc-log-action {
+    min-height: 44px;
+  }
+}

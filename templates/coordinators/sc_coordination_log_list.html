@@ -1,9 +1,15 @@
 {% extends "coordinator_base.html" %}
+{% load static %}
 
 {% block title %}My Coordination Logs - Brisbane Star Care{% endblock %}
 
+{% block extra_styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/sc_log_list.css' %}">
+{% endblock %}
+
 {% block content %}
-<section class="worker-content">
+<section class="worker-content sc-log-list">
   <header class="page-header">
     <div>
       <h1>My Coordination Logs</h1>
@@ -39,8 +45,10 @@
             <td><span class="status-pill status-{{ log.status }}">{{ log.get_status_display }}</span></td>
             <td>{{ log.case_notes|truncatewords:12 }}</td>
             <td class="actions">
-              <a href="{% url 'coordinator_log_detail' log.id %}">View</a>
-              {% if log.can_coordinator_edit %}<a href="{% url 'coordinator_log_edit' log.id %}">Edit</a>{% endif %}
+              <div class="sc-log-actions">
+                <a class="sc-log-action sc-log-action--view" href="{% url 'coordinator_log_detail' log.id %}">View</a>
+                {% if log.can_coordinator_edit %}<a class="sc-log-action sc-log-action--edit" href="{% url 'coordinator_log_edit' log.id %}">Edit</a>{% endif %}
+              </div>
             </td>
           </tr>
         {% empty %}
