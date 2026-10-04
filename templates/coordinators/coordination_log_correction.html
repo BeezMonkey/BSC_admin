@@ -1,0 +1,29 @@
+{% extends "admin_base.html" %}
+{% load static %}
+{% block extra_styles %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/coordination_revisions.css' %}">{% endblock %}
+{% block title %}Record Correction - Brisbane Star Care{% endblock %}
+{% block content %}
+<header class="page-header">
+  <div><h1>Record Correction</h1><p>{{ log.participant.display_name }} | {{ log.service_date|date:"d/m/Y" }}</p></div>
+  <a class="button secondary" href="{% url 'coordination_log_detail' log.id %}">Back to Log</a>
+</header>
+<p class="sc-revision-notice">The original log and invoice remain unchanged. Date, time or charge corrections require a separate invoice review.</p>
+{% for line in invoice_lines %}
+<p>Invoice: <a href="{% url 'invoice_detail' line.invoice_id %}">{{ line.invoice.invoice_number }}</a> | {{ line.invoice.get_status_display }}</p>
+{% endfor %}
+<form method="post" class="record-form" novalidate>
+  {% csrf_token %}
+  <input type="hidden" name="revision_token" value="{{ revision_token }}">
+  {% if form.non_field_errors %}<div class="error">{{ form.non_field_errors }}</div>{% endif %}
+  {% if stale_record %}<p><a href="{% url 'coordination_log_correction' log.id %}">Reload latest version</a></p>{% endif %}
+  <div class="form-grid single">
+    {% include "participants/partials/field.html" with field=form.kind %}
+    {% include "participants/partials/field.html" with field=form.reason %}
+    {% include "participants/partials/field.html" with field=form.details %}
+  </div>
+  <div class="form-actions">
+    <button type="submit">Record Correction</button>
+    <a class="button secondary" href="{% url 'coordination_log_detail' log.id %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

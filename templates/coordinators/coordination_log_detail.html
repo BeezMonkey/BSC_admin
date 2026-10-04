@@ -1,5 +1,8 @@
 {% extends "admin_base.html" %}
 {% load bsc_formatting %}
+{% load static %}
+
+{% block extra_styles %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/coordination_revisions.css' %}">{% endblock %}
 
 {% block title %}Coordination Log - Brisbane Star Care{% endblock %}
 
@@ -10,6 +13,7 @@
     <p>{{ log.service_date|date:"d/m/Y" }} | {{ log.get_status_display }}</p>
   </div>
   <div class="button-row">
+    {% if invoice_locked %}<a class="button secondary" href="{% url 'coordination_log_correction' log.id %}">Record Correction</a>{% endif %}
     <a class="button secondary" href="{{ return_url }}">Back to Coordination Logs</a>
   </div>
 </div>
@@ -21,9 +25,11 @@
     <dl class="detail-list">
       <dt>Coordinator</dt><dd>{{ log.coordinator.display_name }}</dd>
       <dt>Coordination type</dt><dd>{{ log.get_coordination_type_display }}</dd>
-      <dt>Time</dt><dd>{{ log.start_time|display_time }} - {{ log.end_time|display_time }}</dd>
-      <dt>Break</dt><dd>{{ log.break_minutes }} minutes</dd>
-      <dt>Actual hours</dt><dd>{{ log.actual_hours }}</dd>
+      <dt>Service duration</dt><dd>{{ log.service_duration_display }}</dd>
+      {% if log.start_time and log.end_time %}
+        <dt>Previously recorded time</dt><dd>{{ log.start_time|display_time }} - {{ log.end_time|display_time }}</dd>
+        <dt>Recorded break</dt><dd>{{ log.break_minutes }} minutes</dd>
+      {% endif %}
       <dt>Submitted</dt><dd>{{ log.submitted_at|date:"d/m/Y H:i" }}</dd>
       {% if log.reviewed_by %}
         <dt>Reviewed by</dt><dd>{{ log.reviewed_by }}</dd>
@@ -37,7 +43,9 @@
     <h2>Notes</h2>
     <dl class="detail-list">
       <dt>Case notes</dt><dd>{{ log.case_notes }}</dd>
-      <dt>Coordinator notes</dt><dd>{{ log.coordinator_notes|default:"-" }}</dd>
+      {% if log.coordinator_notes %}
+        <dt>Coordinator notes</dt><dd>{{ log.coordinator_notes }}</dd>
+      {% endif %}
       {% if log.rejection_reason %}
         <dt>Rejection reason</dt><dd>{{ log.rejection_reason }}</dd>
       {% endif %}
@@ -45,18 +53,20 @@
   </section>
 </div>
 
-{% if log.status == "submitted" %}
+{% if log.status == "submitted" and not invoice_locked %}
 <section class="card service-log-review-card">
   <h2>Review</h2>
   <div class="service-log-review-actions coordinator-log-actions">
     <form method="post" action="{% url 'coordination_log_approve' log.id %}">
       {% csrf_token %}
+      <input type="hidden" name="revision_token" value="{{ revision_token }}">
       <button type="submit">Approve</button>
     </form>
     <details class="service-log-reject-disclosure">
       <summary class="button danger-outline">Reject</summary>
       <form method="post" action="{% url 'coordination_log_reject' log.id %}" class="service-log-reject-form">
         {% csrf_token %}
+        <input type="hidden" name="revision_token" value="{{ revision_token }}">
         <label>Reject with reason
           <input type="text" name="rejection_reason" required>
         </label>
@@ -66,5 +76,6 @@
   </div>
 </section>
 {% endif %}
+{% include "coordinators/partials/log_history.html" %}
 </div>
 {% endblock %}

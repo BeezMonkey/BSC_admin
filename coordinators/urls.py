@@ -3,6 +3,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path("sc/logs/<int:log_id>/edit/", views.coordinator_log_edit, name="coordinator_log_edit"),
+    path("coordination-logs/<int:log_id>/correction/", views.coordination_log_correction, name="coordination_log_correction"),
     path(
         "coordination-logs/",
         views.coordination_log_list,

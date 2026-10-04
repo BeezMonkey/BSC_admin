@@ -905,30 +905,60 @@ def support_coordination_invoice_create(request):
                     "No approved coordination logs found for this invoice.",
                 )
             else:
+                original_updated_at = {
+                    log.pk: log.updated_at for log in coordination_logs
+                }
                 with transaction.atomic():
-                    invoice = Invoice.objects.create(
-                        participant=form.cleaned_data["participant"],
-                        period_start=form.cleaned_data["period_start"],
-                        period_end=form.cleaned_data["period_end"],
-                        invoice_type=Invoice.InvoiceType.SUPPORT_COORDINATION,
-                        created_by=request.user,
+                    # Share the revision/review row locks before taking snapshots.
+                    locked_logs = list(
+                        CoordinationLog.objects.select_for_update()
+                        .select_related(None)
+                        .filter(pk__in=original_updated_at)
+                        .order_by("pk")
                     )
-                    for coordination_log in coordination_logs:
-                        InvoiceLine.objects.create_from_coordination_log(
-                            invoice=invoice,
-                            coordination_log=coordination_log,
-                            support_item=form.cleaned_data["support_item"],
+                    if len(locked_logs) != len(original_updated_at) or any(
+                        log.updated_at != original_updated_at[log.pk]
+                        or log.status != CoordinationLog.Status.APPROVED
+                        or log.invoice_lines.exists()
+                        or log.participant_id != form.cleaned_data["participant"].pk
+                        or not form.cleaned_data["period_start"]
+                        <= log.service_date
+                        <= form.cleaned_data["period_end"]
+                        for log in locked_logs
+                    ):
+                        selected_error = (
+                            "Selected coordination logs changed or are no longer "
+                            "available for invoicing. Refresh the logs and try again."
                         )
-                        coordination_log.status = CoordinationLog.Status.INVOICED
-                        coordination_log.save(update_fields=["status", "updated_at"])
-                write_audit_log(
-                    request.user,
-                    AuditLog.Action.SUPPORT_COORDINATION_INVOICE_CREATED,
-                    invoice,
-                    f"Created support coordination invoice {invoice.invoice_number}.",
-                )
-                messages.success(request, "Support coordination invoice created.")
-                return redirect(invoice)
+                        coordination_logs = CoordinationLog.objects.none()
+                    else:
+                        coordination_logs = sorted(
+                            locked_logs, key=lambda log: (log.service_date, log.pk)
+                        )
+                        invoice = Invoice.objects.create(
+                            participant=form.cleaned_data["participant"],
+                            period_start=form.cleaned_data["period_start"],
+                            period_end=form.cleaned_data["period_end"],
+                            invoice_type=Invoice.InvoiceType.SUPPORT_COORDINATION,
+                            created_by=request.user,
+                        )
+                        for coordination_log in coordination_logs:
+                            InvoiceLine.objects.create_from_coordination_log(
+                                invoice=invoice,
+                                coordination_log=coordination_log,
+                                support_item=form.cleaned_data["support_item"],
+                            )
+                            coordination_log.status = CoordinationLog.Status.INVOICED
+                            coordination_log.save(update_fields=["status", "updated_at"])
+                if not selected_error:
+                    write_audit_log(
+                        request.user,
+                        AuditLog.Action.SUPPORT_COORDINATION_INVOICE_CREATED,
+                        invoice,
+                        f"Created support coordination invoice {invoice.invoice_number}.",
+                    )
+                    messages.success(request, "Support coordination invoice created.")
+                    return redirect(invoice)
 
     invoice_rows = build_coordination_invoice_rows(coordination_logs)
     if coordination_logs and not selected_error:
@@ -1025,16 +1055,25 @@ def release_invoice_source_logs(invoice):
         service_log.status = ServiceLog.Status.APPROVED
         service_log.save(update_fields=["status", "updated_at"])
 
-    coordination_logs = {
-        line.coordination_log_id: line.coordination_log
-        for line in invoice.lines.select_related("coordination_log")
-        if line.coordination_log_id
-    }
-    for coordination_log in coordination_logs.values():
-        coordination_log.status = CoordinationLog.Status.APPROVED
-        coordination_log.save(update_fields=["status", "updated_at"])
-
-    invoice.lines.all().delete()
+    with transaction.atomic():
+        coordination_log_ids = list(
+            InvoiceLine.objects.filter(invoice=invoice, coordination_log__isnull=False)
+            .values_list("coordination_log_id", flat=True)
+        )
+        coordination_logs = (
+            CoordinationLog.objects.select_for_update()
+            .filter(pk__in=coordination_log_ids).order_by("pk")
+        )
+        for coordination_log in coordination_logs:
+            # A concurrent release may already have enabled a revision or reinvoice.
+            if (
+                coordination_log.status == CoordinationLog.Status.INVOICED
+                and coordination_log.invoice_lines.filter(invoice=invoice).exists()
+                and not coordination_log.invoice_lines.exclude(invoice=invoice).exists()
+            ):
+                coordination_log.status = CoordinationLog.Status.APPROVED
+                coordination_log.save(update_fields=["status", "updated_at"])
+        invoice.lines.all().delete()
 
 
 @finance_required

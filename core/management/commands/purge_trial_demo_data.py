@@ -6,6 +6,7 @@ from django.db.models import Q
 from accounts.models import UserProfile
 from coordinators.models import (
     CoordinationLog,
+    CoordinationLogChange,
     ParticipantCoordinatorAssignment,
     SupportCoordinator,
 )
@@ -141,6 +142,9 @@ class Command(BaseCommand):
             "invoices": demo_invoices,
             "service_logs": demo_service_logs,
             "coordination_logs": demo_coordination_logs,
+            "coordination_log_changes": CoordinationLogChange.objects.filter(
+                log__in=demo_coordination_logs,
+            ),
             "shifts": demo_shifts,
             "worker_assignments": demo_worker_assignments,
             "coordinator_assignments": demo_coordinator_assignments,
@@ -162,6 +166,7 @@ class Command(BaseCommand):
         plan["documents"].delete()
         plan["invoices"].delete()
         plan["service_logs"].delete()
+        plan["coordination_log_changes"].delete()
         plan["coordination_logs"].delete()
         plan["shifts"].delete()
         plan["worker_assignments"].delete()

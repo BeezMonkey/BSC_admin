@@ -1,0 +1,39 @@
+{% load static %}
+{% if changes %}
+<section class="sc-log-history">
+  <h2>Change history</h2>
+  {% for change in changes %}
+  <details class="sc-log-change">
+    <summary class="sc-log-change-summary">
+      <span class="sc-log-summary-line">
+        <strong>{{ change.get_kind_display }}</strong>
+        {% if change.changed_fields_summary %}<span class="sc-log-changed-fields">{{ change.changed_fields_summary }}</span>{% endif %}
+      </span>
+      <span class="sc-log-change-meta">{{ change.actor.get_full_name|default:change.actor.username }} <span aria-hidden="true">|</span> <time datetime="{{ change.created_at|date:'c' }}">{{ change.created_at|date:"d/m/Y H:i" }}</time></span>
+    </summary>
+    <div class="sc-log-change-body">
+      {% if change.reason %}
+      <div class="sc-log-reason">
+        <span class="sc-log-reason-label">Reason</span>
+        {% include "coordinators/partials/history_text.html" with value=change.reason field_key="reason" side="value" label="Reason" %}
+      </div>
+      {% endif %}
+      {% if change.details %}<div class="sc-log-extra-detail">{% include "coordinators/partials/history_text.html" with value=change.details field_key="details" side="value" label="Additional details" %}</div>{% endif %}
+      {% if change.kind == "billing_review" %}<p class="sc-revision-notice">Invoice review required. This entry does not change the original log or invoice.</p>{% endif %}
+      {% with fields=change.content_changes %}
+        {% if fields %}{% include "coordinators/partials/history_diff_table.html" with table_label="Changed service details" %}{% endif %}
+      {% endwith %}
+      {% with fields=change.review_changes %}
+        {% if fields %}
+        <details class="sc-log-review-details">
+          <summary>Review details</summary>
+          {% include "coordinators/partials/history_diff_table.html" with table_label="Review changes" %}
+        </details>
+        {% endif %}
+      {% endwith %}
+    </div>
+  </details>
+  {% endfor %}
+</section>
+<script src="{% static 'js/sc_log_history.js' %}" defer></script>
+{% endif %}

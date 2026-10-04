@@ -21,7 +21,7 @@
     <nav class="sidebar-nav worker-sidebar-nav" aria-label="Support Coordinator navigation">
       <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_dashboard' %} active{% endif %}" href="{% url 'coordinator_dashboard' %}">Dashboard</a>
       <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_participant_list' or request.resolver_match.url_name == 'coordinator_participant_detail' %} active{% endif %}" href="{% url 'coordinator_participant_list' %}">My Participants</a>
-      <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_log_list' or request.resolver_match.url_name == 'coordinator_log_detail' or request.resolver_match.url_name == 'coordinator_log_create' %} active{% endif %}" href="{% url 'coordinator_log_list' %}">My Coordination Logs</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_log_list' or request.resolver_match.url_name == 'coordinator_log_detail' or request.resolver_match.url_name == 'coordinator_log_create' or request.resolver_match.url_name == 'coordinator_log_edit' %} active{% endif %}" href="{% url 'coordinator_log_list' %}">My Coordination Logs</a>
       <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_account' %} active{% endif %}" href="{% url 'coordinator_account' %}">Account</a>
     </nav>
   </aside>
@@ -37,7 +37,7 @@
     <nav class="worker-mobile-drawer-nav" aria-label="Support Coordinator navigation">
       <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_dashboard' %} active{% endif %}" href="{% url 'coordinator_dashboard' %}">Dashboard</a>
       <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_participant_list' or request.resolver_match.url_name == 'coordinator_participant_detail' %} active{% endif %}" href="{% url 'coordinator_participant_list' %}">My Participants</a>
-      <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_log_list' or request.resolver_match.url_name == 'coordinator_log_detail' or request.resolver_match.url_name == 'coordinator_log_create' %} active{% endif %}" href="{% url 'coordinator_log_list' %}">My Coordination Logs</a>
+      <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_log_list' or request.resolver_match.url_name == 'coordinator_log_detail' or request.resolver_match.url_name == 'coordinator_log_create' or request.resolver_match.url_name == 'coordinator_log_edit' %} active{% endif %}" href="{% url 'coordinator_log_list' %}">My Coordination Logs</a>
       <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_account' %} active{% endif %}" href="{% url 'coordinator_account' %}">Account</a>
     </nav>
     <form class="worker-mobile-logout" method="post" action="{% url 'logout' %}">
@@ -63,9 +63,9 @@
       <span>Participants</span>
     </a>
     <a
-      class="worker-bottom-nav-link{% if request.resolver_match.url_name == 'coordinator_log_list' or request.resolver_match.url_name == 'coordinator_log_detail' or request.resolver_match.url_name == 'coordinator_log_create' %} active{% endif %}"
+      class="worker-bottom-nav-link{% if request.resolver_match.url_name == 'coordinator_log_list' or request.resolver_match.url_name == 'coordinator_log_detail' or request.resolver_match.url_name == 'coordinator_log_create' or request.resolver_match.url_name == 'coordinator_log_edit' %} active{% endif %}"
       href="{% url 'coordinator_log_list' %}"
-      {% if request.resolver_match.url_name == 'coordinator_log_list' or request.resolver_match.url_name == 'coordinator_log_detail' or request.resolver_match.url_name == 'coordinator_log_create' %}aria-current="page"{% endif %}
+      {% if request.resolver_match.url_name == 'coordinator_log_list' or request.resolver_match.url_name == 'coordinator_log_detail' or request.resolver_match.url_name == 'coordinator_log_create' or request.resolver_match.url_name == 'coordinator_log_edit' %}aria-current="page"{% endif %}
     >
       {% include "portal/partials/icon.html" with name="logs" %}
       <span>Logs</span>
