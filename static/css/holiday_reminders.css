@@ -30,12 +30,13 @@
 .planner-day-card > header .holiday-badge.holiday-regional { color: #385675; }
 .planner-shift-tile { padding: 0.65rem 0.55rem; gap: 0.6rem; border: 1px solid #d5e4e1; border-left: 3px solid var(--brand); background: #fff; box-shadow: 0 1px 2px #142e2210; }
 .planner-shift-tile.planner-shift-conflict { border-left-color: #d69e2e; background: #fff8e6; }
-.planner-shift-copy { display: grid; gap: 0.32rem; }
-.planner-shift-time { color: var(--ink); line-height: 1.4; overflow-wrap: normal; }
+.planner-shift-copy { display: grid; gap: 0.25rem; }
+.planner-shift-time { color: var(--ink); font-size: 0.72rem; font-weight: 600; line-height: 1.3; overflow-wrap: normal; }
 .planner-time-part { white-space: nowrap; }
-.planner-shift-primary { margin: 0; white-space: normal; overflow: visible; text-overflow: clip; font-weight: 500; line-height: 1.4; }
-.planner-shift-meta { margin: 0; line-height: 1.4; }
+.planner-shift-primary { margin: 0; white-space: normal; overflow: visible; text-overflow: clip; font-size: 0.72rem; font-weight: 500; line-height: 1.3; }
+.planner-shift-meta { margin: 0; font-size: 0.72rem; line-height: 1.3; }
 .planner-shift-tile-footer { min-width: 0; border-top: 1px solid #e7eded; padding-top: 0.45rem; gap: 0.4rem; }
+.planner-shift-tile .status-pill { min-width: 0; max-width: 100%; font-size: 0.69rem; line-height: 1.25; white-space: normal; overflow-wrap: anywhere; text-align: center; }
 .planner-shift-actions { max-width: 100%; flex-wrap: wrap; }
 
 [data-holiday-reminders] .calendar-day { position: relative; }
