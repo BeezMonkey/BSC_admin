@@ -1,6 +1,11 @@
 {% extends "admin_base.html" %}
 {% load static %}
 
+{% block extra_styles %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/holiday_reminders.css' %}">
+{% endblock %}
+
 {% block title %}{{ title }} - Brisbane Star Care{% endblock %}
 
 {% block content %}
@@ -24,6 +29,7 @@
     <a class="button secondary" href="{% if return_url %}{{ return_url }}{% elif shift %}{% url 'shift_detail' shift.id %}{% else %}{% url 'roster_list' %}{% endif %}">Cancel</a>
   </div>
 </form>
+{% include "scheduling/partials/holiday_assets.html" %}
 <script src="{% static 'js/date_time_picker.js' %}" defer></script>
 <script src="{% static 'js/support_item_picker.js' %}" defer data-support-item-picker-script></script>
 {% endblock %}

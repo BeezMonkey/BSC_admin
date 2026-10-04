@@ -120,6 +120,8 @@
   }
 
   function createCalendarPicker(container) {
+    const holidayReminders = container.hasAttribute("data-holiday-reminders")
+      ? window.BscHolidayReminders : null;
     const input = container.querySelector("input[type='hidden']");
     const trigger = container.querySelector("[data-picker-trigger]");
     const display = container.querySelector("[data-picker-display]");
@@ -134,6 +136,7 @@
 
     function updateDisplay() {
       setDisplay(display, selectedDate ? dateFormatter.format(selectedDate) : "Select date", Boolean(selectedDate));
+      if (holidayReminders) holidayReminders.updateSelected(container, input.value);
     }
 
     function selectDate(date) {
@@ -168,6 +171,7 @@
         button.className = "calendar-day";
         button.textContent = date.getDate();
         button.setAttribute("aria-label", dateFormatter.format(date));
+        if (holidayReminders) holidayReminders.decorateDay(button, isoDate(date));
         if (date.getMonth() !== visibleMonth.getMonth()) button.classList.add("outside");
         if (date.getDay() === 0 || date.getDay() === 6) button.classList.add("weekend");
         if (sameDate(date, today)) button.classList.add("today");
@@ -177,6 +181,11 @@
         }
         button.addEventListener("click", function () { selectDate(date); });
         grid.append(button);
+      }
+      if (holidayReminders) {
+        const gridEnd = new Date(gridStart);
+        gridEnd.setDate(gridStart.getDate() + cellCount - 1);
+        holidayReminders.updateMonth(container, visibleMonth.getFullYear(), visibleMonth.getMonth(), isoDate(gridStart), isoDate(gridEnd));
       }
     }
 
