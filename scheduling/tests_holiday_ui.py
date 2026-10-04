@@ -45,6 +45,8 @@ class HolidayPresentationTests(TestCase):
                 self.assertContains(response, 'class="holiday-badge holiday-regional"')
                 self.assertContains(response, "9:00 am")
                 self.assertContains(response, "12:00 pm")
+                self.assertContains(response, '<span class="planner-time-part">9:00am</span>', html=True)
+                self.assertContains(response, '<span class="planner-time-part">12:00pm</span>', html=True)
                 self.assertContains(response, 'title="Copy shift"')
                 self.assertContains(response, 'title="View shift"')
                 self.assertContains(response, "status-cancelled")
