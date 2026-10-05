@@ -1,6 +1,12 @@
 {% extends "admin_base.html" %}
+{% load static %}
 
 {% block title %}Invoice - Brisbane Star Care{% endblock %}
+
+{% block extra_styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/invoice_billing.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -51,6 +57,8 @@
     </tbody>
   </table>
 </section>
+
+{% include "invoices/billing_adjustment_history.html" with billing_adjustments=invoice.billing_adjustments.all only %}
 
 {% if invoice.status == "draft" or invoice.status == "issued" %}
 <section class="card">
