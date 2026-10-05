@@ -26,6 +26,7 @@
               {{ row.adjustment_form.support_item.label_tag }}
               {{ row.adjustment_form.support_item.errors }}
               {{ row.adjustment_form.support_item }}
+              <button type="button" class="invoice-billing-reset-item" data-billing-reset-item hidden>Keep original item</button>
             </div>
             <div data-billing-km-home></div>
             <div data-billing-reason-fields>
@@ -51,16 +52,16 @@
     <td class="invoice-preview-hours-cell">{{ row.service_log.actual_hours }}</td>
     <td class="invoice-preview-travel-cell">
       {% if row.adjustment_form %}
-        <small class="invoice-billing-original">Original: {{ row.service_log.kilometres|floatformat:2 }}</small>
         <div data-billing-km-slot>
           <div data-billing-km-field>
             <div data-billing-km>
-              {{ row.adjustment_form.kilometres.label_tag }}
+              <label for="{{ row.adjustment_form.kilometres.id_for_label }}">Confirmed km:</label>
               {{ row.adjustment_form.kilometres.errors }}
               {{ row.adjustment_form.kilometres }}
             </div>
           </div>
         </div>
+        <small class="invoice-billing-original invoice-billing-km-original">Original: {{ row.service_log.kilometres|floatformat:2 }} km</small>
       {% else %}
         {{ row.service_log.kilometres|floatformat:2 }}
       {% endif %}

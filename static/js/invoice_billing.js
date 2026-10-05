@@ -24,6 +24,7 @@
     var reason = row.querySelector("[data-billing-reason] select");
     var other = row.querySelector("[data-billing-other] textarea");
     var details = row.querySelector("[data-billing-details]");
+    var resetItem = row.querySelector("[data-billing-reset-item]");
     var original = row.dataset;
     var originalOption = Array.from(item.options).find(function (option) {
       return option.value === original.originalItem;
@@ -49,6 +50,7 @@
       row.querySelector("[data-billing-claim-empty]").hidden = showClaim;
       claim.disabled = !showClaim;
       reason.required = changed;
+      resetItem.hidden = !item.value || item.value === original.originalItem;
 
       var isOther = reason.value === "other";
       row.querySelector("[data-billing-other-field]").hidden = !isOther;
@@ -63,6 +65,10 @@
       if (hasErrors || (changed && !reason.value)) details.open = true;
     }
 
+    resetItem.addEventListener("click", function () {
+      item.value = "";
+      item.dispatchEvent(new Event("change", { bubbles: true }));
+    });
     [item, km, claim, reason, other].forEach(function (field) {
       field.addEventListener("change", update);
       field.addEventListener("input", update);

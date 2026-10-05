@@ -60,14 +60,38 @@
   resize: vertical;
 }
 
-.invoice-billing-row [data-billing-km] input {
+.invoice-billing-row .invoice-billing-reset-item {
+  margin-top: 0.35rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--brand-dark);
+  font-size: 0.78rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.invoice-billing-row [data-billing-km] input,
+.invoice-billing-row [data-billing-claim] input {
   width: 7rem;
   max-width: 100%;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.invoice-billing-row .invoice-preview-travel-cell,
+.invoice-billing-row .invoice-travel-claim {
+  vertical-align: top;
+  text-align: left;
+}
+
+.invoice-billing-row .invoice-billing-km-original {
+  margin-top: 0.35rem;
+  line-height: 1.35;
 }
 
 .invoice-billing-row [data-billing-km-slot] {
   width: 8rem;
-  margin-top: 0.4rem;
   text-align: left;
   white-space: normal;
 }
