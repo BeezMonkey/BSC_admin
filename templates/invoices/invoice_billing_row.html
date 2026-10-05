@@ -1,0 +1,97 @@
+{% load l10n %}
+<tr{% if row.adjustment_form %} class="invoice-billing-row" data-billing-row
+  data-original-item="{{ row.service_log.support_item_id }}"
+  data-original-category="{{ row.original_item_group }}"
+  data-original-label="{{ row.service_log.support_item }}"
+  data-original-price="{{ row.service_log.support_item.price_limit|unlocalize }}"
+  data-original-km="{{ row.service_log.kilometres|unlocalize }}"
+  data-hours="{{ row.service_log.actual_hours|unlocalize }}"
+  data-billing-errors="{% if row.adjustment_form.errors or row.travel_form.errors %}true{% else %}false{% endif %}"{% endif %}>
+  {% if row.service_log %}
+    <td class="invoice-preview-date-cell">{{ row.service_log.service_date|date:"d/m/Y" }}</td>
+    <td class="invoice-preview-worker-cell">{{ row.service_log.worker.display_name }}</td>
+    <td class="invoice-preview-support-cell">
+      {% if row.adjustment_form %}
+        <span data-billing-item-label>{{ row.billing_item }}</span>
+        <div class="invoice-billing-price" aria-live="polite">
+          $<span data-billing-rate>{{ row.billing_unit_price|floatformat:2 }}</span>/hr
+          | Service $<span data-billing-total>{{ row.billing_line_total|floatformat:2 }}</span>
+        </div>
+        <small class="invoice-billing-original">Original log #{{ row.service_log.id }}: {{ row.service_log.support_item }}</small>
+        <details class="invoice-billing-adjustment" data-billing-details{% if row.adjustment_form.errors or row.travel_form.errors %} open{% endif %}>
+          <summary>Adjust billing details</summary>
+          <div class="invoice-billing-fields">
+            {{ row.adjustment_form.non_field_errors }}
+            <div data-billing-item>
+              {{ row.adjustment_form.support_item.label_tag }}
+              {{ row.adjustment_form.support_item.errors }}
+              {{ row.adjustment_form.support_item }}
+            </div>
+            <div data-billing-km-home></div>
+            <div data-billing-reason-fields>
+              <div data-billing-reason>
+                {{ row.adjustment_form.reason.label_tag }}
+                {{ row.adjustment_form.reason.errors }}
+                {{ row.adjustment_form.reason }}
+              </div>
+              <div data-billing-other-field>
+                <div data-billing-other>
+                  {{ row.adjustment_form.reason_details.label_tag }}
+                  {{ row.adjustment_form.reason_details.errors }}
+                  {{ row.adjustment_form.reason_details }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </details>
+      {% else %}
+        {{ row.service_log.support_item }}
+      {% endif %}
+    </td>
+    <td class="invoice-preview-hours-cell">{{ row.service_log.actual_hours }}</td>
+    <td class="invoice-preview-travel-cell">
+      {% if row.adjustment_form %}
+        <small class="invoice-billing-original">Original: {{ row.service_log.kilometres|floatformat:2 }}</small>
+        <div data-billing-km-slot>
+          <div data-billing-km-field>
+            <div data-billing-km>
+              {{ row.adjustment_form.kilometres.label_tag }}
+              {{ row.adjustment_form.kilometres.errors }}
+              {{ row.adjustment_form.kilometres }}
+            </div>
+          </div>
+        </div>
+      {% else %}
+        {{ row.service_log.kilometres|floatformat:2 }}
+      {% endif %}
+    </td>
+    <td class="invoice-travel-claim">
+      {% if row.adjustment_form %}
+        <div data-billing-claim-field>
+          {{ row.travel_form.non_field_errors }}
+          {{ row.travel_form.amount.errors }}
+          {{ row.travel_form.amount.label_tag }}
+          <div data-billing-claim>{{ row.travel_form.amount }}</div>
+          <small>Admin enters the approved amount.</small>
+        </div>
+        <span class="invoice-travel-empty" data-billing-claim-empty hidden>No travel recorded</span>
+      {% elif row.service_log.kilometres > 0 %}
+        {{ row.travel_form.amount.errors }}
+        {{ row.travel_form.amount.label_tag }}
+        {{ row.travel_form.amount }}
+        <small>Admin enters the approved amount.</small>
+      {% else %}
+        <span class="invoice-travel-empty">No travel recorded</span>
+      {% endif %}
+    </td>
+    <td class="invoice-preview-notes-cell">{{ row.service_log.case_notes|truncatechars:80 }}</td>
+  {% else %}
+    <td class="invoice-preview-date-cell">{{ row.participant_cancellation.shift.service_date|date:"d/m/Y" }}</td>
+    <td class="invoice-preview-worker-cell">{{ row.participant_cancellation.shift.worker.display_name }}</td>
+    <td class="invoice-preview-support-cell">{{ row.participant_cancellation.shift.support_item }}</td>
+    <td class="invoice-preview-hours-cell">{{ row.participant_cancellation.shift.planned_hours }}</td>
+    <td class="invoice-preview-travel-cell">0.00</td>
+    <td class="invoice-travel-claim"><span class="invoice-travel-empty">No travel claim</span></td>
+    <td class="invoice-preview-notes-cell">Approved rostered charge</td>
+  {% endif %}
+</tr>

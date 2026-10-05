@@ -36,9 +36,11 @@ from .forms import (
     InvoiceCreateForm,
     InvoiceSettingsForm,
     SupportCoordinationInvoiceCreateForm,
-    TravelClaimForm,
 )
 from .models import Invoice, InvoiceLine, InvoiceSettings
+from .billing import (
+    BillingRecordsChanged, build_service_billing_row, create_service_invoice, valid_billing_rows,
+)
 
 
 INVOICE_STATIC_LOGO_PATH = Path("static/img/bsc-logo.png")
@@ -415,17 +417,9 @@ def build_selected_invoice_form_data(service_logs, participant_cancellations=Non
     }
 
 
-def build_invoice_rows(service_logs, data=None, participant_cancellations=None):
+def build_invoice_rows(service_logs, data=None, participant_cancellations=None, *, can_adjust=False):
     rows = [
-        {
-            "service_log": service_log,
-            "participant_cancellation": None,
-            "travel_form": TravelClaimForm(
-                data=data,
-                prefix=f"travel-{service_log.id}",
-                service_log=service_log,
-            ),
-        }
+        build_service_billing_row(service_log, data, can_adjust=can_adjust)
         for service_log in service_logs
     ]
     rows.extend(
@@ -449,7 +443,7 @@ def build_invoice_rows(service_logs, data=None, participant_cancellations=None):
     )
 
 
-def build_selected_invoice_groups(service_logs, participant_cancellations=None):
+def build_selected_invoice_groups(service_logs, participant_cancellations=None, *, can_adjust=False):
     participant_cancellations = participant_cancellations or []
     groups = OrderedDict()
     ordered_logs = sorted(
@@ -530,6 +524,7 @@ def build_selected_invoice_groups(service_logs, participant_cancellations=None):
                 "invoice_rows": build_invoice_rows(
                     logs,
                     participant_cancellations=cancellations,
+                    can_adjust=can_adjust,
                 ),
             }
         )
@@ -596,6 +591,9 @@ def build_selected_coordination_invoice_groups(coordination_logs):
 
 @finance_required
 def invoice_create(request):
+    can_adjust = has_role(request.user, ADMIN_ROLES)
+    if request.method == "POST" and not can_adjust and any(key.startswith("adjustment-") for key in request.POST):
+        raise PermissionDenied
     selected_ids = request.GET.getlist("service_log_ids")
     selected_cancellation_ids = request.GET.getlist("participant_cancellation_ids")
     if request.method == "POST":
@@ -669,6 +667,7 @@ def invoice_create(request):
             selected_invoice_groups = build_selected_invoice_groups(
                 selected_service_logs,
                 selected_cancellations,
+                can_adjust=can_adjust,
             )
     elif form.is_valid():
         service_logs = get_billable_logs(
@@ -732,60 +731,20 @@ def invoice_create(request):
                     service_logs,
                     request.POST,
                     participant_cancellations=participant_cancellations,
+                    can_adjust=can_adjust,
                 )
                 service_rows = [row for row in invoice_rows if row["service_log"]]
-                if all(row["travel_form"].is_valid() for row in service_rows):
-                    travel_claims = {
-                        row["service_log"].id: row["travel_form"].cleaned_data["amount"]
-                        for row in service_rows
-                        if row["travel_form"].cleaned_data["amount"] > Decimal("0.00")
-                    }
-                    travel_support_item = None
-                    if travel_claims:
-                        travel_support_item = SupportItem.objects.filter(
-                            item_number=TRAVEL_SUPPORT_ITEM_NUMBER,
-                            is_active=True,
-                        ).first()
-                        if not travel_support_item:
-                            selected_error = (
-                                "The active Provider travel - non-labour support item is "
-                                "required before travel claims can be invoiced."
-                            )
-
-                    if not travel_claims or travel_support_item:
-                        with transaction.atomic():
-                            invoice = Invoice.objects.create(
-                                participant=form.cleaned_data["participant"],
-                                period_start=form.cleaned_data["period_start"],
-                                period_end=form.cleaned_data["period_end"],
-                                created_by=request.user,
-                            )
-                            for service_log in service_logs:
-                                InvoiceLine.objects.create_from_service_log(
-                                    invoice=invoice,
-                                    service_log=service_log,
-                                )
-                                travel_amount = travel_claims.get(service_log.id)
-                                if travel_amount:
-                                    InvoiceLine.objects.create_travel_claim_from_service_log(
-                                        invoice=invoice,
-                                        service_log=service_log,
-                                        support_item=travel_support_item,
-                                        amount=travel_amount,
-                                    )
-                                service_log.status = ServiceLog.Status.INVOICED
-                                service_log.save(update_fields=["status", "updated_at"])
-                            for cancellation in participant_cancellations:
-                                InvoiceLine.objects.create_from_participant_cancellation(
-                                    invoice=invoice,
-                                    cancellation=cancellation,
-                                )
-                        write_audit_log(
-                            request.user,
-                            AuditLog.Action.INVOICE_CREATED,
-                            invoice,
-                            f"Created invoice {invoice.invoice_number}.",
+                if valid_billing_rows(service_rows):
+                    try:
+                        invoice = create_service_invoice(
+                            actor=request.user, form_data=form.cleaned_data,
+                            logs=service_logs, cancellations=participant_cancellations,
+                            data=request.POST, can_adjust=can_adjust,
+                            travel_item_number=TRAVEL_SUPPORT_ITEM_NUMBER,
                         )
+                    except BillingRecordsChanged as error:
+                        selected_error = str(error)
+                    else:
                         messages.success(request, "Invoice created.")
                         return redirect(invoice)
 
@@ -793,6 +752,7 @@ def invoice_create(request):
         service_logs,
         request.POST if request.method == "POST" else None,
         participant_cancellations=participant_cancellations,
+        can_adjust=can_adjust,
     )
 
     return render(

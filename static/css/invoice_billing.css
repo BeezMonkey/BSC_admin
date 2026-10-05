@@ -1,0 +1,128 @@
+.invoice-billing-row .invoice-preview-support-cell {
+  min-width: 16rem;
+  max-width: 28rem;
+}
+
+.invoice-billing-row .invoice-billing-price,
+.invoice-billing-row .invoice-billing-original {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.invoice-billing-adjustment {
+  margin-top: 0.5rem;
+}
+
+.invoice-billing-adjustment > summary,
+.invoice-billing-history > summary {
+  width: fit-content;
+  max-width: 100%;
+  color: var(--brand-dark);
+  font-size: 0.82rem;
+  font-weight: var(--weight-action);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.invoice-billing-adjustment > summary:focus-visible,
+.invoice-billing-history > summary:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
+.invoice-billing-fields {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.65rem;
+  border-left: 2px solid var(--line);
+  padding-left: 0.7rem;
+}
+
+.invoice-billing-row label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: var(--weight-label);
+}
+
+.invoice-billing-row select,
+.invoice-billing-row textarea {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  font: inherit;
+}
+
+.invoice-billing-row textarea {
+  resize: vertical;
+}
+
+.invoice-billing-row [data-billing-km] input {
+  width: 7rem;
+  max-width: 100%;
+}
+
+.invoice-billing-row [data-billing-km-slot] {
+  width: 8rem;
+  margin-top: 0.4rem;
+  text-align: left;
+  white-space: normal;
+}
+
+.invoice-billing-row [data-billing-other-field] {
+  margin-top: 0.65rem;
+}
+
+.invoice-billing-row .errorlist {
+  margin: 0 0 0.35rem;
+  padding-left: 1rem;
+  color: var(--danger-text);
+  font-size: 0.78rem;
+  white-space: normal;
+}
+
+.invoice-billing-row [hidden] {
+  display: none !important;
+}
+
+/* Native form controls remain usable without JavaScript. */
+@supports selector(:has(*)) {
+  .invoice-billing-row [data-billing-reason-fields]:not(:has(option[value="other"]:checked)) [data-billing-other-field] {
+    display: none;
+  }
+}
+
+.invoice-billing-history {
+  margin: 1rem 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 0.85rem 0;
+}
+
+.invoice-billing-history-list {
+  display: grid;
+  gap: 0;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.invoice-billing-history-list li {
+  border-top: 1px solid var(--line);
+  padding: 0.65rem 0;
+  overflow-wrap: anywhere;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.invoice-billing-history-list p {
+  margin: 0.2rem 0;
+}
+
+.invoice-billing-history-meta {
+  color: var(--muted);
+  font-size: 0.78rem;
+}

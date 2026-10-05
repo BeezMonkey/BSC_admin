@@ -1,0 +1,21 @@
+{% if billing_adjustments %}
+<details class="invoice-billing-history">
+  <summary>Billing adjustments ({{ billing_adjustments|length }})</summary>
+  <ul class="invoice-billing-history-list">
+    {% for adjustment in billing_adjustments %}
+      <li>
+        <div class="invoice-billing-history-meta">
+          Log #{{ adjustment.service_log_id }} | {{ adjustment.invoice_number }}{% if not adjustment.invoice_id %} (invoice deleted){% endif %}
+          | {{ adjustment.created_by|default:"Unknown user" }} | {{ adjustment.created_at|date:"d/m/Y H:i" }}
+        </div>
+        <p>
+          {{ adjustment.original_values.item_number }} {{ adjustment.original_values.item_name }}
+          &rarr; {{ adjustment.billing_values.item_number }} {{ adjustment.billing_values.item_name }}
+          | {{ adjustment.original_values.kilometres|floatformat:2 }} &rarr; {{ adjustment.billing_values.kilometres|floatformat:2 }} km
+        </p>
+        <p>{{ adjustment.reason }}</p>
+      </li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}
