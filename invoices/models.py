@@ -148,9 +148,9 @@ class InvoiceLineManager(models.Manager):
         ).exists():
             raise ValueError("Support coordination invoices cannot contain service log lines.")
 
-    def create_from_service_log(self, invoice, service_log):
+    def create_from_service_log(self, invoice, service_log, *, billing_support_item=None):
         self._ensure_service_invoice(invoice)
-        support_item = service_log.support_item
+        support_item = billing_support_item or service_log.support_item
         quantity = service_log.actual_hours
         unit_price = support_item.price_limit
         line_total = (quantity * unit_price).quantize(
@@ -243,6 +243,24 @@ class InvoiceLineManager(models.Manager):
             gst_code=support_item.gst_code,
             line_total=line_total,
         )
+
+
+class InvoiceBillingAdjustment(models.Model):
+    service_log = models.ForeignKey(
+        ServiceLog, on_delete=models.PROTECT, related_name="billing_adjustments",
+    )
+    invoice = models.ForeignKey(
+        Invoice, on_delete=models.SET_NULL, related_name="billing_adjustments", null=True,
+    )
+    invoice_number = models.CharField(max_length=30)
+    original_values = models.JSONField()
+    billing_values = models.JSONField()
+    reason = models.TextField()
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
 
 
 class InvoiceLine(models.Model):

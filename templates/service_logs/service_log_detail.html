@@ -1,7 +1,12 @@
 {% extends "admin_base.html" %}
-{% load bsc_formatting %}
+{% load bsc_formatting static %}
 
 {% block title %}Service Log - Brisbane Star Care{% endblock %}
+
+{% block extra_styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/invoice_billing.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -51,6 +56,8 @@
     </dl>
   </section>
 </div>
+
+{% include "invoices/billing_adjustment_history.html" with billing_adjustments=service_log.billing_adjustments.all only %}
 
 <section class="card">
   <h2>Attachments</h2>
