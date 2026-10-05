@@ -12,6 +12,7 @@ function element(value = "") {
     dataset: {}, listeners: {}, textContent: "", parentElement: null,
     addEventListener(type, listener) { this.listeners[type] = listener; },
     fire(type) { this.listeners[type]?.({ target: this }); },
+    dispatchEvent(event) { this.fire(event.type); },
     appendChild(child) { child.parentElement = this; },
   };
 }
@@ -19,7 +20,7 @@ function element(value = "") {
 function setup({ originalKm = "0", category = "Self-care", item = "", km = "", claim = "", reason = "", errors = false, admin = true } = {}) {
   const fields = Object.fromEntries([
     "item", "km", "claim", "reason", "other", "other-field", "details",
-    "km-field", "km-home", "km-slot", "claim-field", "claim-empty", "rate", "total", "item-label",
+    "km-field", "km-home", "km-slot", "claim-field", "claim-empty", "rate", "total", "item-label", "reset-item",
   ].map(name => [name, element()]));
   fields.item.options = [
     { value: "", textContent: "Keep original item", dataset: {} },
@@ -38,7 +39,7 @@ function setup({ originalKm = "0", category = "Self-care", item = "", km = "", c
     querySelector(selector) { return fields[selector.match(/data-billing-([a-z-]+)/)?.[1]] || null; },
   };
   const document = { querySelectorAll: () => admin ? [row] : [] };
-  vm.runInNewContext(source, { document });
+  vm.runInNewContext(source, { document, Event });
   return { fields, row };
 }
 
@@ -76,6 +77,27 @@ test("blank item restores original preview and is not an adjustment", () => {
   f.item.fire("change");
   assert.equal(f.rate.textContent, "60.00");
   assert.equal(f.total.textContent, "150.00");
+  assert.equal(f.reason.required, false);
+});
+
+test("reset item restores the original rate without clearing confirmed km or manual claim", () => {
+  const { fields: f } = setup({ item: "2", km: "20", claim: "15.50" });
+  f["reset-item"].fire("click");
+  assert.equal(f.item.value, "");
+  assert.equal(f.rate.textContent, "60.00");
+  assert.equal(f.km.value, "20");
+  assert.equal(f.claim.value, "15.50");
+  assert.equal(f.reason.required, true);
+  assert.equal(f["reset-item"].hidden, true);
+});
+
+test("reset item is hidden until a different item is selected", () => {
+  const { fields: f } = setup();
+  assert.equal(f["reset-item"].hidden, true);
+  f.item.value = "2";
+  f.item.fire("change");
+  assert.equal(f["reset-item"].hidden, false);
+  f["reset-item"].fire("click");
   assert.equal(f.reason.required, false);
 });
 

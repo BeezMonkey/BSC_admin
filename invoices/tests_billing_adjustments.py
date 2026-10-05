@@ -234,6 +234,47 @@ class BillingAdjustmentTests(TestCase):
         response = self.client.get(url, self.payload(log))
         self.assertNotContains(response, f'name="adjustment-{log.pk}-support_item"')
 
+    def test_preview_loads_shared_picker_with_distinct_rate_options(self):
+        log, weekday = self.prepare()
+        weekend = SupportItem.objects.create(
+            item_number="04_105_0125_6_1", name="Access Community - Saturday",
+            unit=SupportItem.Unit.HOUR, price_limit=Decimal("95.00"), is_active=True,
+        )
+        response = self.client.get(reverse("invoice_create"), self.payload(log))
+        self.assertContains(response, "data-support-item-picker-script")
+        self.assertContains(response, "data-billing-reset-item")
+        field = response.context["selected_invoice_groups"][0]["invoice_rows"][0]["adjustment_form"]["support_item"]
+        options = str(field)
+        for item in (weekday, weekend):
+            self.assertIn(f'value="{item.pk}"', options)
+            self.assertIn(f'data-price="{item.price_limit}"', options)
+            self.assertIn(item.item_number, options)
+
+    def test_original_km_is_helper_text_below_confirmed_input_in_both_previews(self):
+        log, _ = self.prepare("24")
+        for grouped in (False, True):
+            with self.subTest(grouped=grouped):
+                data = self.payload(log)
+                if not grouped:
+                    data.pop("service_log_ids")
+                response = self.client.get(reverse("invoice_create"), data)
+                rows = (response.context["selected_invoice_groups"][0]["invoice_rows"]
+                        if grouped else response.context["invoice_rows"])
+                field = rows[0]["adjustment_form"]["kilometres"]
+                self.assertContains(response, f'''
+                    <td class="invoice-preview-travel-cell">
+                      <div data-billing-km-slot>
+                        <div data-billing-km-field>
+                          <div data-billing-km>
+                            <label for="{field.id_for_label}">Confirmed km:</label>
+                            {field}
+                          </div>
+                        </div>
+                      </div>
+                      <small class="invoice-billing-original invoice-billing-km-original">Original: 24.00 km</small>
+                    </td>
+                ''', html=True)
+
 
 @skipUnless(connection.vendor == "postgresql", "Requires PostgreSQL row locks")
 class BillingAdjustmentPostgresTests(TransactionTestCase):
