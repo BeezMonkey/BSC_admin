@@ -39,7 +39,7 @@ from .forms import (
 )
 from .models import Invoice, InvoiceLine, InvoiceSettings
 from .billing import (
-    BillingRecordsChanged, build_service_billing_row, create_service_invoice, valid_billing_rows,
+    BillingRecordsChanged, build_service_billing_row, create_service_invoice, valid_billing_rows, service_total,
 )
 
 
@@ -427,6 +427,9 @@ def build_invoice_rows(service_logs, data=None, participant_cancellations=None, 
             "service_log": None,
             "participant_cancellation": cancellation,
             "travel_form": None,
+            "billing_hours": cancellation.shift.planned_hours,
+            "billing_unit_price": cancellation.shift.support_item.price_limit,
+            "billing_line_total": service_total(cancellation.shift.planned_hours, cancellation.shift.support_item.price_limit),
         }
         for cancellation in (participant_cancellations or [])
     )
@@ -755,6 +758,10 @@ def invoice_create(request):
         can_adjust=can_adjust,
     )
 
+    travel_unit_price = SupportItem.objects.filter(
+        item_number=TRAVEL_SUPPORT_ITEM_NUMBER, is_active=True
+    ).values_list("price_limit", flat=True).first()
+
     return render(
         request,
         "invoices/invoice_form.html",
@@ -763,6 +770,7 @@ def invoice_create(request):
             "service_logs": service_logs,
             "participant_cancellations": participant_cancellations,
             "invoice_rows": invoice_rows,
+            "travel_unit_price": Decimal("1.00") if travel_unit_price is None else travel_unit_price,
             "selected_invoice_groups": selected_invoice_groups,
             "selected_error": selected_error,
             "selected_service_log_ids": active_selected_ids,

@@ -14,6 +14,12 @@
           | {{ adjustment.original_values.kilometres|floatformat:2 }} &rarr; {{ adjustment.billing_values.kilometres|floatformat:2 }} km
         </p>
         <p>{{ adjustment.reason }}</p>
+        {% if adjustment.original_values.actual_start_time %}
+          <p>Service time: {{ adjustment.original_values.actual_start_time }} - {{ adjustment.original_values.actual_end_time }}
+            ({{ adjustment.original_values.break_minutes }} min break; {{ adjustment.original_values.hours }} h)
+            &rarr; {{ adjustment.billing_values.actual_start_time }} - {{ adjustment.billing_values.actual_end_time }}
+            ({{ adjustment.billing_values.break_minutes }} min break; {{ adjustment.billing_values.hours }} h)</p>
+        {% endif %}
       </li>
     {% endfor %}
   </ul>

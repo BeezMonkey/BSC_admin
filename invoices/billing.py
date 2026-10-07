@@ -23,11 +23,13 @@ def service_total(hours, rate):
 def build_service_billing_row(log, data=None, *, can_adjust=False):
     adjustment = None
     item, kilometres = log.support_item, log.kilometres
+    hours = log.actual_hours
     if can_adjust:
         adjustment = BillingAdjustmentForm(data=data, prefix=f"adjustment-{log.pk}", service_log=log)
         if data is not None:
             adjustment.is_valid()
         item, kilometres = adjustment.effective_item, adjustment.effective_kilometres
+        hours = adjustment.effective_hours
     return {
         "service_log": log, "participant_cancellation": None,
         "adjustment_form": adjustment,
@@ -36,7 +38,8 @@ def build_service_billing_row(log, data=None, *, can_adjust=False):
             confirmed_kilometres=kilometres if can_adjust else None,
         ),
         "billing_item": item, "billing_unit_price": item.price_limit,
-        "billing_line_total": service_total(log.actual_hours, item.price_limit),
+        "billing_line_total": service_total(hours, item.price_limit),
+        "billing_hours": hours,
         "effective_kilometres": kilometres,
         "original_item_group": support_item_picker_group(log.support_item),
         "billing_item_group": support_item_picker_group(item),
@@ -59,6 +62,9 @@ def billing_snapshot(log, item, kilometres):
         "unit_price": str(item.price_limit), "hours": str(log.actual_hours),
         "kilometres": str(kilometres),
         "service_total": str(service_total(log.actual_hours, item.price_limit)),
+        "actual_start_time": log.actual_start_time.isoformat(),
+        "actual_end_time": log.actual_end_time.isoformat(),
+        "break_minutes": log.break_minutes,
     }
 
 
@@ -105,6 +111,13 @@ def create_service_invoice(*, actor, form_data, logs, cancellations, data, can_a
     )
     for row in rows:
         log, item = row["service_log"], row["billing_item"]
+        original_values = billing_snapshot(log, log.support_item, log.kilometres)
+        adjustment = row["adjustment_form"]
+        if adjustment is not None and adjustment.time_changed:
+            for name, value in adjustment.corrected_time.items():
+                setattr(log, name, value)
+            log.actual_hours = adjustment.effective_hours
+            log.save(update_fields=[*adjustment.corrected_time, "actual_hours", "updated_at"])
         InvoiceLine.objects.create_from_service_log(invoice, log, billing_support_item=item)
         amount = claims[log.pk]
         travel_line = None
@@ -112,13 +125,12 @@ def create_service_invoice(*, actor, form_data, logs, cancellations, data, can_a
             travel_line = InvoiceLine.objects.create_travel_claim_from_service_log(
                 invoice, log, travel_item, amount,
             )
-        adjustment = row["adjustment_form"]
         if adjustment is not None and adjustment.is_adjusted:
             billed = billing_snapshot(log, item, row["effective_kilometres"])
             billed.update(travel_claim_amount=str(amount), travel_line_total=str(travel_line.line_total if travel_line else Decimal("0.00")))
             InvoiceBillingAdjustment.objects.create(
                 service_log=log, invoice=invoice, invoice_number=invoice.invoice_number,
-                original_values=billing_snapshot(log, log.support_item, log.kilometres),
+                original_values=original_values,
                 billing_values=billed, reason=adjustment.reason_text, created_by=actor,
             )
         log.status = ServiceLog.Status.INVOICED

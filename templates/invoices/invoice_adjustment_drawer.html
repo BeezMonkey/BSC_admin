@@ -1,0 +1,14 @@
+{% load l10n %}
+<dialog id="invoice-adjustment-drawer" class="invoice-adjustment-drawer" data-billing-drawer data-travel-price="{{ travel_unit_price|unlocalize }}" aria-labelledby="invoice-drawer-title">
+  <header><div><h2 id="invoice-drawer-title">Adjust billing details</h2><p data-drawer-subtitle></p></div><button type="button" class="button secondary" data-drawer-close aria-label="Close adjustments" title="Close adjustments">&times;</button></header>
+  <div class="invoice-drawer-body" data-drawer-body></div>
+  <footer>
+    <div class="invoice-drawer-comparison"><span>Current line total<strong data-drawer-before></strong></span><span>Adjusted line total<strong data-drawer-after></strong><small data-drawer-breakdown></small></span></div>
+    <div class="invoice-drawer-footer-row"><span data-drawer-change-status>No changes</span><div class="invoice-drawer-actions"><button type="button" class="button secondary" data-drawer-cancel>Cancel</button><button type="button" data-drawer-apply>Apply changes</button></div></div>
+    <small class="invoice-drawer-save-note">Changes are saved when the invoice is created.</small>
+  </footer>
+</dialog>
+<dialog class="invoice-discard-dialog" data-billing-discard aria-labelledby="invoice-discard-title">
+  <h2 id="invoice-discard-title">Discard unapplied changes?</h2><p>This record has changes that have not been applied.</p>
+  <div class="invoice-drawer-actions"><button type="button" class="button secondary" data-discard-keep>Keep editing</button><button type="button" data-discard-confirm>Discard changes</button></div>
+</dialog>
