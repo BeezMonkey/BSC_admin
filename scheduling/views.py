@@ -30,6 +30,8 @@ from .forms import (
     ShiftForm,
     SupportItemForm,
 )
+from .billing_views import ATTENTION_STATUSES, BILLING_STATUS_CHOICES
+from .planner_billing import billing_summary, with_billing_relations
 from .models import ParticipantCancellation, PlannedMultiWorkerSupport, Shift, SupportItem
 from .multi_worker import (
     approve_multi_worker_support,
@@ -323,6 +325,11 @@ def roster_planner(request):
     is_daily_view = view_mode == "daily"
     is_participant_view = view_mode == "participant"
     is_worker_view = view_mode == "worker"
+    billing_enabled = request.GET.get("billing") == "1"
+    billing_status = request.GET.get("billing_status", "all") if billing_enabled else "all"
+    if billing_status not in dict(BILLING_STATUS_CHOICES):
+        billing_status = "all"
+    billing_params = {"billing": "1", "billing_status": billing_status} if billing_enabled else {}
     date_from = request.GET.get("date_from", "").strip() or default_date_from.isoformat()
     date_to = request.GET.get("date_to", "").strip() or default_date_to.isoformat()
     display_date_from = parse_date(date_from)
@@ -392,7 +399,20 @@ def roster_planner(request):
     if worker_id:
         selected_worker = get_object_or_404(SupportWorker, id=worker_id)
         shifts = shifts.filter(worker=selected_worker)
+    if billing_enabled:
+        shifts = with_billing_relations(shifts)
     shifts = list(shifts.order_by("service_date", "start_time", "participant__last_name"))
+    worker_conflict_ids = {
+        shift.worker_id for shift in shifts
+        if "worker" in conflict_types_by_shift_id.get(shift.id, set())
+    }
+    if billing_enabled:
+        billing_now = timezone.localtime()
+        for shift in shifts:
+            shift.billing_summary = billing_summary(shift, now=billing_now)
+        if billing_status != "all":
+            wanted = ATTENTION_STATUSES if billing_status == "attention" else {billing_status}
+            shifts = [shift for shift in shifts if shift.billing_summary["key"] in wanted]
     for shift in shifts:
         shift.conflict_types = conflict_types_by_shift_id.get(shift.id, set())
         shift.has_conflict = bool(shift.conflict_types)
@@ -472,6 +492,7 @@ def roster_planner(request):
 
         def planner_url_for(start_date, end_date):
             params = {
+                **billing_params,
                 "view": view_mode,
                 "participant": selected_participant.id if selected_participant else "",
                 "worker": selected_worker.id if selected_worker else "",
@@ -495,6 +516,7 @@ def roster_planner(request):
 
         def planner_mode_url(mode):
             params = {
+                **billing_params,
                 "view": mode,
                 "participant": selected_participant.id if selected_participant else "",
                 "worker": selected_worker.id if selected_worker else "",
@@ -572,9 +594,7 @@ def roster_planner(request):
                         "resource": worker,
                         "hours_total": hours_total,
                         "hours_label": format_planner_hours(hours_total, planner_day_count),
-                        "has_conflict": any(
-                            shift.has_worker_conflict for shift in resource_shifts
-                        ),
+                        "has_conflict": worker.id in worker_conflict_ids,
                         "days": [
                             {
                                 "date": day["date"],
@@ -603,6 +623,9 @@ def roster_planner(request):
             "selected_participant": selected_participant,
             "selected_worker": selected_worker,
             "view_mode": view_mode,
+            "billing_enabled": billing_enabled,
+            "billing_status": billing_status,
+            "billing_status_choices": BILLING_STATUS_CHOICES,
             "is_daily_view": is_daily_view,
             "is_participant_view": is_participant_view,
             "is_worker_view": is_worker_view,
