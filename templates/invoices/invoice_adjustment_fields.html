@@ -1,0 +1,47 @@
+{% load bsc_formatting %}
+<div class="invoice-billing-fields" data-billing-fields>
+  {{ row.adjustment_form.source_version }}{{ row.adjustment_form.non_field_errors }}
+  <div class="invoice-drawer-identity"><strong>{{ row.service_log.participant.display_name }}</strong>
+    <div class="invoice-identity-meta"><span>{{ row.service_log.worker.display_name }}</span><span class="invoice-drawer-status">Approved &middot; Not invoiced</span></div>
+  </div>
+  <section class="invoice-drawer-section">
+    <h3>Service time <small>Log correction</small></h3>
+    <div class="invoice-time-source"><span>Originally submitted</span><strong>{{ row.service_log.actual_start_time|display_time|cut:" " }} - {{ row.service_log.actual_end_time|display_time|cut:" " }} | {{ row.service_log.actual_hours }} h</strong></div>
+    <div class="invoice-time-summary" data-billing-time-summary><div><strong data-billing-current-time>{{ row.service_log.actual_start_time|display_time|cut:" " }} - {{ row.service_log.actual_end_time|display_time|cut:" " }}</strong><p data-billing-current-break>{{ row.service_log.break_minutes }} min break | {{ row.billing_hours }} service hours</p></div>
+      <button type="button" class="button secondary invoice-correct-time" data-billing-edit-time hidden><svg class="lucide lucide-clock-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16.5 12"></polyline></svg>Correct time</button>
+    </div>
+    <label class="invoice-time-toggle">{{ row.adjustment_form.correct_time }} Correct service time</label>
+    <div data-billing-time-fields class="invoice-time-fields">
+      <div>{{ row.adjustment_form.actual_start_time.label_tag }}{{ row.adjustment_form.actual_start_time.errors }}{{ row.adjustment_form.actual_start_time }}</div>
+      <div>{{ row.adjustment_form.actual_end_time.label_tag }}{{ row.adjustment_form.actual_end_time.errors }}{{ row.adjustment_form.actual_end_time }}</div>
+      <div>{{ row.adjustment_form.break_minutes.label_tag }}{{ row.adjustment_form.break_minutes.errors }}{{ row.adjustment_form.break_minutes }}</div>
+      <p class="invoice-drawer-subtotal invoice-time-total">Actual service hours <strong data-billing-hours-preview>{{ row.billing_hours }}</strong></p>
+      <button type="button" class="invoice-billing-reset-item invoice-time-restore" data-billing-restore-time hidden>Restore submitted time</button>
+    </div>
+    <p data-billing-time-error class="invoice-field-error" role="alert" hidden>End time must follow start time; break must be shorter than the service.</p>
+  </section>
+  <section class="invoice-drawer-section">
+    <h3>Billing support item <small>Invoice only</small></h3>
+    <div data-billing-item class="invoice-drawer-item">{{ row.adjustment_form.support_item.label_tag }}{{ row.adjustment_form.support_item.errors }}{{ row.adjustment_form.support_item }}</div>
+    <button type="button" class="invoice-billing-reset-item" data-billing-reset-item hidden>Keep original item</button>
+    <p class="invoice-drawer-subtotal"><span data-billing-rate-preview></span><strong data-billing-service-preview></strong></p>
+    <p class="invoice-billing-original">Original: {{ row.service_log.support_item.name }}</p>
+  </section>
+  <section class="invoice-drawer-section">
+    <h3>Travel <small>Invoice only</small></h3>
+    <div class="invoice-travel-fields"><div data-billing-km>
+      {{ row.adjustment_form.kilometres.label_tag }}{{ row.adjustment_form.kilometres.errors }}<div class="invoice-km-input">{{ row.adjustment_form.kilometres }}<span class="invoice-input-suffix" aria-hidden="true">km</span></div>
+      <small class="invoice-billing-original invoice-billing-km-original">Original log: {{ row.service_log.kilometres|floatformat:2 }} km</small>
+    </div><div data-billing-drawer-claim></div></div>
+    <p data-billing-claim-error class="invoice-field-error" role="alert" hidden>Enter confirmed kilometres before adding a travel claim.</p>
+  </section>
+  <section class="invoice-drawer-section"><h3>Reason for correction <small>When changed</small></h3>
+    <div data-billing-reason>{{ row.adjustment_form.reason.label_tag }}{{ row.adjustment_form.reason.errors }}{{ row.adjustment_form.reason }}</div>
+    <div data-billing-other-field><div data-billing-other>{{ row.adjustment_form.reason_details.label_tag }}{{ row.adjustment_form.reason_details.errors }}{{ row.adjustment_form.reason_details }}</div></div>
+    <div class="invoice-drawer-audit"><span>Original values retained</span></div>
+  </section>
+  <details class="invoice-source-notes"><summary>Original log notes &amp; adjustment history</summary>
+    <p>{{ row.service_log.case_notes|linebreaksbr }}</p>
+    {% include "invoices/billing_adjustment_history.html" with billing_adjustments=row.service_log.billing_adjustments.all %}
+  </details>
+</div>

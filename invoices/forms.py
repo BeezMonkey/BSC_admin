@@ -5,6 +5,7 @@ from django import forms
 from participants.models import Participant
 from scheduling.models import SupportItem
 from scheduling.widgets import SupportItemSelect
+from service_logs.forms import ServiceLogForm
 
 from .models import InvoiceSettings
 
@@ -61,10 +62,19 @@ class BillingSupportItemSelect(SupportItemSelect):
         instance = getattr(option["value"], "instance", None)
         if instance is not None:
             option["attrs"]["data-price"] = str(instance.price_limit)
+            option["attrs"]["data-item-name"] = instance.name
+            option["attrs"]["data-item-code"] = instance.item_number
         return option
 
 
 class BillingAdjustmentForm(forms.Form):
+    correct_time = forms.BooleanField(label="Correct service time", required=False)
+    actual_start_time = forms.TimeField(label="Actual start", required=False,
+        widget=forms.TimeInput(format="%H:%M", attrs={"type": "time"}))
+    actual_end_time = forms.TimeField(label="Actual end", required=False,
+        widget=forms.TimeInput(format="%H:%M", attrs={"type": "time"}))
+    break_minutes = forms.IntegerField(label="Break (min)", required=False, min_value=0)
+    source_version = forms.CharField(required=False, widget=forms.HiddenInput())
     support_item = forms.ModelChoiceField(
         label="Billing support item", required=False,
         empty_label="Keep original item", queryset=SupportItem.objects.none(),
@@ -79,6 +89,7 @@ class BillingAdjustmentForm(forms.Form):
         ("", "Select a reason"), ("service_changed", "Actual service changed"),
         ("missing_km", "Kilometres omitted from log"),
         ("corrected_km", "Kilometres corrected after checking"), ("other", "Other"),
+        ("incorrect_time", "Incorrect service time"), ("multiple", "Multiple corrections"),
     ])
     reason_details = forms.CharField(
         label="Reason details", required=False, max_length=1000,
@@ -92,19 +103,49 @@ class BillingAdjustmentForm(forms.Form):
             is_active=True, unit=SupportItem.Unit.HOUR,
         ).order_by("item_number")
         self.initial.setdefault("kilometres", service_log.kilometres or "")
+        for name in ("actual_start_time", "actual_end_time", "break_minutes"):
+            self.initial.setdefault(name, getattr(service_log, name))
+        self.initial.setdefault("source_version", service_log.updated_at.isoformat())
         self.effective_item = service_log.support_item
         self.effective_kilometres = service_log.kilometres
+        self.effective_hours = service_log.actual_hours
+        self.time_changed = False
+        self.corrected_time = {}
         self.is_adjusted = False
         self.reason_text = ""
 
     def clean(self):
         data = super().clean()
+        if data.get("source_version") and data["source_version"] != self.service_log.updated_at.isoformat():
+            self.add_error(None, "This log changed since the preview. Reload before applying adjustments.")
+        if data.get("correct_time"):
+            if not data.get("source_version"):
+                self.add_error(None, "Reload this log before correcting service time.")
+            names = ("actual_start_time", "actual_end_time", "break_minutes")
+            for name in names:
+                if data.get(name) is None and name not in self.errors:
+                    self.add_error(name, "This field is required when correcting service time.")
+            if all(data.get(name) is not None for name in names):
+                time_form = ServiceLogForm(data={
+                    **{name: data[name] for name in names},
+                    "kilometres": self.service_log.kilometres,
+                    "case_notes": self.service_log.case_notes,
+                })
+                if time_form.is_valid():
+                    self.time_changed = any(data[name] != getattr(self.service_log, name) for name in names)
+                    if self.time_changed:
+                        self.corrected_time = {name: data[name] for name in names}
+                        self.effective_hours = time_form.cleaned_data["actual_hours"]
+                else:
+                    for name, errors in time_form.errors.items():
+                        self.add_error(name if name in names else None, errors)
         self.effective_item = data.get("support_item") or self.service_log.support_item
         km = data.get("kilometres")
         self.effective_kilometres = self.service_log.kilometres if km is None else km
         self.is_adjusted = (
             self.effective_item.pk != self.service_log.support_item_id
             or self.effective_kilometres != self.service_log.kilometres
+            or self.time_changed
         )
         if self.is_adjusted:
             reason = data.get("reason")

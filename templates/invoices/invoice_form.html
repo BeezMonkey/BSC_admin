@@ -5,7 +5,7 @@
 
 {% block extra_styles %}
   {{ block.super }}
-  <link rel="stylesheet" href="{% static 'css/invoice_billing.css' %}">
+  <link rel="stylesheet" href="{% static 'css/invoice_billing.css' %}?v=20261007-drawer-prototype">
 {% endblock %}
 
 {% block content %}
@@ -84,10 +84,12 @@
                   <th>Date</th>
                   <th>Worker</th>
                   <th>Support item</th>
+                  <th class="invoice-number">Rate / hr</th>
                   <th class="invoice-preview-hours-cell">Hours</th>
                   <th>Travel km</th>
                   <th>Travel claim</th>
-                  <th>Notes</th>
+                  <th class="invoice-number">Line total</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -97,6 +99,7 @@
               </tbody>
             </table>
             <div class="invoice-preview-actions">
+              <span class="invoice-form-total" data-invoice-total aria-live="polite"></span>
               <button type="submit">Create Invoice for {{ group.participant.display_name }}</button>
             </div>
           </form>
@@ -121,10 +124,12 @@
             <th>Date</th>
             <th>Worker</th>
             <th>Support item</th>
+            <th class="invoice-number">Rate / hr</th>
             <th class="invoice-preview-hours-cell">Hours</th>
             <th>Travel km</th>
             <th>Travel claim</th>
-            <th>Notes</th>
+            <th class="invoice-number">Line total</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -134,6 +139,7 @@
         </tbody>
       </table>
       <div class="invoice-preview-actions">
+        <span class="invoice-form-total" data-invoice-total aria-live="polite"></span>
         <button type="submit">Create Invoice</button>
       </div>
     </form>
@@ -144,6 +150,7 @@
     </div>
   {% endif %}
 </section>
+{% include "invoices/invoice_adjustment_drawer.html" %}
 <script src="{% static 'js/support_item_picker.js' %}" defer data-support-item-picker-script></script>
-<script src="{% static 'js/invoice_billing.js' %}" defer></script>
+<script src="{% static 'js/invoice_billing.js' %}?v=20261007-drawer-prototype" defer></script>
 {% endblock %}
