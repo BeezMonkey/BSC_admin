@@ -1,0 +1,8 @@
+{% extends "admin_base.html" %}
+{% load static %}
+{% block title %}Shift Billing Check - Brisbane Star Care{% endblock %}
+{% block extra_styles %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/planner_billing.css' %}">{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Billing check</h1><a class="button secondary" href="{{ billing.shift.get_absolute_url }}">Back to Shift</a></div>
+<div class="planner-billing-standalone">{% include "scheduling/partials/planner_billing_content.html" %}</div>
+{% endblock %}

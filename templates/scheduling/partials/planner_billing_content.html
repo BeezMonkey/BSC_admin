@@ -1,0 +1,109 @@
+{% load bsc_formatting %}
+<section class="planner-billing-section">
+  <h3 class="planner-billing-person">{{ billing.shift.participant.display_name }}</h3>
+  <p class="planner-billing-subtitle">{{ billing.shift.service_date|date:"D, d M Y" }} &middot; {{ billing.shift.start_time|display_time|cut:" " }} - {{ billing.shift.end_time|display_time|cut:" " }}</p>
+  <div class="planner-billing-meta"><span>{{ billing.shift.worker.display_name }}</span><span class="status-pill status-{{ billing.shift.status }}">{{ billing.shift.get_status_display }}</span></div>
+  {% if billing.shift.source == "unscheduled" %}<p class="planner-billing-note">Unscheduled service record</p>{% endif %}
+</section>
+
+<section class="planner-billing-section">
+  <div class="planner-billing-section-heading"><h3>Billing status</h3><span class="planner-billing-state">{{ billing.summary.label }}</span></div>
+  {% if billing.invoices %}
+    {% for entry in billing.invoices %}
+      <div class="planner-billing-invoice">
+        <a class="planner-billing-ref" href="{{ entry.invoice.get_absolute_url }}" target="_blank" rel="noopener noreferrer" aria-label="View invoice {{ entry.invoice.invoice_number }} (opens in new tab)">{{ entry.invoice.invoice_number }} &nearr;</a>
+        <div class="planner-billing-meta"><span>{{ entry.invoice.get_status_display }}</span><strong class="planner-billing-subtotal">${{ entry.total|floatformat:2 }}</strong></div>
+        <div class="planner-billing-meta"><span>Created {{ entry.invoice.created_at|date:"d/m/Y" }}</span><span>This shift only &middot; AUD</span></div>
+        {% if entry.invoice.status == "draft" %}<p class="planner-billing-note">Draft invoice, not yet issued.</p>{% endif %}
+      </div>
+    {% endfor %}
+    {% if billing.summary.key == "check" %}<p class="planner-billing-difference">Linked billing records need review. Check the invoice lines before relying on the totals.</p>{% endif %}
+  {% else %}
+    <h4>{% if billing.summary.key == "nocharge" %}Charge waived{% else %}Not invoiced{% endif %}</h4>
+    <p class="planner-billing-note">
+      {% if billing.summary.key == "ready" %}Approved for invoicing. No active invoice is linked.
+      {% elif billing.summary.key == "missing" %}No service log is linked to this past shift.
+      {% elif billing.summary.key == "review" %}The service log is awaiting Admin approval.
+      {% elif billing.summary.key == "rejected" %}The service log was rejected and needs correction.
+      {% elif billing.summary.key == "cancelreview" %}The cancellation is awaiting review. A charge has not been approved.
+      {% elif billing.summary.key == "nocharge" %}The cancellation charge has been waived.
+      {% elif billing.summary.key == "cancelled" %}Cancelled shift. No approved cancellation charge is linked.
+      {% elif billing.summary.key == "upcoming" %}This shift has not started. A service log is not yet due.
+      {% elif billing.summary.key == "not_due" %}A service log is not currently due for this shift.
+      {% else %}The linked records need review. An active service invoice could not be confirmed.{% endif %}
+    </p>
+  {% endif %}
+</section>
+
+<section class="planner-billing-section">
+  <div class="planner-billing-section-heading"><h3>Service duration</h3></div>
+  <div class="planner-billing-durations">
+    <div class="planner-billing-duration"><span>{% if billing.shift.source == "unscheduled" %}Recorded shift{% else %}Rostered{% endif %}</span><strong>{{ billing.rostered_hours|floatformat:2 }} <small>h</small></strong><p>Net hours</p></div>
+    <div class="planner-billing-duration"><span>Actual</span>
+      {% if billing.actual_hours != None %}<strong>{{ billing.actual_hours|floatformat:2 }} <small>h</small></strong><p>{{ billing.log.get_status_display }}</p>
+      {% else %}<strong class="planner-billing-duration-empty">{% if billing.cancellation and billing.cancellation.status != "rejected" %}{% if billing.log %}Needs review{% else %}Not delivered{% endif %}{% else %}No log{% endif %}</strong><p>&mdash;</p>{% endif %}
+    </div>
+    <div class="planner-billing-duration"><span>{% if billing.cancellation and billing.cancellation.status != "rejected" %}Invoiced charge{% else %}Invoiced{% endif %}</span>
+      {% if billing.invoices|length == 1 and billing.invoices.0.quantity != None %}<strong>{{ billing.invoices.0.quantity|floatformat:2 }} <small>h</small></strong><p>{% if billing.invoices.0.invoice.status == "draft" %}Draft quantity{% else %}Invoice quantity{% endif %}</p>
+      {% else %}<strong class="planner-billing-duration-empty">{% if billing.invoices %}See lines below{% elif billing.summary.key == "nocharge" %}No charge{% else %}Not invoiced{% endif %}</strong><p>&mdash;</p>{% endif %}
+    </div>
+  </div>
+  {% if billing.actual_hours != None %}
+    {% if billing.difference_minutes == 0 %}<p class="planner-billing-note">Actual duration matches the roster.</p>
+    {% else %}<p class="planner-billing-difference">Actual vs roster: {% if billing.difference_minutes > 0 %}+{% endif %}{{ billing.difference_minutes }} minutes (approximately).</p>{% endif %}
+  {% elif billing.cancellation and billing.cancellation.status != "rejected" %}<p class="planner-billing-difference">{% if billing.log %}Conflicting service and cancellation records. Verify delivery before relying on hours.{% else %}Cancelled service. Rostered and charged hours are not actual service hours.{% endif %}</p>{% endif %}
+  <dl class="planner-billing-facts">
+    <dt>Rostered time</dt><dd>{{ billing.shift.start_time|display_time|cut:" " }} - {{ billing.shift.end_time|display_time|cut:" " }}</dd>
+    <dt>Rostered break</dt><dd>{{ billing.shift.break_minutes }} minutes</dd>
+    {% if billing.actual_hours != None %}<dt>Actual time</dt><dd>{{ billing.log.actual_start_time|display_time|cut:" " }} - {{ billing.log.actual_end_time|display_time|cut:" " }}</dd><dt>Actual break</dt><dd>{{ billing.log.break_minutes }} minutes</dd>{% endif %}
+  </dl>
+</section>
+
+<section class="planner-billing-section">
+  <div class="planner-billing-section-heading"><h3>Source records</h3></div>
+  {% if billing.log %}
+    <div class="planner-billing-meta"><a class="planner-billing-ref planner-billing-ref-small" href="{{ billing.log.get_absolute_url }}" target="_blank" rel="noopener noreferrer">Service log #{{ billing.log.id }} &nearr;</a><span class="status-pill status-{{ billing.log.status }}">{{ billing.log.get_status_display }}</span></div>
+    <p class="planner-billing-note">Submitted {{ billing.log.submitted_at|date:"d/m/Y H:i" }}{% if billing.log.reviewed_by %}<br>Reviewed by {{ billing.log.reviewed_by }}{% endif %}</p>
+  {% endif %}
+  {% if billing.cancellation %}
+    <div class="planner-billing-meta"><a class="planner-billing-ref planner-billing-ref-small" href="{% url 'participant_cancellation_detail' billing.cancellation.id %}" target="_blank" rel="noopener noreferrer">Cancellation #{{ billing.cancellation.id }} &nearr;</a><span>{{ billing.cancellation.get_status_display }}</span></div>
+    {% if billing.cancellation.reviewed_by %}<p class="planner-billing-note">Reviewed by {{ billing.cancellation.reviewed_by }}</p>{% endif %}
+  {% endif %}
+  {% if not billing.log and not billing.cancellation %}<p class="planner-billing-note">No service log or cancellation record linked.</p>{% endif %}
+  <p class="planner-billing-note"><a href="{{ billing.shift.get_absolute_url }}" target="_blank" rel="noopener noreferrer">View shift #{{ billing.shift.id }} &nearr;</a></p>
+</section>
+
+<section class="planner-billing-section">
+  <div class="planner-billing-section-heading"><h3>Support item</h3>{% if billing.adjustments %}<span class="source-pill">Billing adjusted</span>{% endif %}</div>
+  <div class="planner-billing-item"><span>Rostered</span><div><strong>{{ billing.shift.support_item.name }}</strong><small>{{ billing.shift.support_item.item_number }}</small></div></div>
+  {% if billing.log and billing.log.support_item_id != billing.shift.support_item_id %}<div class="planner-billing-item"><span>Log</span><div><strong>{{ billing.log.support_item.name }}</strong><small>{{ billing.log.support_item.item_number }}</small></div></div>{% endif %}
+  {% for entry in billing.invoices %}
+    {% for line in entry.service_lines %}<div class="planner-billing-item"><span>Invoiced</span><div><strong>{{ line.description }}</strong><small>{{ line.support_item_number }}</small><small>{{ line.quantity|floatformat:2 }} {{ line.unit }} &times; ${{ line.unit_price|floatformat:2 }}{% if line.line_type == "cancellation" %} &middot; Cancellation charge{% endif %}</small>{% if billing.invoices|length > 1 %}<small>{{ entry.invoice.invoice_number }}</small>{% endif %}</div></div>{% endfor %}
+  {% empty %}<div class="planner-billing-item"><span>Invoiced</span><div>Not invoiced</div></div>{% endfor %}
+  {% if billing.adjustments %}
+    <details class="planner-billing-adjustments"><summary>Adjustment history ({{ billing.adjustments|length }})</summary>
+      {% for adjustment in billing.adjustments %}<p>{{ adjustment.original_values.item_number }} &rarr; {{ adjustment.billing_values.item_number }}<br>{{ adjustment.original_values.kilometres|floatformat:2 }} &rarr; {{ adjustment.billing_values.kilometres|floatformat:2 }} km<br>{{ adjustment.reason }}<br>{{ adjustment.created_by }} &middot; {{ adjustment.created_at|date:"d/m/Y H:i" }}<br>{{ adjustment.invoice_number }}</p>{% endfor %}
+    </details>
+  {% endif %}
+</section>
+
+{% if billing.original_km != None %}
+<section class="planner-billing-section">
+  <div class="planner-billing-section-heading"><h3>Kilometres</h3></div>
+  <div class="planner-billing-amount"><span>Original log</span><span>{{ billing.original_km|floatformat:2 }} km</span></div>
+  {% if billing.confirmed_km != None %}<div class="planner-billing-amount"><span>Billing adjustment</span><span>{{ billing.confirmed_km|floatformat:2 }} km</span></div>
+  {% elif billing.confirmed_km_conflict %}<p class="planner-billing-note">Linked invoices have different kilometre confirmations. Review the adjustment history.</p>
+  {% else %}<p class="planner-billing-note">No separate kilometre adjustment recorded for an active invoice.</p>{% endif %}
+</section>
+{% endif %}
+
+{% for entry in billing.invoices %}
+<section class="planner-billing-section">
+  <div class="planner-billing-section-heading"><h3>{% if entry.invoice.status == "draft" %}Draft amounts{% else %}Invoiced amounts{% endif %}</h3></div>
+  {% if billing.invoices|length > 1 %}<p class="planner-billing-note">{{ entry.invoice.invoice_number }}</p>{% endif %}
+  {% for line in entry.lines %}<div class="planner-billing-amount"><span>{% if line.line_type == "travel_non_labour" %}Travel claim{% elif line.line_type == "cancellation" %}Cancellation charge{% else %}Service{% endif %}</span><span>${{ line.line_total|floatformat:2 }}</span></div>{% endfor %}
+  <div class="planner-billing-amount planner-billing-amount-total"><span>Shift total</span><span>${{ entry.total|floatformat:2 }}</span></div>
+  <p class="planner-billing-note">AUD &middot; This shift's lines only, not the whole invoice.</p>
+  {% if entry.travel_lines %}<p class="planner-billing-note">Travel claim entered separately by Admin.</p>{% endif %}
+</section>
+{% endfor %}
