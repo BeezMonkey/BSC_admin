@@ -15,6 +15,11 @@
   </div>
   <div class="planner-shift-tile-footer">
     <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
+    {% if billing_enabled %}
+      <a class="planner-billing-link planner-billing-tone-{{ shift.billing_summary.tone }}" href="{% url 'planner_billing_detail' shift.id %}" data-planner-billing-url="{% url 'planner_billing_detail' shift.id %}?partial=1" data-planner-billing-id="{{ shift.id }}" data-planner-billing-context="Shift #{{ shift.id }} | {{ shift.service_date|date:'d/m/Y' }}" aria-haspopup="dialog" aria-label="{{ shift.billing_summary.label }} for shift {{ shift.id }}">
+        <span>{{ shift.billing_summary.label }}</span><span aria-hidden="true">&rsaquo;</span>
+      </a>
+    {% endif %}
     {% if shift.has_worker_conflict %}
       <span class="planner-conflict-tag">Time conflict</span>
     {% endif %}

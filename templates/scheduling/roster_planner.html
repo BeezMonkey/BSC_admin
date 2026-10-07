@@ -4,6 +4,7 @@
 {% block extra_styles %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/holiday_reminders.css' %}">
+<link rel="stylesheet" href="{% static 'css/planner_billing.css' %}">
 {% endblock %}
 
 {% block title %}Quick Roster Planner - Brisbane Star Care{% endblock %}
@@ -42,7 +43,7 @@
 </section>
 
 <section class="card planner-filter-card planner-filter-card-compact">
-  <form class="filter-bar planner-filter-bar planner-filter-bar-compact" method="get">
+  <form class="filter-bar planner-filter-bar planner-filter-bar-compact" method="get" id="planner-filter-form">
     <input type="hidden" name="view" value="{{ view_mode }}">
     {% if is_worker_view %}
       <label>{{ primary_filter_label }}
@@ -86,6 +87,18 @@
       <a class="button secondary" href="{% url 'roster_planner' %}">Reset</a>
     </div>
   </form>
+  <div class="planner-billing-toolbar">
+    <label class="planner-billing-switch" for="planner-billing-toggle">
+      <input type="checkbox" role="switch" id="planner-billing-toggle" name="billing" value="1" form="planner-filter-form"{% if billing_enabled %} checked{% endif %}>
+      <span>Billing check</span>
+    </label>
+    <label class="planner-billing-filter"{% if not billing_enabled %} hidden{% endif %}>
+      <span>Billing status</span>
+      <select name="billing_status" form="planner-filter-form" id="planner-billing-filter"{% if not billing_enabled %} disabled{% endif %}>
+        {% for value, label in billing_status_choices %}<option value="{{ value }}"{% if billing_status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+  </div>
 </section>
 
 {% if conflict_count %}
@@ -136,6 +149,7 @@
   </div>
 
   <div class="planner-scroll-frame">
+    {% if billing_enabled and not shifts %}<p class="planner-billing-empty" role="status">No shifts match these billing filters.</p>{% endif %}
     {% if is_daily_view %}
       <div class="planner-date-grid planner-week-grid">
         {% for day in planner_days %}
@@ -240,6 +254,20 @@
   <p class="holiday-source-note">Holiday reminders: QLD statewide, Brisbane, Logan and Gold Coast. <a href="https://www.qld.gov.au/recreation/travel/holidays/public" target="_blank" rel="noopener noreferrer">QLD public holidays</a> &middot; <a href="https://www.qld.gov.au/recreation/travel/holidays/show" target="_blank" rel="noopener noreferrer">Show holidays</a></p>
 </section>
 <div id="shift-modal-root"></div>
+{% if billing_enabled %}
+<dialog class="planner-billing-drawer" id="planner-billing-drawer" aria-labelledby="planner-billing-title">
+  <header class="planner-billing-header">
+    <div><h2 id="planner-billing-title">Billing check</h2><p data-planner-billing-context></p></div>
+    <button type="button" class="planner-billing-icon" data-planner-billing-close aria-label="Close billing details" title="Close billing details">&times;</button>
+  </header>
+  <div class="planner-billing-content" data-planner-billing-content aria-live="polite"></div>
+  <footer class="planner-billing-footer">
+    <span data-planner-billing-position></span>
+    <div><button type="button" class="planner-billing-icon" data-planner-billing-prev aria-label="Previous shift" title="Previous shift">&lsaquo;</button><button type="button" class="planner-billing-icon" data-planner-billing-next aria-label="Next shift" title="Next shift">&rsaquo;</button></div>
+  </footer>
+</dialog>
+{% endif %}
+<script src="{% static 'js/planner_billing.js' %}" defer></script>
 {% include "scheduling/partials/holiday_assets.html" %}
 <script src="{% static 'js/date_time_picker.js' %}" defer></script>
 <script src="{% static 'js/support_item_picker.js' %}" defer data-support-item-picker-script></script>

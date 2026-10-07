@@ -1,5 +1,7 @@
 from django.urls import path
 
+from .billing_views import planner_billing_detail
+
 from .views import (
     participant_cancellation_approve,
     participant_cancellation_detail,
@@ -55,6 +57,11 @@ urlpatterns = [
         name="participant_cancellation_reject",
     ),
     path("roster/planner/", roster_planner, name="roster_planner"),
+    path(
+        "roster/planner/<int:shift_id>/billing/",
+        planner_billing_detail,
+        name="planner_billing_detail",
+    ),
     path(
         "roster/planner/multi-worker/<int:first_shift_id>/<int:second_shift_id>/review/",
         planned_multi_worker_support_review,
