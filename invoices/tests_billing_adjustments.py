@@ -248,6 +248,8 @@ class BillingAdjustmentTests(TestCase):
         for item in (weekday, weekend):
             self.assertIn(f'value="{item.pk}"', options)
             self.assertIn(f'data-price="{item.price_limit}"', options)
+            self.assertIn(f'data-item-name="{item.name}"', options)
+            self.assertIn(f'data-item-code="{item.item_number}"', options)
             self.assertIn(item.item_number, options)
 
     def test_original_km_is_helper_text_below_confirmed_input_in_both_previews(self):
@@ -262,17 +264,11 @@ class BillingAdjustmentTests(TestCase):
                         if grouped else response.context["invoice_rows"])
                 field = rows[0]["adjustment_form"]["kilometres"]
                 self.assertContains(response, f'''
-                    <td class="invoice-preview-travel-cell">
-                      <div data-billing-km-slot>
-                        <div data-billing-km-field>
-                          <div data-billing-km>
-                            <label for="{field.id_for_label}">Confirmed km:</label>
-                            {field}
-                          </div>
-                        </div>
-                      </div>
-                      <small class="invoice-billing-original invoice-billing-km-original">Original: 24.00 km</small>
-                    </td>
+                    <div data-billing-km>
+                      <label for="{field.id_for_label}">Confirmed kilometres:</label>
+                      <div class="invoice-km-input">{field}<span class="invoice-input-suffix" aria-hidden="true">km</span></div>
+                      <small class="invoice-billing-original invoice-billing-km-original">Original log: 24.00 km</small>
+                    </div>
                 ''', html=True)
 
 

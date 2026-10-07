@@ -587,7 +587,7 @@ class InvoiceGenerationTests(TestCase):
         self.assertContains(response, "43.00")
         self.assertContains(response, "Travel claim amount")
         self.assertContains(response, f'name="travel-{service_log.id}-amount"')
-        self.assertContains(response, "Admin enters the approved amount.")
+        self.assertContains(response, "Admin-approved amount")
 
     def test_invoice_is_not_created_when_travel_item_is_not_active(self):
         service_log = self.create_service_log(kilometres=Decimal("15.00"))
@@ -1489,7 +1489,7 @@ class InvoiceGenerationTests(TestCase):
 
         self.assertContains(
             response,
-            '<td class="invoice-preview-date-cell">01/06/2026</td>',
+            f'<td data-label="Date" class="invoice-preview-date-cell">01/06/2026<small>Log #{service_log.pk}</small></td>',
             html=True,
         )
         self.assertNotContains(response, "<td>June 1, 2026</td>", html=True)
