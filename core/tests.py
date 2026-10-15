@@ -1,8 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.templatetags.static import static
 from django.urls import reverse
 
 from accounts.models import UserProfile
+from workers.models import SupportWorker
 
 
 class WorkerMobileShellTests(TestCase):
@@ -37,10 +39,30 @@ class WorkerMobileShellTests(TestCase):
 
         response = self.client.get(reverse("worker_dashboard"))
 
-        self.assertContains(response, "portal-nav-icon portal-nav-icon-home")
-        self.assertContains(response, "portal-nav-icon portal-nav-icon-calendar")
-        self.assertContains(response, "portal-nav-icon portal-nav-icon-logs")
-        self.assertContains(response, "portal-nav-icon portal-nav-icon-file")
+        for name in ("home-active", "shifts", "logs", "documents"):
+            with self.subTest(icon=name):
+                self.assertContains(
+                    response,
+                    f'<img class="r1-icon" src="{static(f"img/r1/icons/{name}.svg")}" '
+                    'alt="" aria-hidden="true">',
+                    count=1,
+                    html=True,
+                )
+
+    def test_untouched_worker_pages_retain_legacy_portal_icons(self):
+        user = self.create_user_with_role("worker", UserProfile.Role.SUPPORT_WORKER)
+        SupportWorker.objects.create(
+            user=user, first_name="Fictional", last_name="Worker", email=user.email,
+        )
+        self.client.login(username="worker", password="test-password-123")
+
+        for route in ("worker_profile", "worker_document_list"):
+            with self.subTest(route=route):
+                response = self.client.get(reverse(route))
+                self.assertEqual(response.status_code, 200)
+                for name in ("home", "calendar", "logs", "file"):
+                    self.assertContains(response, f"portal-nav-icon portal-nav-icon-{name}")
+                self.assertNotContains(response, "r1_worker_navigation.css")
 
     def test_admin_pages_do_not_include_worker_mobile_bottom_navigation(self):
         self.create_user_with_role("admin", UserProfile.Role.ADMIN)

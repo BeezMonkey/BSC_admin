@@ -579,10 +579,11 @@ class DashboardPolishTests(TestCase):
         self.client.login(username="worker", password="pass")
         response = self.client.get(reverse("worker_dashboard"))
 
-        self.assertContains(response, 'class="app-shell worker-app-shell"')
+        self.assertContains(response, 'class="app-shell worker-app-shell r1-ui r1-worker r1-worker-navigation"')
         self.assertContains(response, 'class="sidebar worker-sidebar"')
-        self.assertContains(response, 'class="topbar worker-topbar"')
-        self.assertContains(response, 'class="button secondary topbar-logout"')
+        self.assertNotContains(response, 'class="topbar worker-topbar"')
+        self.assertContains(response, 'class="r1-account"')
+        self.assertContains(response, 'class="r1-logout"')
         self.assertContains(response, 'class="worker-mobile-menu-button"')
         self.assertContains(response, 'class="worker-mobile-drawer"')
         self.assertContains(response, 'aria-label="Worker menu"')
@@ -612,7 +613,7 @@ class DashboardPolishTests(TestCase):
         html = response.content.decode()
         mobile_header = html.split('<header class="worker-mobile-header">', 1)[1].split("</header>", 1)[0]
 
-        self.assertContains(response, '<h1>Home <span class="worker-title-user">| Christian Caceres</span></h1>', html=True)
+        self.assertContains(response, '<h1>Hello, <span class="worker-title-user">Christian Caceres</span></h1>', html=True)
         self.assertNotIn("Christian Caceres", mobile_header)
         self.assertContains(response, 'class="worker-mobile-user"', count=1)
         self.assertNotContains(response, '<span class="user-label">worker</span>')

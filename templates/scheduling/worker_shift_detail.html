@@ -1,42 +1,48 @@
-{% extends "worker_base.html" %}
+{% extends "r1/worker_navigation_base.html" %}
 {% load bsc_formatting %}
 
 {% block title %}Shift Detail - Brisbane Star Care{% endblock %}
 
 {% block content %}
 <section class="worker-card worker-shift-detail-page worker-desktop-page">
-  <div class="page-header worker-detail-header">
-    <div>
-      <h1>{{ shift.participant.display_name }}</h1>
+  <a class="r1-navigation-back" href="{% url 'worker_shift_list' %}">{% include "r1/partials/icon.html" with name="back" %}Back to My Shifts</a>
+  <header class="page-header worker-detail-header">
+    <div><h1>{{ shift.participant.display_name }}</h1><p>Shift details</p></div>
+    <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
+  </header>
+  <div class="r1-shift-workspace">
+    <dl class="detail-list">
+      <div class="r1-shift-fact r1-shift-calendar"><dt>Date</dt><dd>{{ shift.service_date|date:"d/m/Y" }}</dd></div>
+      <div class="r1-shift-fact r1-shift-clock"><dt>Time</dt><dd>{{ shift.start_time|display_time }} - {{ shift.end_time|display_time }}</dd></div>
+      <div class="r1-shift-fact"><dt>Source</dt><dd>{{ shift.get_source_display }}</dd></div>
+      <div class="r1-shift-fact r1-full-width r1-shift-address"><dt>Address</dt><dd>{{ shift.address|default:"-" }}</dd></div>
+      <div class="r1-shift-fact r1-full-width"><dt>Instructions</dt><dd>{{ shift.instructions|default:"-" }}</dd></div>
+      <div class="r1-shift-fact r1-full-width"><dt>Service</dt><dd>{{ shift.get_service_type_display }}</dd></div>
+      <div class="r1-visually-hidden"><dt>Status</dt><dd>{{ shift.get_status_display }}</dd></div>
+    </dl>
+    <div class="worker-detail-actions">
+      {% if shift.status == "cancellation_review" %}
+        <div class="message info worker-cancellation-review-message" role="status">
+          <strong>Cancellation awaiting admin review</strong>
+          <span>No further action is needed for this shift.</span>
+        </div>
+      {% endif %}
+      {% if shift.status == "published" or shift.status == "confirmed" %}
+        {% include "r1/partials/icon.html" with name="logs-active" %}
+        <h2>Complete this shift</h2>
+        <p>Record the service provided, actual time and notes.</p>
+      {% endif %}
+      {% if shift.status == "published" %}
+        <form method="post" action="{% url 'worker_shift_confirm' shift.id %}">
+          {% csrf_token %}
+          <button class="worker-primary-action" type="submit">Confirm Shift</button>
+        </form>
+      {% endif %}
+      {% if shift.status == "published" or shift.status == "confirmed" %}
+        <a class="button worker-primary-action" href="{% url 'worker_service_log_create' shift.id %}">Complete Service Log</a>
+        <a class="button secondary" href="{% url 'worker_participant_cancellation_create' shift.id %}">Report participant cancellation</a>
+      {% endif %}
     </div>
-    <a class="button secondary" href="{% url 'worker_shift_list' %}">Back to My Shifts</a>
-  </div>
-  <dl class="detail-list">
-    <dt>Date</dt><dd>{{ shift.service_date|date:"d/m/Y" }}</dd>
-    <dt>Time</dt><dd>{{ shift.start_time|display_time }} - {{ shift.end_time|display_time }}</dd>
-    <dt>Status</dt><dd><span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span></dd>
-    <dt>Source</dt><dd>{{ shift.get_source_display }}</dd>
-    <dt>Address</dt><dd>{{ shift.address|default:"-" }}</dd>
-    <dt>Instructions</dt><dd>{{ shift.instructions|default:"-" }}</dd>
-    <dt>Service</dt><dd>{{ shift.get_service_type_display }}</dd>
-  </dl>
-  <div class="worker-detail-actions">
-    {% if shift.status == "cancellation_review" %}
-      <div class="message info worker-cancellation-review-message" role="status">
-        <strong>Cancellation awaiting admin review</strong>
-        <span>No further action is needed for this shift.</span>
-      </div>
-    {% endif %}
-    {% if shift.status == "published" %}
-      <form method="post" action="{% url 'worker_shift_confirm' shift.id %}">
-        {% csrf_token %}
-        <button class="worker-primary-action" type="submit">Confirm Shift</button>
-      </form>
-    {% endif %}
-    {% if shift.status == "published" or shift.status == "confirmed" %}
-      <a class="button worker-primary-action" href="{% url 'worker_service_log_create' shift.id %}">Complete Service Log</a>
-      <a class="button secondary" href="{% url 'worker_participant_cancellation_create' shift.id %}">Report participant cancellation</a>
-    {% endif %}
   </div>
 </section>
 {% endblock %}

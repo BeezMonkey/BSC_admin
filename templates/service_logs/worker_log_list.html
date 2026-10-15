@@ -1,29 +1,33 @@
-{% extends "worker_base.html" %}
+{% extends "r1/worker_navigation_base.html" %}
 
 {% block title %}My Logs - Brisbane Star Care{% endblock %}
 
 {% block content %}
 <section class="worker-card worker-log-list-page worker-desktop-page">
-  <div class="worker-log-list-header">
-    <div>
-      <h1>My Logs</h1>
-      <p>Review submitted logs or add support completed outside the roster.</p>
-    </div>
-    <a class="button worker-unscheduled-service-action" href="{% url 'worker_unscheduled_service_log_create' %}">
-      Submit Unscheduled Service
-    </a>
-  </div>
-  {% for service_log in service_logs %}
-    <a class="list-item" href="{% url 'worker_service_log_detail' service_log.id %}">
-      <strong>{{ service_log.service_date|date:"d/m/Y" }}</strong>
-      <span>{{ service_log.participant.display_name }} | {{ service_log.get_status_display }}{% if service_log.source == "unscheduled" %} | Unscheduled{% endif %}</span>
-      <span>{{ service_log.case_notes|truncatechars:80 }}</span>
-    </a>
-  {% empty %}
+  <header class="worker-log-list-header">
+    <div><h1>My Logs</h1><p>Your submitted service records.</p></div>
+    <a class="button worker-unscheduled-service-action" href="{% url 'worker_unscheduled_service_log_create' %}">Submit Unscheduled Service</a>
+  </header>
+  {% if service_logs %}
+  <table class="r1-navigation-table r1-log-table" aria-label="My Logs">
+    <thead><tr><th scope="col">Date</th><th scope="col">Participant</th><th scope="col">Case notes</th><th scope="col">Status</th><th scope="col">Action</th></tr></thead>
+    <tbody>
+    {% for service_log in service_logs %}
+      <tr class="r1-log-row">
+        <td class="r1-log-date">{{ service_log.service_date|date:"d/m/Y" }}</td>
+        <td class="r1-log-participant">{{ service_log.participant.display_name }}</td>
+        <td class="r1-log-summary">{{ service_log.case_notes|truncatechars:80 }}</td>
+        <td class="r1-log-status"><span class="status-pill status-{{ service_log.status }}">{{ service_log.get_status_display }}</span>{% if service_log.source == "unscheduled" %}<span class="source-pill source-unscheduled">Unscheduled</span>{% endif %}</td>
+        <td class="r1-log-action"><a class="r1-log-view" href="{% url 'worker_service_log_detail' service_log.id %}" aria-label="View log for {{ service_log.participant.display_name }} on {{ service_log.service_date|date:"d/m/Y" }}">View log</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
     <div class="empty-state">
       <strong>No service logs yet.</strong>
       <p>Completed service logs will appear here after you submit them from My Shifts or Unscheduled Service.</p>
     </div>
-  {% endfor %}
+  {% endif %}
 </section>
 {% endblock %}
