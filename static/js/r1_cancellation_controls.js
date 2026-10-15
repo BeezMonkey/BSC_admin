@@ -262,6 +262,7 @@
       window.visualViewport.addEventListener("scroll", schedulePosition);
     }
     input.tabIndex = -1;
+    root.querySelector("[data-cancellation-native]").setAttribute("aria-hidden", "true");
     root.classList.add("is-enhanced");
     trigger.hidden = false;
     syncDisplay();
