@@ -56,6 +56,39 @@
 .app-shell.r1-worker-navigation .worker-unscheduled-service-card p { margin-top: 12px; }
 .app-shell.r1-worker-navigation[data-portal-theme] .worker-unscheduled-service-action { display: inline-flex; align-items: center; justify-content: center; width: fit-content; max-width: 100%; min-height: 48px; border: 1px solid var(--r1-border); border-radius: 8px; padding: 11px 16px; color: var(--r1-accent); background: var(--r1-surface); font-size: 16px; font-weight: 600; line-height: 24px; text-align: center; white-space: normal; }
 
+/* Home revision: one module, with desktop placement independent of mobile reading order. */
+.app-shell.r1-worker-navigation .worker-dashboard-page .r1-desktop-summary-title { display: none; color: inherit; font: inherit; }
+.app-shell.r1-worker-navigation .worker-dashboard-page > .worker-unscheduled-service-card { align-content: center; justify-items: center; border: 1px solid var(--r1-border); border-radius: 8px; padding: 16px; background: var(--r1-accent-soft); text-align: center; }
+.app-shell.r1-worker-navigation .worker-dashboard-page .worker-unscheduled-service-card > div { width: 100%; min-width: 0; }
+.app-shell.r1-worker-navigation .worker-dashboard-page .worker-unscheduled-service-card h2 { font-size: 16px; font-weight: 600; line-height: 24px; }
+.app-shell.r1-worker-navigation .worker-dashboard-page .worker-unscheduled-service-card p { margin-top: 4px; color: var(--r1-muted); font-size: 14px; line-height: 20px; }
+.app-shell.r1-worker-navigation[data-portal-theme] .worker-dashboard-page .worker-unscheduled-service-action { width: 100%; min-height: 44px; padding: 9px 12px; }
+
+@media (min-width: 981px) {
+  .app-shell.r1-worker-navigation .worker-dashboard-page { grid-template-columns: minmax(0, 692fr) minmax(0, 420fr); grid-template-areas: "heading heading" "summary unscheduled" "quick quick"; column-gap: 16px; align-items: stretch; }
+  .app-shell.r1-worker-navigation .worker-dashboard-page > .page-header { grid-area: heading; }
+  .app-shell.r1-worker-navigation .worker-dashboard-page > .worker-action-summary { grid-area: summary; display: grid; min-width: 0; background: transparent; }
+  .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-grid { gap: 16px; }
+  .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item { justify-content: center; gap: 8px; min-height: 134px; border: 1px solid var(--r1-border); padding: 16px 20px; background: var(--r1-surface); }
+  .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item strong { color: inherit; font-size: 17px; font-weight: 700; line-height: 24px; }
+  .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item.needs-attention { color: var(--r1-warning); }
+  .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item.ready-for-log { color: var(--r1-accent); }
+  .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item.completed { color: var(--r1-success); }
+  .app-shell.r1-worker-navigation .worker-dashboard-page .r1-desktop-summary-title { display: inline; }
+  .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item > .r1-summary-label { display: none; }
+  .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item > .r1-summary-description { display: block; color: var(--r1-muted); font-size: 12px; font-weight: 400; line-height: 18px; }
+  .app-shell.r1-worker-navigation .worker-dashboard-page > .worker-unscheduled-service-card { grid-area: unscheduled; min-height: 134px; }
+  .app-shell.r1-worker-navigation[data-portal-theme] .worker-dashboard-page .worker-unscheduled-service-action { width: 300px; min-height: 40px; padding: 7px 12px; }
+  .app-shell.r1-worker-navigation .worker-dashboard-page .r1-home-workspace { grid-area: quick; grid-template-columns: minmax(0, 1fr); }
+  .app-shell.r1-worker-navigation .worker-dashboard-page .worker-tool-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+  .app-shell.r1-worker-navigation .worker-dashboard-page .worker-tool-card { min-height: 88px; border: 1px solid var(--r1-border); border-radius: 8px; padding: 16px; }
+  .app-shell.r1-worker-navigation .worker-dashboard-page .summary-empty-state { align-content: center; min-height: 134px; border: 1px solid var(--r1-border); border-radius: 12px; padding: 16px 20px; background: var(--r1-surface); }
+}
+
+@media (min-width: 981px) and (max-width: 1279px) {
+  .app-shell.r1-worker-navigation .worker-dashboard-page { grid-template-columns: minmax(0, 1fr); grid-template-areas: "heading" "summary" "unscheduled" "quick"; }
+}
+
 /* Both lists keep one native table and one set of interactive actions. */
 .app-shell.r1-worker-navigation .worker-shift-page > h1 { margin-bottom: 6px; }
 .app-shell.r1-worker-navigation .r1-shift-overview { margin-bottom: 28px; color: var(--r1-muted); }

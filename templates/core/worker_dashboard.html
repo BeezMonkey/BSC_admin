@@ -14,19 +14,19 @@
     {% if has_shift_actions %}
     <div class="action-summary-grid">
       <a class="action-summary-item needs-attention" href="{% url 'worker_shift_list' %}?view=needs_attention" aria-label="{{ needs_attention_count }} needs attention">
-        <strong>{{ needs_attention_count }}</strong>
-        <span>Needs attention</span>
+        <strong>{{ needs_attention_count }}<span class="r1-desktop-summary-title"> Needs attention</span></strong>
+        <span class="r1-summary-label">Needs attention</span>
         <span class="r1-summary-description">New shifts to confirm</span>
       </a>
       <a class="action-summary-item ready-for-log" href="{% url 'worker_shift_list' %}?view=upcoming" aria-label="{{ ready_for_log_count }} ready for log">
-        <strong>{{ ready_for_log_count }}<span class="r1-mobile-summary-title"> shift{{ ready_for_log_count|pluralize }} ready for log</span></strong>
-        <span>Ready for log</span>
+        <strong>{{ ready_for_log_count }}<span class="r1-mobile-summary-title"> shift{{ ready_for_log_count|pluralize }} ready for log</span><span class="r1-desktop-summary-title"> Ready for log</span></strong>
+        <span class="r1-summary-label">Ready for log</span>
         <span class="r1-summary-description">Confirmed shifts to complete</span>
         <span class="r1-summary-go">Go to My Shifts</span>
       </a>
       <a class="action-summary-item completed" href="{% url 'worker_shift_list' %}?view=completed" aria-label="{{ completed_shift_count }} completed">
-        <strong>{{ completed_shift_count }}</strong>
-        <span>Completed</span>
+        <strong>{{ completed_shift_count }}<span class="r1-desktop-summary-title"> Completed</span></strong>
+        <span class="r1-summary-label">Completed</span>
         <span class="r1-summary-description">Finished or closed shifts</span>
       </a>
     </div>
@@ -63,13 +63,13 @@
         </section>
       </div>
     </section>
-    <section class="card worker-unscheduled-service-card">
-      <div>
-        <h2>Worked outside a scheduled shift?</h2>
-        <p>Submit an unscheduled service for review.</p>
-      </div>
-      <a class="button worker-unscheduled-service-action" href="{% url 'worker_unscheduled_service_log_create' %}">Submit Unscheduled Service</a>
-    </section>
   </div>
+  <section class="card worker-unscheduled-service-card">
+    <div>
+      <h2>Worked outside a scheduled shift?</h2>
+      <p>Submit an unscheduled service for review.</p>
+    </div>
+    <a class="button worker-unscheduled-service-action" href="{% url 'worker_unscheduled_service_log_create' %}">Submit Unscheduled Service</a>
+  </section>
 </section>
 {% endblock %}
