@@ -69,11 +69,14 @@
   .app-shell.r1-worker-navigation .worker-dashboard-page > .page-header { grid-area: heading; }
   .app-shell.r1-worker-navigation .worker-dashboard-page > .worker-action-summary { grid-area: summary; display: grid; min-width: 0; background: transparent; }
   .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-grid { gap: 16px; }
-  .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item { justify-content: center; gap: 8px; min-height: 134px; border: 1px solid var(--r1-border); padding: 16px 20px; background: var(--r1-surface); }
+  .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item { justify-content: center; gap: 8px; min-height: 134px; border: 1px solid var(--r1-border); padding: 16px 20px; background: var(--r1-surface); transition: border-color 150ms, background-color 150ms; }
   .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item strong { color: inherit; font-size: 17px; font-weight: 700; line-height: 24px; }
   .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item.needs-attention { color: var(--r1-warning); }
   .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item.ready-for-log { color: var(--r1-accent); }
   .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item.completed { color: var(--r1-success); }
+  .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item.needs-attention:is(:hover, :focus-visible) { border-color: var(--r1-warning); background: color-mix(in srgb, var(--r1-warning) 5%, var(--r1-surface)); }
+  .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item.ready-for-log:is(:hover, :focus-visible) { border-color: var(--r1-accent); background: color-mix(in srgb, var(--r1-accent) 5%, var(--r1-surface)); }
+  .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item.completed:is(:hover, :focus-visible) { border-color: var(--r1-success); background: color-mix(in srgb, var(--r1-success) 5%, var(--r1-surface)); }
   .app-shell.r1-worker-navigation .worker-dashboard-page .r1-desktop-summary-title { display: inline; }
   .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item > .r1-summary-label { display: none; }
   .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item > .r1-summary-description { display: block; color: var(--r1-muted); font-size: 12px; font-weight: 400; line-height: 18px; }
@@ -83,6 +86,10 @@
   .app-shell.r1-worker-navigation .worker-dashboard-page .worker-tool-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
   .app-shell.r1-worker-navigation .worker-dashboard-page .worker-tool-card { min-height: 88px; border: 1px solid var(--r1-border); border-radius: 8px; padding: 16px; }
   .app-shell.r1-worker-navigation .worker-dashboard-page .summary-empty-state { align-content: center; min-height: 134px; border: 1px solid var(--r1-border); border-radius: 12px; padding: 16px 20px; background: var(--r1-surface); }
+}
+
+@media (min-width: 981px) and (prefers-reduced-motion: reduce) {
+  .app-shell.r1-worker-navigation .worker-dashboard-page .action-summary-item { transition: none; }
 }
 
 @media (min-width: 981px) and (max-width: 1279px) {
@@ -136,6 +143,15 @@
 .app-shell.r1-worker-navigation .r1-log-view { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; border: 1px solid var(--r1-border); border-radius: 8px; padding: 7px 12px; color: var(--r1-accent); font-weight: 500; text-align: center; }
 .app-shell.r1-worker-navigation .empty-state { margin: 0; border: 0; border-radius: 0; padding: 16px 0; background: transparent; }
 .app-shell.r1-worker-navigation .empty-state p { margin-top: 4px; color: var(--r1-muted); }
+
+@media (min-width: 981px) {
+  .app-shell.r1-worker-navigation .worker-shift-page .r1-shift-table { border-radius: 8px; }
+  .app-shell.r1-worker-navigation .worker-shift-page .r1-shift-table thead th:first-child { border-top-left-radius: 8px; }
+  .app-shell.r1-worker-navigation .worker-shift-page .r1-shift-table thead th:last-child { border-top-right-radius: 8px; }
+  /* Only the final data group gets bottom corners; actions remain unclipped. */
+  .app-shell.r1-worker-navigation .worker-shift-page .r1-shift-table tbody:last-child > .shift-list-item:last-child > td:first-child { border-bottom-left-radius: 8px; }
+  .app-shell.r1-worker-navigation .worker-shift-page .r1-shift-table tbody:last-child > .shift-list-item:last-child > td:last-child { border-bottom-right-radius: 8px; }
+}
 
 /* Details: facts and next steps share an unframed, responsive workspace. */
 .app-shell.r1-worker-navigation .r1-navigation-back { display: inline-flex; align-items: center; gap: 8px; width: fit-content; min-height: 44px; margin-bottom: 12px; color: var(--r1-muted); }
