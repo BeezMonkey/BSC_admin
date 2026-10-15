@@ -1,7 +1,12 @@
 {% extends "r1/worker_support_base.html" %}
-{% load bsc_formatting %}
+{% load bsc_formatting static %}
 
 {% block title %}Report Participant Cancellation - Brisbane Star Care{% endblock %}
+
+{% block extra_styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/r1_cancellation_controls.css' %}">
+{% endblock %}
 
 {% block content %}
 <section class="r1-support-page r1-cancellation">
@@ -59,15 +64,7 @@
         {{ form.reason.errors }}
         {% if form.reason.help_text %}<span class="r1-field-help">{{ form.reason.help_text }}</span>{% endif %}
       </label>
-      <label class="field" for="{{ form.received_at.id_for_label }}">
-        <span class="r1-field-label">{{ form.received_at.label }}</span>
-        <span class="r1-native-control">
-          {{ form.received_at }}
-          {% include "r1/partials/icon.html" with name="calendar" size=20 %}
-        </span>
-        {{ form.received_at.errors }}
-        {% if form.received_at.help_text %}<span class="r1-field-help">{{ form.received_at.help_text }}</span>{% endif %}
-      </label>
+      {% include "scheduling/partials/cancellation_datetime.html" with field=form.received_at %}
     </div>
     <label class="field" for="{{ form.details.id_for_label }}">
       <span class="r1-field-label">{{ form.details.label }}</span>
@@ -83,4 +80,6 @@
   </form>
   </div>
 </section>
+<script src="{% static 'js/date_time_picker.js' %}" defer></script>
+<script src="{% static 'js/r1_cancellation_controls.js' %}" defer></script>
 {% endblock %}

@@ -38,6 +38,12 @@ class ParticipantCancellationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["received_at"].input_formats = ["%Y-%m-%dT%H:%M"]
+        for name, caption in (("cancellation_type", "Select cancellation type"),
+                              ("reason", "Select a reason")):
+            self.fields[name].choices = [
+                (value, caption if value == "" else label)
+                for value, label in self.fields[name].choices
+            ]
 
 
 class ParticipantCancellationReviewForm(forms.Form):

@@ -1,0 +1,53 @@
+<div class="field" data-cancellation-datetime>
+  <label class="r1-field-label" id="{{ field.id_for_label }}_label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+  <span class="r1-native-control" data-cancellation-native>
+    {{ field }}
+    {% include "r1/partials/icon.html" with name="calendar" size=20 %}
+  </span>
+  <button type="button" class="r1-cancellation-datetime-trigger" data-cancellation-datetime-trigger hidden
+          aria-haspopup="dialog" aria-expanded="false" aria-controls="{{ field.id_for_label }}_popover"
+          aria-labelledby="{{ field.id_for_label }}_label {{ field.id_for_label }}_display"
+          aria-describedby="{{ field.id_for_label }}_errors {{ field.id_for_label }}_help">
+    <span id="{{ field.id_for_label }}_display" data-cancellation-display></span>
+    {% include "r1/partials/icon.html" with name="calendar" size=20 %}
+  </button>
+  <section class="r1-cancellation-datetime-popover" id="{{ field.id_for_label }}_popover"
+           data-cancellation-datetime-popover hidden role="dialog" aria-modal="true"
+           aria-labelledby="{{ field.id_for_label }}_label">
+    <div data-cancellation-calendar></div>
+    <div class="r1-cancellation-time" data-cancellation-time></div>
+    <footer class="r1-cancellation-picker-actions">
+      <button type="button" data-cancellation-datetime-clear>Clear</button>
+      <button type="button" data-cancellation-datetime-cancel>Cancel</button>
+      <button type="button" data-cancellation-datetime-apply>Apply</button>
+    </footer>
+  </section>
+  <div id="{{ field.id_for_label }}_errors">
+    {{ field.errors }}
+    <p class="r1-cancellation-invalid" data-cancellation-invalid hidden role="alert"></p>
+  </div>
+  <span class="r1-field-help" id="{{ field.id_for_label }}_help">{% if field.help_text %}{{ field.help_text }}{% endif %}</span>
+  <template data-cancellation-calendar-template>
+    <div data-date-time-picker="date">
+      <input type="hidden">
+      <button type="button" data-picker-trigger hidden tabindex="-1"><span data-picker-display></span></button>
+      <div class="r1-cancellation-inline-calendar" data-picker-popover>
+        <header class="calendar-picker-header">
+          <strong data-calendar-title aria-live="polite"></strong>
+          <div class="calendar-picker-navigation">
+            <button type="button" data-calendar-previous aria-label="Previous month">&lsaquo;</button>
+            <button type="button" data-calendar-next aria-label="Next month">&rsaquo;</button>
+          </div>
+        </header>
+        <div class="calendar-picker-weekdays" aria-hidden="true">
+          <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+        </div>
+        <div class="calendar-picker-grid" data-calendar-grid></div>
+        <footer class="date-picker-footer">
+          <button type="button" data-calendar-clear hidden>Clear</button>
+          <button type="button" data-calendar-today>Today</button>
+        </footer>
+      </div>
+    </div>
+  </template>
+</div>
