@@ -7,6 +7,7 @@
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/r1_shell.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_worker_logs.css' %}">
 {% endblock %}
 {% block r1_shell_class %} r1-ui r1-worker{% endblock %}
 {% block sidebar_brand %}BSC<small>Support worker</small>{% endblock %}
@@ -26,21 +27,28 @@
 {% block bottom_docs_icon %}{% include "r1/partials/icon.html" with name="documents" %}{% endblock %}
 
 {% block content %}
-<section class="worker-card worker-service-log-form-page worker-desktop-page">
+<section class="worker-card worker-service-log-form-page worker-desktop-page r1-log-page">
+  {% if is_unscheduled %}
+  <a class="r1-log-back" href="{% url 'worker_log_list' %}">{% include "r1/partials/icon.html" with name="back" %}My Logs</a>
+  {% else %}
+  <a class="r1-log-back" href="{% url 'worker_shift_detail' shift.id %}">{% include "r1/partials/icon.html" with name="back" %}Shift details</a>
+  {% endif %}
   <header class="worker-log-form-header">
     <div>
-      <h1>{% if is_unscheduled %}Submit Unscheduled Service{% else %}Complete Service Log{% endif %}</h1>
-      <p>{% if is_unscheduled %}Record completed support that was not already on your roster.{% else %}{{ shift.participant.display_name }}{% endif %}</p>
+      <h1>{% if is_unscheduled %}Unscheduled Service{% else %}Complete Service Log{% endif %}</h1>
+      <p>{% if is_unscheduled %}Submit a service that was not on your schedule.{% else %}Record the service you provided.{% endif %}</p>
     </div>
   </header>
 
-  {% if is_unscheduled %}
-  <div class="worker-unscheduled-banner">
-    <strong>Unscheduled service</strong>
-    <span>This will be sent to admin for review and marked separately from rostered shifts.</span>
-  </div>
-  {% else %}
-  <dl class="worker-log-shift-summary">
+  <div class="r1-log-layout">
+  <aside class="r1-log-context" aria-labelledby="r1-context-heading">
+    {% if is_unscheduled %}
+    <h2 id="r1-context-heading">Admin review</h2>
+    <p>This service will be sent to Admin for review and kept separate from scheduled services.</p>
+    {% else %}
+    <h2 id="r1-context-heading">Scheduled service</h2>
+    <strong class="r1-log-participant">{{ shift.participant.display_name }}</strong>
+    <dl class="worker-log-shift-summary">
     <div>
       <dt>Date</dt>
       <dd>{{ shift.service_date|date:"d/m/Y" }}</dd>
@@ -53,14 +61,17 @@
       <dt>Service</dt>
       <dd>{{ shift.get_service_type_display }}</dd>
     </div>
-  </dl>
-  {% endif %}
+    </dl>
+    {% endif %}
+  </aside>
 
   <form class="worker-log-form" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.non_field_errors }}
 
     {% if is_unscheduled %}
+    <section class="r1-log-section" aria-labelledby="r1-service-details">
+    <h2 id="r1-service-details">{% include "r1/partials/icon.html" with name="service-details" %}Service details</h2>
     <div class="worker-log-field-grid worker-unscheduled-detail-grid">
       <label class="field" for="{{ form.participant.id_for_label }}">
         {{ form.participant.label }}
@@ -75,11 +86,14 @@
         {{ form.service_type.errors }}
       </label>
     </div>
+    </section>
     {% endif %}
 
+    <section class="r1-log-section" aria-labelledby="r1-time-travel">
+    <h2 id="r1-time-travel">{% include "r1/partials/icon.html" with name="clock" %}Actual time &amp; travel</h2>
     <div class="worker-log-field-grid">
-      {% include "scheduling/partials/date_time_picker_field.html" with field=form.actual_start_time picker_type="time" hint="5-minute intervals" %}
-      {% include "scheduling/partials/date_time_picker_field.html" with field=form.actual_end_time picker_type="time" hint="5-minute intervals" %}
+      {% include "scheduling/partials/date_time_picker_field.html" with field=form.actual_start_time picker_type="time" hint="5-minute intervals" r1_log_ui=True %}
+      {% include "scheduling/partials/date_time_picker_field.html" with field=form.actual_end_time picker_type="time" hint="5-minute intervals" r1_log_ui=True %}
       <label class="field" for="{{ form.break_minutes.id_for_label }}">
         {{ form.break_minutes.label }}
         {{ form.break_minutes }}
@@ -91,32 +105,39 @@
         {{ form.kilometres.errors }}
       </label>
     </div>
+    <p class="r1-log-hint">Break and kilometres are required. Enter 0 when none.</p>
+    </section>
 
+    <section class="r1-log-section" aria-labelledby="r1-service-notes">
+    <h2 id="r1-service-notes">{% include "r1/partials/icon.html" with name="notes" %}Service notes</h2>
     <div class="worker-log-notes-grid">
       <label class="field" for="{{ form.case_notes.id_for_label }}">
-        {{ form.case_notes.label }}
+        <span>{{ form.case_notes.label }} <span class="r1-field-meta">&middot; required</span></span>
         {{ form.case_notes }}
         {{ form.case_notes.errors }}
       </label>
       <label class="field" for="{{ form.worker_notes.id_for_label }}">
-        {{ form.worker_notes.label }}
+        <span>{{ form.worker_notes.label }} <span class="r1-field-meta">&middot; optional</span></span>
         {{ form.worker_notes }}
         {{ form.worker_notes.errors }}
       </label>
     </div>
+    </section>
 
     {% if is_unscheduled %}
+    <section class="r1-log-section" aria-labelledby="r1-unscheduled-reason">
+    <h2 id="r1-unscheduled-reason">Unscheduled reason</h2>
     <label class="field worker-unscheduled-reason" for="{{ form.unscheduled_reason.id_for_label }}">
       {{ form.unscheduled_reason.label }}
       {{ form.unscheduled_reason }}
       {{ form.unscheduled_reason.errors }}
     </label>
+    </section>
     {% endif %}
 
-    <section class="worker-log-attachments">
+    <section class="worker-log-attachments r1-log-section" aria-labelledby="r1-attachments">
       <div>
-        <h2>Attachments</h2>
-        <p>Add photos or supporting files for this service log.</p>
+        <h2 id="r1-attachments">{% include "r1/partials/icon.html" with name="attach" %}Attachments</h2>
       </div>
       <div
         class="worker-attachment-picker"
@@ -125,7 +146,7 @@
         data-max-size="5242880"
       >
         <label class="field worker-attachment-native-field" for="id_attachments">
-          Files
+          <span class="r1-log-sr-only">Files</span>
           <input
             id="id_attachments"
             type="file"
@@ -159,6 +180,7 @@
       {% endif %}
     </div>
   </form>
+  </div>
 </section>
 
 <script>

@@ -1,0 +1,180 @@
+/* B02.1: form presentation only. Shared controls keep their original behavior. */
+.r1-worker.r1-ui .worker-main > .r1-log-page {
+  display: grid;
+  gap: 28px;
+  width: 100%;
+  max-width: 1128px;
+  margin: 0 auto;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.r1-worker.r1-ui .r1-log-back {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--r1-accent);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.r1-log-page .r1-icon { width: 20px; height: 20px; }
+.r1-worker.r1-ui .r1-log-page h1 { font-size: 32px; line-height: 40px; }
+.r1-worker.r1-ui .r1-log-page .worker-log-form-header p { margin: 8px 0 0; color: var(--r1-muted); font-size: 15px; line-height: 20px; }
+
+.r1-log-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+  align-items: start;
+  gap: 32px;
+  min-width: 0;
+}
+
+.r1-log-context {
+  grid-column: 2;
+  grid-row: 1;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--r1-accent-soft);
+  overflow-wrap: anywhere;
+}
+
+.r1-worker.r1-ui .r1-log-context h2 { margin: 0; color: var(--r1-muted); font-size: 14px; font-weight: 500; line-height: 20px; }
+.r1-log-context p { margin: 0; color: var(--r1-muted); }
+.r1-log-participant { font-size: 20px; font-weight: 600; line-height: 24px; }
+.r1-worker.r1-ui .r1-log-context .worker-log-shift-summary { grid-template-columns: minmax(0, 1fr); gap: 12px; border: 0; padding: 0; background: transparent; }
+.r1-worker.r1-ui .r1-log-context :is(dt, dd) { color: var(--r1-text); font-size: 14px; font-weight: 400; line-height: 20px; }
+.r1-log-context dt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+.r1-worker.r1-ui .r1-log-page .worker-log-form {
+  grid-column: 1;
+  grid-row: 1;
+  gap: 24px;
+  border-radius: 12px;
+  padding: 24px;
+  background: var(--r1-surface);
+}
+
+.r1-worker.r1-ui .r1-log-page .r1-log-section {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--r1-border);
+  border-radius: 0;
+  padding: 24px 0 0;
+  background: transparent;
+}
+
+.r1-worker.r1-ui .r1-log-section:first-of-type { border-top: 0; padding-top: 0; }
+.r1-worker.r1-ui .r1-log-section h2 { display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0; font-size: 16px; font-weight: 600; line-height: 24px; }
+.r1-worker.r1-ui .r1-log-page .worker-log-field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 12px; }
+.r1-worker.r1-ui .r1-log-page .worker-log-notes-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.r1-worker.r1-ui .r1-log-page .field { gap: 8px; margin: 0; color: var(--r1-text); font-size: 14px; font-weight: 500; line-height: 20px; }
+.r1-field-meta { font-weight: 400; }
+.r1-worker.r1-ui .r1-log-page :is(.r1-log-hint, .date-time-picker-hint) { margin: 0; color: var(--r1-muted); font-size: 14px; font-weight: 400; line-height: 20px; }
+
+.r1-worker.r1-ui .r1-log-page :is(input:not([type="hidden"]):not([type="file"]), select, textarea, .date-time-picker-trigger, .support-item-picker-trigger) {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--r1-strong-border);
+  border-radius: 8px;
+  padding: 11px 12px;
+  color: var(--r1-text);
+  background: var(--r1-surface);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+.r1-worker.r1-ui .r1-log-page .date-time-picker-trigger svg { flex-shrink: 0; width: 20px; height: 20px; }
+.r1-worker.r1-ui .r1-log-page .support-item-picker-trigger { height: auto; text-align: left; }
+.r1-worker.r1-ui .r1-log-page .support-item-picker-trigger-label { white-space: normal; overflow-wrap: anywhere; }
+.r1-worker.r1-ui .r1-log-page textarea { height: 128px; min-height: 128px; resize: vertical; }
+.r1-worker.r1-ui .r1-log-page #id_worker_notes { height: 96px; min-height: 96px; }
+.r1-worker.r1-ui .r1-log-page #id_unscheduled_reason { height: 104px; min-height: 104px; }
+.r1-worker.r1-ui .r1-log-page .field:has(.errorlist, .field-error) :is(input:not([type="hidden"]), select, textarea, .date-time-picker-trigger),
+.r1-worker.r1-ui .r1-log-page .support-item-picker .support-item-picker-trigger.has-error { border: 2px solid var(--r1-danger); }
+.r1-worker.r1-ui .r1-log-page :is(.errorlist, .field-error) { margin: 0; color: var(--r1-danger); font-size: 14px; font-weight: 500; line-height: 20px; overflow-wrap: anywhere; }
+
+.r1-worker.r1-ui .r1-log-page .worker-attachment-picker { gap: 12px; border: 0; border-radius: 0; padding: 0; background: transparent; }
+.r1-worker.r1-ui .r1-log-page .worker-attachment-native-field > span { color: var(--r1-muted); font-size: 14px; font-weight: 400; line-height: 20px; }
+.r1-worker.r1-ui .r1-log-page .worker-attachment-add { width: 100%; min-height: 48px; border: 1px solid var(--r1-border); border-radius: 8px; padding: 11px 16px; color: var(--r1-accent); background: var(--r1-surface); font-size: 16px; font-weight: 600; line-height: 24px; }
+.r1-worker.r1-ui .r1-log-page .worker-attachment-add:disabled { color: var(--r1-disabled); background: var(--r1-subtle); }
+.r1-log-page .worker-attachment-status { margin: 0; color: var(--r1-muted); font-size: 14px; }
+.r1-log-page .worker-attachment-feedback:empty,
+.r1-log-page .worker-attachment-list:empty { display: none; }
+.r1-log-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.r1-worker.r1-ui .r1-log-page .worker-log-form-actions { display: grid; grid-template-columns: minmax(0, 1fr) 120px; gap: 12px; margin: 0; border: 0; padding: 0; }
+.r1-worker.r1-ui .r1-log-page .worker-log-form-actions :is(button, .button) { display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 8px; padding: 11px 16px; font-size: 16px; font-weight: 600; line-height: 24px; text-align: center; }
+.r1-worker.r1-ui .r1-log-page .worker-log-form-actions .secondary { border-color: var(--r1-border); color: var(--r1-accent); }
+
+.r1-log-page .r1-time-heading { margin: 0 0 16px; font-size: 20px; font-weight: 600; line-height: 28px; }
+.r1-time-labels { display: grid; grid-template-columns: 1fr 1fr .82fr; margin: 0 10px; color: var(--r1-muted); font-size: 14px; text-align: center; }
+.r1-worker.r1-ui .r1-log-page .time-picker-popover { width: 300px; padding: 16px; }
+.r1-worker.r1-ui .r1-log-page .time-wheel-highlight { border-color: transparent; border-radius: 0; background: var(--r1-accent-soft); }
+/* The shared JS assumes 32px wheel rows; changing their height changes selection. */
+.r1-worker.r1-ui .r1-log-page .time-wheel-option.selected { color: var(--r1-accent); }
+.r1-worker.r1-ui .r1-log-page .r1-time-hint { margin: 12px 0; color: var(--r1-muted); font-size: 14px; line-height: 20px; }
+.r1-worker.r1-ui .r1-log-page .time-picker-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0; }
+.r1-worker.r1-ui .r1-log-page .time-picker-footer button { min-height: 48px; border: 1px solid var(--r1-border); border-radius: 8px; padding: 11px 12px; color: var(--r1-accent); font-size: 16px; font-weight: 600; line-height: 24px; }
+.r1-worker.r1-ui .r1-log-page .time-picker-footer [data-time-apply] { border-color: var(--r1-accent); color: var(--r1-surface); background: var(--r1-accent); }
+
+@media (min-width: 981px) and (max-width: 1199px) {
+  .r1-log-layout { grid-template-columns: minmax(0, 1fr) 220px; gap: 24px; }
+}
+
+@media (max-width: 980px) {
+  .r1-worker.r1-ui .worker-main > .r1-log-page { gap: 24px; }
+  .r1-worker.r1-ui .r1-log-page h1 { font-size: 24px; line-height: 32px; }
+  .r1-worker.r1-ui .r1-log-page .worker-log-form-header p { font-size: 14px; }
+  .r1-log-layout { display: flex; flex-direction: column; gap: 24px; }
+  .r1-log-context { width: 100%; border: 1px solid var(--r1-border); border-radius: 12px; background: var(--r1-surface); }
+  .r1-log-context:has(+ .worker-log-form .worker-unscheduled-detail-grid) { background: var(--r1-accent-soft); }
+  .r1-worker.r1-ui .r1-log-context h2 { color: var(--r1-text); font-size: 16px; font-weight: 600; line-height: 24px; }
+  .r1-log-participant { font-size: 16px; }
+  .r1-worker.r1-ui .r1-log-page .worker-log-form { width: 100%; gap: 24px; border-radius: 0; padding: 0; background: transparent; }
+  .r1-worker.r1-ui .r1-log-page .r1-log-section,
+  .r1-worker.r1-ui .r1-log-section:first-of-type { gap: 12px; border: 1px solid var(--r1-border); border-radius: 12px; padding: 16px; background: var(--r1-surface); }
+  .r1-worker.r1-ui .r1-log-section h2 .r1-icon { display: none; }
+  .r1-worker.r1-ui .r1-log-page .worker-unscheduled-detail-grid { grid-template-columns: minmax(0, 1fr); }
+  .r1-worker.r1-ui .r1-log-page .worker-log-field-grid { gap: 12px; }
+  .r1-worker.r1-ui .r1-log-page .field { gap: 6px; }
+  .r1-worker.r1-ui .r1-log-page #id_case_notes { height: 144px; min-height: 144px; }
+  .r1-worker.r1-ui .r1-log-page #id_worker_notes { height: 112px; min-height: 112px; }
+  .r1-worker.r1-ui .r1-log-page #id_unscheduled_reason { height: 128px; min-height: 128px; }
+  .r1-worker.r1-ui .r1-log-page .worker-log-form-actions { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 700px) {
+  .r1-worker.r1-ui .r1-log-page .time-picker-popover,
+  .r1-worker.r1-ui .r1-log-page .time-picker-popover.open-up {
+    position: fixed;
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-width: none;
+    max-height: calc(100dvh - 16px);
+    overflow-y: auto;
+    transform: none;
+    border: 0;
+    border-radius: 20px 20px 0 0;
+    padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+    box-shadow: 0 0 0 100vmax rgba(23, 33, 43, .28);
+  }
+  .r1-log-page .r1-time-heading { font-size: 24px; line-height: 32px; }
+}

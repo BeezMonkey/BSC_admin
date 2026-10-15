@@ -2140,7 +2140,7 @@ class ShiftSchedulingTests(TestCase):
 
         response = self.client.get(reverse("worker_service_log_create", args=[shift.id]))
 
-        self.assertContains(response, 'class="worker-card worker-service-log-form-page worker-desktop-page"')
+        self.assertContains(response, 'class="worker-card worker-service-log-form-page worker-desktop-page r1-log-page"')
         self.assertContains(response, "worker-bottom-actions")
         self.assertContains(response, "Submit Service Log")
 
