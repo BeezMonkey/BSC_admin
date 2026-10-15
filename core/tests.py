@@ -56,13 +56,27 @@ class WorkerMobileShellTests(TestCase):
         )
         self.client.login(username="worker", password="test-password-123")
 
-        for route in ("worker_profile", "worker_document_list"):
+        for route in ("worker_document_list",):
             with self.subTest(route=route):
                 response = self.client.get(reverse(route))
                 self.assertEqual(response.status_code, 200)
                 for name in ("home", "calendar", "logs", "file"):
                     self.assertContains(response, f"portal-nav-icon portal-nav-icon-{name}")
                 self.assertNotContains(response, "r1_worker_navigation.css")
+
+    def test_profile_uses_support_icons_without_changing_mobile_destinations(self):
+        user = self.create_user_with_role("worker", UserProfile.Role.SUPPORT_WORKER)
+        SupportWorker.objects.create(
+            user=user, first_name="Fictional", last_name="Worker", email=user.email,
+        )
+        self.client.login(username="worker", password="test-password-123")
+        response = self.client.get(reverse("worker_profile"))
+        for name in ("support-home", "support-shifts", "support-logs", "support-documents"):
+            self.assertContains(response, static(f"img/r1/icons/{name}.svg"))
+        for route in ("worker_dashboard", "worker_shift_list", "worker_log_list", "worker_document_list"):
+            self.assertContains(response, reverse(route))
+        self.assertContains(response, static("css/r1_worker_support.css"))
+        self.assertNotContains(response, "r1_worker_navigation.css")
 
     def test_admin_pages_do_not_include_worker_mobile_bottom_navigation(self):
         self.create_user_with_role("admin", UserProfile.Role.ADMIN)

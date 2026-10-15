@@ -136,7 +136,7 @@ class R1ShellIsolationTests(TestCase):
                 self.assert_r1_resources(response, "worker")
                 self.assertContains(response, "r1_worker_navigation.css", count=1)
         for user, routes in (
-            (self.worker_user, ("worker_document_list", "worker_profile")),
+            (self.worker_user, ("worker_document_list",)),
             (self.admin, ("admin_dashboard", "roster_planner", "invoice_placeholder", "service_log_list")),
         ):
             self.client.force_login(user)
@@ -146,6 +146,15 @@ class R1ShellIsolationTests(TestCase):
                     self.assertEqual(response.status_code, 200)
                     self.assertNotContains(response, "r1_shell.css")
                     self.assertNotContains(response, "r1-ui")
+
+    def test_profile_opts_into_independent_support_shell(self):
+        self.client.force_login(self.worker_user)
+        response = self.client.get(reverse("worker_profile"))
+        self.assert_r1_resources(response, "worker")
+        self.assertTemplateUsed(response, "r1/worker_support_base.html")
+        self.assertContains(response, "r1_worker_support.css", count=1)
+        self.assertNotContains(response, "r1_worker_navigation.css")
+        self.assertNotContains(response, "r1_worker_logs.css")
 
     def test_pilot_does_not_grant_worker_admin_detail_access(self):
         self.client.force_login(self.worker_user)
