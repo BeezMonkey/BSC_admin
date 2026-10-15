@@ -1,61 +1,86 @@
-{% extends "worker_base.html" %}
+{% extends "r1/worker_support_base.html" %}
 {% load bsc_formatting %}
 
 {% block title %}Report Participant Cancellation - Brisbane Star Care{% endblock %}
 
 {% block content %}
-<section class="worker-card worker-service-log-form-page participant-cancellation-form-page worker-desktop-page">
-  <header class="worker-log-form-header">
-    <div>
-      <h1>Report Participant Cancellation</h1>
-      <p>{{ shift.participant.display_name }}</p>
-    </div>
+<section class="r1-support-page r1-cancellation">
+  <a class="r1-support-back" href="{% url 'worker_shift_detail' shift.id %}">
+    <span class="r1-support-back-desktop">{% include "r1/partials/icon.html" with name="support-back" size=20 %}</span>
+    <span class="r1-support-back-mobile">{% include "r1/partials/icon.html" with name="support-back-mobile12" size=12 %}</span>
+    Shift details
+  </a>
+  <header class="r1-support-heading">
+    <h1>Report Participant Cancellation</h1>
+    <p>Report a cancellation for review.</p>
   </header>
 
-  <dl class="worker-log-shift-summary">
-    <div>
-      <dt>Date</dt>
-      <dd>{{ shift.service_date|date:"d/m/Y" }}</dd>
-    </div>
-    <div>
-      <dt>Rostered time</dt>
-      <dd>{{ shift.start_time|display_time }} - {{ shift.end_time|display_time }}</dd>
-    </div>
-    <div>
-      <dt>Service</dt>
-      <dd>{{ shift.get_service_type_display }}</dd>
-    </div>
-  </dl>
+  <div class="r1-cancellation-layout">
+    <aside class="r1-service-context" aria-labelledby="r1-service-heading">
+      <h2 id="r1-service-heading">Scheduled service <span class="r1-context-readonly">&middot; read only</span></h2>
+      <p class="r1-context-participant">{{ shift.participant.display_name }}</p>
+      <dl>
+        <div>
+          <dt>Date</dt>
+          <dd>{{ shift.service_date|date:"d/m/Y" }}</dd>
+        </div>
+        <div>
+          <dt>Rostered time</dt>
+          <dd>{{ shift.start_time|display_time }} - {{ shift.end_time|display_time }}</dd>
+        </div>
+        <div>
+          <dt>Service</dt>
+          <dd>{{ shift.get_service_type_display }}</dd>
+        </div>
+      </dl>
+    </aside>
 
-  <form class="worker-log-form" method="post">
+  <form class="worker-log-form r1-cancellation-form" method="post">
     {% csrf_token %}
+    <div class="r1-report-panel">
+    <h2 class="r1-support-section-heading">{% include "r1/partials/icon.html" with name="support-info20" size=20 %}Cancellation report</h2>
     {{ form.non_field_errors }}
     <div class="worker-log-field-grid participant-cancellation-field-grid">
       <label class="field" for="{{ form.cancellation_type.id_for_label }}">
-        {{ form.cancellation_type.label }}
-        {{ form.cancellation_type }}
+        <span class="r1-field-label">{{ form.cancellation_type.label }}</span>
+        <span class="r1-native-control r1-native-select">
+          {{ form.cancellation_type }}
+          {% include "r1/partials/icon.html" with name="chevron" size=20 %}
+        </span>
         {{ form.cancellation_type.errors }}
+        {% if form.cancellation_type.help_text %}<span class="r1-field-help">{{ form.cancellation_type.help_text }}</span>{% endif %}
       </label>
       <label class="field" for="{{ form.reason.id_for_label }}">
-        {{ form.reason.label }}
-        {{ form.reason }}
+        <span class="r1-field-label">{{ form.reason.label }}</span>
+        <span class="r1-native-control r1-native-select">
+          {{ form.reason }}
+          {% include "r1/partials/icon.html" with name="chevron" size=20 %}
+        </span>
         {{ form.reason.errors }}
+        {% if form.reason.help_text %}<span class="r1-field-help">{{ form.reason.help_text }}</span>{% endif %}
       </label>
       <label class="field" for="{{ form.received_at.id_for_label }}">
-        {{ form.received_at.label }}
-        {{ form.received_at }}
+        <span class="r1-field-label">{{ form.received_at.label }}</span>
+        <span class="r1-native-control">
+          {{ form.received_at }}
+          {% include "r1/partials/icon.html" with name="calendar" size=20 %}
+        </span>
         {{ form.received_at.errors }}
+        {% if form.received_at.help_text %}<span class="r1-field-help">{{ form.received_at.help_text }}</span>{% endif %}
       </label>
     </div>
     <label class="field" for="{{ form.details.id_for_label }}">
-      {{ form.details.label }}
+      <span class="r1-field-label">{{ form.details.label }}</span>
       {{ form.details }}
       {{ form.details.errors }}
+      {% if form.details.help_text %}<span class="r1-field-help">{{ form.details.help_text }}</span>{% endif %}
     </label>
-    <div class="button-row worker-log-form-actions worker-bottom-actions">
+    </div>
+    <div class="r1-support-actions">
       <button type="submit">Send for Review</button>
       <a class="button secondary" href="{% url 'worker_shift_detail' shift.id %}">Cancel</a>
     </div>
   </form>
+  </div>
 </section>
 {% endblock %}

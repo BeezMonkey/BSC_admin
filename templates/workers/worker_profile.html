@@ -1,49 +1,79 @@
-{% extends "worker_base.html" %}
+{% extends "r1/worker_support_base.html" %}
 
 {% block title %}My Profile - Brisbane Star Care{% endblock %}
 
 {% block content %}
-<section class="worker-card worker-profile-summary worker-desktop-page">
-  <h1>{{ worker.display_name }}</h1>
-  <dl class="detail-list">
-    <dt>Email</dt>
-    <dd>{{ worker.email }}</dd>
-    <dt>Phone</dt>
-    <dd>{{ worker.phone|default:"-" }}</dd>
-    <dt>Status</dt>
-    <dd>{{ worker.get_status_display }}</dd>
-    <dt>Employment type</dt>
-    <dd>{{ worker.get_employment_type_display }}</dd>
-  </dl>
-</section>
+<section class="worker-desktop-page r1-support-page r1-profile">
+  <header class="r1-support-heading">
+    <h1>My Profile</h1>
+    <p>Contact details and participant assignments.</p>
+  </header>
+  <div class="r1-profile-layout">
+    <section class="r1-profile-summary" aria-labelledby="r1-profile-name">
+      <header class="r1-profile-identity">
+        <span class="r1-profile-avatar">{% include "r1/partials/icon.html" with name="support-profile-identity32" size=32 %}</span>
+        <div>
+          <h2 id="r1-profile-name">{{ worker.display_name }}</h2>
+          <p>Read-only profile</p>
+        </div>
+      </header>
+      <h2 class="r1-support-section-heading r1-profile-contact-heading">{% include "r1/partials/icon.html" with name="profile-active" %}Contact details</h2>
+      <dl class="r1-profile-contact">
+        <div>
+          <dt>Email</dt>
+          <dd>{{ worker.email }}</dd>
+        </div>
+        <div>
+          <dt>Phone</dt>
+          <dd>{{ worker.phone|default:"-" }}</dd>
+        </div>
+      </dl>
+      <h2 class="r1-profile-employment-heading">Employment</h2>
+      <dl class="r1-profile-employment">
+        <div>
+          <dt>Status</dt>
+          <dd>{{ worker.get_status_display }}</dd>
+        </div>
+        <div>
+          <dt>Employment type</dt>
+          <dd>{{ worker.get_employment_type_display }}</dd>
+        </div>
+      </dl>
+    </section>
 
-<section class="worker-card worker-profile-assignments worker-desktop-page">
-  <h2>Assigned Participants</h2>
-  <div class="worker-table-scroll">
-    <table>
-      <thead>
-        <tr>
-          <th>Participant</th>
-          <th>Start</th>
-          <th>Status</th>
+    <section class="r1-profile-assignments" aria-labelledby="r1-assignments-heading">
+    <h2 class="r1-support-section-heading" id="r1-assignments-heading">{% include "r1/partials/icon.html" with name="profile-active" %}Assigned Participants</h2>
+    <div class="worker-table-scroll">
+    <table class="r1-assignment-table" role="table" aria-labelledby="r1-assignments-heading">
+      <thead role="rowgroup">
+        <tr role="row">
+          <th scope="col" role="columnheader">Participant</th>
+          <th scope="col" role="columnheader">Start</th>
+          <th scope="col" role="columnheader">Status</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody role="rowgroup">
         {% for assignment in worker.participant_assignments.all %}
           {% if assignment.is_active %}
-            <tr>
-              <td>{{ assignment.participant.display_name }}</td>
-              <td>{{ assignment.start_date|date:"d/m/Y" }}</td>
-              <td>Active</td>
+            <tr role="row">
+              <td role="cell" data-label="Participant">{{ assignment.participant.display_name }}</td>
+              <td role="cell" data-label="Start">{{ assignment.start_date|date:"d/m/Y" }}</td>
+              <td role="cell" data-label="Status" class="r1-assignment-status">Active</td>
             </tr>
           {% endif %}
         {% empty %}
-          <tr>
-            <td colspan="3">No active participants assigned.</td>
+          <tr role="row">
+            <td role="cell" colspan="3">No active participants assigned.</td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
+    </div>
+    </section>
   </div>
+  <form class="r1-profile-mobile-logout" method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button type="submit">Log out</button>
+  </form>
 </section>
 {% endblock %}

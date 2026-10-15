@@ -1,0 +1,25 @@
+{% extends "worker_base.html" %}
+{% load static %}
+
+{% block extra_styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_shell.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_worker_support.css' %}">
+{% endblock %}
+{% block r1_shell_class %} r1-ui r1-worker r1-worker-support{% endblock %}
+{% block sidebar_brand %}BSC<small>Support worker</small>{% endblock %}
+{% block sidebar_account %}
+  <div class="r1-account">
+    <span class="r1-account-name">{% if support_worker %}{{ support_worker.display_name }}{% else %}{{ request.user.get_username }}{% endif %}</span>
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button class="r1-logout" type="submit">{% include "r1/partials/icon.html" with name="support-logout" size=20 %}Logout</button>
+    </form>
+  </div>
+{% endblock %}
+{% block worker_topbar %}{% endblock %}
+{% block bottom_home_icon %}{% include "r1/partials/icon.html" with name="support-home" %}{% endblock %}
+{% block bottom_shifts_icon %}{% if request.resolver_match.url_name == 'worker_participant_cancellation_create' %}{% include "r1/partials/icon.html" with name="shifts-active" %}{% else %}{% include "r1/partials/icon.html" with name="support-shifts" %}{% endif %}{% endblock %}
+{% block bottom_logs_icon %}{% include "r1/partials/icon.html" with name="support-logs" %}{% endblock %}
+{% block bottom_docs_icon %}{% include "r1/partials/icon.html" with name="support-documents" %}{% endblock %}

@@ -1,0 +1,131 @@
+/* B02.3 only: two opt-in pages, independent of navigation and log layouts. */
+.app-shell.r1-worker-support .r1-support-page { display: grid; gap: 28px; width: 100%; min-width: 0; max-width: 1180px; margin: 0 auto; }
+.app-shell.r1-worker-support :is(h1, h2, p, dl, dd) { margin: 0; }
+.app-shell.r1-worker-support :is(h1, h2, p, dt, dd, td, th, a, button, .field) { overflow-wrap: anywhere; }
+.app-shell.r1-worker-support .r1-support-heading { display: grid; gap: 8px; }
+.app-shell.r1-worker-support .r1-support-heading p { color: var(--r1-muted); font-size: 16px; line-height: 24px; }
+.app-shell.r1-worker-support .r1-cancellation h1 { font-size: 32px; line-height: 40px; }
+.app-shell.r1-worker-support .r1-cancellation .r1-support-heading p { font-size: 15px; line-height: 20px; }
+.app-shell.r1-worker-support .r1-support-back { display: flex; align-items: center; gap: 8px; width: fit-content; min-height: 44px; color: var(--r1-accent); font-size: 14px; font-weight: 500; line-height: 20px; }
+.app-shell.r1-worker-support .r1-support-back .r1-icon { width: 20px; height: 20px; }
+.app-shell.r1-worker-support .r1-support-back-mobile { display: none; }
+.app-shell.r1-worker-support .r1-support-section-heading { display: flex; align-items: center; gap: 12px; min-width: 0; font-size: 16px; font-weight: 600; line-height: 24px; }
+.app-shell.r1-worker-support .r1-support-section-heading .r1-icon { width: 24px; height: 24px; }
+
+/* The summary precedes the form in reading order and moves right on desktop. */
+.app-shell.r1-worker-support .r1-cancellation-layout { display: grid; grid-template-columns: minmax(0, 776fr) minmax(0, 320fr); align-items: start; gap: 32px; }
+.app-shell.r1-worker-support .r1-service-context { grid-column: 2; grid-row: 1; display: grid; gap: 12px; min-width: 0; border-radius: 8px; padding: 16px; background: var(--r1-accent-soft); }
+.app-shell.r1-worker-support .r1-service-context h2 { color: var(--r1-muted); font-size: 14px; font-weight: 500; line-height: 20px; }
+.app-shell.r1-worker-support .r1-context-participant { font-size: 20px; font-weight: 600; line-height: 24px; }
+.app-shell.r1-worker-support .r1-service-context dl { display: grid; gap: 12px; }
+.app-shell.r1-worker-support .r1-service-context dl > div { display: grid; gap: 4px; min-width: 0; }
+.app-shell.r1-worker-support .r1-service-context dt { color: var(--r1-muted); font-size: 14px; font-weight: 500; line-height: 20px; }
+.app-shell.r1-worker-support .r1-service-context dd { font-size: 14px; line-height: 20px; }
+.app-shell.r1-worker-support .r1-cancellation-form { grid-column: 1; grid-row: 1; display: grid; gap: 24px; margin: 0; border-radius: 12px; padding: 24px; background: var(--r1-surface); }
+.app-shell.r1-worker-support .r1-report-panel { display: grid; gap: 14px; min-width: 0; }
+.app-shell.r1-worker-support .r1-report-panel .r1-support-section-heading { gap: 8px; }
+.app-shell.r1-worker-support .r1-report-panel .r1-icon { width: 20px; height: 20px; }
+.app-shell.r1-worker-support .participant-cancellation-field-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.app-shell.r1-worker-support .field { display: grid; gap: 8px; min-width: 0; color: var(--r1-text); font-size: 14px; font-weight: 500; line-height: 20px; }
+.app-shell.r1-worker-support .field .r1-field-label { color: var(--r1-text); font-size: 14px; font-weight: 500; line-height: 20px; }
+.app-shell.r1-worker-support .r1-native-control { position: relative; display: block; min-width: 0; }
+.app-shell.r1-worker-support .field :is(input, select, textarea) { display: block; box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; min-height: 48px; margin: 0; border: 1px solid var(--r1-strong-border); border-radius: 8px; padding: 11px 12px; color: var(--r1-text); background: var(--r1-surface); font-size: 16px; font-weight: 400; line-height: 24px; }
+.app-shell.r1-worker-support .field select { appearance: none; padding-right: 44px; }
+.app-shell.r1-worker-support .r1-cancellation-form .field :is(input, select) { height: 48px; min-height: 48px; }
+.app-shell.r1-worker-support .field input[type="datetime-local"] { padding-right: 12px; }
+.app-shell.r1-worker-support .field textarea { height: 128px; min-height: 128px; resize: vertical; }
+.app-shell.r1-worker-support .r1-native-control > .r1-icon { position: absolute; top: 14px; right: 12px; width: 20px; height: 20px; pointer-events: none; background: var(--r1-surface); }
+/* Only the native indicator artwork is transparent; its click target stays native. */
+.app-shell.r1-worker-support input[type="datetime-local"]::-webkit-calendar-picker-indicator { opacity: 0; }
+.app-shell.r1-worker-support .field:has(.errorlist) :is(input, select, textarea) { border-color: var(--r1-danger); }
+.app-shell.r1-worker-support .field .r1-field-help { color: var(--r1-muted); font-size: 14px; font-weight: 400; line-height: 20px; }
+.app-shell.r1-worker-support .errorlist { margin: 0; padding-left: 20px; color: var(--r1-danger); font-size: 14px; font-weight: 400; line-height: 20px; }
+.app-shell.r1-worker-support .r1-support-actions { display: grid; grid-template-columns: minmax(0, 1fr) 120px; gap: 12px; }
+.app-shell.r1-worker-support .r1-support-actions :is(button, .button),
+.app-shell.r1-worker-support .r1-profile-mobile-logout button { display: flex; align-items: center; justify-content: center; width: 100%; min-width: 0; min-height: 48px; border: 1px solid var(--r1-accent); border-radius: 8px; padding: 11px 16px; color: var(--r1-surface); background: var(--r1-accent); font-size: 16px; font-weight: 600; line-height: 24px; text-align: center; white-space: normal; }
+.app-shell.r1-worker-support .r1-support-actions .button.secondary,
+.app-shell.r1-worker-support .r1-profile-mobile-logout button { border-color: var(--r1-border); color: var(--r1-accent); background: var(--r1-surface); }
+.app-shell.r1-worker-support .r1-support-actions button:hover { filter: brightness(.95); }
+.app-shell.r1-worker-support .r1-support-actions .button.secondary:hover,
+.app-shell.r1-worker-support .r1-profile-mobile-logout button:hover { background: var(--r1-subtle); }
+
+.app-shell.r1-worker-support .r1-profile-layout { display: grid; grid-template-columns: minmax(0, 440fr) minmax(0, 656fr); align-items: start; gap: 32px; }
+.app-shell.r1-worker-support :is(.r1-profile-summary, .r1-profile-assignments) { display: grid; min-width: 0; border-radius: 12px; padding: 24px; background: var(--r1-surface); }
+.app-shell.r1-worker-support .r1-profile-summary { gap: 24px; }
+.app-shell.r1-worker-support .r1-profile-identity { display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--r1-border); padding-bottom: 24px; }
+.app-shell.r1-worker-support .r1-profile-avatar { display: flex; flex: 0 0 56px; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; background: var(--r1-accent-soft); }
+.app-shell.r1-worker-support .r1-profile-avatar .r1-icon { width: 32px; height: 32px; }
+.app-shell.r1-worker-support .r1-profile-identity > div { display: grid; gap: 4px; min-width: 0; }
+.app-shell.r1-worker-support .r1-profile-identity h2 { font-size: 24px; font-weight: 600; line-height: 32px; }
+.app-shell.r1-worker-support .r1-profile-identity p { color: var(--r1-muted); font-size: 14px; line-height: 20px; }
+.app-shell.r1-worker-support .r1-profile-contact { display: grid; gap: 24px; border-bottom: 1px solid var(--r1-border); padding-bottom: 24px; }
+.app-shell.r1-worker-support :is(.r1-profile-contact, .r1-profile-employment) > div { display: grid; gap: 6px; min-width: 0; }
+.app-shell.r1-worker-support .r1-profile-summary dt { color: var(--r1-muted); font-size: 14px; font-weight: 500; line-height: 20px; }
+.app-shell.r1-worker-support .r1-profile-summary dd { font-size: 16px; font-weight: 400; line-height: 24px; }
+.app-shell.r1-worker-support .r1-profile-employment { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.app-shell.r1-worker-support .r1-profile-assignments { gap: 20px; }
+.app-shell.r1-worker-support .r1-profile-assignments > h2 { border-bottom: 1px solid var(--r1-border); padding-bottom: 20px; }
+.app-shell.r1-worker-support .r1-assignment-table { width: 100%; min-width: 0; border-collapse: collapse; table-layout: fixed; }
+.app-shell.r1-worker-support .r1-assignment-table :is(th, td) { border: 0; padding: 12px 16px 12px 0; color: var(--r1-text); font-size: 16px; font-weight: 400; line-height: 24px; text-align: left; vertical-align: top; }
+.app-shell.r1-worker-support .r1-assignment-table th { color: var(--r1-muted); background: var(--r1-subtle); font-size: 14px; font-weight: 500; line-height: 20px; }
+.app-shell.r1-worker-support .r1-assignment-table th:nth-child(1) { width: 42%; }
+.app-shell.r1-worker-support .r1-assignment-table th:nth-child(2) { width: 34%; }
+.app-shell.r1-worker-support .r1-assignment-table th:nth-child(3) { width: 24%; }
+.app-shell.r1-worker-support .r1-assignment-table td { padding-top: 32px; }
+.app-shell.r1-worker-support .r1-assignment-table td:first-child { font-weight: 500; }
+.app-shell.r1-worker-support .r1-assignment-table .r1-assignment-status { color: var(--r1-success); font-size: 14px; font-weight: 500; line-height: 20px; }
+.app-shell.r1-worker-support .r1-profile-mobile-logout { display: none; margin: 0; }
+
+/* Exact support exports are isolated from the accepted navigation asset set. */
+.app-shell.r1-worker-support .sidebar-link[href$="/sw/dashboard/"] { --r1-nav-icon: url("../img/r1/icons/support-home.svg"); }
+.app-shell.r1-worker-support .sidebar-link[href$="/sw/shifts/"] { --r1-nav-icon: url("../img/r1/icons/support-shifts.svg"); }
+.app-shell.r1-worker-support .sidebar-link[href$="/sw/logs/"] { --r1-nav-icon: url("../img/r1/icons/support-logs.svg"); }
+.app-shell.r1-worker-support .sidebar-link[href$="/sw/documents/"] { --r1-nav-icon: url("../img/r1/icons/support-documents.svg"); }
+.app-shell.r1-worker-support .sidebar-link[href$="/sw/profile/"] { --r1-nav-icon: url("../img/r1/icons/support-profile.svg"); }
+.app-shell.r1-worker-support .sidebar-link.active[href$="/sw/profile/"] { --r1-nav-icon: url("../img/r1/icons/profile-active.svg"); }
+.app-shell.r1-worker-support .r1-logout .r1-icon { width: 20px; height: 20px; }
+.app-shell.r1-worker-support:has(.r1-cancellation) .sidebar-link[href$="/sw/shifts/"] { --r1-nav-icon: url("../img/r1/icons/shifts-active.svg"); color: var(--r1-accent); background: var(--r1-accent-soft); }
+
+@media (max-width: 980px) {
+  .app-shell.r1-worker-support .r1-support-page { gap: 24px; }
+  .app-shell.r1-worker-support .r1-cancellation h1 { font-size: 24px; line-height: 32px; }
+  .app-shell.r1-worker-support .r1-support-heading { gap: 24px; }
+  .app-shell.r1-worker-support .r1-support-heading p,
+  .app-shell.r1-worker-support .r1-cancellation .r1-support-heading p { font-size: 14px; line-height: 20px; }
+  .app-shell.r1-worker-support .r1-support-back-desktop { display: none; }
+  .app-shell.r1-worker-support .r1-support-back-mobile { display: block; }
+  .app-shell.r1-worker-support .r1-support-back-mobile .r1-icon { width: 12px; height: 12px; }
+  .app-shell.r1-worker-support :is(.r1-cancellation-layout, .r1-profile-layout) { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .app-shell.r1-worker-support :is(.r1-service-context, .r1-cancellation-form) { grid-column: auto; grid-row: auto; }
+  .app-shell.r1-worker-support .r1-service-context { border: 1px solid var(--r1-border); border-radius: 12px; background: var(--r1-surface); }
+  .app-shell.r1-worker-support .r1-service-context h2 { color: var(--r1-text); font-size: 16px; font-weight: 600; line-height: 24px; }
+  .app-shell.r1-worker-support .r1-context-readonly { display: none; }
+  .app-shell.r1-worker-support .r1-context-participant { font-size: 16px; font-weight: 500; line-height: 24px; }
+  .app-shell.r1-worker-support .r1-cancellation-form { gap: 24px; border-radius: 0; padding: 0; background: transparent; }
+  .app-shell.r1-worker-support .r1-report-panel { gap: 12px; border: 1px solid var(--r1-border); border-radius: 12px; padding: 16px; background: var(--r1-surface); }
+  .app-shell.r1-worker-support .r1-report-panel h2 .r1-icon { display: none; }
+  .app-shell.r1-worker-support .participant-cancellation-field-grid { gap: 12px; }
+  .app-shell.r1-worker-support .field { gap: 6px; }
+  .app-shell.r1-worker-support .field textarea { height: 144px; min-height: 144px; }
+  .app-shell.r1-worker-support .r1-native-select > .r1-icon { transform: rotate(90deg); }
+  .app-shell.r1-worker-support .r1-support-actions { grid-template-columns: minmax(0, 1fr); }
+  .app-shell.r1-worker-support :is(.r1-profile-summary, .r1-profile-assignments) { gap: 12px; border: 1px solid var(--r1-border); padding: 16px; }
+  .app-shell.r1-worker-support .r1-profile-identity { border: 0; padding: 0; }
+  .app-shell.r1-worker-support .r1-profile-identity > div { gap: 12px; }
+  .app-shell.r1-worker-support :is(.r1-profile-avatar, .r1-profile-contact-heading, .r1-profile-employment-heading) { display: none; }
+  .app-shell.r1-worker-support .r1-profile-contact { gap: 12px; border: 0; padding: 0; }
+  .app-shell.r1-worker-support .r1-profile-employment { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .app-shell.r1-worker-support .r1-profile-assignments > h2 { border: 0; padding: 0; }
+  .app-shell.r1-worker-support .r1-profile-assignments > h2 .r1-icon { display: none; }
+  /* Keep the original table and header associations when records stack. */
+  .app-shell.r1-worker-support .r1-assignment-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .app-shell.r1-worker-support .r1-assignment-table,
+  .app-shell.r1-worker-support .r1-assignment-table tbody { display: block; }
+  .app-shell.r1-worker-support .r1-assignment-table tr { display: grid; gap: 12px; }
+  .app-shell.r1-worker-support .r1-assignment-table tr + tr { margin-top: 16px; border-top: 1px solid var(--r1-border); padding-top: 16px; }
+  .app-shell.r1-worker-support .r1-assignment-table td,
+  .app-shell.r1-worker-support .r1-assignment-table .r1-assignment-status { display: block; width: 100%; border: 0; padding: 0; color: var(--r1-text); font-size: 16px; font-weight: 400; line-height: 24px; }
+  .app-shell.r1-worker-support .r1-assignment-table td[data-label]::before { display: block; margin-bottom: 6px; color: var(--r1-muted); font-size: 14px; font-weight: 500; line-height: 20px; content: attr(data-label); }
+  .app-shell.r1-worker-support .r1-profile-mobile-logout { display: block; }
+  .app-shell.r1-worker-support:has(.r1-cancellation) .worker-bottom-nav-link[href$="/sw/shifts/"] { color: var(--r1-accent); background: var(--r1-accent-soft); }
+}
