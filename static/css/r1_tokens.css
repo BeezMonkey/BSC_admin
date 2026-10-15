@@ -1,0 +1,46 @@
+/* R1 foundation snapshot (2026-10-13). Opt-in only; never override :root. */
+.r1-ui {
+  --r1-surface: #ffffff;
+  --r1-subtle: #f7f8fa;
+  --r1-text: #17212b;
+  --r1-muted: #526171;
+  --r1-border: #e4e8ee;
+  --r1-strong-border: #8995a5;
+  --r1-accent: #315bcb;
+  --r1-accent-soft: #f0ebff;
+  --r1-blue-soft: #eaf1ff;
+  --r1-success: #246449;
+  --r1-pending: #805313;
+  --r1-billed: #254580;
+  --r1-danger: #a33443;
+  --r1-warning: #805313;
+  --r1-warning-soft: #fffaef;
+  --r1-disabled: #7b8794;
+  --r1-invoiced: #574495;
+  --r1-space-8: 8px;
+  --r1-space-12: 12px;
+  --r1-space-16: 16px;
+  --r1-space-24: 24px;
+  --r1-control-radius: 6px;
+  --r1-control-height: 36px;
+  --r1-row-height: 50px;
+
+  /* Bridge existing components without changing their markup or behavior. */
+  --ink: var(--r1-text);
+  --muted: var(--r1-muted);
+  --line: var(--r1-border);
+  --panel: var(--r1-surface);
+  --surface: var(--r1-surface);
+  --brand: var(--r1-accent);
+  --brand-dark: var(--r1-accent);
+  --brand-soft: var(--r1-accent-soft);
+  --sidebar: var(--r1-surface);
+  --sidebar-text: var(--r1-text);
+  --sidebar-muted: var(--r1-muted);
+  --sidebar-active: var(--r1-accent-soft);
+  --sidebar-active-text: var(--r1-text);
+  --shadow: none;
+  --weight-heading: 600;
+  --weight-label: 500;
+  --weight-action: 500;
+}

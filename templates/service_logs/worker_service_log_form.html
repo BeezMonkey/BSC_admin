@@ -3,6 +3,28 @@
 
 {% block title %}{% if is_unscheduled %}Submit Unscheduled Service{% else %}Complete Service Log{% endif %} - Brisbane Star Care{% endblock %}
 
+{% block extra_styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_shell.css' %}">
+{% endblock %}
+{% block r1_shell_class %} r1-ui r1-worker{% endblock %}
+{% block sidebar_brand %}BSC<small>Support worker</small>{% endblock %}
+{% block sidebar_account %}
+  <div class="r1-account">
+    <span class="r1-account-name">{% if support_worker %}{{ support_worker.display_name }}{% else %}{{ request.user.get_username }}{% endif %}</span>
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button class="r1-logout" type="submit">{% include "r1/partials/icon.html" with name="logout" %}Logout</button>
+    </form>
+  </div>
+{% endblock %}
+{% block worker_topbar %}{% endblock %}
+{% block bottom_home_icon %}{% include "r1/partials/icon.html" with name="home" %}{% endblock %}
+{% block bottom_shifts_icon %}{% include "r1/partials/icon.html" with name="shifts" %}{% endblock %}
+{% block bottom_logs_icon %}{% if request.resolver_match.url_name == 'worker_service_log_create' %}{% include "r1/partials/icon.html" with name="logs-active" %}{% else %}{% include "r1/partials/icon.html" with name="logs" %}{% endif %}{% endblock %}
+{% block bottom_docs_icon %}{% include "r1/partials/icon.html" with name="documents" %}{% endblock %}
+
 {% block content %}
 <section class="worker-card worker-service-log-form-page worker-desktop-page">
   <header class="worker-log-form-header">
