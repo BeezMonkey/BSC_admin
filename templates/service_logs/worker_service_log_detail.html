@@ -1,44 +1,63 @@
-{% extends "worker_base.html" %}
+{% extends "r1/worker_navigation_base.html" %}
 {% load bsc_formatting %}
 
 {% block title %}Service Log - Brisbane Star Care{% endblock %}
 
 {% block content %}
 <section class="worker-card worker-service-log-detail-page worker-desktop-page">
-  <div class="page-header">
-    <div>
-      <h1>{{ service_log.participant.display_name }}</h1>
+  <a class="r1-navigation-back" href="{% url 'worker_log_list' %}">{% include "r1/partials/icon.html" with name="back" %}Back to My Logs</a>
+  <header class="page-header">
+    <div><h1>Service log</h1><p>{{ service_log.participant.display_name }} &middot; {{ service_log.service_date|date:"d/m/Y" }}</p></div>
+    <span class="status-pill status-{{ service_log.status }}">{{ service_log.get_status_display }}</span>
+  </header>
+  <div class="r1-log-detail-workspace">
+    <div class="r1-log-record">
+      <section class="r1-record-section" aria-labelledby="r1-log-service-details">
+        <h2 id="r1-log-service-details">{% include "r1/partials/icon.html" with name="service-details" %}Service details</h2>
+        <dl class="detail-list r1-log-facts">
+          <div><dt>Date</dt><dd>{{ service_log.service_date|date:"d/m/Y" }}</dd></div>
+          <div><dt>Service type</dt><dd>{{ service_log.get_source_display }}</dd></div>
+          <div class="r1-full-width"><dt>Actual time</dt><dd>{{ service_log.actual_start_time|display_time }} - {{ service_log.actual_end_time|display_time }}</dd></div>
+          <div><dt>Actual hours</dt><dd>{{ service_log.actual_hours }}</dd></div>
+          <div><dt>Kilometres</dt><dd>{{ service_log.kilometres }}</dd></div>
+          <div class="r1-visually-hidden"><dt>Status</dt><dd>{{ service_log.get_status_display }}</dd></div>
+        </dl>
+      </section>
+      <section class="r1-record-section" aria-labelledby="r1-log-case-notes">
+        <h2 id="r1-log-case-notes">{% include "r1/partials/icon.html" with name="logs" %}Case notes</h2>
+        <p class="r1-note-content">{{ service_log.case_notes }}</p>
+      </section>
+      <section class="r1-record-section" aria-labelledby="r1-log-worker-notes">
+        <h2 id="r1-log-worker-notes">Worker notes</h2>
+        <dl class="r1-note-list"><dt class="r1-visually-hidden">Worker notes</dt><dd>{{ service_log.worker_notes|default:"-" }}</dd></dl>
+      </section>
     </div>
-    <a class="button secondary" href="{% url 'worker_log_list' %}">Back to My Logs</a>
+    <aside class="r1-log-context" aria-label="Service context and attachments">
+      {% if service_log.source == "unscheduled" %}
+      <section class="r1-record-section" aria-labelledby="r1-log-unscheduled-reason">
+        <h2 id="r1-log-unscheduled-reason">Unscheduled reason</h2>
+        <p class="r1-note-content">{{ service_log.unscheduled_reason }}</p>
+      </section>
+      {% endif %}
+      <section class="r1-record-section" aria-labelledby="r1-log-rejection-reason">
+        <h2 id="r1-log-rejection-reason">Rejection reason</h2>
+        <dl class="r1-note-list"><dt class="r1-visually-hidden">Rejection reason</dt><dd>{{ service_log.rejection_reason|default:"-" }}</dd></dl>
+      </section>
+      <section class="worker-service-log-attachments-page r1-record-section" aria-labelledby="r1-log-attachments">
+        <h2 id="r1-log-attachments">{% include "r1/partials/icon.html" with name="attach" %}Attachments</h2>
+        {% for document in service_log.documents.all %}
+          <a class="list-item" href="{% url 'worker_document_detail' document.id %}">
+            <strong>{{ document.filename }}</strong>
+            <span class="status-pill status-{{ document.review_status }}">{{ document.get_review_status_display }}</span>
+          </a>
+        {% empty %}
+          <div class="empty-state">
+            <strong>No attachments.</strong>
+            <p>Any files submitted with this service log will appear here.</p>
+          </div>
+        {% endfor %}
+      </section>
+    </aside>
   </div>
-  <dl class="detail-list">
-    <dt>Date</dt><dd>{{ service_log.service_date|date:"d/m/Y" }}</dd>
-    <dt>Status</dt><dd>{{ service_log.get_status_display }}</dd>
-    <dt>Service type</dt><dd>{{ service_log.get_source_display }}</dd>
-    <dt>Actual time</dt><dd>{{ service_log.actual_start_time|display_time }} - {{ service_log.actual_end_time|display_time }}</dd>
-    <dt>Actual hours</dt><dd>{{ service_log.actual_hours }}</dd>
-    <dt>Kilometres</dt><dd>{{ service_log.kilometres }}</dd>
-    <dt>Case notes</dt><dd>{{ service_log.case_notes }}</dd>
-    <dt>Worker notes</dt><dd>{{ service_log.worker_notes|default:"-" }}</dd>
-    {% if service_log.source == "unscheduled" %}
-      <dt>Unscheduled reason</dt><dd>{{ service_log.unscheduled_reason }}</dd>
-    {% endif %}
-    <dt>Rejection reason</dt><dd>{{ service_log.rejection_reason|default:"-" }}</dd>
-  </dl>
-</section>
-
-<section class="worker-card worker-service-log-attachments-page worker-desktop-page">
-  <h2>Attachments</h2>
-  {% for document in service_log.documents.all %}
-    <a class="list-item" href="{% url 'worker_document_detail' document.id %}">
-      <strong>{{ document.filename }}</strong>
-      <span>{{ document.get_review_status_display }}</span>
-    </a>
-  {% empty %}
-    <div class="empty-state">
-      <strong>No attachments.</strong>
-      <p>Any files submitted with this service log will appear here.</p>
-    </div>
-  {% endfor %}
 </section>
 {% endblock %}

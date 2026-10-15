@@ -1,10 +1,11 @@
-{% extends "worker_base.html" %}
+{% extends "r1/worker_navigation_base.html" %}
 
 {% block title %}My Shifts - Brisbane Star Care{% endblock %}
 
 {% block content %}
 <section class="worker-card worker-shift-page worker-desktop-page">
   <h1>My Shifts</h1>
+  <p class="r1-shift-overview">{{ shifts|length }} shift{{ shifts|length|pluralize }} &middot; {{ upcoming_count }} confirmed &middot; {{ completed_count }} completed</p>
 
   <div class="worker-shift-toolbar">
     <div class="shift-summary" aria-label="Shift summary">
@@ -23,34 +24,43 @@
     </div>
 
     <nav class="shift-filter-nav" aria-label="Shift view filters">
-      <a class="{% if selected_view == 'all' %}filter-active{% endif %}" href="?view=all"{% if selected_view == 'all' %} aria-current="page"{% endif %}>All</a>
-      <a class="{% if selected_view == 'needs_attention' %}filter-active{% endif %}" href="?view=needs_attention"{% if selected_view == 'needs_attention' %} aria-current="page"{% endif %}>Needs attention</a>
-      <a class="{% if selected_view == 'upcoming' %}filter-active{% endif %}" href="?view=upcoming"{% if selected_view == 'upcoming' %} aria-current="page"{% endif %}>Upcoming</a>
-      <a class="{% if selected_view == 'completed' %}filter-active{% endif %}" href="?view=completed"{% if selected_view == 'completed' %} aria-current="page"{% endif %}>Completed</a>
+      <a class="{% if selected_view == 'all' %}filter-active{% endif %}" href="?view=all"{% if selected_view == 'all' %} aria-current="page"{% endif %}>All <span class="r1-filter-count">{{ shifts|length }}</span></a>
+      <a class="{% if selected_view == 'needs_attention' %}filter-active{% endif %}" href="?view=needs_attention"{% if selected_view == 'needs_attention' %} aria-current="page"{% endif %}>Needs attention <span class="r1-filter-count">{{ needs_attention_count }}</span></a>
+      <a class="{% if selected_view == 'upcoming' %}filter-active{% endif %}" href="?view=upcoming"{% if selected_view == 'upcoming' %} aria-current="page"{% endif %}>Upcoming <span class="r1-filter-count">{{ upcoming_count }}</span></a>
+      <a class="{% if selected_view == 'completed' %}filter-active{% endif %}" href="?view=completed"{% if selected_view == 'completed' %} aria-current="page"{% endif %}>Completed <span class="r1-filter-count">{{ completed_count }}</span></a>
     </nav>
   </div>
 
   {% if shifts %}
+    <table class="r1-navigation-table r1-shift-table" aria-label="My Shifts">
+      <thead><tr><th scope="col">Date</th><th scope="col">Participant</th><th scope="col">Scheduled time</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
     {% if visible_shift_groups.needs_attention %}
-      <h2 class="shift-section-title">Needs attention</h2>
+      <tbody aria-labelledby="r1-shifts-attention">
+      <tr class="r1-group-heading"><td colspan="5"><h2 class="shift-section-title" id="r1-shifts-attention">Needs attention</h2></td></tr>
       {% for shift in visible_shift_groups.needs_attention %}
         {% include "scheduling/worker_shift_list_item.html" with shift=shift tone="attention" %}
       {% endfor %}
+      </tbody>
     {% endif %}
 
     {% if visible_shift_groups.upcoming %}
-      <h2 class="shift-section-title">Upcoming</h2>
+      <tbody aria-labelledby="r1-shifts-upcoming">
+      <tr class="r1-group-heading"><td colspan="5"><h2 class="shift-section-title" id="r1-shifts-upcoming">Upcoming</h2></td></tr>
       {% for shift in visible_shift_groups.upcoming %}
         {% include "scheduling/worker_shift_list_item.html" with shift=shift tone="upcoming" %}
       {% endfor %}
+      </tbody>
     {% endif %}
 
     {% if visible_shift_groups.completed %}
-      <h2 class="shift-section-title">Completed</h2>
+      <tbody aria-labelledby="r1-shifts-completed">
+      <tr class="r1-group-heading"><td colspan="5"><h2 class="shift-section-title" id="r1-shifts-completed">Completed</h2></td></tr>
       {% for shift in visible_shift_groups.completed %}
         {% include "scheduling/worker_shift_list_item.html" with shift=shift tone="past" %}
       {% endfor %}
+      </tbody>
     {% endif %}
+    </table>
   {% else %}
     <div class="empty-state">
       <strong>No shifts found.</strong>

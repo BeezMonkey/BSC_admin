@@ -124,9 +124,19 @@ class R1ShellIsolationTests(TestCase):
                 self.assertNotIn("r1_shell.css", html)
                 self.assertNotIn("r1-ui", html)
 
-    def test_other_worker_and_admin_pages_do_not_opt_in(self):
+    def test_navigation_pages_opt_in_but_other_worker_and_admin_pages_do_not(self):
+        self.client.force_login(self.worker_user)
+        navigation_urls = [reverse(name) for name in
+                           ("worker_dashboard", "worker_log_list", "worker_shift_list")]
+        navigation_urls += [reverse("worker_shift_detail", args=[self.shift.pk]),
+                            reverse("worker_service_log_detail", args=[self.log.pk])]
+        for url in navigation_urls:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assert_r1_resources(response, "worker")
+                self.assertContains(response, "r1_worker_navigation.css", count=1)
         for user, routes in (
-            (self.worker_user, ("worker_dashboard", "worker_log_list", "worker_shift_list")),
+            (self.worker_user, ("worker_document_list", "worker_profile")),
             (self.admin, ("admin_dashboard", "roster_planner", "invoice_placeholder", "service_log_list")),
         ):
             self.client.force_login(user)

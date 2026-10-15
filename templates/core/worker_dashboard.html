@@ -1,4 +1,4 @@
-{% extends "worker_base.html" %}
+{% extends "r1/worker_navigation_base.html" %}
 
 {% block title %}Worker Dashboard - Brisbane Star Care{% endblock %}
 
@@ -6,28 +6,28 @@
 <section class="worker-content worker-dashboard-page worker-desktop-page">
   <header class="page-header">
     <div>
-      <h1>Home <span class="worker-title-user">| {% if support_worker %}{{ support_worker.display_name }}{% else %}{{ request.user.get_username }}{% endif %}</span></h1>
-      <p>Check what needs your attention before your next shift.</p>
+      <h1>Hello, <span class="worker-title-user">{% if support_worker %}{{ support_worker.display_name }}{% else %}{{ request.user.get_username }}{% endif %}</span></h1>
+      <p>Your support work, at a glance</p>
     </div>
   </header>
-  <section class="card worker-action-summary worker-priority-panel">
-    <div>
-      <h2>Shift action summary</h2>
-      <p>Jump straight to the roster items that need your next step.</p>
-    </div>
+  <section class="card worker-action-summary worker-priority-panel" aria-label="Shift action summary">
     {% if has_shift_actions %}
     <div class="action-summary-grid">
-      <a class="action-summary-item needs-attention" href="{% url 'worker_shift_list' %}?view=needs_attention">
-        <strong>{{ needs_attention_count }} needs attention</strong>
-        <span>New shifts to confirm</span>
+      <a class="action-summary-item needs-attention" href="{% url 'worker_shift_list' %}?view=needs_attention" aria-label="{{ needs_attention_count }} needs attention">
+        <strong>{{ needs_attention_count }}</strong>
+        <span>Needs attention</span>
+        <span class="r1-summary-description">New shifts to confirm</span>
       </a>
-      <a class="action-summary-item ready-for-log" href="{% url 'worker_shift_list' %}?view=upcoming">
-        <strong>{{ ready_for_log_count }} ready for log</strong>
-        <span>Confirmed shifts to complete</span>
+      <a class="action-summary-item ready-for-log" href="{% url 'worker_shift_list' %}?view=upcoming" aria-label="{{ ready_for_log_count }} ready for log">
+        <strong>{{ ready_for_log_count }}<span class="r1-mobile-summary-title"> shift{{ ready_for_log_count|pluralize }} ready for log</span></strong>
+        <span>Ready for log</span>
+        <span class="r1-summary-description">Confirmed shifts to complete</span>
+        <span class="r1-summary-go">Go to My Shifts</span>
       </a>
-      <a class="action-summary-item completed" href="{% url 'worker_shift_list' %}?view=completed">
-        <strong>{{ completed_shift_count }} completed</strong>
-        <span>Finished or closed shifts</span>
+      <a class="action-summary-item completed" href="{% url 'worker_shift_list' %}?view=completed" aria-label="{{ completed_shift_count }} completed">
+        <strong>{{ completed_shift_count }}</strong>
+        <span>Completed</span>
+        <span class="r1-summary-description">Finished or closed shifts</span>
       </a>
     </div>
     {% else %}
@@ -37,35 +37,38 @@
     </div>
     {% endif %}
   </section>
-  <section class="card worker-unscheduled-service-card">
-    <div>
-      <h2>Unscheduled Service</h2>
-      <p>Submit completed support that was not already on your roster.</p>
-    </div>
-    <a class="button worker-unscheduled-service-action" href="{% url 'worker_unscheduled_service_log_create' %}">
-      Submit Unscheduled Service
-    </a>
-  </section>
-  <div class="card-grid worker-dashboard-grid worker-tool-grid">
-    <section class="card worker-tool-card">
-      <h2>My Shifts</h2>
-      <p>View rostered shifts and confirm assigned work.</p>
-      <a class="card-action" href="{% url 'worker_shift_list' %}">Open shifts</a>
+  <div class="r1-home-workspace">
+    <section class="r1-quick-access" aria-labelledby="r1-quick-access-heading">
+      <h2 id="r1-quick-access-heading">Quick access</h2>
+      <div class="card-grid worker-dashboard-grid worker-tool-grid">
+        <section class="card worker-tool-card">
+          {% include "r1/partials/icon.html" with name="shifts-active" %}
+          <div><h2>My Shifts</h2><p>View your scheduled work</p></div>
+          <a class="card-action" href="{% url 'worker_shift_list' %}" aria-label="Open shifts">{% include "r1/partials/icon.html" with name="chevron" %}<span class="r1-visually-hidden">Open shifts</span></a>
+        </section>
+        <section class="card worker-tool-card">
+          {% include "r1/partials/icon.html" with name="logs-active" %}
+          <div><h2>My Logs</h2><p>Check your service records</p></div>
+          <a class="card-action" href="{% url 'worker_log_list' %}" aria-label="Open logs">{% include "r1/partials/icon.html" with name="chevron" %}<span class="r1-visually-hidden">Open logs</span></a>
+        </section>
+        <section class="card worker-tool-card">
+          {% include "r1/partials/icon.html" with name="documents-active" %}
+          <div><h2>My Documents</h2><p>Manage compliance documents</p></div>
+          <a class="card-action" href="{% url 'worker_document_list' %}" aria-label="Open documents">{% include "r1/partials/icon.html" with name="chevron" %}<span class="r1-visually-hidden">Open documents</span></a>
+        </section>
+        <section class="card worker-tool-card">
+          {% include "r1/partials/icon.html" with name="profile-active" %}
+          <div><h2>Profile</h2><p>View your worker details</p></div>
+          <a class="card-action" href="{% url 'worker_profile' %}" aria-label="Open profile">{% include "r1/partials/icon.html" with name="chevron" %}<span class="r1-visually-hidden">Open profile</span></a>
+        </section>
+      </div>
     </section>
-    <section class="card worker-tool-card">
-      <h2>My Logs</h2>
-      <p>Create and review service logs for completed support work.</p>
-      <a class="card-action" href="{% url 'worker_log_list' %}">Open logs</a>
-    </section>
-    <section class="card worker-tool-card">
-      <h2>My Documents</h2>
-      <p>Access documents shared with your worker account.</p>
-      <a class="card-action" href="{% url 'worker_document_list' %}">Open documents</a>
-    </section>
-    <section class="card worker-tool-card">
-      <h2>Profile</h2>
-      <p>Check your contact, employment, and status details.</p>
-      <a class="card-action" href="{% url 'worker_profile' %}">Open profile</a>
+    <section class="card worker-unscheduled-service-card">
+      <div>
+        <h2>Worked outside a scheduled shift?</h2>
+        <p>Submit an unscheduled service for review.</p>
+      </div>
+      <a class="button worker-unscheduled-service-action" href="{% url 'worker_unscheduled_service_log_create' %}">Submit Unscheduled Service</a>
     </section>
   </div>
 </section>
