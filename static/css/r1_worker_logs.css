@@ -104,9 +104,32 @@
 .r1-worker.r1-ui .r1-log-page textarea { height: 128px; min-height: 128px; resize: vertical; }
 .r1-worker.r1-ui .r1-log-page #id_worker_notes { height: 96px; min-height: 96px; }
 .r1-worker.r1-ui .r1-log-page #id_unscheduled_reason { height: 104px; min-height: 104px; }
+
+.r1-worker.r1-ui .r1-log-page .date-time-picker-trigger:hover { box-shadow: none; }
+.r1-worker.r1-ui .r1-log-page :is(input:not([type="hidden"]):not([type="file"]), select, textarea, .date-time-picker-trigger, .support-item-picker-trigger):is(:focus, :focus-visible, [aria-expanded="true"]):where(:not(:disabled):not([aria-disabled="true"])) {
+  border-color: var(--r1-log-focus-color, var(--r1-accent));
+  outline: 3px solid var(--r1-log-focus-ring, var(--r1-blue-soft));
+  outline-offset: 0;
+  box-shadow: none;
+}
+
 .r1-worker.r1-ui .r1-log-page .field:has(.errorlist, .field-error) :is(input:not([type="hidden"]), select, textarea, .date-time-picker-trigger),
-.r1-worker.r1-ui .r1-log-page .support-item-picker .support-item-picker-trigger.has-error { border: 2px solid var(--r1-danger); }
+.r1-worker.r1-ui .r1-log-page .support-item-picker .support-item-picker-trigger.has-error {
+  --r1-log-focus-color: var(--r1-danger);
+  --r1-log-focus-ring: rgba(163, 52, 67, .16);
+  border: 2px solid var(--r1-danger);
+}
 .r1-worker.r1-ui .r1-log-page :is(.errorlist, .field-error) { margin: 0; color: var(--r1-danger); font-size: 14px; font-weight: 500; line-height: 20px; overflow-wrap: anywhere; }
+.r1-worker.r1-ui .r1-log-page :is(input:not([type="hidden"]):not([type="file"]), select, textarea, .date-time-picker-trigger, .support-item-picker-trigger):is(:disabled, [aria-disabled="true"]) {
+  border-color: var(--r1-border);
+  color: var(--r1-disabled);
+  background: var(--r1-subtle);
+  outline: none;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.r1-log-page :is(.support-item-picker-group, .support-item-picker-option):is(:hover, :focus),
+.r1-log-page .support-item-picker-option[aria-selected="true"] { background: var(--r1-blue-soft); }
 
 .r1-worker.r1-ui .r1-log-page .worker-attachment-picker { gap: 12px; border: 0; border-radius: 0; padding: 0; background: transparent; }
 .r1-worker.r1-ui .r1-log-page .worker-attachment-native-field > span { color: var(--r1-muted); font-size: 14px; font-weight: 400; line-height: 20px; }
