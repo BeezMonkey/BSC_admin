@@ -113,6 +113,7 @@
 .r1-worker.r1-ui .r1-log-page .worker-attachment-add { width: 100%; min-height: 48px; border: 1px solid var(--r1-border); border-radius: 8px; padding: 11px 16px; color: var(--r1-accent); background: var(--r1-surface); font-size: 16px; font-weight: 600; line-height: 24px; }
 .r1-worker.r1-ui .r1-log-page .worker-attachment-add:disabled { color: var(--r1-disabled); background: var(--r1-subtle); }
 .r1-log-page .worker-attachment-status { margin: 0; color: var(--r1-muted); font-size: 14px; }
+.r1-worker.r1-ui .r1-log-page .worker-attachment-list button { min-height: 48px; padding: 11px 12px; font-size: 16px; line-height: 24px; }
 .r1-log-page .worker-attachment-feedback:empty,
 .r1-log-page .worker-attachment-list:empty { display: none; }
 .r1-log-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
