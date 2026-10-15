@@ -85,6 +85,22 @@ class R1WorkerLogContractTests(TestCase):
                 self.assertLess(styles.index(static("css/r1_shell.css")),
                                 styles.index(static("css/r1_worker_logs.css")))
 
+    def test_picker_guidance_stays_in_time_popovers_without_extra_hint_rows(self):
+        for unscheduled, url in self.routes():
+            with self.subTest(unscheduled=unscheduled):
+                _, form = self.form_tree(self.client.get(url))
+                pickers = [node for node in elements(form)
+                           if dict(node.attributes).get("data-date-time-picker")]
+                self.assertEqual(len(pickers), 3 if unscheduled else 2)
+                for picker in pickers:
+                    self.assertFalse(any(
+                        "date-time-picker-hint" in dict(node.attributes).get("class", "").split()
+                        for node in elements(picker)
+                    ))
+                    if dict(picker.attributes)["data-date-time-picker"] == "time":
+                        hint = self.with_class(picker, "r1-time-hint")
+                        self.assertIn("5-minute intervals", str(hint))
+
     def test_form_stylesheet_does_not_leak_to_other_routes(self):
         for user, urls in (
             (self.worker_user, [reverse(name) for name in

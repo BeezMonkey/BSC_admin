@@ -79,9 +79,11 @@
 .r1-worker.r1-ui .r1-log-section:first-of-type { border-top: 0; padding-top: 0; }
 .r1-worker.r1-ui .r1-log-section h2 { display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0; font-size: 16px; font-weight: 600; line-height: 24px; }
 .r1-worker.r1-ui .r1-log-page .worker-log-field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 12px; }
+.r1-worker.r1-ui .r1-log-page .worker-unscheduled-detail-grid { column-gap: 16px; }
 .r1-worker.r1-ui .r1-log-page .worker-log-notes-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
 .r1-worker.r1-ui .r1-log-page .field { gap: 8px; margin: 0; color: var(--r1-text); font-size: 14px; font-weight: 500; line-height: 20px; }
-.r1-field-meta { font-weight: 400; }
+.r1-worker.r1-ui .r1-log-page .field:not(.worker-attachment-native-field) > :is(span:not(.field-error), label) { font-size: 14px; font-weight: 500; line-height: 20px; }
+.r1-worker.r1-ui .r1-log-page .r1-field-meta { font-size: inherit; font-weight: 400; line-height: inherit; }
 .r1-worker.r1-ui .r1-log-page :is(.r1-log-hint, .date-time-picker-hint) { margin: 0; color: var(--r1-muted); font-size: 14px; font-weight: 400; line-height: 20px; }
 
 .r1-worker.r1-ui .r1-log-page :is(input:not([type="hidden"]):not([type="file"]), select, textarea, .date-time-picker-trigger, .support-item-picker-trigger) {
@@ -98,9 +100,12 @@
   line-height: 24px;
 }
 
+.r1-worker.r1-ui .r1-log-page .date-time-picker-trigger { min-width: 0; gap: 8px; }
 .r1-worker.r1-ui .r1-log-page .date-time-picker-trigger svg { flex-shrink: 0; width: 20px; height: 20px; }
 .r1-worker.r1-ui .r1-log-page .support-item-picker-trigger { height: auto; text-align: left; }
 .r1-worker.r1-ui .r1-log-page .support-item-picker-trigger-label { white-space: normal; overflow-wrap: anywhere; }
+.r1-worker.r1-ui .r1-log-page :is([data-picker-display], .support-item-picker-trigger-label) { font-size: 16px; font-weight: 400; line-height: 24px; }
+.r1-worker.r1-ui .r1-log-page [data-picker-display] { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .r1-worker.r1-ui .r1-log-page textarea { height: 128px; min-height: 128px; resize: vertical; }
 .r1-worker.r1-ui .r1-log-page #id_worker_notes { height: 96px; min-height: 96px; }
 .r1-worker.r1-ui .r1-log-page #id_unscheduled_reason { height: 104px; min-height: 104px; }
@@ -176,6 +181,7 @@
   .r1-worker.r1-ui .r1-log-page .worker-unscheduled-detail-grid { grid-template-columns: minmax(0, 1fr); }
   .r1-worker.r1-ui .r1-log-page .worker-log-field-grid { gap: 12px; }
   .r1-worker.r1-ui .r1-log-page .field { gap: 6px; }
+  .r1-worker.r1-ui .r1-log-page .worker-log-field-grid .field { gap: 8px; }
   .r1-worker.r1-ui .r1-log-page #id_case_notes { height: 144px; min-height: 144px; }
   .r1-worker.r1-ui .r1-log-page #id_worker_notes { height: 112px; min-height: 112px; }
   .r1-worker.r1-ui .r1-log-page #id_unscheduled_reason { height: 128px; min-height: 128px; }
