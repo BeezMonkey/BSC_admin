@@ -129,7 +129,7 @@
 /* The shared JS assumes 32px wheel rows; changing their height changes selection. */
 .r1-worker.r1-ui .r1-log-page .time-wheel-option.selected { color: var(--r1-accent); }
 .r1-worker.r1-ui .r1-log-page .r1-time-hint { margin: 12px 0; color: var(--r1-muted); font-size: 14px; line-height: 20px; }
-.r1-worker.r1-ui .r1-log-page .time-picker-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0; }
+.r1-worker.r1-ui .r1-log-page .time-picker-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; border-top: 0; padding: 0; }
 .r1-worker.r1-ui .r1-log-page .time-picker-footer button { min-height: 48px; border: 1px solid var(--r1-border); border-radius: 8px; padding: 11px 12px; color: var(--r1-accent); font-size: 16px; font-weight: 600; line-height: 24px; }
 .r1-worker.r1-ui .r1-log-page .time-picker-footer [data-time-apply] { border-color: var(--r1-accent); color: var(--r1-surface); background: var(--r1-accent); }
 
