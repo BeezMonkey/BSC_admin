@@ -51,12 +51,17 @@
     </section>
   {% else %}
     <section class="date-time-picker-popover time-picker-popover" data-picker-popover hidden role="dialog" aria-label="Choose {{ field.label|lower }}">
+      {% if r1_log_ui %}
+      <h3 class="r1-time-heading">{{ field.label }}</h3>
+      <div class="r1-time-labels" aria-hidden="true"><span>Hour</span><span>Minute</span><span>Period</span></div>
+      {% endif %}
       <div class="time-wheel-stage">
         <div class="time-wheel-highlight" aria-hidden="true"></div>
         <div class="time-wheel-column" data-wheel-part="hour" aria-label="Hour"></div>
         <div class="time-wheel-column" data-wheel-part="minute" aria-label="Minute"></div>
         <div class="time-wheel-column" data-wheel-part="period" aria-label="AM or PM"></div>
       </div>
+      {% if r1_log_ui %}<p class="r1-time-hint">12-hour time &middot; 5-minute intervals</p>{% endif %}
       <footer class="time-picker-footer">
         <button type="button" data-time-cancel>Cancel</button>
         <button type="button" data-time-apply>OK</button>
