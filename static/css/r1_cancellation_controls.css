@@ -1,0 +1,79 @@
+/* B02.3 controls: cancellation only; profile, log and shared picker CSS stay intact. */
+.app-shell.r1-worker-support .r1-cancellation [hidden] { display: none !important; }
+.app-shell.r1-worker-support .r1-cancellation .field :is(input, select, textarea, .r1-cancellation-datetime-trigger):is(:focus, :focus-visible, [aria-expanded="true"]):where(:not(:disabled)) {
+  border-color: var(--r1-cancellation-focus, var(--r1-accent));
+  outline: 3px solid var(--r1-cancellation-ring, var(--r1-blue-soft));
+  outline-offset: 0;
+  box-shadow: none;
+}
+.app-shell.r1-worker-support .r1-cancellation .field:has(.errorlist) > :is(.r1-native-control, textarea),
+.app-shell.r1-worker-support .r1-cancellation .field:has(.errorlist, .r1-cancellation-invalid:not([hidden])) {
+  --r1-cancellation-focus: var(--r1-danger);
+  --r1-cancellation-ring: rgba(163, 52, 67, .16);
+}
+.app-shell.r1-worker-support .r1-cancellation .field:has(.errorlist, .r1-cancellation-invalid:not([hidden])) :is(input, select, textarea, .r1-cancellation-datetime-trigger):where(:not(:disabled)) { border: 2px solid var(--r1-danger); }
+.app-shell.r1-worker-support .r1-cancellation .field :is(input, select, textarea, .r1-cancellation-datetime-trigger):disabled {
+  border-color: var(--r1-border); color: var(--r1-disabled); background: var(--r1-subtle); outline: none; box-shadow: none; cursor: not-allowed;
+}
+.app-shell.r1-worker-support .r1-cancellation .field select:required:invalid:where(:not(:disabled)) { color: var(--r1-muted); font-size: 14px; }
+.app-shell.r1-worker-support .r1-cancellation .field select option { color: var(--r1-text); font-size: 16px; }
+.app-shell.r1-worker-support .r1-cancellation .field select option[value=""] { color: var(--r1-muted); font-size: 14px; }
+.app-shell.r1-worker-support .r1-cancellation [data-cancellation-datetime] { position: relative; }
+.app-shell.r1-worker-support .r1-cancellation [data-cancellation-datetime].is-enhanced [data-cancellation-native] {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); opacity: 0; pointer-events: none;
+}
+.app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-trigger {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; box-sizing: border-box;
+  width: 100%; min-width: 0; height: 48px; margin: 0; border: 1px solid var(--r1-strong-border); border-radius: 8px;
+  padding: 11px 12px; background: var(--r1-surface); color: var(--r1-text); font-size: 16px; font-weight: 400; line-height: 24px; text-align: left; box-shadow: none;
+}
+.app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-trigger .r1-icon { flex: 0 0 20px; width: 20px; height: 20px; }
+.app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-trigger.is-empty { color: var(--r1-muted); font-size: 14px; }
+.app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-trigger [data-cancellation-display] { color: inherit; font-size: inherit; font-weight: inherit; line-height: inherit; }
+.app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover {
+  position: fixed; z-index: 120; display: grid; gap: 12px; box-sizing: border-box; width: 320px;
+  overflow: auto; overscroll-behavior: contain; border: 1px solid var(--r1-border); border-radius: 8px; padding: 12px;
+  background: var(--r1-surface); color: var(--r1-text); box-shadow: 0 8px 24px rgba(0, 0, 0, .15);
+}
+/* Outrank the shared calendar's fixed popover and mobile positioning rules. */
+.app-shell.r1-worker-support .r1-cancellation [data-date-time-picker="date"] [data-picker-popover] {
+  position: static; display: block; width: auto; min-width: 0; max-width: none; max-height: none; margin: 0;
+  inset: auto; transform: none; overflow: visible; border: 0; border-radius: 0; padding: 0; background: transparent; box-shadow: none;
+}
+.app-shell.r1-worker-support .r1-cancellation .calendar-picker-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 8px; }
+.app-shell.r1-worker-support .r1-cancellation .calendar-picker-header strong { font-size: 14px; font-weight: 600; }
+.app-shell.r1-worker-support .r1-cancellation .calendar-picker-navigation { display: flex; gap: 4px; }
+.app-shell.r1-worker-support .r1-cancellation :is(.calendar-picker-weekdays, .calendar-picker-grid) { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
+.app-shell.r1-worker-support .r1-cancellation .calendar-picker-weekdays span { font-size: 12px; font-weight: 400; text-align: center; }
+.app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover button {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 0; min-height: 36px; margin: 0;
+  border: 1px solid transparent; border-radius: 4px; padding: 4px 8px; background: var(--r1-surface); color: var(--r1-text);
+  font-size: 14px; font-weight: 500; line-height: 20px; box-shadow: none;
+}
+.app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover .calendar-day { width: 100%; height: 36px; padding: 0; }
+.app-shell.r1-worker-support .r1-cancellation .calendar-day.outside { color: var(--r1-muted); }
+.app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover button:hover { background: var(--r1-blue-soft); }
+.app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover .calendar-day.selected,
+.app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover [data-cancellation-datetime-apply] { background: var(--r1-accent); color: var(--r1-surface); }
+.app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover button:focus-visible { outline: 3px solid var(--r1-blue-soft); outline-offset: 0; border-color: var(--r1-accent); }
+.app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover button:disabled { color: var(--r1-disabled); background: var(--r1-subtle); cursor: not-allowed; }
+.app-shell.r1-worker-support .r1-cancellation .date-picker-footer { display: flex; justify-content: flex-end; margin-top: 4px; }
+.app-shell.r1-worker-support .r1-cancellation .r1-cancellation-time { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.app-shell.r1-worker-support .r1-cancellation .r1-cancellation-time label { display: grid; gap: 4px; font-size: 14px; font-weight: 400; }
+.app-shell.r1-worker-support .r1-cancellation .r1-cancellation-time select { appearance: auto; height: 40px; min-height: 40px; padding: 6px; font-size: 16px; }
+.app-shell.r1-worker-support .r1-cancellation .r1-cancellation-picker-actions { display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--r1-border); padding-top: 8px; }
+.app-shell.r1-worker-support .r1-cancellation [data-cancellation-datetime-clear] { margin-right: auto; }
+.app-shell.r1-worker-support .r1-cancellation .r1-cancellation-invalid { color: var(--r1-danger); font-size: 14px; font-weight: 400; line-height: 20px; }
+.app-shell.r1-worker-support .r1-cancellation [data-cancellation-datetime] > :is(.r1-field-help, div[id$="_errors"]):empty { display: none; }
+.app-shell.r1-worker-support .r1-cancellation [data-cancellation-datetime] > div[id$="_errors"]:not(:has(.errorlist, .r1-cancellation-invalid:not([hidden]))) { display: none; }
+/* Keep both date and minute controls visible in the combined, anchored dialog. */
+.app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover { gap: 8px; }
+.app-shell.r1-worker-support .r1-cancellation .calendar-picker-header { min-height: 32px; padding: 0; margin-bottom: 4px; }
+.app-shell.r1-worker-support .r1-cancellation .calendar-picker-weekdays { padding: 4px 0; }
+.app-shell.r1-worker-support .r1-cancellation .calendar-picker-grid { padding: 4px 0; }
+.app-shell.r1-worker-support .r1-cancellation .date-picker-footer button { min-height: 28px; padding: 2px 8px; }
+@media (max-width: 700px) {
+  .app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .15), 0 0 0 100vmax rgba(23, 33, 43, .28);
+  }
+}
