@@ -78,6 +78,32 @@
   }
 }
 
+/* Compact desktop dialog without changing the shared calendar or touch targets. */
+@media (min-width: 701px) and (hover: hover) and (pointer: fine) {
+  .app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover { max-width: 288px; padding: 10px; gap: 6px; }
+  .app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover .calendar-picker-header { min-height: 28px; margin-bottom: 2px; }
+  .app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover .calendar-picker-header strong { font-size: 13px; }
+  .app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover .calendar-picker-weekdays { padding: 2px 0; }
+  .app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover .calendar-picker-weekdays span { font-size: 11px; }
+  .app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover .calendar-picker-grid { padding: 2px 0; }
+  .app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover .calendar-day { height: 32px; min-height: 32px; font-size: 13px; }
+  .app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover .date-picker-footer { margin-top: 2px; }
+  .app-shell.r1-worker-support .r1-cancellation .r1-cancellation-datetime-popover .date-picker-footer button { min-height: 24px; font-size: 12px; line-height: 18px; }
+  .app-shell.r1-worker-support .r1-cancellation .r1-cancellation-time { gap: 6px; }
+  .app-shell.r1-worker-support .r1-cancellation .r1-cancellation-time label { gap: 3px; font-size: 12px; line-height: 18px; }
+  .app-shell.r1-worker-support .r1-cancellation .r1-cancellation-time select { height: 36px; min-height: 36px; padding: 4px 6px; font-size: 14px; }
+  .app-shell.r1-worker-support .r1-cancellation .r1-cancellation-picker-actions { gap: 6px; padding-top: 6px; }
+  .app-shell.r1-worker-support .r1-cancellation .r1-cancellation-picker-actions button { min-height: 32px; font-size: 13px; }
+}
+@media (max-width: 980px) {
+  .app-shell.r1-worker-support .r1-cancellation .r1-service-context { padding: 14px; gap: 8px; background: var(--r1-accent-soft); border-color: transparent; }
+  .app-shell.r1-worker-support .r1-cancellation .r1-service-context h2 { font-size: 14px; line-height: 20px; }
+  .app-shell.r1-worker-support .r1-cancellation .r1-context-participant { line-height: 22px; }
+  .app-shell.r1-worker-support .r1-cancellation .r1-service-context dl { gap: 6px; }
+  .app-shell.r1-worker-support .r1-cancellation .r1-service-context dl > div { grid-template-columns: 104px minmax(0, 1fr); gap: 4px 8px; align-items: start; }
+  .app-shell.r1-worker-support .r1-cancellation .r1-service-context :is(dt, dd) { min-width: 0; font-size: 13px; line-height: 20px; }
+}
+
 /* Native choice pickers stay classic on touch and unsupported browsers. */
 .app-shell.r1-worker-support .r1-cancellation .r1-native-select:has(> :is(#id_cancellation_type, #id_reason)) > .r1-icon { transform: rotate(90deg); }
 @supports (appearance: base-select) and selector(select::picker(select)) {

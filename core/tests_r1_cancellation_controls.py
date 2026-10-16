@@ -137,6 +137,24 @@ class CancellationNativeSelectStylesTests(SimpleTestCase):
         self.assertEqual(rules[self.target + " option::checkmark"].strip(), "color: var(--r1-accent);")
 
 
+class CancellationCompactLayoutTests(SimpleTestCase):
+    def test_compact_calendar_is_desktop_only_and_scoped(self):
+        css = (Path(settings.BASE_DIR) / "static/css/r1_cancellation_controls.css").read_text()
+        self.assertIn("@media (min-width: 701px)", css)
+        self.assertIn("max-width: 288px", css)
+        self.assertIn(".r1-cancellation-datetime-popover .calendar-day", css)
+        self.assertIn("height: 32px; min-height: 32px", css)
+        self.assertIn("height: 36px; min-height: 36px", css)
+
+    def test_mobile_service_context_keeps_purple_and_wrapping_rows(self):
+        css = (Path(settings.BASE_DIR) / "static/css/r1_cancellation_controls.css").read_text()
+        self.assertIn("@media (max-width: 980px)", css)
+        self.assertIn(".r1-cancellation .r1-service-context", css)
+        self.assertIn("background: var(--r1-accent-soft)", css)
+        self.assertIn("grid-template-columns: 104px minmax(0, 1fr)", css)
+        self.assertNotIn("text-overflow: ellipsis", css)
+
+
 class CancellationDateTimeValuesTests(SimpleTestCase):
     @skipUnless(shutil.which("node"), "Node is unavailable; run the datetime value checks on a Node-enabled host")
     def test_local_wall_time_display_and_composition_without_rounding(self):
