@@ -204,7 +204,7 @@ class R1AdminLogListTests(SimpleTestCase):
         self.assertInHTML('<span class="service-log-missing-label">Missing logs</span>', html)
         self.assertInHTML('<span class="service-log-missing-counts">1 log · 1 worker</span>', html)
         explanation = "Scheduled shifts that have ended, with no service log submitted."
-        self.assertLess(html.index(explanation), html.index('<details class="service-log-missing"'))
+        self.assertGreater(html.index(explanation), html.index('<details class="service-log-missing"'))
         self.assertIn(static("js/r1_admin_log_list.js"), html)
         self.assertTrue(markup.find("div", **{"class": "service-log-missing-panel",
                         "aria-labelledby": "service-log-missing-title"}))
@@ -292,7 +292,7 @@ const button = {addEventListener() {}};
 const panel = {
   style: {}, setAttribute() {}, removeAttribute() {},
   querySelector: () => button, contains: () => false,
-  getBoundingClientRect: () => ({width: 560, height: panelHeight}),
+  getBoundingClientRect: () => ({width: parseFloat(panel.style.width), height: panelHeight}),
 };
 const disclosure = {
   open: true, contains: () => true,
@@ -309,7 +309,9 @@ const window = {
 };
 vm.runInNewContext(fs.readFileSync(process.argv[1], 'utf8'), {document, window});
 assert.equal(parseFloat(panel.style.top), 602);
-assert.equal(parseFloat(panel.style.left), 340, 'Panel right edge must align with trigger right edge');
+assert.equal(parseFloat(panel.style.left), 492, 'Left-aligned panel must clamp at the viewport right edge');
+anchor.left = 260;
+anchor.right = 460;
 panelHeight = 464;
 // Native toggle does not bubble: only capture listeners see a worker's toggle.
 for (const event of events) {
@@ -318,5 +320,6 @@ for (const event of events) {
 assert.ok(parseFloat(panel.style.top) + panelHeight <= 788,
           'Expanded worker panel must remain inside the visible viewport');
 assert.ok(parseFloat(panel.style.top) >= 12);
+assert.equal(parseFloat(panel.style.left), 260, 'Panel left edge must align with trigger left edge');
 """, str(script)], capture_output=True, text=True, check=False)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

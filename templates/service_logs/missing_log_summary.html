@@ -1,7 +1,6 @@
 {% load bsc_formatting static %}
 {% if missing_log_count %}
 <div class="service-log-missing-bar">
-<p class="service-log-missing-explanation">Scheduled shifts that have ended, with no service log submitted.</p>
 <details class="service-log-missing">
   <summary aria-controls="service-log-missing-panel">
     <img class="service-log-missing-chevron" src="{% static 'img/r1/icons/chevron.svg' %}" alt="" width="20" height="20">
@@ -45,6 +44,7 @@
   </div>
   </div>
 </details>
+<p class="service-log-missing-explanation">Scheduled shifts that have ended, with no service log submitted.</p>
 </div>
 {% else %}
 <div class="service-log-missing service-log-missing-clear">
