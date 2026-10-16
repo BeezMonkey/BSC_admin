@@ -122,9 +122,13 @@
         <tr>
           <td class="service-log-select-cell">
             {% if row.kind == "cancellation" %}
-              <input type="checkbox" name="participant_cancellation_ids" value="{{ row.id }}" aria-label="Select cancellation for {{ row.participant.display_name }}, {{ row.service_date|date:'d/m/Y' }}">
+              <label class="service-log-selection-target">
+                <input type="checkbox" name="participant_cancellation_ids" value="{{ row.id }}" aria-label="Select cancellation for {{ row.participant.display_name }}, {{ row.service_date|date:'d/m/Y' }}">
+              </label>
             {% elif row.status == "approved" %}
-              <input type="checkbox" name="service_log_ids" value="{{ row.id }}" aria-label="Select approved log for {{ row.participant.display_name }}, {{ row.service_date|date:'d/m/Y' }}">
+              <label class="service-log-selection-target">
+                <input type="checkbox" name="service_log_ids" value="{{ row.id }}" aria-label="Select approved log for {{ row.participant.display_name }}, {{ row.service_date|date:'d/m/Y' }}">
+              </label>
             {% endif %}
           </td>
           <td class="service-log-date-cell">
