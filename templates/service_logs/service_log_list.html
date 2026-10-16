@@ -86,22 +86,22 @@
   </div>
 </form>
 
-<div class="service-log-filter-summary" aria-live="polite">
-  Showing <strong>{{ filtered_record_count }}{% if status_label %} {{ status_label|lower }}{% endif %} {% if status == "approved" %}record{{ filtered_record_count|pluralize }}{% else %}log{{ filtered_record_count|pluralize }}{% endif %}</strong>
-  <span aria-hidden="true">&middot;</span>
-  {{ filtered_hours }} hours
+<div class="service-log-list-toolbar">
+  {% include "service_logs/missing_log_summary.html" %}
+  <button type="submit" class="service-log-create-selected" form="service-log-billing-form" aria-describedby="service-log-billing-help">Create Invoice from Selected</button>
 </div>
-
-{% include "service_logs/missing_log_summary.html" %}
-
-<form method="get" action="{% url 'invoice_create' %}">
+<form method="get" action="{% url 'invoice_create' %}" id="service-log-billing-form">
 <section class="card table-card service-log-table-card">
   <div class="bulk-actions service-log-bulk-actions">
     <div>
       <strong>Billing action</strong>
-      <span>Select approved rows to create an invoice.</span>
+      <span id="service-log-billing-help">Select approved rows to create an invoice.</span>
     </div>
-    <button type="submit">Create Invoice from Selected</button>
+    <p class="service-log-filter-summary" aria-live="polite">
+      Showing <strong>{{ filtered_record_count }}{% if status_label %} {{ status_label|lower }}{% endif %} {% if status == "approved" %}record{{ filtered_record_count|pluralize }}{% else %}log{{ filtered_record_count|pluralize }}{% endif %}</strong>
+      <span aria-hidden="true">&middot;</span>
+      {{ filtered_hours }} hours
+    </p>
   </div>
   <div class="service-log-table-scroll" role="region" aria-label="Service logs table" tabindex="0">
   <table class="service-log-table" aria-label="Service logs">
