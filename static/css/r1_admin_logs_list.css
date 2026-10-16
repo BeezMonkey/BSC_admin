@@ -1,0 +1,351 @@
+/* B03 list only. Counts, filters and billing eligibility remain server-owned. */
+.r1-admin-log-list .service-log-workbench {
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.r1-admin-log-list .dashboard-section-heading {
+  display: grid;
+  gap: 4px;
+}
+
+.r1-admin-log-list .dashboard-section-heading :is(h2, p) { margin: 0; }
+.r1-admin-log-list .dashboard-section-heading p { color: var(--r1-muted); }
+
+.r1-admin-log-list .service-log-status-grid {
+  grid-template-columns: repeat(5, minmax(210px, 1fr));
+  gap: 12px;
+  max-width: 100%;
+  padding: 4px 4px 12px;
+  margin: -4px -4px 0;
+  overflow-x: auto;
+}
+
+.r1-admin-log-list .service-log-status-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 112px;
+  border: 1px solid var(--r1-border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  background: var(--r1-surface);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.r1-admin-log-list .service-log-status-card:is(.active, :hover) {
+  border-color: var(--r1-accent);
+  background: var(--r1-blue-soft);
+}
+
+.r1-admin-log-list .service-log-status-card > span {
+  color: var(--r1-muted);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.r1-admin-log-list .service-log-status-card.active > span { color: var(--r1-accent); }
+.r1-admin-log-list .service-log-status-card strong {
+  color: var(--r1-text);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 32px;
+}
+.r1-admin-log-list .service-log-status-card small {
+  color: var(--r1-muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.r1-admin-log-list .service-log-filter-bar[data-service-log-filters] {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.3fr) minmax(150px, 1.15fr) minmax(140px, 1fr) repeat(2, minmax(150px, 1fr));
+  align-items: end;
+  gap: 16px 12px;
+  margin: 0 0 16px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.r1-admin-log-list .service-log-filter-bar label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: var(--r1-muted);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+}
+
+.r1-admin-log-list .service-log-filter-bar :is(input, select) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+}
+
+.r1-admin-log-list .service-log-filter-actions {
+  display: flex;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.r1-admin-log-list .service-log-filter-actions > :is(button, .button) { width: auto; flex: 0 0 auto; }
+
+.r1-admin-log-list .service-log-filter-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0 0 12px;
+  color: var(--r1-muted);
+  font-size: 14px;
+  line-height: 20px;
+}
+.r1-admin-log-list .service-log-filter-summary strong { color: var(--r1-text); font-weight: 500; }
+
+.r1-admin-log-list .service-log-missing {
+  position: relative;
+  margin: 0 0 24px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--r1-text);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.r1-admin-log-list .service-log-missing > summary {
+  min-height: 48px;
+  border: 1px solid var(--r1-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--r1-surface);
+}
+.r1-admin-log-list .service-log-missing[open] > summary {
+  border-color: var(--r1-accent);
+  background: var(--r1-blue-soft);
+}
+.r1-admin-log-list .service-log-missing summary strong { font-weight: 500; }
+.r1-admin-log-list .service-log-missing summary::before { color: var(--r1-accent); }
+.r1-admin-log-list .service-log-missing summary small {
+  margin: 2px 0 0;
+  color: var(--r1-muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* Keep native details semantics; only the worker viewport scrolls locally. */
+.r1-admin-log-list .service-log-missing-groups {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 8px);
+  right: 0;
+  box-sizing: border-box;
+  width: min(560px, 100%);
+  max-height: min(464px, 60dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--r1-border);
+  border-radius: 8px;
+  padding: 20px;
+  background: var(--r1-surface);
+  box-shadow: 0 10px 14px rgb(23 33 43 / 14%);
+}
+
+.r1-admin-log-list .service-log-missing-worker { border: 0; }
+.r1-admin-log-list .service-log-missing-worker + .service-log-missing-worker { margin-top: 12px; }
+.r1-admin-log-list .service-log-missing-worker > summary {
+  grid-template-columns: 14px minmax(0, 1fr) auto;
+  gap: 12px;
+  min-height: 56px;
+  border-radius: 8px;
+  padding: 9px 12px;
+  background: var(--r1-subtle);
+}
+.r1-admin-log-list .service-log-missing-worker > summary > span { color: var(--r1-text); }
+.r1-admin-log-list .service-log-missing-worker-identity { min-width: 0; }
+.r1-admin-log-list .service-log-missing-worker > summary > span:last-child {
+  color: var(--r1-muted);
+  font-size: 12px;
+}
+.r1-admin-log-list .service-log-missing-shifts { padding: 0 12px 0 38px; }
+.r1-admin-log-list .service-log-missing-shifts li {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  min-height: 68px;
+  border-color: var(--r1-border);
+  padding: 10px 0;
+}
+.r1-admin-log-list .service-log-missing-shift-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  min-width: 0;
+  color: var(--r1-muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+.r1-admin-log-list .service-log-missing-shift-facts > span:first-child {
+  color: var(--r1-text);
+  font-weight: 600;
+}
+.r1-admin-log-list .service-log-missing-shift-facts > span:last-child {
+  flex-basis: 100%;
+  color: var(--r1-text);
+  font-size: 14px;
+  line-height: 20px;
+}
+.r1-admin-log-list .service-log-missing-shifts a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  border: 1px solid var(--r1-border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--r1-text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.r1-admin-log-list .service-log-missing-clear {
+  padding: 12px 0;
+  color: var(--r1-muted);
+}
+
+.r1-admin-log-list .service-log-table-card {
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid var(--r1-border);
+  border-radius: 8px;
+  padding: 0;
+  background: var(--r1-surface);
+  box-shadow: none;
+}
+.r1-admin-log-list .service-log-bulk-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin: 0;
+  border-bottom: 1px solid var(--r1-border);
+  padding: 16px;
+}
+.r1-admin-log-list .service-log-bulk-actions > div { display: grid; gap: 4px; min-width: 0; }
+.r1-admin-log-list .service-log-bulk-actions strong { font-size: 14px; font-weight: 500; }
+.r1-admin-log-list .service-log-bulk-actions span { color: var(--r1-muted); font-size: 12px; line-height: 16px; }
+.r1-admin-log-list .service-log-bulk-actions button { max-width: 100%; white-space: normal; }
+
+.r1-admin-log-list .service-log-table-scroll { max-width: 100%; overflow-x: auto; }
+.r1-admin-log-list :is(.service-log-table-scroll, .service-log-status-grid, .service-log-missing-groups):focus-visible {
+  outline: 2px solid var(--r1-accent);
+  outline-offset: -2px;
+}
+.r1-admin-log-list .service-log-table {
+  width: 100%;
+  min-width: 1172px;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.r1-admin-log-list .service-log-table :is(th, td) { padding: 12px; text-align: left; }
+.r1-admin-log-list .service-log-table th {
+  height: 40px;
+  background: var(--r1-subtle);
+  color: var(--r1-muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+.r1-admin-log-list .service-log-table th:nth-child(1) { width: 60px; }
+.r1-admin-log-list .service-log-table th:nth-child(2) { width: 168px; }
+.r1-admin-log-list .service-log-table th:nth-child(3),
+.r1-admin-log-list .service-log-table th:nth-child(4) { width: 146px; }
+.r1-admin-log-list .service-log-table th:nth-child(5) { width: 108px; }
+.r1-admin-log-list .service-log-table th:nth-child(6) { width: 72px; }
+.r1-admin-log-list .service-log-table th:nth-child(8) { width: 220px; }
+.r1-admin-log-list .service-log-table td { height: 72px; font-size: 14px; line-height: 20px; }
+.r1-admin-log-list .service-log-table tbody tr:last-child td { border-bottom: 0; }
+.r1-admin-log-list .service-log-table .sort-link { color: inherit; }
+.r1-admin-log-list .service-log-date-stack,
+.r1-admin-log-list .service-log-person-stack { display: grid; gap: 3px; }
+.r1-admin-log-list .service-log-date-stack a { color: var(--r1-text); font-weight: 600; line-height: 20px; }
+.r1-admin-log-list .service-log-person-stack .service-log-person-name { color: var(--r1-text); font-size: 14px; font-weight: 500; line-height: 20px; }
+.r1-admin-log-list .service-log-date-stack span,
+.r1-admin-log-list .service-log-person-stack .service-log-role-label { color: var(--r1-muted); font-size: 12px; font-weight: 400; line-height: 16px; }
+.r1-admin-log-list .service-log-table .numeric-cell { text-align: right; }
+.r1-admin-log-list .service-log-table .service-log-hours-cell { font-weight: 600; }
+.r1-admin-log-list .service-log-table .notes-cell { min-width: 0; max-width: none; }
+.r1-admin-log-list .service-log-notes-preview { color: var(--r1-muted); overflow-wrap: anywhere; }
+.r1-admin-log-list .service-log-table .service-log-actions-cell { min-width: 0; white-space: normal; }
+.r1-admin-log-list .service-log-table .service-log-actions-cell a {
+  min-height: 36px;
+  border-radius: 6px;
+  margin: 3px 0 3px 4px;
+  padding: 7px 10px;
+  color: var(--r1-text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+}
+.r1-admin-log-list .service-log-table .service-log-actions-cell a.primary-action { color: var(--r1-accent); }
+.r1-admin-log-list .service-log-table .actions-heading { text-align: right; }
+.r1-admin-log-list .service-log-select-cell input[type="checkbox"] {
+  width: 16px;
+  min-height: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--r1-accent);
+}
+.r1-admin-log-list .service-log-table .status-pill.status-submitted { background: #fff7e7; }
+.r1-admin-log-list .service-log-table .status-pill.status-approved { background: #edf5f0; }
+.r1-admin-log-list .service-log-table .status-pill.status-invoiced { background: #f1edfa; }
+.r1-admin-log-list .service-log-table .status-pill.status-rejected { background: #faeef0; }
+.r1-admin-log-list .service-log-table .empty-state { max-width: 540px; margin: 0; padding: 24px 12px; }
+
+.r1-admin-log-list .pagination {
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 16px 0;
+}
+.r1-admin-log-list .pagination-links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.r1-admin-log-list .pagination-links > :is(a, .disabled) { min-height: 36px; border-radius: 6px; padding: 7px 12px; }
+.r1-admin-log-list :is(.pagination-summary, .pagination-links > span) { color: var(--r1-muted); font-size: 12px; line-height: 16px; }
+
+@media (max-width: 1200px) {
+  .r1-admin-log-list .service-log-filter-bar[data-service-log-filters] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .r1-admin-log-list .service-log-filter-actions { grid-column: auto; }
+}
+
+@media (min-width: 761px) and (max-height: 800px) {
+  .r1-admin-log-list .service-log-missing-groups { top: auto; bottom: calc(100% + 8px); max-height: min(300px, 40dvh); }
+}
+
+@media (max-width: 760px) {
+  .r1-admin-log-list .service-log-filter-bar[data-service-log-filters] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .r1-admin-log-list .service-log-filter-bar[data-service-log-filters] > label:nth-of-type(3),
+  .r1-admin-log-list .service-log-filter-actions { grid-column: 1 / -1; }
+  .r1-admin-log-list .service-log-missing-groups { position: static; width: 100%; max-height: 50dvh; margin-top: 8px; padding: 12px; box-shadow: none; }
+  .r1-admin-log-list .service-log-missing-worker > summary { grid-template-columns: 14px minmax(0, 1fr); gap: 8px; }
+  .r1-admin-log-list .service-log-missing-worker > summary > span:last-child { grid-column: 2; }
+  .r1-admin-log-list .service-log-missing-shifts { padding: 0; }
+  .r1-admin-log-list .service-log-missing-shifts a { min-height: 44px; }
+  .r1-admin-log-list .service-log-bulk-actions { align-items: flex-start; padding: 12px; }
+  .r1-admin-log-list .pagination-links > :is(a, .disabled) { min-height: 44px; padding-block: 11px; }
+}
+
+@media (max-width: 380px) {
+  .r1-admin-log-list .service-log-filter-bar[data-service-log-filters] { grid-template-columns: minmax(0, 1fr); }
+}

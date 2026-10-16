@@ -1,0 +1,86 @@
+.r1-admin-log-detail .service-log-detail-page { display: block; }
+.r1-admin-log-detail .r1-log-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 28px; align-items: start; }
+.r1-admin-log-detail .r1-log-record { min-width: 0; border: 1px solid var(--r1-border); border-radius: 8px; padding: 24px; background: var(--r1-surface); }
+.r1-admin-log-detail .r1-log-section { min-width: 0; padding: 24px 0; border-bottom: 1px solid var(--r1-border); }
+.r1-admin-log-detail .r1-log-section:first-child { padding-top: 0; }
+.r1-admin-log-detail .r1-log-section:last-child { padding-bottom: 0; border-bottom: 0; }
+.r1-admin-log-detail .r1-log-section-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.r1-admin-log-detail .r1-log-section-heading > span { color: var(--r1-muted); font-size: 12px; line-height: 16px; text-align: right; }
+.r1-admin-log-detail dl { margin: 0; min-width: 0; }
+.r1-admin-log-detail dt { margin: 0; color: var(--r1-muted); font-size: 12px; line-height: 16px; font-weight: 400; }
+.r1-admin-log-detail dd { margin: 8px 0 0; color: var(--r1-text); font-size: 14px; line-height: 20px; overflow-wrap: anywhere; font-weight: 400; }
+.r1-admin-log-detail .r1-log-identity { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 24px; }
+.r1-admin-log-detail .r1-log-identity dd { font-weight: 500; }
+.r1-admin-log-detail .r1-log-facts { display: grid; grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); gap: 20px; padding: 16px; margin: 24px 0; background: var(--r1-blue-soft); border-radius: 6px; }
+.r1-admin-log-detail .r1-log-facts dd { font-weight: 500; }
+.r1-admin-log-detail .r1-log-item dd { font-size: 16px; line-height: 24px; font-weight: 600; }
+.r1-admin-log-detail .r1-log-source { padding-top: 20px; border-top: 1px solid var(--r1-border); }
+.r1-admin-log-detail .r1-log-notes { margin-top: 20px; }
+.r1-admin-log-detail .r1-log-notes > div + div { margin-top: 24px; border-top: 1px solid var(--r1-border); padding-top: 24px; }
+.r1-admin-log-detail .r1-log-notes dd { white-space: pre-wrap; }
+.r1-admin-log-detail .service-log-attachment-grid { margin-top: 20px; gap: 12px; }
+.r1-admin-log-detail .service-log-attachment-card { grid-template-columns: 76px minmax(0, 1fr) auto; border-color: var(--r1-border); border-radius: 8px; gap: 16px; padding: 12px; }
+.r1-admin-log-detail :is(.attachment-preview-trigger, .attachment-preview-static) { width: 76px; height: 64px; min-height: 64px; flex-direction: column; gap: 4px; background: var(--r1-subtle); border-color: var(--r1-border); border-radius: 6px; }
+.r1-admin-log-detail .attachment-preview-trigger img { width: 100%; height: 40px; object-fit: contain; }
+.r1-admin-log-detail .attachment-preview-trigger:hover { border-color: var(--r1-accent); box-shadow: 0 0 0 2px var(--r1-blue-soft); }
+.r1-admin-log-detail .attachment-preview-file span { border: 0; background: transparent; padding: 0; }
+.r1-admin-log-detail .r1-log-preview-label { color: var(--r1-accent); font-size: 12px; line-height: 16px; font-weight: 500; }
+.r1-admin-log-detail .service-log-attachment-summary strong { font-size: 14px; line-height: 20px; font-weight: 500; }
+.r1-admin-log-detail .service-log-attachment-summary > span { font-size: 12px; line-height: 18px; }
+.r1-admin-log-detail .service-log-attachment-actions .primary-action { min-height: 36px; padding: 7px 12px; background: white; border: 1px solid var(--r1-strong-border); color: var(--r1-accent); border-radius: 6px; }
+.r1-admin-log-detail .empty-state { padding: 0; text-align: left; color: var(--r1-muted); font-size: 14px; line-height: 20px; }
+.r1-admin-log-detail .empty-state strong { color: var(--r1-text); font-weight: 500; }
+.r1-admin-log-detail .empty-state p { margin: 6px 0 0; }
+.r1-admin-log-detail .r1-log-rail { min-width: 0; display: grid; gap: 24px; }
+.r1-admin-log-detail .r1-log-status { border-radius: 8px; padding: 20px; background: var(--r1-accent-soft); }
+.r1-admin-log-detail .r1-log-status-approved { background: #eaf6ef; }
+.r1-admin-log-detail .r1-log-status-rejected { background: #fceef0; }
+.r1-admin-log-detail .r1-log-status .status-pill { margin-top: 12px; }
+.r1-admin-log-detail .r1-log-status p { margin: 12px 0 0; font-size: 14px; line-height: 20px; font-weight: 500; overflow-wrap: anywhere; }
+.r1-admin-log-detail .r1-log-status .r1-log-caption { font-size: 12px; line-height: 18px; font-weight: 400; color: var(--r1-muted); }
+.r1-admin-log-detail .service-log-review-actions { display: grid; gap: 10px; }
+.r1-admin-log-detail .service-log-review-actions :is(form, button, details, summary) { width: 100%; }
+.r1-admin-log-detail .service-log-reject-disclosure { display: block; }
+.r1-admin-log-detail .service-log-reject-disclosure summary { display: flex; justify-content: center; margin: 0; color: var(--r1-danger); border-color: var(--r1-danger); }
+.r1-admin-log-detail .service-log-reject-form { margin-top: 12px; padding: 0; border: 0; background: transparent; gap: 12px; }
+.r1-admin-log-detail .service-log-reject-form label { font-size: 13px; line-height: 20px; font-weight: 400; }
+.r1-admin-log-detail .service-log-reject-form button { white-space: normal; }
+.r1-admin-log-detail .r1-log-reject-help { display: none; color: var(--r1-danger); font-size: 12px; line-height: 18px; }
+.r1-admin-log-detail .service-log-reject-form input:user-invalid { border-color: var(--r1-danger); }
+.r1-admin-log-detail .service-log-reject-form label:has(input:user-invalid) .r1-log-reject-help { display: block; }
+.r1-admin-log-detail .r1-log-activity { border-top: 1px solid var(--r1-border); padding-top: 24px; }
+.r1-admin-log-detail .r1-log-activity-list { display: grid; gap: 20px; margin-top: 20px; }
+.r1-admin-log-detail .r1-log-activity-list dd { font-weight: 500; }
+.r1-admin-log-detail .invoice-billing-history { margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; }
+.r1-admin-log-detail .invoice-billing-history summary { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--r1-text); }
+.r1-admin-log-detail .invoice-billing-history :is(ul, li, p, span) { min-width: 0; overflow-wrap: anywhere; }
+.r1-admin-log-detail .invoice-billing-history li { padding: 16px 0; border-radius: 0; border-bottom: 1px solid var(--r1-border); }
+.r1-admin-log-detail .invoice-billing-history p { font-size: 14px; line-height: 20px; }
+.r1-admin-log-detail .attachment-preview-header h3 { font-size: 16px; line-height: 24px; font-weight: 600; }
+@media (min-width: 761px) and (max-width: 1120px) {
+  .r1-admin-log-detail .r1-log-layout { grid-template-columns: minmax(0, 1fr) 240px; gap: 20px; }
+  .r1-admin-log-detail .r1-log-record { padding: 20px; }
+  .r1-admin-log-detail .r1-log-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .r1-admin-log-detail .service-log-attachment-card { grid-template-columns: 64px minmax(0, 1fr); }
+  .r1-admin-log-detail .service-log-attachment-actions { grid-column: 2; justify-content: flex-start; }
+  .r1-admin-log-detail :is(.attachment-preview-trigger, .attachment-preview-static) { width: 64px; }
+}
+@media (max-width: 760px) {
+  .r1-admin-log-detail .r1-log-layout { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .r1-admin-log-detail .r1-log-record { padding: 16px; }
+  .r1-admin-log-detail .r1-log-section { padding: 20px 0; }
+  .r1-admin-log-detail .r1-log-section-heading { flex-wrap: wrap; }
+  .r1-admin-log-detail .r1-log-section-heading > span { text-align: left; }
+  .r1-admin-log-detail .r1-log-identity { gap: 16px; margin-top: 20px; }
+  .r1-admin-log-detail .r1-log-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 12px; padding: 12px; margin: 20px 0; }
+  .r1-admin-log-detail .r1-log-item dd { font-size: 14px; line-height: 20px; }
+  .r1-admin-log-detail .service-log-attachment-card { grid-template-columns: 64px minmax(0, 1fr); gap: 12px; }
+  .r1-admin-log-detail :is(.attachment-preview-trigger, .attachment-preview-static) { width: 64px; }
+  .r1-admin-log-detail .service-log-attachment-actions { grid-column: 2; justify-content: flex-start; }
+  .r1-admin-log-detail .service-log-attachment-actions .primary-action { min-height: 44px; }
+  .r1-admin-log-detail .attachment-preview-modal { padding: 12px; }
+  .r1-admin-log-detail .attachment-preview-header { gap: 12px; padding: 12px; }
+  .r1-admin-log-detail .attachment-preview-header .button-row { flex-direction: row; width: 100%; }
+  .r1-admin-log-detail .attachment-preview-header .button { width: auto; flex: 1; }
+  .r1-admin-log-detail .attachment-preview-dialog { max-height: 90vh; max-height: 90dvh; }
+}

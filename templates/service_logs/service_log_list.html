@@ -3,6 +3,28 @@
 
 {% block title %}Service Logs - Brisbane Star Care{% endblock %}
 
+{% block extra_styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_shell.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_admin_logs.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_admin_logs_list.css' %}">
+{% endblock %}
+
+{% block r1_shell_class %} r1-ui r1-admin r1-admin-logs r1-admin-log-list{% endblock %}
+{% block sidebar_account %}
+  <div class="r1-account">
+    <span class="r1-account-name">{{ request.user.get_username }}</span>
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button class="r1-logout" type="submit">Logout</button>
+    </form>
+  </div>
+{% endblock %}
+{% block topbar_content %}
+  <nav class="r1-breadcrumb" aria-label="Breadcrumb">Operations / Service Logs</nav>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
   <div>
@@ -16,9 +38,9 @@
     <h2>Service log workbench</h2>
     <p>Start with submitted logs, then move approved records into invoices.</p>
   </div>
-  <div class="service-log-status-grid">
+  <div class="service-log-status-grid" role="region" aria-label="Service log statuses" tabindex="0">
     {% for item in status_overview %}
-    <a class="service-log-status-card{% if item.active %} active{% endif %}" href="{{ item.url }}">
+    <a class="service-log-status-card{% if item.active %} active{% endif %}" href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>
       <span>{{ item.label }}</span>
       <strong>{{ item.count_label }}</strong>
       <small>{{ item.description }}</small>
@@ -81,17 +103,18 @@
     </div>
     <button type="submit">Create Invoice from Selected</button>
   </div>
-  <table class="service-log-table">
+  <div class="service-log-table-scroll" role="region" aria-label="Service logs table" tabindex="0">
+  <table class="service-log-table" aria-label="Service logs">
     <thead>
       <tr>
-        <th>Select</th>
-        <th><a class="sort-link" href="?{{ sorting.links.date }}">Date</a></th>
-        <th><a class="sort-link" href="?{{ sorting.links.participant }}">Participant</a></th>
-        <th><a class="sort-link" href="?{{ sorting.links.worker }}">Worker</a></th>
-        <th><a class="sort-link" href="?{{ sorting.links.status }}">Status</a></th>
-        <th class="numeric-cell">Hours</th>
-        <th>Notes</th>
-        <th class="actions-heading">Actions</th>
+        <th scope="col">Select</th>
+        <th scope="col"><a class="sort-link" href="?{{ sorting.links.date }}">Date</a></th>
+        <th scope="col"><a class="sort-link" href="?{{ sorting.links.participant }}">Participant</a></th>
+        <th scope="col"><a class="sort-link" href="?{{ sorting.links.worker }}">Worker</a></th>
+        <th scope="col"><a class="sort-link" href="?{{ sorting.links.status }}">Status</a></th>
+        <th scope="col" class="numeric-cell">Hours</th>
+        <th scope="col">Notes</th>
+        <th scope="col" class="actions-heading">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -99,9 +122,9 @@
         <tr>
           <td class="service-log-select-cell">
             {% if row.kind == "cancellation" %}
-              <input type="checkbox" name="participant_cancellation_ids" value="{{ row.id }}">
+              <input type="checkbox" name="participant_cancellation_ids" value="{{ row.id }}" aria-label="Select cancellation for {{ row.participant.display_name }}, {{ row.service_date|date:'d/m/Y' }}">
             {% elif row.status == "approved" %}
-              <input type="checkbox" name="service_log_ids" value="{{ row.id }}">
+              <input type="checkbox" name="service_log_ids" value="{{ row.id }}" aria-label="Select approved log for {{ row.participant.display_name }}, {{ row.service_date|date:'d/m/Y' }}">
             {% endif %}
           </td>
           <td class="service-log-date-cell">
@@ -181,6 +204,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 </section>
 </form>
 {% include "core/pagination.html" %}
