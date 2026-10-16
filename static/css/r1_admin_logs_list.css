@@ -131,7 +131,8 @@
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
   gap: 12px 24px;
-  margin-bottom: 24px;
+  padding-top: 16px;
+  margin-bottom: 12px;
 }
 .r1-admin-log-list .service-log-list-toolbar > :is(.service-log-missing-bar, .service-log-missing-clear) {
   min-width: 0;
@@ -162,13 +163,6 @@
   margin-bottom: 24px;
 }
 .r1-admin-log-list .service-log-missing-bar > .service-log-missing { min-width: 0; margin: 0; }
-.r1-admin-log-list .service-log-missing-explanation {
-  min-width: 0;
-  margin: 0;
-  color: var(--r1-muted);
-  font-size: 12px;
-  line-height: 16px;
-}
 .r1-admin-log-list .service-log-missing > summary {
   grid-template-columns: 20px minmax(0, 1fr);
   width: fit-content;
@@ -448,9 +442,9 @@
   .r1-admin-log-list .dashboard-section-heading { grid-template-columns: minmax(0, 1fr); }
   .r1-admin-log-list .dashboard-section-heading p { justify-self: start; text-align: left; }
   .r1-admin-log-list .service-log-list-toolbar { grid-template-columns: minmax(0, 1fr); }
-  .r1-admin-log-list .service-log-create-selected { min-height: 44px; }
+  .r1-admin-log-list .service-log-create-selected { justify-self: center; min-height: 44px; }
   .r1-admin-log-list .service-log-missing-bar { grid-template-columns: minmax(0, 1fr); gap: 8px; }
-  .r1-admin-log-list .service-log-missing > summary { min-height: 44px; }
+  .r1-admin-log-list .service-log-missing > summary { min-height: 44px; margin-inline: auto; }
   .r1-admin-log-list .service-log-status-grid { grid-template-columns: minmax(0, 1fr); }
   .r1-admin-log-list .service-log-filter-bar[data-service-log-filters] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .r1-admin-log-list .service-log-filter-bar[data-service-log-filters] > label:nth-of-type(3),
