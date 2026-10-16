@@ -28,13 +28,13 @@
     const height = (viewport ? viewport.height : window.innerHeight) - 24;
     const anchor = trigger.getBoundingClientRect();
     panel.setAttribute("data-anchored", "");
-    panel.style.width = `${Math.min(560, width)}px`;
-    panel.style.maxHeight = `${Math.min(464, height)}px`;
+    panel.style.width = `${Math.min(520, width)}px`;
+    panel.style.maxHeight = `${Math.min(432, height)}px`;
     const bounds = panel.getBoundingClientRect();
     const below = anchor.bottom + 8;
     const above = anchor.top - bounds.height - 8;
     const preferred = below + bounds.height <= top + height ? below : above;
-    panel.style.left = `${clamp(anchor.right - bounds.width, left, left + width - bounds.width)}px`;
+    panel.style.left = `${clamp(anchor.left, left, left + width - bounds.width)}px`;
     panel.style.top = `${clamp(preferred, top, top + height - bounds.height)}px`;
   };
 
