@@ -7,20 +7,24 @@
       <small>Scheduled shifts that have ended, with no service log submitted.</small>
     </span>
   </summary>
-  <div class="service-log-missing-groups">
+  <div class="service-log-missing-groups" role="region" aria-label="Unsubmitted logs by worker" tabindex="0">
     {% for group in missing_log_groups %}
     <details class="service-log-missing-worker">
       <summary>
-        <strong>{{ group.worker.display_name }}</strong>
+        <span class="service-log-missing-worker-identity">
+          <strong>{{ group.worker.display_name }}</strong>
+          <small>Earliest {{ group.shifts.0.service_date|date:"d/m/Y" }}</small>
+        </span>
         <span>{{ group.count }} unsubmitted</span>
-        <small>Earliest {{ group.shifts.0.service_date|date:"d/m/Y" }}</small>
       </summary>
       <ul class="service-log-missing-shifts">
         {% for shift in group.shifts %}
         <li>
-          <span>{{ shift.service_date|date:"d/m/Y" }}</span>
-          <span>{{ shift.start_time|display_time }} &ndash; {{ shift.end_time|display_time }}</span>
-          <span>{{ shift.participant.display_name }}</span>
+          <div class="service-log-missing-shift-facts">
+            <span>{{ shift.service_date|date:"d/m/Y" }}</span>
+            <span>{{ shift.start_time|display_time }} &ndash; {{ shift.end_time|display_time }}</span>
+            <span>{{ shift.participant.display_name }}</span>
+          </div>
           <a href="{% url 'shift_detail' shift.id %}">View shift<span class="sr-only">: {{ shift.participant.display_name }}, {{ shift.service_date|date:"d/m/Y" }}</span></a>
         </li>
         {% endfor %}

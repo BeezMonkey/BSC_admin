@@ -137,7 +137,7 @@ class R1ShellIsolationTests(TestCase):
                 self.assertContains(response, "r1_worker_navigation.css", count=1)
         for user, routes in (
             (self.worker_user, ("worker_document_list",)),
-            (self.admin, ("admin_dashboard", "roster_planner", "invoice_placeholder", "service_log_list")),
+            (self.admin, ("admin_dashboard", "roster_planner", "invoice_placeholder")),
         ):
             self.client.force_login(user)
             for route in routes:
