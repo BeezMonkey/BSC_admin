@@ -6,11 +6,18 @@
 
 .r1-admin-log-list .dashboard-section-heading {
   display: grid;
-  gap: 4px;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  width: 100%;
+  gap: 4px 24px;
 }
 
 .r1-admin-log-list .dashboard-section-heading :is(h2, p) { margin: 0; }
-.r1-admin-log-list .dashboard-section-heading p { color: var(--r1-muted); }
+.r1-admin-log-list .dashboard-section-heading p {
+  justify-self: end;
+  color: var(--r1-muted);
+  text-align: right;
+}
 
 .r1-admin-log-list .service-log-status-grid {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
@@ -118,6 +125,23 @@
   line-height: 20px;
 }
 .r1-admin-log-list .service-log-filter-summary strong { color: var(--r1-text); font-weight: 500; }
+
+.r1-admin-log-list .service-log-list-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px 24px;
+  margin-bottom: 24px;
+}
+.r1-admin-log-list .service-log-list-toolbar > :is(.service-log-missing-bar, .service-log-missing-clear) {
+  min-width: 0;
+  margin: 0;
+}
+.r1-admin-log-list .service-log-create-selected {
+  justify-self: end;
+  max-width: 100%;
+  white-space: nowrap;
+}
 
 .r1-admin-log-list .service-log-missing {
   position: relative;
@@ -311,7 +335,11 @@
 .r1-admin-log-list .service-log-bulk-actions > div { display: grid; gap: 4px; min-width: 0; }
 .r1-admin-log-list .service-log-bulk-actions strong { font-size: 14px; font-weight: 500; }
 .r1-admin-log-list .service-log-bulk-actions span { color: var(--r1-muted); font-size: 12px; line-height: 16px; }
-.r1-admin-log-list .service-log-bulk-actions button { max-width: 100%; white-space: normal; }
+.r1-admin-log-list .service-log-bulk-actions .service-log-filter-summary {
+  justify-content: flex-end;
+  margin: 0;
+}
+.r1-admin-log-list .service-log-bulk-actions .service-log-filter-summary > span { font-size: inherit; line-height: inherit; }
 
 .r1-admin-log-list .service-log-table-scroll { max-width: 100%; overflow-x: auto; }
 .r1-admin-log-list :is(.service-log-table-scroll, .service-log-status-grid, .service-log-missing-groups):focus-visible {
@@ -417,6 +445,10 @@
 }
 
 @media (max-width: 760px) {
+  .r1-admin-log-list .dashboard-section-heading { grid-template-columns: minmax(0, 1fr); }
+  .r1-admin-log-list .dashboard-section-heading p { justify-self: start; text-align: left; }
+  .r1-admin-log-list .service-log-list-toolbar { grid-template-columns: minmax(0, 1fr); }
+  .r1-admin-log-list .service-log-create-selected { min-height: 44px; }
   .r1-admin-log-list .service-log-missing-bar { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .r1-admin-log-list .service-log-missing > summary { min-height: 44px; }
   .r1-admin-log-list .service-log-status-grid { grid-template-columns: minmax(0, 1fr); }

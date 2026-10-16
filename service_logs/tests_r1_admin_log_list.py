@@ -154,6 +154,38 @@ class R1AdminLogListTests(SimpleTestCase):
                           else "Fictional Participant, 08/10/2026", attrs["aria-label"])
             self.assertNotIn("onclick", attrs)
 
+    def test_moved_billing_button_stays_in_native_selection_form_with_help(self):
+        markup = ListMarkup(self.render())
+        buttons = [(i, attrs) for i, (tag, attrs) in enumerate(markup.elements)
+                   if tag == "button" and attrs.get("class") == "service-log-create-selected"]
+        self.assertEqual(len(buttons), 1)
+        index, button = buttons[0]
+        self.assertEqual(button["type"], "submit")
+        self.assertEqual(button["aria-describedby"], "service-log-billing-help")
+        self.assertEqual(markup.parents[index][-1], ("div", {"class": "service-log-list-toolbar"}))
+        self.assertEqual(button["form"], "service-log-billing-form")
+        self.assertFalse(any(parent[0] == "form" for parent in markup.parents[index]))
+        billing_form = ("form", markup.find("form", id="service-log-billing-form")[0])
+        self.assertEqual(billing_form[1]["action"], reverse("invoice_create"))
+        self.assertEqual(billing_form[1]["method"], "get")
+        for i, (tag, attrs) in enumerate(markup.elements):
+            if tag == "input" and attrs.get("type") == "checkbox":
+                self.assertEqual(next(p for p in markup.parents[i] if p[0] == "form"), billing_form)
+        self.assertTrue(markup.find("span", id="service-log-billing-help"))
+
+    def test_showing_summary_moves_into_table_header_without_changing_counts(self):
+        for count, hours in [(0, "0.00"), (1, "2.75"), (57, "143.50")]:
+            with self.subTest(count=count):
+                html = self.render(filtered_record_count=count, filtered_hours=hours)
+                markup = ListMarkup(html)
+                index = next(i for i, (_, attrs) in enumerate(markup.elements)
+                             if attrs.get("class") == "service-log-filter-summary")
+                self.assertIn("service-log-bulk-actions", markup.parents[index][-1][1].get("class", ""))
+                self.assertIn(f"{count} approved record", html)
+                self.assertIn(f"{hours} hours", html)
+                self.assertIn("Showing", html)
+                self.assertNotIn("Total", html)
+
     def test_scoped_filter_band_has_explicit_eight_pixel_outer_radius(self):
         stylesheet = (Path(__file__).resolve().parent.parent / "static/css/r1_admin_logs_list.css").read_text(encoding="utf-8")
         selector = ".r1-admin-log-list .service-log-filter-bar[data-service-log-filters] {"
