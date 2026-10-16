@@ -228,7 +228,7 @@ class R1AdminLogListTests(SimpleTestCase):
                 self.assertEqual([item["count_label"] for item in items],
                                  [f"{number} {unit}" for number, unit in expected])
 
-    def test_missing_panel_has_header_non_submitting_close_and_external_explanation(self):
+    def test_missing_panel_keeps_header_and_close_without_redundant_explanation(self):
         html = self.render()
         markup = ListMarkup(html)
         self.assertTrue(markup.find("h2", id="service-log-missing-title"))
@@ -236,7 +236,7 @@ class R1AdminLogListTests(SimpleTestCase):
         self.assertInHTML('<span class="service-log-missing-label">Missing logs</span>', html)
         self.assertInHTML('<span class="service-log-missing-counts">1 log · 1 worker</span>', html)
         explanation = "Scheduled shifts that have ended, with no service log submitted."
-        self.assertGreater(html.index(explanation), html.index('<details class="service-log-missing"'))
+        self.assertNotIn(explanation, html)
         self.assertIn(static("js/r1_admin_log_list.js"), html)
         self.assertTrue(markup.find("div", **{"class": "service-log-missing-panel",
                         "aria-labelledby": "service-log-missing-title"}))
@@ -253,10 +253,11 @@ class R1AdminLogListTests(SimpleTestCase):
         self.assertIn("Earliest 08/10/2026", html)
         self.assertInHTML('<strong class="service-log-missing-participant">Fictional Participant</strong>', html)
 
-    def test_missing_explanation_and_native_trigger_share_closed_state_bar(self):
+    def test_missing_native_trigger_keeps_bar_without_explanation_paragraph(self):
         markup = ListMarkup(self.render())
         self.assertTrue(markup.find("div", **{"class": "service-log-missing-bar"}))
-        for tag, class_name in (("p", "service-log-missing-explanation"), ("details", "service-log-missing")):
+        self.assertFalse(markup.find("p", **{"class": "service-log-missing-explanation"}))
+        for tag, class_name in (("details", "service-log-missing"),):
             index = next(index for index, (element_tag, attrs) in enumerate(markup.elements)
                          if element_tag == tag and attrs.get("class") == class_name)
             self.assertEqual(markup.parents[index][-1], ("div", {"class": "service-log-missing-bar"}))
@@ -280,7 +281,7 @@ class R1AdminLogListTests(SimpleTestCase):
         self.assertTrue(markup.find("details", **{"class": "service-log-missing-worker"}))
         self.assertEqual(len(markup.find("summary")), 2)
         self.assertIn("1 worker with 1 unsubmitted log", html)
-        self.assertIn("Scheduled shifts that have ended, with no service log submitted.", html)
+        self.assertNotIn("Scheduled shifts that have ended, with no service log submitted.", html)
         self.assertIn("Earliest 07/10/2026", html)
         self.assertIn("9:00 am &ndash; 1:00 pm", html)
         self.assertIn(reverse("shift_detail", args=[61]), html)
@@ -303,6 +304,15 @@ class R1AdminLogListTests(SimpleTestCase):
                 self.assertIn(help_text, html)
                 self.assertIn(reverse(route), html)
                 self.assertIn('colspan="8"', html)
+
+    def test_toolbar_spacing_and_mobile_centering_are_list_scoped(self):
+        stylesheet = (Path(__file__).resolve().parent.parent / "static/css/r1_admin_logs_list.css").read_text(encoding="utf-8")
+        rule = stylesheet.split(".r1-admin-log-list .service-log-list-toolbar {", 1)[1].split("}", 1)[0]
+        self.assertIn("padding-top: 16px;", rule)
+        self.assertIn("margin-bottom: 12px;", rule)
+        mobile = stylesheet.split("@media (max-width: 760px) {", 1)[1]
+        self.assertIn(".r1-admin-log-list .service-log-create-selected { justify-self: center; min-height: 44px; }", mobile)
+        self.assertIn(".r1-admin-log-list .service-log-missing > summary { min-height: 44px; margin-inline: auto; }", mobile)
 
 
 @skipUnless(shutil.which("node"), "Node is required for the isolated list interaction test")
