@@ -115,6 +115,34 @@ class R1HoverCornersTests(SimpleTestCase):
         self.assertEqual(self.declarations("", SHELL + " .r1-navigation-table")
                          ["border-collapse"], "separate")
 
+    def test_log_table_matches_shift_table_outer_corners_on_desktop(self):
+        table = SHELL + " .worker-log-list-page .r1-log-table"
+        expected = {
+            table: {"border-radius": "8px"},
+            table + " thead th:first-child": {"border-top-left-radius": "8px"},
+            table + " thead th:last-child": {"border-top-right-radius": "8px"},
+            table + " tbody > .r1-log-row:last-child > td:first-child": {
+                "border-bottom-left-radius": "8px",
+            },
+            table + " tbody > .r1-log-row:last-child > td:last-child": {
+                "border-bottom-right-radius": "8px",
+            },
+        }
+        for selector, declarations in expected.items():
+            with self.subTest(selector=selector):
+                self.assertEqual(self.declarations(DESKTOP, selector), declarations)
+
+    def test_log_table_corners_do_not_clip_actions_or_change_mobile_cards(self):
+        table = SHELL + " .worker-log-list-page .r1-log-table"
+        matches = [(media, declarations) for media, selector, declarations
+                   in self.rules if table in selector]
+        self.assertTrue(matches, "Missing scoped log-table corner rules")
+        for media, declarations in matches:
+            self.assertEqual(media, DESKTOP)
+            self.assertTrue(all("radius" in key for key in declarations))
+            self.assertNotIn("overflow", declarations)
+            self.assertNotIn("clip-path", declarations)
+
     def test_existing_mobile_summary_and_table_presentation_is_retained(self):
         mobile = "(max-width: 980px)"
         summary = self.declarations(mobile, SHELL + " .action-summary-item")
