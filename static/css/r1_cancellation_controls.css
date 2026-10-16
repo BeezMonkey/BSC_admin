@@ -77,3 +77,25 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, .15), 0 0 0 100vmax rgba(23, 33, 43, .28);
   }
 }
+
+/* Native choice pickers stay classic on touch and unsupported browsers. */
+.app-shell.r1-worker-support .r1-cancellation .r1-native-select:has(> :is(#id_cancellation_type, #id_reason)) > .r1-icon { transform: rotate(90deg); }
+@supports (appearance: base-select) and selector(select::picker(select)) {
+  @media (min-width: 701px) and (hover: hover) and (pointer: fine) {
+    .app-shell.r1-worker-support .r1-cancellation :is(#id_cancellation_type, #id_reason),
+    .app-shell.r1-worker-support .r1-cancellation :is(#id_cancellation_type, #id_reason)::picker(select) { appearance: base-select; }
+    .app-shell.r1-worker-support .r1-cancellation :is(#id_cancellation_type, #id_reason)::picker-icon { display: none; }
+    .app-shell.r1-worker-support .r1-cancellation :is(#id_cancellation_type, #id_reason)::picker(select) {
+      border: 1px solid var(--r1-border); border-radius: 8px; margin-block: 6px; padding: 4px;
+      background: var(--r1-surface); box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
+    }
+    .app-shell.r1-worker-support .r1-cancellation :is(#id_cancellation_type, #id_reason) option {
+      box-sizing: border-box; min-height: 44px; height: auto; padding: 8px 12px;
+      color: var(--r1-text); font-size: 16px; font-weight: 400; line-height: 24px;
+      white-space: normal; overflow-wrap: anywhere;
+    }
+    .app-shell.r1-worker-support .r1-cancellation :is(#id_cancellation_type, #id_reason) option[value=""] { color: var(--r1-muted); font-size: 14px; }
+    .app-shell.r1-worker-support .r1-cancellation :is(#id_cancellation_type, #id_reason) option:is(:hover, :focus, :checked) { background: var(--r1-blue-soft); color: var(--r1-accent); }
+    .app-shell.r1-worker-support .r1-cancellation :is(#id_cancellation_type, #id_reason) option::checkmark { color: var(--r1-accent); }
+  }
+}

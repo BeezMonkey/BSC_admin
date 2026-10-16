@@ -1,5 +1,6 @@
 """Presentation and payload contracts for the cancellation-only enhancement."""
 from pathlib import Path
+import re
 import shutil
 import subprocess
 from unittest import skipUnless
@@ -67,6 +68,20 @@ class CancellationControlsTests(TestCase):
                 self.assertIn("details", form.errors)
         self.assertFalse(ParticipantCancellation.objects.exists())
 
+    def test_styled_choices_remain_required_native_selects_with_all_options(self):
+        response = self.client.get(self.url)
+        elements = support_fixture.Elements(response.content.decode()).items
+        for name in ("cancellation_type", "reason"):
+            with self.subTest(name=name):
+                selects = [attrs for tag, attrs in elements
+                           if tag == "select" and attrs.get("name") == name]
+                self.assertEqual(len(selects), 1)
+                self.assertEqual(selects[0]["id"], "id_" + name)
+                self.assertIn("required", selects[0])
+                for attr in ("hidden", "disabled", "multiple", "role", "tabindex"):
+                    self.assertNotIn(attr, selects[0])
+                self.assertContains(response, str(response.context["form"][name]), html=True)
+
     def test_scoped_focus_contract(self):
         path = Path(settings.BASE_DIR) / "static/css/r1_cancellation_controls.css"
         self.assertTrue(path.exists(), "Cancellation-only stylesheet must exist")
@@ -77,6 +92,49 @@ class CancellationControlsTests(TestCase):
                       "var(--r1-danger)", "font-size: 14px", "font-size: 16px"):
             self.assertIn(token, css)
         self.assertContains(self.client.get(self.url), static("css/r1_cancellation_controls.css"))
+
+
+class CancellationNativeSelectStylesTests(SimpleTestCase):
+    scope = ".app-shell.r1-worker-support .r1-cancellation"
+    target = scope + " :is(#id_cancellation_type, #id_reason)"
+
+    def test_only_choice_wrapper_chevrons_point_down_at_all_sizes(self):
+        css = (Path(settings.BASE_DIR) / "static/css/r1_cancellation_controls.css").read_text()
+        selector = self.scope + " .r1-native-select:has(> :is(#id_cancellation_type, #id_reason)) > .r1-icon"
+        before_supports = css.split("@supports", 1)[0]
+        self.assertIn(selector + " { transform: rotate(90deg); }", before_supports)
+
+    def test_base_select_is_desktop_only_scoped_and_keeps_native_checkmarks(self):
+        css = (Path(settings.BASE_DIR) / "static/css/r1_cancellation_controls.css").read_text()
+        guard = re.search(
+            r"@supports \(appearance: base-select\) and selector\(select::picker\(select\)\) \{"
+            r"\s*@media \(min-width: 701px\) and \(hover: hover\) and \(pointer: fine\) \{", css)
+        self.assertIsNotNone(guard, "Custom native pickers require both support and desktop pointer gates")
+        rules = dict(re.findall(r"([^{}]+)\{([^{}]*)\}", css[guard.end():]))
+        rules = {selector.strip(): body for selector, body in rules.items()}
+        for selector in rules:
+            for line in selector.splitlines():
+                self.assertTrue(line.strip().startswith(self.target), line)
+        appearance = self.target + ",\n    " + self.target + "::picker(select)"
+        self.assertIn("appearance: base-select;", rules[appearance])
+        self.assertEqual(css.count("appearance: base-select;"), 1)
+        self.assertIn("display: none;", rules[self.target + "::picker-icon"])
+        popup = rules[self.target + "::picker(select)"]
+        for declaration in ("background: var(--r1-surface);", "border: 1px solid var(--r1-border);",
+                            "border-radius: 8px;", "margin-block: 6px;", "padding: 4px;", "box-shadow:"):
+            self.assertIn(declaration, popup)
+        option = rules[self.target + " option"]
+        for declaration in ("min-height: 44px;", "height: auto;", "padding: 8px 12px;",
+                            "font-size: 16px;", "line-height: 24px;", "font-weight: 400;",
+                            "white-space: normal;", "overflow-wrap: anywhere;"):
+            self.assertIn(declaration, option)
+        empty = rules[self.target + ' option[value=""]']
+        self.assertIn("font-size: 14px;", empty)
+        self.assertNotRegex(empty, r"display:\s*none|visibility:\s*hidden")
+        states = rules[self.target + " option:is(:hover, :focus, :checked)"]
+        self.assertIn("background: var(--r1-blue-soft);", states)
+        self.assertIn("color: var(--r1-accent);", states)
+        self.assertEqual(rules[self.target + " option::checkmark"].strip(), "color: var(--r1-accent);")
 
 
 class CancellationDateTimeValuesTests(SimpleTestCase):
