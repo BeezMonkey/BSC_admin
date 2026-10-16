@@ -40,9 +40,9 @@
   </div>
   <div class="service-log-status-grid" role="region" aria-label="Service log statuses" tabindex="0">
     {% for item in status_overview %}
-    <a class="service-log-status-card{% if item.active %} active{% endif %}" href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>
-      <span>{{ item.label }}</span>
-      <strong>{{ item.count_label }}</strong>
+    <a class="service-log-status-card{% if item.active %} active{% endif %}" href="{{ item.url }}" aria-label="{{ item.label }}: {{ item.count_label }}. {{ item.description }}"{% if item.active %} aria-current="page"{% endif %}>
+      <span class="service-log-status-title">{{ item.label }}</span>
+      <span class="service-log-status-quantity"><strong class="service-log-status-number">{{ item.count }}</strong> <span class="service-log-status-unit">{{ item.count_unit }}</span></span>
       <small>{{ item.description }}</small>
     </a>
     {% endfor %}
@@ -209,4 +209,5 @@
 </form>
 {% include "core/pagination.html" %}
 <script src="{% static 'js/service_log_filters.js' %}" defer></script>
+<script src="{% static 'js/r1_admin_log_list.js' %}" defer></script>
 {% endblock %}

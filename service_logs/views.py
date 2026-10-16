@@ -250,6 +250,8 @@ def service_log_list(request):
         {
             "label": "All logs",
             "count_label": f"{total_count} record{'s' if total_count != 1 else ''}",
+            "count": total_count,
+            "count_unit": "records" if total_count != 1 else "record",
             "description": "Full service log history",
             "url": status_url(),
             "active": not status,
@@ -257,6 +259,8 @@ def service_log_list(request):
         {
             "label": "Submitted",
             "count_label": f"{status_counts.get(ServiceLog.Status.SUBMITTED, 0)} waiting",
+            "count": status_counts.get(ServiceLog.Status.SUBMITTED, 0),
+            "count_unit": "waiting",
             "description": "Waiting for admin review",
             "url": status_url(ServiceLog.Status.SUBMITTED),
             "active": status == ServiceLog.Status.SUBMITTED,
@@ -264,6 +268,8 @@ def service_log_list(request):
         {
             "label": "Approved",
             "count_label": f"{approved_ready_count} ready",
+            "count": approved_ready_count,
+            "count_unit": "ready",
             "description": "Ready to invoice",
             "url": status_url(ServiceLog.Status.APPROVED),
             "active": status == ServiceLog.Status.APPROVED,
@@ -271,6 +277,8 @@ def service_log_list(request):
         {
             "label": "Invoiced",
             "count_label": f"{status_counts.get(ServiceLog.Status.INVOICED, 0)} billed",
+            "count": status_counts.get(ServiceLog.Status.INVOICED, 0),
+            "count_unit": "billed",
             "description": "Already converted to invoices",
             "url": status_url(ServiceLog.Status.INVOICED),
             "active": status == ServiceLog.Status.INVOICED,
@@ -278,6 +286,8 @@ def service_log_list(request):
         {
             "label": "Rejected",
             "count_label": f"{status_counts.get(ServiceLog.Status.REJECTED, 0)} returned",
+            "count": status_counts.get(ServiceLog.Status.REJECTED, 0),
+            "count_unit": "returned",
             "description": "Needs worker correction",
             "url": status_url(ServiceLog.Status.REJECTED),
             "active": status == ServiceLog.Status.REJECTED,

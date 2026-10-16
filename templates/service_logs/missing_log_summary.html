@@ -1,12 +1,23 @@
-{% load bsc_formatting %}
+{% load bsc_formatting static %}
 {% if missing_log_count %}
+<div class="service-log-missing-bar">
+<p class="service-log-missing-explanation">Scheduled shifts that have ended, with no service log submitted.</p>
 <details class="service-log-missing">
-  <summary>
-    <span>
-      <strong>{{ missing_worker_count }} worker{{ missing_worker_count|pluralize }} with {{ missing_log_count }} unsubmitted log{{ missing_log_count|pluralize }}</strong>
-      <small>Scheduled shifts that have ended, with no service log submitted.</small>
+  <summary aria-controls="service-log-missing-panel">
+    <img class="service-log-missing-chevron" src="{% static 'img/r1/icons/chevron.svg' %}" alt="" width="20" height="20">
+    <span class="service-log-missing-trigger">
+      <span class="service-log-missing-label">Missing logs</span>
+      <span class="service-log-missing-counts">{{ missing_log_count }} log{{ missing_log_count|pluralize }} &middot; {{ missing_worker_count }} worker{{ missing_worker_count|pluralize }}</span>
     </span>
   </summary>
+  <div class="service-log-missing-panel" id="service-log-missing-panel" aria-labelledby="service-log-missing-title">
+    <div class="service-log-missing-header">
+      <div>
+        <h2 id="service-log-missing-title">Missing logs</h2>
+        <p>{{ missing_worker_count }} worker{{ missing_worker_count|pluralize }} with {{ missing_log_count }} unsubmitted log{{ missing_log_count|pluralize }}</p>
+      </div>
+      <button type="button" class="service-log-missing-close" data-missing-close hidden>Close</button>
+    </div>
   <div class="service-log-missing-groups" role="region" aria-label="Unsubmitted logs by worker" tabindex="0">
     {% for group in missing_log_groups %}
     <details class="service-log-missing-worker">
@@ -21,9 +32,9 @@
         {% for shift in group.shifts %}
         <li>
           <div class="service-log-missing-shift-facts">
+            <strong class="service-log-missing-participant">{{ shift.participant.display_name }}</strong>
             <span>{{ shift.service_date|date:"d/m/Y" }}</span>
             <span>{{ shift.start_time|display_time }} &ndash; {{ shift.end_time|display_time }}</span>
-            <span>{{ shift.participant.display_name }}</span>
           </div>
           <a href="{% url 'shift_detail' shift.id %}">View shift<span class="sr-only">: {{ shift.participant.display_name }}, {{ shift.service_date|date:"d/m/Y" }}</span></a>
         </li>
@@ -32,7 +43,9 @@
     </details>
     {% endfor %}
   </div>
+  </div>
 </details>
+</div>
 {% else %}
 <div class="service-log-missing service-log-missing-clear">
   No unsubmitted logs in the current filters.

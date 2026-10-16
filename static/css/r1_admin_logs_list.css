@@ -13,22 +13,23 @@
 .r1-admin-log-list .dashboard-section-heading p { color: var(--r1-muted); }
 
 .r1-admin-log-list .service-log-status-grid {
-  grid-template-columns: repeat(5, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
   gap: 12px;
   max-width: 100%;
   padding: 4px 4px 12px;
   margin: -4px -4px 0;
-  overflow-x: auto;
 }
 
 .r1-admin-log-list .service-log-status-card {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-height: 112px;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 96px;
   border: 1px solid var(--r1-border);
   border-radius: 8px;
-  padding: 14px 16px;
+  padding: 12px;
   background: var(--r1-surface);
   text-decoration: none;
   overflow-wrap: anywhere;
@@ -39,20 +40,28 @@
   background: var(--r1-blue-soft);
 }
 
-.r1-admin-log-list .service-log-status-card > span {
+.r1-admin-log-list .service-log-status-card .service-log-status-title {
   color: var(--r1-muted);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  line-height: 20px;
+  line-height: 18px;
 }
 
-.r1-admin-log-list .service-log-status-card.active > span { color: var(--r1-accent); }
-.r1-admin-log-list .service-log-status-card strong {
+.r1-admin-log-list .service-log-status-card.active .service-log-status-title { color: var(--r1-accent); }
+.r1-admin-log-list .service-log-status-quantity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 8px;
   color: var(--r1-text);
-  font-size: 24px;
-  font-weight: 600;
-  line-height: 32px;
 }
+.r1-admin-log-list .service-log-status-card .service-log-status-number {
+  color: var(--r1-text);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+}
+.r1-admin-log-list .service-log-status-unit { font-size: 14px; font-weight: 500; line-height: 20px; }
 .r1-admin-log-list .service-log-status-card small {
   color: var(--r1-muted);
   font-size: 12px;
@@ -61,13 +70,14 @@
 
 .r1-admin-log-list .service-log-filter-bar[data-service-log-filters] {
   display: grid;
-  grid-template-columns: minmax(160px, 1.3fr) minmax(150px, 1.15fr) minmax(140px, 1fr) repeat(2, minmax(150px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: end;
   gap: 16px 12px;
   margin: 0 0 16px;
   border: 0;
-  padding: 0;
-  background: transparent;
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--r1-subtle);
   box-shadow: none;
 }
 
@@ -91,7 +101,7 @@
 
 .r1-admin-log-list .service-log-filter-actions {
   display: flex;
-  grid-column: 1 / -1;
+  grid-column: auto;
   flex-wrap: wrap;
   gap: 12px;
 }
@@ -120,13 +130,39 @@
   line-height: 20px;
 }
 
+.r1-admin-log-list .service-log-missing-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 24px;
+  margin-bottom: 24px;
+}
+.r1-admin-log-list .service-log-missing-bar > .service-log-missing { min-width: 0; margin: 0; }
+.r1-admin-log-list .service-log-missing-explanation {
+  min-width: 0;
+  margin: 0;
+  color: var(--r1-muted);
+  font-size: 12px;
+  line-height: 16px;
+}
 .r1-admin-log-list .service-log-missing > summary {
-  min-height: 48px;
+  grid-template-columns: 20px minmax(0, 1fr);
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-height: 40px;
   border: 1px solid var(--r1-border);
   border-radius: 8px;
-  padding: 10px 12px;
+  padding: 8px 12px;
   background: var(--r1-surface);
 }
+.r1-admin-log-list .service-log-missing > summary::before,
+.r1-admin-log-list .service-log-missing[open] > summary::before { content: none; display: none; }
+.r1-admin-log-list .service-log-missing-chevron { display: block; transform: rotate(90deg); }
+.r1-admin-log-list .service-log-missing[open] > summary > .service-log-missing-chevron { transform: rotate(-90deg); }
+.r1-admin-log-list .service-log-missing-trigger { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.r1-admin-log-list .service-log-missing-label { font-weight: 500; }
+.r1-admin-log-list .service-log-missing-counts { color: var(--r1-muted); font-size: 12px; }
 .r1-admin-log-list .service-log-missing[open] > summary {
   border-color: var(--r1-accent);
   background: var(--r1-blue-soft);
@@ -140,22 +176,52 @@
   line-height: 16px;
 }
 
-/* Keep native details semantics; only the worker viewport scrolls locally. */
-.r1-admin-log-list .service-log-missing-groups {
-  position: absolute;
-  z-index: 5;
-  top: calc(100% + 8px);
-  right: 0;
+/* Native details stays in-flow until the list-only script positions the panel. */
+.r1-admin-log-list .service-log-missing-panel {
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
   width: min(560px, 100%);
-  max-height: min(464px, 60dvh);
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  max-height: min(464px, calc(100dvh - 24px));
+  margin-top: 8px;
   border: 1px solid var(--r1-border);
   border-radius: 8px;
-  padding: 20px;
+  overflow: hidden;
   background: var(--r1-surface);
   box-shadow: 0 10px 14px rgb(23 33 43 / 14%);
+}
+.r1-admin-log-list .service-log-missing:not([open]) > .service-log-missing-panel { display: none; }
+.r1-admin-log-list .service-log-missing-header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--r1-border);
+}
+.r1-admin-log-list .service-log-missing-header > div { min-width: 0; overflow-wrap: anywhere; }
+.r1-admin-log-list .service-log-missing-header h2 { margin: 0; font-size: 16px; font-weight: 600; line-height: 24px; }
+.r1-admin-log-list .service-log-missing-header p { margin: 4px 0 0; color: var(--r1-muted); font-size: 12px; line-height: 16px; }
+.r1-admin-log-list .service-log-missing-close {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--r1-border);
+  border-radius: 6px;
+  background: var(--r1-surface);
+  color: var(--r1-text);
+  font-size: 14px;
+  line-height: 20px;
+}
+.r1-admin-log-list .service-log-missing-groups {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+}
+@media (min-width: 761px) {
+  .r1-admin-log-list .service-log-missing-panel[data-anchored] { position: fixed; z-index: 10; margin: 0; }
 }
 
 .r1-admin-log-list .service-log-missing-worker { border: 0; }
@@ -191,13 +257,10 @@
   font-size: 12px;
   line-height: 16px;
 }
-.r1-admin-log-list .service-log-missing-shift-facts > span:first-child {
-  color: var(--r1-text);
-  font-weight: 600;
-}
-.r1-admin-log-list .service-log-missing-shift-facts > span:last-child {
+.r1-admin-log-list .service-log-missing-shift-facts .service-log-missing-participant {
   flex-basis: 100%;
   color: var(--r1-text);
+  font-weight: 500;
   font-size: 14px;
   line-height: 20px;
 }
@@ -324,20 +387,23 @@
 .r1-admin-log-list .pagination-links > :is(a, .disabled) { min-height: 36px; border-radius: 6px; padding: 7px 12px; }
 .r1-admin-log-list :is(.pagination-summary, .pagination-links > span) { color: var(--r1-muted); font-size: 12px; line-height: 16px; }
 
-@media (max-width: 1200px) {
-  .r1-admin-log-list .service-log-filter-bar[data-service-log-filters] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .r1-admin-log-list .service-log-filter-actions { grid-column: auto; }
-}
-
-@media (min-width: 761px) and (max-height: 800px) {
-  .r1-admin-log-list .service-log-missing-groups { top: auto; bottom: calc(100% + 8px); max-height: min(300px, 40dvh); }
+@media (min-width: 1280px) {
+  .r1-admin-log-list .service-log-status-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .r1-admin-log-list .service-log-filter-bar[data-service-log-filters] { grid-template-columns: repeat(5, minmax(0, 1fr)) auto; gap: 12px 10px; }
+  .r1-admin-log-list .service-log-filter-actions { flex-wrap: nowrap; gap: 8px; }
 }
 
 @media (max-width: 760px) {
+  .r1-admin-log-list .service-log-missing-bar { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .r1-admin-log-list .service-log-missing > summary { min-height: 44px; }
+  .r1-admin-log-list .service-log-status-grid { grid-template-columns: minmax(0, 1fr); }
   .r1-admin-log-list .service-log-filter-bar[data-service-log-filters] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .r1-admin-log-list .service-log-filter-bar[data-service-log-filters] > label:nth-of-type(3),
   .r1-admin-log-list .service-log-filter-actions { grid-column: 1 / -1; }
-  .r1-admin-log-list .service-log-missing-groups { position: static; width: 100%; max-height: 50dvh; margin-top: 8px; padding: 12px; box-shadow: none; }
+  .r1-admin-log-list .service-log-filter-bar :is(input, select) { font-size: 16px; min-height: 44px; }
+  .r1-admin-log-list .service-log-filter-actions > :is(button, .button) { min-height: 44px; }
+  .r1-admin-log-list .service-log-missing-panel { width: 100%; box-shadow: none; }
+  .r1-admin-log-list .service-log-missing-header { padding: 12px; }
   .r1-admin-log-list .service-log-missing-worker > summary { grid-template-columns: 14px minmax(0, 1fr); gap: 8px; }
   .r1-admin-log-list .service-log-missing-worker > summary > span:last-child { grid-column: 2; }
   .r1-admin-log-list .service-log-missing-shifts { padding: 0; }
