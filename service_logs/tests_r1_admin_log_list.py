@@ -141,6 +141,19 @@ class R1AdminLogListTests(SimpleTestCase):
         self.assertIn("Showing 11-20 of 30 records", html)
         self.assertIn("status=approved&amp;participant=11&amp;page=3", html)
 
+    def test_native_billing_checkboxes_keep_labels_and_expand_hit_targets(self):
+        markup = ListMarkup(self.render())
+        boxes = [(index, attrs) for index, (tag, attrs) in enumerate(markup.elements)
+                 if tag == "input" and attrs.get("type") == "checkbox"]
+        self.assertEqual([(attrs["name"], attrs["value"]) for _, attrs in boxes],
+                         [("service_log_ids", "2"), ("participant_cancellation_ids", "51")])
+        for index, attrs in boxes:
+            self.assertEqual(markup.parents[index][-1],
+                             ("label", {"class": "service-log-selection-target"}))
+            self.assertIn("Fictional Participant, 09/10/2026" if attrs["value"] == "2"
+                          else "Fictional Participant, 08/10/2026", attrs["aria-label"])
+            self.assertNotIn("onclick", attrs)
+
     def test_scoped_filter_band_has_explicit_eight_pixel_outer_radius(self):
         stylesheet = (Path(__file__).resolve().parent.parent / "static/css/r1_admin_logs_list.css").read_text(encoding="utf-8")
         selector = ".r1-admin-log-list .service-log-filter-bar[data-service-log-filters] {"
