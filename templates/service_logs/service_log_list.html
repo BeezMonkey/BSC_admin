@@ -86,15 +86,15 @@
   </div>
 </form>
 
-<div class="service-log-list-toolbar">
-  {% include "service_logs/missing_log_summary.html" %}
-</div>
 <section class="card table-card service-log-table-card">
+  <div class="service-log-list-toolbar">
     <p class="service-log-filter-summary" aria-live="polite">
       Showing <strong>{{ filtered_record_count }}{% if status_label %} {{ status_label|lower }}{% endif %} {% if status == "approved" %}record{{ filtered_record_count|pluralize }}{% else %}log{{ filtered_record_count|pluralize }}{% endif %}</strong>
       <span aria-hidden="true">&middot;</span>
       {{ filtered_hours }} hours
     </p>
+    {% include "service_logs/missing_log_summary.html" %}
+  </div>
   <div class="bulk-actions service-log-bulk-actions">
     <div>
       <strong>Billing action</strong>

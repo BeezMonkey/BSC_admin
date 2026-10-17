@@ -180,7 +180,7 @@ class R1AdminLogListTests(SimpleTestCase):
                 markup = ListMarkup(html)
                 index = next(i for i, (_, attrs) in enumerate(markup.elements)
                              if attrs.get("class") == "service-log-filter-summary")
-                self.assertIn("service-log-table-card", markup.parents[index][-1][1].get("class", ""))
+                self.assertIn("service-log-list-toolbar", markup.parents[index][-1][1].get("class", ""))
                 self.assertLess(html.index('class="service-log-filter-summary"'),
                                 html.index('class="bulk-actions service-log-bulk-actions"'))
                 self.assertIn(f"{count} approved record", html)
@@ -310,8 +310,8 @@ class R1AdminLogListTests(SimpleTestCase):
     def test_toolbar_spacing_and_mobile_centering_are_list_scoped(self):
         stylesheet = (Path(__file__).resolve().parent.parent / "static/css/r1_admin_logs_list.css").read_text(encoding="utf-8")
         rule = stylesheet.split(".r1-admin-log-list .service-log-list-toolbar {", 1)[1].split("}", 1)[0]
-        self.assertIn("padding-top: 16px;", rule)
-        self.assertIn("margin-bottom: 12px;", rule)
+        self.assertIn("padding: 12px 16px;", rule)
+        self.assertIn("margin: 0;", rule)
         mobile = stylesheet.split("@media (max-width: 760px) {", 1)[1]
         self.assertIn(".r1-admin-log-list .service-log-create-selected { justify-self: center; min-height: 44px; }", mobile)
         self.assertIn(".r1-admin-log-list .service-log-missing > summary { min-height: 44px; margin-inline: auto; }", mobile)
@@ -336,8 +336,23 @@ class R1AdminLogListTests(SimpleTestCase):
 
     def test_showing_first_row_explicitly_overrides_legacy_right_alignment(self):
         stylesheet = (Path(__file__).resolve().parent.parent / "static/css/r1_admin_logs_list.css").read_text(encoding="utf-8")
-        rule = stylesheet.split(".r1-admin-log-list .service-log-table-card > .service-log-filter-summary {", 1)[1].split("}", 1)[0]
+        self.assertIn(".r1-admin-log-list .service-log-list-toolbar > .service-log-filter-summary {", stylesheet)
+        rule = stylesheet.split(".r1-admin-log-list .service-log-list-toolbar > .service-log-filter-summary {", 1)[1].split("}", 1)[0]
         self.assertIn("justify-content: flex-start;", rule)
+
+    def test_missing_and_showing_share_first_row_with_closed_only_soft_highlight(self):
+        markup = ListMarkup(self.render())
+        indexes = [i for i, (_, attrs) in enumerate(markup.elements)
+                   if attrs.get("class") in {"service-log-filter-summary", "service-log-missing-bar"}]
+        self.assertEqual(len(indexes), 2)
+        parents = [markup.parents[i][-1] for i in indexes]
+        self.assertEqual(parents, [("div", {"class": "service-log-list-toolbar"})] * 2)
+        for i in indexes:
+            self.assertFalse(any(parent[0] == "form" for parent in markup.parents[i]))
+        stylesheet = (Path(__file__).resolve().parent.parent / "static/css/r1_admin_logs_list.css").read_text(encoding="utf-8")
+        rule = stylesheet.split(".r1-admin-log-list .service-log-list-toolbar .service-log-missing:not([open]) > summary {", 1)[1].split("}", 1)[0]
+        self.assertIn("background: var(--r1-warning-soft);", rule)
+        self.assertNotIn("font-size", rule)
 
 
 @skipUnless(shutil.which("node"), "Node is required for the isolated list interaction test")
