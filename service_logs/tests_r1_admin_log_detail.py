@@ -71,3 +71,20 @@ class R1AdminLogDetailTests(TestCase):
         self.assertContains(response, 'aria-describedby="r1-log-reject-error"')
         self.assertContains(response, 'id="r1-log-reject-error"')
         self.assertContains(response, 'Rejection reason is required.')
+
+    def test_attachment_empty_state_has_scoped_padding_and_explicit_type_rhythm(self):
+        css = (Path(settings.BASE_DIR) / "static/css/r1_admin_log_detail.css").read_text(encoding="utf-8")
+        selector = ".r1-admin-log-detail .service-log-attachment-grid > .empty-state"
+        for suffix, declarations in [
+            ("", ["padding: 16px", "display: grid", "gap: 4px"]),
+            (" > strong", ["margin: 0", "font-size: 14px", "line-height: 20px", "font-weight: 500"]),
+            (" > p", ["margin: 0", "font-size: 13px", "line-height: 20px", "font-weight: 400"]),
+        ]:
+            rule = selector + suffix + " {"
+            self.assertIn(rule, css)
+            body = css.split(rule, 1)[1].split("}", 1)[0]
+            for declaration in declarations:
+                self.assertIn(declaration, body)
+        response = self.page()
+        self.assertContains(response, "No attachments.")
+        self.assertContains(response, "No files were submitted with this service log.")
