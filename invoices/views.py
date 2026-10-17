@@ -231,6 +231,7 @@ def invoice_list_for_type(
         "invoices/invoice_list.html",
         {
             "page_title": page_title,
+            "r1_invoice_list": list_url_name == "invoice_placeholder" and has_role(request.user, ADMIN_ROLES),
             "page_description": page_description,
             "list_url_name": list_url_name,
             "create_url_name": create_url_name,
