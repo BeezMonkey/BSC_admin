@@ -186,7 +186,7 @@ class R1AdminInvoiceListTests(TestCase):
                 self.assertNotContains(response, "r1_admin_invoice_list.css")
                 if url == reverse("invoice_detail", args=[self.records[Invoice.Status.DRAFT].pk]):
                     self.assertContains(response, "r1_admin_invoice_detail.css")
-                else:
+                elif url != reverse("invoice_create"):
                     self.assertNotContains(response, "r1_shell.css")
 
     def test_existing_role_boundaries_are_unchanged(self):
@@ -476,5 +476,9 @@ class R1AdminInvoiceListTests(TestCase):
                     self.assertEqual(response.status_code, 200)
                     for marker in ("data-invoice-filters", "data-invoice-date", "data-invoice-date-proxy",
                                    "r1_admin_invoice_filters.js", "date_time_picker.js"):
+                        if url == reverse("invoice_create") and marker in (
+                            "data-invoice-date", "data-invoice-date-proxy", "date_time_picker.js"
+                        ):
+                            continue
                         self.assertNotContains(response, marker)
                     self.assertTemplateNotUsed(response, "invoices/partials/filter_date.html")

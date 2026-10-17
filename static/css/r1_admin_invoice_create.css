@@ -1,0 +1,170 @@
+/* B04.3 ordinary Admin preview only; billing controls and calculations are unchanged. */
+.app-shell.r1-admin-invoice-create { --r1-control-height: 40px; font-size: 14px; line-height: 20px; }
+.app-shell.r1-admin-invoice-create .page-header { margin-bottom: 24px; }
+.app-shell.r1-admin-invoice-create .page-header p { margin: 6px 0 0; font-size: 14px; line-height: 20px; }
+.app-shell.r1-ui.r1-admin-invoice-create :is(button, .button) { font-size: 14px; line-height: 20px; font-weight: 500; white-space: nowrap; }
+.app-shell.r1-admin-invoice-create .invoice-preview-filter { display: grid; grid-template-columns: minmax(0, 1.5fr) repeat(2, minmax(0, 1fr)) auto; align-items: end; gap: 12px; margin: 0 0 28px; padding: 16px; border-radius: 8px; background: var(--r1-subtle); }
+.app-shell.r1-admin-invoice-create .invoice-preview-filter > .errorlist { grid-column: 1 / -1; margin: 0; }
+.app-shell.r1-admin-invoice-create .invoice-preview-filter label { display: grid; gap: 6px; min-width: 0; color: var(--r1-muted); font-size: 12px; line-height: 16px; font-weight: 400; }
+.app-shell.r1-admin-invoice-create .invoice-preview-filter :is(input, select) { box-sizing: border-box; width: 100%; min-width: 0; height: 40px; padding: 9px 12px; border: 1px solid var(--r1-strong-border); border-radius: 6px; color: var(--r1-text); background: var(--r1-surface); font-size: 14px; font-weight: 400; line-height: 20px; }
+.app-shell.r1-admin-invoice-create .invoice-preview-filter > button { margin: 0; min-height: 40px; }
+.app-shell.r1-admin-invoice-create .invoice-preview-table { padding: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+.app-shell.r1-admin-invoice-create .invoice-preview-table > h2 { min-height: 0; margin: 0 0 16px; padding: 0; border: 0; font-size: 16px; line-height: 24px; font-weight: 600; }
+.app-shell.r1-admin-invoice-create .invoice-preview-help { margin: 8px 0 24px; color: var(--r1-muted); font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create .invoice-selected-groups { padding: 0; gap: 32px; }
+.app-shell.r1-admin-invoice-create .invoice-selected-group { min-width: 0; overflow: visible; border: 0; border-radius: 0; }
+.app-shell.r1-admin-invoice-create .invoice-selected-group-header { padding: 0 0 16px; border: 0; background: transparent; }
+.app-shell.r1-admin-invoice-create .invoice-selected-group-header h3 { margin: 0; overflow-wrap: anywhere; font-size: 16px; line-height: 24px; font-weight: 600; }
+.app-shell.r1-admin-invoice-create .invoice-selected-group-header p { margin: 4px 0 0; color: var(--r1-muted); font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create .invoice-preview-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+.app-shell.r1-admin-invoice-create .invoice-preview-table table { width: 100%; min-width: 0; margin: 0; border-collapse: collapse; }
+.app-shell.r1-admin-invoice-create .invoice-preview-table th { padding: 12px 10px; background: var(--r1-subtle); border: 0; color: var(--r1-muted); font-size: 12px; line-height: 16px; font-weight: 500; white-space: normal; }
+.app-shell.r1-admin-invoice-create .invoice-preview-table td { padding: 20px 10px; border-bottom: 1px solid var(--r1-border); vertical-align: middle; font-size: 14px; line-height: 20px; }
+.app-shell.r1-admin-invoice-create .invoice-preview-table .invoice-billing-row > td { font-size: 14px; }
+.app-shell.r1-admin-invoice-create .invoice-preview-table th:first-child { border-radius: 6px 0 0 6px; }
+.app-shell.r1-admin-invoice-create .invoice-preview-table th:last-child { border-radius: 0 6px 6px 0; }
+.app-shell.r1-admin-invoice-create .invoice-preview-table .invoice-preview-date-cell { white-space: normal; }
+.app-shell.r1-admin-invoice-create .invoice-preview-table .invoice-preview-worker-cell { white-space: normal; font-weight: 400; }
+.app-shell.r1-admin-invoice-create .invoice-billing-row :is(small, .invoice-billing-original) { font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create .invoice-billing-row .invoice-travel-claim { padding-left: 10px; }
+.app-shell.r1-admin-invoice-create .invoice-billing-row .invoice-travel-claim input { width: 88px; height: 36px; min-height: 36px; padding: 7px 8px; font-size: 14px; line-height: 20px; }
+.app-shell.r1-admin-invoice-create .invoice-billing-row .invoice-travel-claim [data-billing-claim-field] > small { font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create .invoice-travel-empty { color: var(--r1-muted); font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create .invoice-billing-row .invoice-adjust-button { box-sizing: border-box; width: 36px; height: 36px; min-height: 36px; padding: 0; border: 1px solid var(--r1-border); border-radius: 6px; background: var(--r1-surface) url('../img/r1/icons/invoice-adjust.svg') center / 18px 18px no-repeat; }
+.r1-admin-invoice-create .invoice-adjust-button > svg { visibility: hidden; }
+.app-shell.r1-admin-invoice-create .invoice-preview-actions { gap: 16px; padding: 20px; margin-top: 24px; border: 0; border-radius: 8px; background: var(--r1-subtle); }
+.app-shell.r1-admin-invoice-create .invoice-form-total { font-size: 18px; line-height: 24px; font-weight: 600; }
+.app-shell.r1-admin-invoice-create .invoice-selected-group .invoice-preview-actions > button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-align: center; }
+.app-shell.r1-admin-invoice-create .invoice-preview-empty-state { margin: 0; padding: 24px; border: 1px dashed var(--r1-border); border-radius: 8px; background: var(--r1-subtle); font-size: 14px; line-height: 20px; }
+.app-shell.r1-admin-invoice-create .invoice-preview-empty-state p { margin: 6px 0 0; color: var(--r1-muted); }
+
+/* The existing controller moves the original fields into this modal. */
+.app-shell.r1-admin-invoice-create .invoice-adjustment-drawer { width: 640px; height: 100dvh; max-height: 100dvh; max-width: 100%; border-radius: 0; }
+.app-shell.r1-admin-invoice-create .invoice-adjustment-drawer > header { padding: 24px 28px 16px; align-items: flex-start; }
+.app-shell.r1-admin-invoice-create .invoice-adjustment-drawer > header h2 { margin: 0; min-height: 0; padding: 0; border: 0; font-size: 24px; line-height: 32px; }
+.app-shell.r1-admin-invoice-create .invoice-adjustment-drawer > header p { margin: 6px 0 0; font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer > header button { flex: 0 0 36px; width: 36px; height: 36px; min-height: 36px; padding: 0; border: 0; font-size: 24px; line-height: 32px; }
+.app-shell.r1-admin-invoice-create .invoice-drawer-body { padding: 0 28px; }
+.app-shell.r1-admin-invoice-create .invoice-billing-fields { font-size: 14px; line-height: 20px; }
+.app-shell.r1-admin-invoice-create :is(.invoice-drawer-identity, .invoice-drawer-section) { padding: 20px 0; }
+.app-shell.r1-admin-invoice-create .invoice-drawer-identity > strong { display: block; overflow-wrap: anywhere; font-size: 16px; line-height: 24px; font-weight: 600; }
+.app-shell.r1-admin-invoice-create .invoice-identity-meta { flex-wrap: wrap; margin-top: 8px; font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create .invoice-drawer-status { padding: 4px 8px; border-radius: 4px; font-size: 12px; line-height: 16px; color: var(--r1-success); background: #edf5f0; }
+.app-shell.r1-admin-invoice-create .invoice-drawer-section h3 { align-items: center; margin: 0 0 12px; font-size: 16px; line-height: 24px; font-weight: 600; }
+.app-shell.r1-admin-invoice-create .invoice-drawer-section h3 small { padding: 2px 6px; border-radius: 4px; background: var(--r1-subtle); color: var(--r1-muted); font-size: 12px; line-height: 16px; text-transform: none; }
+.app-shell.r1-admin-invoice-create .invoice-time-source { align-items: baseline; flex-wrap: wrap; gap: 6px 12px; margin-bottom: 12px; font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create .invoice-time-summary { flex-wrap: wrap; gap: 12px; }
+.app-shell.r1-admin-invoice-create .invoice-time-summary strong { font-size: 14px; line-height: 20px; font-weight: 500; }
+.app-shell.r1-admin-invoice-create .invoice-time-summary p { font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .invoice-correct-time { height: 36px; min-height: 36px; padding: 7px 12px; border-color: var(--r1-strong-border); color: var(--r1-text); font-size: 14px; line-height: 20px; }
+.app-shell.r1-admin-invoice-create .invoice-billing-fields label { margin-bottom: 6px; color: var(--r1-muted); font-size: 12px; line-height: 16px; font-weight: 400; }
+.app-shell.r1-admin-invoice-create .invoice-adjustment-drawer .invoice-billing-fields :is(input:not([type=checkbox]), select, textarea) { min-height: 40px; padding: 9px 12px; border: 1px solid var(--r1-strong-border); border-radius: 6px; color: var(--r1-text); background: var(--r1-surface); font-size: 14px; line-height: 20px; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .support-item-picker-native { position: absolute; width: 1px; height: 1px; min-height: 0; padding: 0; border: 0; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .support-item-picker-trigger { min-height: 60px; padding: 10px 12px; border-radius: 6px; }
+.app-shell.r1-admin-invoice-create .invoice-adjustment-drawer .support-item-picker-trigger-label[data-invoice-item-name]::before { font-size: 14px; line-height: 20px; }
+.app-shell.r1-admin-invoice-create .invoice-adjustment-drawer .support-item-picker-trigger-label[data-invoice-item-code]::after { font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create .invoice-adjustment-drawer .support-item-picker-panel { border-radius: 6px; border-color: var(--r1-border); }
+.app-shell.r1-admin-invoice-create .invoice-adjustment-drawer .support-item-picker-option { font-size: 14px; line-height: 20px; }
+.app-shell.r1-admin-invoice-create .invoice-billing-reset-item { min-height: 32px; padding: 6px 0; font-size: 12px; line-height: 20px; }
+.app-shell.r1-admin-invoice-create .invoice-travel-fields { gap: 16px; }
+.app-shell.r1-admin-invoice-create .invoice-billing-fields .invoice-travel-fields input { height: 40px; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .invoice-billing-fields .invoice-km-input input { padding-right: 42px; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .invoice-billing-fields .invoice-money-input input { padding-left: 28px; }
+.app-shell.r1-admin-invoice-create :is(.invoice-input-suffix, .invoice-input-prefix, .invoice-billing-original, .invoice-drawer-audit) { font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create .invoice-travel-fields [data-billing-claim-field] > small { font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .invoice-drawer-subtotal { font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create .invoice-source-notes { margin: 16px 0; }
+.app-shell.r1-admin-invoice-create .invoice-source-notes > summary { padding: 12px; border: 1px solid var(--r1-border); border-radius: 6px; background: var(--r1-subtle); font-size: 14px; line-height: 20px; }
+.app-shell.r1-admin-invoice-create .invoice-source-notes :is(p, li) { font-size: 14px; line-height: 20px; overflow-wrap: anywhere; }
+.app-shell.r1-admin-invoice-create .invoice-billing-history-meta { color: var(--r1-muted); font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create .invoice-adjustment-drawer > footer { padding: 16px 28px 20px; }
+.app-shell.r1-admin-invoice-create .invoice-drawer-comparison { font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create .invoice-drawer-comparison strong { margin-top: 4px; font-size: 20px; line-height: 28px; font-weight: 600; }
+.app-shell.r1-admin-invoice-create .invoice-drawer-comparison small { font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create .invoice-drawer-footer-row > span { font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create .invoice-drawer-actions button { min-height: 40px; padding: 9px 16px; font-size: 14px; line-height: 20px; }
+.app-shell.r1-admin-invoice-create .invoice-adjustment-drawer > footer > .invoice-drawer-save-note { font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create .invoice-discard-dialog { box-sizing: border-box; width: 480px; max-width: calc(100% - 32px); padding: 24px; border-radius: 8px; }
+.app-shell.r1-admin-invoice-create .invoice-discard-dialog h2 { margin: 0 0 8px; font-size: 20px; line-height: 28px; }
+.app-shell.r1-admin-invoice-create .invoice-discard-dialog p { font-size: 14px; line-height: 20px; }
+
+/* Progressive desktop controls retain native selection on mobile and touch. */
+@supports (appearance: base-select) and selector(select::picker(select)) {
+  @media (min-width: 761px) and (hover: hover) and (pointer: fine) {
+    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason]) select,
+    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason]) select::picker(select) { appearance: base-select; }
+    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason]) select { align-items: center; line-height: normal; }
+    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason]) select::picker(select) { box-sizing: border-box; max-height: 280px; overflow-y: auto; margin: 4px 0; border: 1px solid var(--r1-border); border-radius: 8px; padding: 4px; color: var(--r1-text); background: var(--r1-surface); box-shadow: 0 6px 16px rgb(23 33 43 / 12%); }
+    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason]) select option { min-height: 32px; padding: 6px 8px; border-radius: 4px; font-size: 13px; line-height: 18px; white-space: normal; overflow-wrap: anywhere; }
+    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason]) select option:is(:checked, :hover, :focus) { color: var(--r1-accent); background: var(--r1-blue-soft); }
+    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason]) select option::checkmark { color: var(--r1-accent); }
+  }
+}
+.app-shell.r1-admin-invoice-create .invoice-filter-date { display: grid; gap: 6px; min-width: 0; position: relative; }
+.r1-admin-invoice-create .invoice-filter-date [hidden] { display: none !important; }
+.app-shell.r1-admin-invoice-create .invoice-filter-date.is-enhanced > input[type=date] { position: absolute; width: 1px; height: 1px; min-height: 0; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); opacity: 0; pointer-events: none; }
+.app-shell.r1-admin-invoice-create .invoice-filter-date .invoice-date-trigger { display: flex; align-items: center; justify-content: space-between; gap: 8px; box-sizing: border-box; width: 100%; min-width: 0; min-height: 40px; margin: 0; padding: 9px 12px; border: 1px solid var(--r1-strong-border); border-radius: 6px; background: var(--r1-surface); color: var(--r1-text); font-size: 14px; font-weight: 400; line-height: 20px; text-align: left; }
+.r1-admin-invoice-create .invoice-date-trigger > .r1-icon { width: 16px; height: 16px; flex: 0 0 16px; }
+.app-shell.r1-admin-invoice-create .invoice-filter-date .invoice-date-trigger[aria-expanded=true] { border-color: var(--r1-accent); box-shadow: 0 0 0 3px var(--r1-blue-soft); }
+.app-shell.r1-admin-invoice-create .invoice-filter-date .invoice-date-trigger[aria-invalid=true] { border-color: var(--r1-danger); }
+.r1-admin-invoice-create .invoice-date-error { color: var(--r1-danger); font-size: 12px; line-height: 16px; }
+.r1-admin-invoice-create .invoice-calendar { position: fixed; z-index: 20; box-sizing: border-box; width: 292px; padding: 10px; border: 1px solid var(--r1-border); border-radius: 8px; overflow-y: auto; background: var(--r1-surface); color: var(--r1-text); box-shadow: 0 8px 18px rgb(23 33 43 / 14%); }
+.r1-admin-invoice-create .invoice-calendar .calendar-picker-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 4px; }
+.r1-admin-invoice-create .invoice-calendar .calendar-picker-header strong { font-size: 13px; font-weight: 600; line-height: 20px; }
+.r1-admin-invoice-create .invoice-calendar .calendar-picker-navigation { display: flex; gap: 4px; }
+.r1-admin-invoice-create .invoice-calendar :is(.calendar-picker-weekdays, .calendar-picker-grid) { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; padding: 4px 0; }
+.r1-admin-invoice-create .invoice-calendar .calendar-picker-weekdays span { color: var(--r1-muted); font-size: 11px; line-height: 16px; text-align: center; }
+.app-shell.r1-admin-invoice-create .invoice-calendar button { min-width: 0; min-height: 28px; padding: 4px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--r1-text); font-size: 12px; font-weight: 400; line-height: 18px; }
+.app-shell.r1-admin-invoice-create .invoice-calendar .calendar-picker-navigation button { width: 28px; color: var(--r1-accent); font-size: 20px; }
+.r1-admin-invoice-create .invoice-calendar .calendar-day.outside { color: var(--r1-muted); }
+.r1-admin-invoice-create .invoice-calendar .calendar-day.weekend { background: var(--r1-warning-soft); }
+.r1-admin-invoice-create .invoice-calendar .calendar-day.today { border-color: var(--r1-strong-border); }
+.app-shell.r1-admin-invoice-create .invoice-calendar button:hover { color: var(--r1-accent); background: var(--r1-blue-soft); }
+.app-shell.r1-admin-invoice-create .invoice-calendar .calendar-day.selected { color: var(--r1-surface); background: var(--r1-accent); }
+.r1-admin-invoice-create .invoice-calendar .date-picker-footer { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--r1-border); }
+.app-shell.r1-admin-invoice-create .invoice-calendar .date-picker-footer button { color: var(--r1-accent); padding-inline: 6px; }
+
+@media (max-width: 1200px) {
+  .app-shell.r1-admin-invoice-create .invoice-preview-table .invoice-billing-row { gap: 16px; padding: 20px 0; }
+  .app-shell.r1-admin-invoice-create .invoice-preview-table .invoice-billing-row td { height: auto; min-height: 0; padding: 0; border: 0; }
+  .app-shell.r1-admin-invoice-create .invoice-preview-table .invoice-billing-row td::before { margin-bottom: 4px; color: var(--r1-muted); font-size: 12px; line-height: 16px; }
+  .app-shell.r1-admin-invoice-create .invoice-preview-filter { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .app-shell.r1-admin-invoice-create .invoice-preview-filter > label { grid-column: 1 / -1; }
+  .app-shell.r1-admin-invoice-create .invoice-preview-filter > button { justify-self: start; grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .app-shell.r1-admin-invoice-create { --r1-control-height: 44px; }
+  .app-shell.r1-admin-invoice-create .invoice-preview-filter { padding: 12px; }
+  .app-shell.r1-admin-invoice-create .invoice-preview-filter :is(input, select),
+  .app-shell.r1-admin-invoice-create .invoice-adjustment-drawer .invoice-billing-fields :is(input:not([type=checkbox]), select, textarea) { min-height: 44px; font-size: 16px; }
+  .app-shell.r1-admin-invoice-create .invoice-preview-filter :is(input, select) { height: 44px; padding: 10px 8px; }
+  .app-shell.r1-admin-invoice-create .invoice-preview-filter > button { min-height: 44px; }
+  .app-shell.r1-admin-invoice-create .invoice-preview-actions { padding: 16px; gap: 16px; }
+  .app-shell.r1-admin-invoice-create .invoice-form-total { width: 100%; margin: 0; font-size: 18px; line-height: 24px; }
+  .app-shell.r1-admin-invoice-create .invoice-preview-actions > button { width: 100%; min-height: 44px; }
+  .app-shell.r1-admin-invoice-create .invoice-preview-table .invoice-billing-row td { grid-column: span 3; }
+  .app-shell.r1-admin-invoice-create .invoice-preview-table .invoice-billing-row td:nth-child(3) { grid-column: 1 / -1; }
+  .app-shell.r1-admin-invoice-create .invoice-preview-table .invoice-billing-row td:nth-child(7) { grid-column: 1 / -1; }
+  .app-shell.r1-admin-invoice-create .invoice-billing-row .invoice-travel-claim input { min-height: 44px; height: 44px; font-size: 16px; }
+  .app-shell.r1-admin-invoice-create .invoice-billing-row .invoice-adjust-button { width: 44px; height: 44px; min-height: 44px; }
+  .app-shell.r1-admin-invoice-create .invoice-adjustment-drawer { width: 100%; border: 0; }
+  .app-shell.r1-admin-invoice-create .invoice-adjustment-drawer > header { padding: 20px 20px 12px; }
+  .app-shell.r1-admin-invoice-create #invoice-adjustment-drawer > header button { flex-basis: 44px; width: 44px; height: 44px; min-height: 44px; }
+  .app-shell.r1-admin-invoice-create .invoice-drawer-body { padding: 0 20px; }
+  .app-shell.r1-admin-invoice-create .invoice-drawer-section h3 { flex-wrap: wrap; gap: 6px; }
+  .app-shell.r1-admin-invoice-create .invoice-travel-fields { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .app-shell.r1-admin-invoice-create .invoice-time-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .app-shell.r1-admin-invoice-create .invoice-time-fields > div:nth-child(3) { grid-column: 1 / -1; max-width: 8rem; }
+  .app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .invoice-correct-time { min-height: 44px; height: 44px; }
+  .app-shell.r1-admin-invoice-create .invoice-billing-reset-item { min-height: 44px; }
+  .app-shell.r1-admin-invoice-create .invoice-adjustment-drawer > footer { padding: 16px 20px max(20px, env(safe-area-inset-bottom)); }
+  .app-shell.r1-admin-invoice-create .invoice-drawer-footer-row { flex-wrap: wrap; gap: 12px; }
+  .app-shell.r1-admin-invoice-create .invoice-drawer-footer-row > span { width: 100%; }
+  .app-shell.r1-admin-invoice-create .invoice-drawer-actions { width: 100%; flex-wrap: wrap; }
+  .app-shell.r1-admin-invoice-create .invoice-drawer-actions button { min-height: 44px; }
+  .app-shell.r1-admin-invoice-create .invoice-source-notes > summary { padding: 12px; }
+  .app-shell.r1-admin-invoice-create .invoice-discard-dialog { padding: 20px; }
+}
+@media (max-width: 380px) {
+  .app-shell.r1-admin-invoice-create .invoice-preview-filter > .invoice-filter-date { grid-column: 1 / -1; }
+}
