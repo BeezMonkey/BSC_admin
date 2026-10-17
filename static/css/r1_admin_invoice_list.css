@@ -1,0 +1,76 @@
+/* Ordinary Admin invoice list only; shared invoice behavior remains native. */
+.app-shell.r1-admin-invoice-list { --r1-control-height: 40px; font-size: 14px; line-height: 20px; }
+.app-shell.r1-admin-invoice-list .page-header { align-items: flex-start; gap: 20px; margin-bottom: 24px; }
+.app-shell.r1-admin-invoice-list .page-header > div { min-width: 0; }
+.app-shell.r1-admin-invoice-list .page-header p { margin: 6px 0 0; font-size: 14px; line-height: 20px; }
+.app-shell.r1-admin-invoice-list .page-header .button-row { flex-wrap: wrap; gap: 8px; }
+.app-shell.r1-admin-invoice-list :is(button, .button) { font-size: 14px; line-height: 20px; font-weight: 500; white-space: nowrap; }
+.app-shell.r1-admin-invoice-list .invoice-workbench { gap: 16px; margin-bottom: 28px; }
+.app-shell.r1-admin-invoice-list .dashboard-section-heading { align-items: baseline; gap: 16px; }
+.app-shell.r1-admin-invoice-list .dashboard-section-heading h2 { margin: 0; flex: 0 0 auto; }
+.app-shell.r1-admin-invoice-list .dashboard-section-heading p { margin: 0; font-size: 14px; line-height: 20px; text-align: right; }
+.app-shell.r1-admin-invoice-list .invoice-status-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.app-shell.r1-admin-invoice-list .invoice-status-card { align-content: start; gap: 4px; min-height: 96px; padding: 12px; border: 1px solid var(--r1-border); border-radius: 8px; background: var(--r1-surface); box-shadow: none; }
+.app-shell.r1-admin-invoice-list .invoice-status-card span { font-size: 12px; line-height: 16px; font-weight: 500; color: var(--r1-muted); }
+.app-shell.r1-admin-invoice-list .invoice-status-card strong { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--r1-text); overflow-wrap: anywhere; }
+.app-shell.r1-admin-invoice-list .invoice-status-card small { font-size: 12px; line-height: 16px; color: var(--r1-muted); }
+.app-shell.r1-admin-invoice-list .invoice-status-card:hover { border-color: var(--r1-strong-border); background: var(--r1-subtle); }
+.app-shell.r1-admin-invoice-list .invoice-status-card.active { border-color: var(--r1-accent); background: var(--r1-accent-soft); }
+.app-shell.r1-admin-invoice-list .invoice-status-card.active span { color: var(--r1-accent); }
+.app-shell.r1-admin-invoice-list .invoice-filter-panel { gap: 12px; margin: 0 0 24px; padding: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+.app-shell.r1-admin-invoice-list .invoice-filter-copy { align-items: baseline; gap: 16px; }
+.app-shell.r1-admin-invoice-list .invoice-filter-copy strong { font-size: 16px; line-height: 24px; font-weight: 600; }
+.app-shell.r1-admin-invoice-list .invoice-filter-copy span { font-size: 14px; line-height: 20px; text-align: right; }
+.app-shell.r1-admin-invoice-list .invoice-filter-bar { display: grid; grid-template-columns: repeat(2, minmax(0, 1.2fr)) minmax(0, .9fr) repeat(2, minmax(0, 1fr)) auto auto; align-items: end; gap: 10px; padding: 12px; margin: 0; border-radius: 8px; background: var(--r1-subtle); }
+.app-shell.r1-admin-invoice-list .invoice-filter-bar label { display: grid; gap: 6px; min-width: 0; font-size: 12px; line-height: 16px; font-weight: 400; color: var(--r1-muted); }
+.app-shell.r1-admin-invoice-list .invoice-filter-bar :is(input, select) { box-sizing: border-box; width: 100%; min-width: 0; height: 40px; padding: 9px 12px; font-size: 14px; line-height: 20px; font-weight: 400; border: 1px solid var(--r1-strong-border); border-radius: var(--r1-control-radius); background-color: var(--r1-surface); color: var(--r1-text); }
+.app-shell.r1-admin-invoice-list .invoice-filter-bar :is(input, select):focus { border-color: var(--r1-accent); outline: 3px solid var(--r1-blue-soft); outline-offset: 0; box-shadow: none; }
+.app-shell.r1-admin-invoice-list .invoice-filter-bar :is(button, .button) { min-height: 40px; margin: 0; padding: 9px 12px; }
+.app-shell.r1-admin-invoice-list .filter-summary { margin: 0 0 16px; font-size: 13px; line-height: 20px; }
+.app-shell.r1-admin-invoice-list .invoice-table-card { padding: 0; border: 1px solid var(--r1-border); border-radius: 8px; overflow: hidden; box-shadow: none; }
+.app-shell.r1-admin-invoice-list .r1-invoice-table-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+.app-shell.r1-admin-invoice-list .invoice-table { width: 100%; min-width: 900px; margin: 0; border-collapse: collapse; }
+.app-shell.r1-admin-invoice-list .invoice-table th { padding: 12px 16px; background: var(--r1-subtle); font-size: 12px; line-height: 16px; font-weight: 500; color: var(--r1-muted); }
+.app-shell.r1-admin-invoice-list .invoice-table td { padding: 12px 16px; font-size: 14px; line-height: 20px; vertical-align: middle; border-color: var(--r1-border); }
+.app-shell.r1-admin-invoice-list .invoice-table tbody tr:last-child td { border-bottom: 0; }
+.app-shell.r1-admin-invoice-list :is(.invoice-number-stack, .invoice-participant-stack, .invoice-period-stack, .invoice-total-stack) { gap: 4px; }
+.app-shell.r1-admin-invoice-list .invoice-table :is(.invoice-primary-text, .invoice-secondary-text) { font-size: 14px; line-height: 20px; color: var(--r1-text); }
+.app-shell.r1-admin-invoice-list .invoice-table .invoice-primary-text { font-weight: 600; overflow-wrap: anywhere; }
+.app-shell.r1-admin-invoice-list .invoice-table .invoice-secondary-text { font-weight: 500; }
+.app-shell.r1-admin-invoice-list :is(.invoice-number-stack, .invoice-participant-stack, .invoice-period-stack, .invoice-total-stack) > span:not(.status-pill) { font-size: 12px; line-height: 16px; font-weight: 400; color: var(--r1-muted); }
+.app-shell.r1-admin-invoice-list .invoice-total-stack strong { font-size: 14px; line-height: 20px; font-weight: 600; }
+.app-shell.r1-admin-invoice-list .invoice-table .numeric-cell { text-align: right; font-variant-numeric: tabular-nums; }
+.app-shell.r1-admin-invoice-list .invoice-table td.actions { width: 1%; min-width: 152px; white-space: nowrap; }
+.app-shell.r1-admin-invoice-list .invoice-table td.actions :is(a, button) { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 7px 12px; margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; border: 1px solid var(--r1-border); border-radius: 6px; background: var(--r1-surface); color: var(--r1-text); white-space: nowrap; }
+.app-shell.r1-admin-invoice-list .invoice-table td.actions .inline-form { display: inline-block; margin: 0 0 0 4px; }
+.app-shell.r1-admin-invoice-list .invoice-table td.actions button.danger { color: var(--r1-danger); border-color: var(--r1-danger); }
+.app-shell.r1-admin-invoice-list .invoice-table td.actions :is(a, button):hover { background: var(--r1-subtle); }
+.app-shell.r1-admin-invoice-list .status-pill { font-size: 12px; line-height: 16px; font-weight: 500; }
+.app-shell.r1-admin-invoice-list .status-pill.status-draft { color: var(--r1-muted); background: var(--r1-subtle); }
+.app-shell.r1-admin-invoice-list .status-pill.status-issued { color: var(--r1-billed); background: var(--r1-blue-soft); }
+.app-shell.r1-admin-invoice-list .invoice-table .empty-state { padding: 24px; text-align: center; font-size: 14px; line-height: 20px; }
+.app-shell.r1-admin-invoice-list .invoice-table .empty-state strong { font-weight: 600; color: var(--r1-text); }
+.app-shell.r1-admin-invoice-list .invoice-table .empty-state p { margin: 6px 0 0; font-size: 13px; line-height: 20px; }
+@media (min-width: 761px) and (max-width: 1199px) {
+  .app-shell.r1-admin-invoice-list .invoice-filter-bar { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .app-shell.r1-admin-invoice-list .invoice-filter-bar > .button { grid-column: 3; }
+}
+@media (max-width: 760px) {
+  .app-shell.r1-admin-invoice-list { --r1-control-height: 44px; }
+  .app-shell.r1-admin-invoice-list .content { padding-top: 20px; }
+  .app-shell.r1-admin-invoice-list .page-header { flex-direction: column; gap: 16px; }
+  .app-shell.r1-admin-invoice-list .page-header .button-row { width: 100%; }
+  .app-shell.r1-admin-invoice-list :is(.dashboard-section-heading, .invoice-filter-copy) { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .app-shell.r1-admin-invoice-list :is(.dashboard-section-heading p, .invoice-filter-copy span) { text-align: left; }
+  .app-shell.r1-admin-invoice-list .invoice-status-grid { grid-template-columns: minmax(0, 1fr); }
+  .app-shell.r1-admin-invoice-list .invoice-status-card { min-height: 88px; }
+  .app-shell.r1-admin-invoice-list .invoice-filter-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .app-shell.r1-admin-invoice-list .invoice-filter-bar label:nth-child(3) { grid-column: 1 / -1; }
+  .app-shell.r1-admin-invoice-list .invoice-filter-bar :is(input, select) { height: 44px; min-height: 44px; font-size: 16px; padding: 10px 8px; }
+  .app-shell.r1-admin-invoice-list :is(.button, button[type="submit"]),
+  .app-shell.r1-admin-invoice-list .invoice-table td.actions :is(a, button) { min-height: 44px; }
+  .app-shell.r1-admin-invoice-list .invoice-table .empty-state { box-sizing: border-box; width: calc(100vw - 74px); }
+}
+@media (max-width: 380px) {
+  .app-shell.r1-admin-invoice-list .invoice-filter-bar label:nth-child(n+4) { grid-column: 1 / -1; }
+}

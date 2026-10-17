@@ -1,6 +1,34 @@
 {% extends "admin_base.html" %}
+{% load static %}
 
 {% block title %}{{ page_title }} - Brisbane Star Care{% endblock %}
+
+{% block extra_styles %}
+  {{ block.super }}
+  {% if r1_invoice_list %}
+  <link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_shell.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_admin_invoice_list.css' %}">
+  {% endif %}
+{% endblock %}
+
+{% block r1_shell_class %}{% if r1_invoice_list %} r1-ui r1-admin r1-admin-invoice-list{% endif %}{% endblock %}
+{% block sidebar_account %}
+  {% if r1_invoice_list %}
+  <div class="r1-account">
+    <span class="r1-account-name">{{ request.user.get_username }}</span>
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button class="r1-logout" type="submit">Logout</button>
+    </form>
+  </div>
+  {% endif %}
+{% endblock %}
+{% block topbar_content %}
+  {% if r1_invoice_list %}
+  <nav class="r1-breadcrumb" aria-label="Breadcrumb">Business / Invoices</nav>
+  {% else %}{{ block.super }}{% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -78,6 +106,7 @@
 {% endif %}
 
 <section class="card table-card invoice-table-card">
+  {% if r1_invoice_list %}<div class="r1-invoice-table-scroll" role="region" aria-label="Invoices table" tabindex="0">{% endif %}
   <table class="invoice-table">
     <thead>
       <tr>
@@ -153,6 +182,7 @@
       {% endfor %}
     </tbody>
   </table>
+  {% if r1_invoice_list %}</div>{% endif %}
 </section>
 {% include "core/pagination.html" %}
 {% endblock %}
