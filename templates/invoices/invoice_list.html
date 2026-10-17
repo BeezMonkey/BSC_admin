@@ -67,7 +67,7 @@
     <strong>Billing filters</strong>
     <span>Search invoice number, participant, status, or period.</span>
   </div>
-  <form class="filter-bar invoice-filter-bar" method="get">
+  <form class="filter-bar invoice-filter-bar" method="get"{% if r1_invoice_list %} data-invoice-filters{% endif %}>
     <label>
       Invoice
       <input type="search" name="q" value="{{ q }}" placeholder="Invoice number">
@@ -85,14 +85,19 @@
         {% endfor %}
       </select>
     </label>
-    <label>
-      From
-      <input type="date" name="period_from" value="{{ period_from }}">
-    </label>
-    <label>
-      To
-      <input type="date" name="period_to" value="{{ period_to }}">
-    </label>
+    {% if r1_invoice_list %}
+      {% include "invoices/partials/filter_date.html" with name="period_from" value=period_from caption="From" %}
+      {% include "invoices/partials/filter_date.html" with name="period_to" value=period_to caption="To" %}
+    {% else %}
+      <label>
+        From
+        <input type="date" name="period_from" value="{{ period_from }}">
+      </label>
+      <label>
+        To
+        <input type="date" name="period_to" value="{{ period_to }}">
+      </label>
+    {% endif %}
     <button type="submit">Search</button>
     <a class="button secondary" href="{% url list_url_name %}">Reset</a>
   </form>
@@ -185,4 +190,8 @@
   {% if r1_invoice_list %}</div>{% endif %}
 </section>
 {% include "core/pagination.html" %}
+{% if r1_invoice_list %}
+<script src="{% static 'js/date_time_picker.js' %}" defer></script>
+<script src="{% static 'js/r1_admin_invoice_filters.js' %}" defer></script>
+{% endif %}
 {% endblock %}
