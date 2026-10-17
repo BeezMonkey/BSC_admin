@@ -6,6 +6,29 @@
 {% block extra_styles %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/invoice_billing.css' %}?v=20261007-drawer-prototype">
+  {% if r1_invoice_create %}
+  <link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_shell.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_admin_invoice_create.css' %}">
+  {% endif %}
+{% endblock %}
+
+{% block r1_shell_class %}{% if r1_invoice_create %} r1-ui r1-admin r1-admin-invoice-create{% endif %}{% endblock %}
+{% block sidebar_account %}
+  {% if r1_invoice_create %}
+  <div class="r1-account">
+    <span class="r1-account-name">{{ request.user.get_username }}</span>
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button class="r1-logout" type="submit">Logout</button>
+    </form>
+  </div>
+  {% endif %}
+{% endblock %}
+{% block topbar_content %}
+  {% if r1_invoice_create %}
+  <nav class="r1-breadcrumb" aria-label="Breadcrumb">Business / Invoices / Create Invoice</nav>
+  {% else %}{{ block.super }}{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -29,16 +52,21 @@
     {{ form.participant.errors }}
     {{ form.participant }}
   </label>
-  <label>
-    Period start
-    {{ form.period_start.errors }}
-    {{ form.period_start }}
-  </label>
-  <label>
-    Period end
-    {{ form.period_end.errors }}
-    {{ form.period_end }}
-  </label>
+  {% if r1_invoice_create %}
+    {% include "invoices/partials/create_date.html" with field=form.period_start caption="Period start" only %}
+    {% include "invoices/partials/create_date.html" with field=form.period_end caption="Period end" only %}
+  {% else %}
+    <label>
+      Period start
+      {{ form.period_start.errors }}
+      {{ form.period_start }}
+    </label>
+    <label>
+      Period end
+      {{ form.period_end.errors }}
+      {{ form.period_end }}
+    </label>
+  {% endif %}
   <button type="submit">Preview Logs</button>
 </form>
 
@@ -50,6 +78,9 @@
 
 <section class="card table-card invoice-preview-table">
     <h2>Approved Billing Records</h2>
+  {% if r1_invoice_create %}
+    <p class="invoice-preview-help" data-r1-invoice-helper>Travel claims are entered as an admin-approved amount. Kilometres do not automatically calculate a travel claim.</p>
+  {% endif %}
   {% if selected_invoice_groups %}
     <div class="invoice-selected-groups">
       {% for group in selected_invoice_groups %}
@@ -78,6 +109,7 @@
             {% for cancellation_id in group.selected_participant_cancellation_ids %}
               <input type="hidden" name="participant_cancellation_ids" value="{{ cancellation_id }}">
             {% endfor %}
+            {% if r1_invoice_create %}<div class="invoice-preview-scroll" role="region" aria-label="Approved billing records for {{ group.participant.display_name }}" tabindex="0">{% endif %}
             <table>
               <thead>
                 <tr>
@@ -98,6 +130,7 @@
                 {% endfor %}
               </tbody>
             </table>
+            {% if r1_invoice_create %}</div>{% endif %}
             <div class="invoice-preview-actions">
               <span class="invoice-form-total" data-invoice-total aria-live="polite"></span>
               <button type="submit">Create Invoice for {{ group.participant.display_name }}</button>
@@ -118,6 +151,7 @@
       {% for cancellation_id in selected_participant_cancellation_ids %}
         <input type="hidden" name="participant_cancellation_ids" value="{{ cancellation_id }}">
       {% endfor %}
+      {% if r1_invoice_create %}<div class="invoice-preview-scroll" role="region" aria-label="Approved billing records" tabindex="0">{% endif %}
       <table>
         <thead>
           <tr>
@@ -138,6 +172,7 @@
           {% endfor %}
         </tbody>
       </table>
+      {% if r1_invoice_create %}</div>{% endif %}
       <div class="invoice-preview-actions">
         <span class="invoice-form-total" data-invoice-total aria-live="polite"></span>
         <button type="submit">Create Invoice</button>
@@ -153,4 +188,8 @@
 {% include "invoices/invoice_adjustment_drawer.html" %}
 <script src="{% static 'js/support_item_picker.js' %}" defer data-support-item-picker-script></script>
 <script src="{% static 'js/invoice_billing.js' %}?v=20261007-drawer-prototype" defer></script>
+{% if r1_invoice_create %}
+<script src="{% static 'js/date_time_picker.js' %}" defer></script>
+<script src="{% static 'js/r1_admin_invoice_create.js' %}" defer></script>
+{% endif %}
 {% endblock %}

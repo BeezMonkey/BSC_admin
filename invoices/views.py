@@ -767,6 +767,7 @@ def invoice_create(request):
         request,
         "invoices/invoice_form.html",
         {
+            "r1_invoice_create": can_adjust,
             "form": form,
             "service_logs": service_logs,
             "participant_cancellations": participant_cancellations,
