@@ -362,3 +362,116 @@ class R1AdminInvoiceListTests(TestCase):
             self.assertTrue(any(tag == "input" and a.get("name") == "csrfmiddlewaretoken"
                                 for tag, a in children))
         self.assertContains(response, static("js/admin_nav.js"), count=1)
+
+    def test_admin_filter_hook_retains_native_named_get_controls(self):
+        params = {"q": "BSC-", "participant": "Alexandria", "status": "draft",
+                  "period_from": "2026-10-01", "period_to": "2026-10-31"}
+        for user in (self.admin, self.super_admin):
+            with self.subTest(role=user.userprofile.role):
+                response = self.get_list(user, params=params)
+                forms = [(attrs, children) for attrs, children in self.markup(response).forms
+                         if "data-invoice-filters" in attrs]
+                self.assertEqual(len(forms), 1)
+                attrs, children = forms[0]
+                self.assertEqual(attrs.get("method"), "get")
+                self.assertCountEqual(
+                    [attrs["name"] for tag, attrs in children
+                     if tag in ("input", "select", "textarea") and "name" in attrs],
+                    list(params),
+                )
+                for name, kind in (("q", "search"), ("participant", "search"),
+                                   ("period_from", "date"), ("period_to", "date")):
+                    fields = [attrs for tag, attrs in children
+                              if tag == "input" and attrs.get("name") == name]
+                    self.assertEqual(len(fields), 1)
+                    self.assertEqual(fields[0].get("type"), kind)
+                    self.assertEqual(fields[0].get("value"), params[name])
+                    self.assertNotIn("disabled", fields[0])
+                    self.assertNotIn("hidden", fields[0])
+                self.assertEqual(sum(tag == "select" and attrs.get("name") == "status"
+                                     for tag, attrs in children), 1)
+                self.assertTrue(any("selected" in option for option in
+                                    self.markup(response).find("option", value="draft")))
+
+    def test_admin_filter_dates_use_partial_and_unnamed_proxies_with_native_fallback(self):
+        for user in (self.admin, self.super_admin):
+            with self.subTest(role=user.userprofile.role):
+                response = self.get_list(user, params={"period_from": "2026-10-01",
+                                                      "period_to": "2026-10-31"})
+                self.assertTemplateUsed(response, "invoices/partials/filter_date.html")
+                markup = self.markup(response)
+                roots = [attrs for _, attrs in markup.elements if "data-invoice-date" in attrs]
+                self.assertEqual(len(roots), 2)
+                proxies = [attrs for tag, attrs in markup.elements
+                           if tag == "input" and "data-invoice-date-proxy" in attrs]
+                self.assertEqual(len(proxies), 2)
+                for proxy in proxies:
+                    self.assertEqual(proxy.get("type"), "hidden")
+                    self.assertNotIn("name", proxy)
+                for name, value in (("period_from", "2026-10-01"), ("period_to", "2026-10-31")):
+                    native = markup.find("input", type="date", name=name, value=value)
+                    self.assertEqual(len(native), 1)
+                    self.assertNotIn("hidden", native[0])
+                    self.assertNotIn("disabled", native[0])
+                triggers = [attrs for tag, attrs in markup.elements
+                            if tag == "button" and "data-picker-trigger" in attrs]
+                panels = [attrs for _, attrs in markup.elements if "data-picker-popover" in attrs]
+                self.assertEqual(len(triggers), 2)
+                self.assertEqual(len(panels), 2)
+                for trigger in triggers:
+                    self.assertEqual(trigger.get("type"), "button")
+                    self.assertIn("hidden", trigger)
+                    self.assertEqual(trigger.get("aria-expanded"), "false")
+                for panel in panels:
+                    self.assertIn("hidden", panel)
+
+    def test_admin_filter_scripts_load_once_with_shared_picker_before_adapter(self):
+        for user in (self.admin, self.super_admin):
+            with self.subTest(role=user.userprofile.role):
+                response = self.get_list(user)
+                scripts = self.markup(response).find("script")
+                positions = []
+                for asset in ("js/date_time_picker.js", "js/r1_admin_invoice_filters.js"):
+                    path = static(asset)
+                    matches = [(index, attrs) for index, attrs in enumerate(scripts)
+                               if attrs.get("src") == path]
+                    self.assertEqual(len(matches), 1, f"Expected one script for {asset}")
+                    index, attrs = matches[0]
+                    positions.append(index)
+                    self.assertIn("defer", attrs)
+                    self.assertNotIn("async", attrs)
+                self.assertLess(positions[0], positions[1])
+
+    def test_accountant_and_sc_lists_have_no_filter_enhancement(self):
+        for user, route in (
+            (self.accountant, "invoice_placeholder"),
+            (self.admin, "support_coordination_invoice_list"),
+            (self.super_admin, "support_coordination_invoice_list"),
+        ):
+            with self.subTest(role=user.userprofile.role, route=route):
+                response = self.get_list(user, route=route, params={"status": "draft",
+                    "period_from": "2026-10-01", "period_to": "2026-10-31"})
+                for marker in ("data-invoice-filters", "data-invoice-date", "data-invoice-date-proxy",
+                               "r1_admin_invoice_filters.js", "date_time_picker.js"):
+                    self.assertNotContains(response, marker)
+                self.assertTemplateNotUsed(response, "invoices/partials/filter_date.html")
+                markup = self.markup(response)
+                self.assertEqual(len(markup.find("select", name="status")), 1)
+                for name, value in (("period_from", "2026-10-01"), ("period_to", "2026-10-31")):
+                    self.assertEqual(len(markup.find("input", type="date", name=name, value=value)), 1)
+
+    def test_other_invoice_pages_have_no_filter_enhancement(self):
+        for user in (self.admin, self.super_admin):
+            self.client.force_login(user)
+            urls = [reverse(name) for name in ("invoice_create", "invoice_settings", "exports_placeholder",
+                                               "support_coordination_invoice_create")]
+            urls.extend(reverse("invoice_detail", args=[invoice.pk]) for invoice in
+                        (self.records[Invoice.Status.DRAFT], self.sc_invoice))
+            for url in urls:
+                with self.subTest(role=user.userprofile.role, url=url):
+                    response = self.client.get(url)
+                    self.assertEqual(response.status_code, 200)
+                    for marker in ("data-invoice-filters", "data-invoice-date", "data-invoice-date-proxy",
+                                   "r1_admin_invoice_filters.js", "date_time_picker.js"):
+                        self.assertNotContains(response, marker)
+                    self.assertTemplateNotUsed(response, "invoices/partials/filter_date.html")

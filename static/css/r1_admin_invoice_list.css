@@ -73,4 +73,56 @@
 }
 @media (max-width: 380px) {
   .app-shell.r1-admin-invoice-list .invoice-filter-bar label:nth-child(n+4) { grid-column: 1 / -1; }
+  .app-shell.r1-admin-invoice-list .invoice-filter-bar > .invoice-filter-date { grid-column: 1 / -1; }
 }
+
+/* Match accepted desktop log filters without changing shared/native controls. */
+@supports (appearance: base-select) and selector(select::picker(select)) {
+  @media (min-width: 761px) and (hover: hover) and (pointer: fine) {
+    .r1-admin-invoice-list [data-invoice-filters] select,
+    .r1-admin-invoice-list [data-invoice-filters] select::picker(select) { appearance: base-select; }
+    .r1-admin-invoice-list [data-invoice-filters] select { align-items: center; }
+    .app-shell.r1-ui.r1-admin-invoice-list .invoice-filter-bar[data-invoice-filters] select { line-height: normal; }
+    .r1-admin-invoice-list [data-invoice-filters] select::picker(select) {
+      box-sizing: border-box; max-height: 280px; overflow-y: auto; margin: 4px 0;
+      border: 1px solid var(--r1-border); border-radius: 8px; padding: 4px;
+      color: var(--r1-text); background: var(--r1-surface); box-shadow: 0 6px 16px rgb(23 33 43 / 12%);
+    }
+    .r1-admin-invoice-list [data-invoice-filters] select option { min-height: 32px; padding: 6px 8px; border-radius: 4px; font-size: 13px; line-height: 18px; white-space: normal; overflow-wrap: anywhere; }
+    .r1-admin-invoice-list [data-invoice-filters] select option:is(:checked, :hover, :focus) { color: var(--r1-accent); background: var(--r1-blue-soft); }
+    .r1-admin-invoice-list [data-invoice-filters] select option::checkmark { color: var(--r1-accent); }
+  }
+}
+.app-shell.r1-admin-invoice-list .invoice-filter-date { display: grid; gap: 6px; min-width: 0; position: relative; }
+.r1-admin-invoice-list .invoice-filter-date [hidden] { display: none !important; }
+.app-shell.r1-admin-invoice-list .invoice-filter-date.is-enhanced > input[type=date] { position: absolute; width: 1px; height: 1px; min-height: 0; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); opacity: 0; pointer-events: none; }
+.app-shell.r1-admin-invoice-list .invoice-filter-date .invoice-date-trigger {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; box-sizing: border-box;
+  width: 100%; min-width: 0; min-height: 40px; margin: 0; padding: 8px 12px;
+  border: 1px solid var(--r1-strong-border); border-radius: 8px;
+  background: var(--r1-surface); color: var(--r1-text); font-size: 14px; font-weight: 400; line-height: 20px; text-align: left;
+}
+.r1-admin-invoice-list .invoice-date-trigger > .r1-icon { width: 16px; height: 16px; flex: 0 0 16px; }
+.r1-admin-invoice-list .invoice-date-trigger[aria-expanded=true] { border-color: var(--r1-accent); box-shadow: 0 0 0 3px var(--r1-blue-soft); }
+.r1-admin-invoice-list .invoice-date-trigger[aria-invalid=true] { border-color: var(--r1-danger); }
+.r1-admin-invoice-list .invoice-date-error { color: var(--r1-danger); font-size: 12px; line-height: 16px; }
+.r1-admin-invoice-list .invoice-calendar {
+  position: fixed; z-index: 20; box-sizing: border-box; width: 292px; padding: 10px;
+  border: 1px solid var(--r1-border); border-radius: 8px; overflow-y: auto;
+  background: var(--r1-surface); color: var(--r1-text); box-shadow: 0 8px 18px rgb(23 33 43 / 14%);
+}
+.r1-admin-invoice-list .invoice-calendar .calendar-picker-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 4px; }
+.r1-admin-invoice-list .invoice-calendar .calendar-picker-header strong { font-size: 13px; font-weight: 600; line-height: 20px; }
+.r1-admin-invoice-list .invoice-calendar .calendar-picker-navigation { display: flex; gap: 4px; }
+.r1-admin-invoice-list .invoice-calendar :is(.calendar-picker-weekdays, .calendar-picker-grid) { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; padding: 4px 0; }
+.r1-admin-invoice-list .invoice-calendar .calendar-picker-weekdays span { color: var(--r1-muted); font-size: 11px; line-height: 16px; text-align: center; }
+.app-shell.r1-admin-invoice-list .invoice-calendar button { min-width: 0; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--r1-text); font-size: 12px; font-weight: 400; line-height: 18px; }
+.app-shell.r1-admin-invoice-list .invoice-filter-bar .invoice-calendar button { min-height: 28px; padding: 4px; white-space: nowrap; }
+.app-shell.r1-admin-invoice-list .invoice-calendar .calendar-picker-navigation button { width: 28px; color: var(--r1-accent); font-size: 20px; }
+.r1-admin-invoice-list .invoice-calendar .calendar-day.outside { color: var(--r1-muted); }
+.r1-admin-invoice-list .invoice-calendar .calendar-day.weekend { background: var(--r1-warning-soft); }
+.r1-admin-invoice-list .invoice-calendar .calendar-day.today { border-color: var(--r1-strong-border); }
+.app-shell.r1-admin-invoice-list .invoice-calendar button:hover { color: var(--r1-accent); background: var(--r1-blue-soft); }
+.app-shell.r1-admin-invoice-list .invoice-calendar .calendar-day.selected { color: var(--r1-surface); background: var(--r1-accent); }
+.r1-admin-invoice-list .invoice-calendar .date-picker-footer { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--r1-border); }
+.app-shell.r1-admin-invoice-list .invoice-calendar .date-picker-footer button { color: var(--r1-accent); padding-inline: 6px; }

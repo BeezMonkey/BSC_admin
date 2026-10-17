@@ -1,0 +1,30 @@
+<div class="invoice-filter-date" data-invoice-date>
+  <label id="invoice-{{ name }}-label" for="invoice-{{ name }}">{{ caption }}</label>
+  <input id="invoice-{{ name }}" type="date" name="{{ name }}" value="{{ value }}">
+  <input type="hidden" data-invoice-date-proxy>
+  <button type="button" class="invoice-date-trigger" data-picker-trigger hidden
+          aria-expanded="false" aria-controls="invoice-{{ name }}-calendar"
+          aria-labelledby="invoice-{{ name }}-label invoice-{{ name }}-display">
+    <span id="invoice-{{ name }}-display" data-picker-display>dd/mm/yyyy</span>
+    {% include "r1/partials/icon.html" with name="calendar" size=16 %}
+  </button>
+  <div id="invoice-{{ name }}-calendar" class="invoice-calendar" data-picker-popover hidden
+       role="dialog" aria-labelledby="invoice-{{ name }}-label">
+    <header class="calendar-picker-header">
+      <strong data-calendar-title></strong>
+      <div class="calendar-picker-navigation">
+        <button type="button" data-calendar-previous aria-label="Previous month">&lsaquo;</button>
+        <button type="button" data-calendar-next aria-label="Next month">&rsaquo;</button>
+      </div>
+    </header>
+    <div class="calendar-picker-weekdays" aria-hidden="true">
+      <span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span>
+    </div>
+    <div class="calendar-picker-grid" data-calendar-grid></div>
+    <footer class="date-picker-footer">
+      <button type="button" data-calendar-clear>Clear</button>
+      <button type="button" data-calendar-today>Today</button>
+    </footer>
+  </div>
+  <span class="invoice-date-error" data-invoice-date-error hidden></span>
+</div>
