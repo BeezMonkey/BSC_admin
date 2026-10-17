@@ -128,7 +128,7 @@
 
 .r1-admin-log-list .service-log-list-toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: 12px 24px;
   padding-top: 16px;
@@ -315,8 +315,15 @@
   background: var(--r1-surface);
   box-shadow: none;
 }
+.r1-admin-log-list .service-log-table-card > .service-log-filter-summary {
+  justify-content: flex-start;
+  margin: 0;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--r1-border);
+}
 .r1-admin-log-list .service-log-bulk-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
@@ -461,7 +468,9 @@
   .r1-admin-log-list .service-log-missing-worker > summary > span:last-child { grid-column: 2; }
   .r1-admin-log-list .service-log-missing-shifts { padding: 0; }
   .r1-admin-log-list .service-log-missing-shifts a { min-height: 44px; }
-  .r1-admin-log-list .service-log-bulk-actions { align-items: flex-start; padding: 12px; }
+  .r1-admin-log-list .service-log-table-card > .service-log-filter-summary { padding: 12px; }
+  .r1-admin-log-list .service-log-bulk-actions { grid-template-columns: minmax(0, 1fr); align-items: start; padding: 12px; }
+  .r1-admin-log-list .service-log-bulk-actions .service-log-create-selected { align-self: center; }
   .r1-admin-log-list .pagination-links > :is(a, .disabled) { min-height: 44px; padding-block: 11px; }
 }
 

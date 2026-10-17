@@ -162,7 +162,7 @@ class R1AdminLogListTests(SimpleTestCase):
         index, button = buttons[0]
         self.assertEqual(button["type"], "submit")
         self.assertEqual(button["aria-describedby"], "service-log-billing-help")
-        self.assertEqual(markup.parents[index][-1], ("div", {"class": "service-log-list-toolbar"}))
+        self.assertEqual(markup.parents[index][-1], ("div", {"class": "bulk-actions service-log-bulk-actions"}))
         self.assertEqual(button["form"], "service-log-billing-form")
         self.assertFalse(any(parent[0] == "form" for parent in markup.parents[index]))
         billing_form = ("form", markup.find("form", id="service-log-billing-form")[0])
@@ -180,7 +180,9 @@ class R1AdminLogListTests(SimpleTestCase):
                 markup = ListMarkup(html)
                 index = next(i for i, (_, attrs) in enumerate(markup.elements)
                              if attrs.get("class") == "service-log-filter-summary")
-                self.assertIn("service-log-bulk-actions", markup.parents[index][-1][1].get("class", ""))
+                self.assertIn("service-log-table-card", markup.parents[index][-1][1].get("class", ""))
+                self.assertLess(html.index('class="service-log-filter-summary"'),
+                                html.index('class="bulk-actions service-log-bulk-actions"'))
                 self.assertIn(f"{count} approved record", html)
                 self.assertIn(f"{hours} hours", html)
                 self.assertIn("Showing", html)
@@ -313,6 +315,29 @@ class R1AdminLogListTests(SimpleTestCase):
         mobile = stylesheet.split("@media (max-width: 760px) {", 1)[1]
         self.assertIn(".r1-admin-log-list .service-log-create-selected { justify-self: center; min-height: 44px; }", mobile)
         self.assertIn(".r1-admin-log-list .service-log-missing > summary { min-height: 44px; margin-inline: auto; }", mobile)
+
+    def test_two_header_rows_keep_five_cards_and_original_read_only_boundary(self):
+        html = self.render()
+        markup = ListMarkup(html)
+        cards = [attrs for tag, attrs in markup.elements
+                 if tag == "a" and "service-log-status-card" in attrs.get("class", "").split()]
+        self.assertEqual(len(cards), 5)
+        self.assertNotIn("Clear selection", html)
+        for i, (_, attrs) in enumerate(markup.elements):
+            if attrs.get("class") == "service-log-missing-bar":
+                self.assertEqual(markup.parents[i][-1], ("div", {"class": "service-log-list-toolbar"}))
+                self.assertFalse(any(parent[0] == "form" for parent in markup.parents[i]))
+
+    def test_billing_header_uses_shrinkable_help_track_without_shrinking_text(self):
+        stylesheet = (Path(__file__).resolve().parent.parent / "static/css/r1_admin_logs_list.css").read_text(encoding="utf-8")
+        rule = stylesheet.split(".r1-admin-log-list .service-log-bulk-actions {", 1)[1].split("}", 1)[0]
+        self.assertIn("display: grid;", rule)
+        self.assertIn("grid-template-columns: minmax(0, 1fr) auto;", rule)
+
+    def test_showing_first_row_explicitly_overrides_legacy_right_alignment(self):
+        stylesheet = (Path(__file__).resolve().parent.parent / "static/css/r1_admin_logs_list.css").read_text(encoding="utf-8")
+        rule = stylesheet.split(".r1-admin-log-list .service-log-table-card > .service-log-filter-summary {", 1)[1].split("}", 1)[0]
+        self.assertIn("justify-content: flex-start;", rule)
 
 
 @skipUnless(shutil.which("node"), "Node is required for the isolated list interaction test")
