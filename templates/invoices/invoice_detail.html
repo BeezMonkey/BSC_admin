@@ -6,9 +6,35 @@
 {% block extra_styles %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/invoice_billing.css' %}">
+  {% if r1_invoice_detail %}
+  <link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_shell.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_admin_invoice_detail.css' %}">
+  {% endif %}
+{% endblock %}
+
+{% block r1_shell_class %}{% if r1_invoice_detail %} r1-ui r1-admin r1-admin-invoice-detail{% endif %}{% endblock %}
+{% block sidebar_account %}
+  {% if r1_invoice_detail %}
+  <div class="r1-account">
+    <span class="r1-account-name">{{ request.user.get_username }}</span>
+    <form method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button class="r1-logout" type="submit">Logout</button>
+    </form>
+  </div>
+  {% endif %}
+{% endblock %}
+{% block topbar_content %}
+  {% if r1_invoice_detail %}
+  <nav class="r1-breadcrumb" aria-label="Breadcrumb">Business / {{ invoice.invoice_number }}</nav>
+  {% else %}{{ block.super }}{% endif %}
 {% endblock %}
 
 {% block content %}
+{% if r1_invoice_detail %}
+  {% include "invoices/partials/r1_invoice_detail.html" %}
+{% else %}
 <div class="page-header">
   <div>
     <h1>{{ invoice.invoice_number }}</h1>
@@ -88,5 +114,6 @@
     {% endif %}
   </div>
 </section>
+{% endif %}
 {% endif %}
 {% endblock %}

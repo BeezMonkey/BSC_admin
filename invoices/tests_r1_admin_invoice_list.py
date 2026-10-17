@@ -184,7 +184,10 @@ class R1AdminInvoiceListTests(TestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertNotContains(response, "r1-admin-invoice-list")
                 self.assertNotContains(response, "r1_admin_invoice_list.css")
-                self.assertNotContains(response, "r1_shell.css")
+                if url == reverse("invoice_detail", args=[self.records[Invoice.Status.DRAFT].pk]):
+                    self.assertContains(response, "r1_admin_invoice_detail.css")
+                else:
+                    self.assertNotContains(response, "r1_shell.css")
 
     def test_existing_role_boundaries_are_unchanged(self):
         for user, routes in (
