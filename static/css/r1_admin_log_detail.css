@@ -31,6 +31,9 @@
 .r1-admin-log-detail .empty-state { padding: 0; text-align: left; color: var(--r1-muted); font-size: 14px; line-height: 20px; }
 .r1-admin-log-detail .empty-state strong { color: var(--r1-text); font-weight: 500; }
 .r1-admin-log-detail .empty-state p { margin: 6px 0 0; }
+.r1-admin-log-detail .service-log-attachment-grid > .empty-state { display: grid; gap: 4px; padding: 16px; }
+.r1-admin-log-detail .service-log-attachment-grid > .empty-state > strong { margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; }
+.r1-admin-log-detail .service-log-attachment-grid > .empty-state > p { margin: 0; font-size: 13px; line-height: 20px; font-weight: 400; }
 .r1-admin-log-detail .r1-log-rail { min-width: 0; display: grid; gap: 24px; }
 .r1-admin-log-detail .r1-log-status { border-radius: 8px; padding: 20px; background: var(--r1-accent-soft); }
 .r1-admin-log-detail .r1-log-status-approved { background: #eaf6ef; }
