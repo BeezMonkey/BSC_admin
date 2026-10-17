@@ -74,12 +74,8 @@
       {% endfor %}
     </select>
   </label>
-  <label>Service date from
-    <input type="date" name="date_from" value="{{ date_from }}">
-  </label>
-  <label>Service date to
-    <input type="date" name="date_to" value="{{ date_to }}">
-  </label>
+  {% include "service_logs/partials/filter_date.html" with name="date_from" value=date_from caption="Service date from" %}
+  {% include "service_logs/partials/filter_date.html" with name="date_to" value=date_to caption="Service date to" %}
   <div class="service-log-filter-actions">
     <button type="submit">Filter</button>
     <a class="button secondary" href="{{ clear_filter_url }}">Clear</a>
@@ -214,4 +210,6 @@
 {% include "core/pagination.html" %}
 <script src="{% static 'js/service_log_filters.js' %}" defer></script>
 <script src="{% static 'js/r1_admin_log_list.js' %}" defer></script>
+<script src="{% static 'js/date_time_picker.js' %}" defer></script>
+<script src="{% static 'js/r1_admin_log_filters.js' %}" defer></script>
 {% endblock %}

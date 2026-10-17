@@ -1,0 +1,30 @@
+<div class="service-log-filter-date" data-log-date>
+  <label id="log-{{ name }}-label" for="log-{{ name }}">{{ caption }}</label>
+  <input id="log-{{ name }}" type="date" name="{{ name }}" value="{{ value }}">
+  <input type="hidden" data-log-date-proxy>
+  <button type="button" class="service-log-date-trigger" data-picker-trigger hidden
+          aria-expanded="false" aria-controls="log-{{ name }}-calendar"
+          aria-labelledby="log-{{ name }}-label log-{{ name }}-display">
+    <span id="log-{{ name }}-display" data-picker-display>dd/mm/yyyy</span>
+    {% include "r1/partials/icon.html" with name="calendar" size=16 %}
+  </button>
+  <div id="log-{{ name }}-calendar" class="service-log-calendar" data-picker-popover hidden
+       role="dialog" aria-labelledby="log-{{ name }}-label">
+    <header class="calendar-picker-header">
+      <strong data-calendar-title></strong>
+      <div class="calendar-picker-navigation">
+        <button type="button" data-calendar-previous aria-label="Previous month">&lsaquo;</button>
+        <button type="button" data-calendar-next aria-label="Next month">&rsaquo;</button>
+      </div>
+    </header>
+    <div class="calendar-picker-weekdays" aria-hidden="true">
+      <span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span>
+    </div>
+    <div class="calendar-picker-grid" data-calendar-grid></div>
+    <footer class="date-picker-footer">
+      <button type="button" data-calendar-clear>Clear</button>
+      <button type="button" data-calendar-today>Today</button>
+    </footer>
+  </div>
+  <span class="service-log-date-error" data-log-date-error hidden></span>
+</div>

@@ -310,7 +310,7 @@ class R1AdminLogListTests(SimpleTestCase):
     def test_toolbar_spacing_and_mobile_centering_are_list_scoped(self):
         stylesheet = (Path(__file__).resolve().parent.parent / "static/css/r1_admin_logs_list.css").read_text(encoding="utf-8")
         rule = stylesheet.split(".r1-admin-log-list .service-log-list-toolbar {", 1)[1].split("}", 1)[0]
-        self.assertIn("padding: 12px 16px;", rule)
+        self.assertIn("padding: 8px 16px;", rule)
         self.assertIn("margin: 0;", rule)
         mobile = stylesheet.split("@media (max-width: 760px) {", 1)[1]
         self.assertIn(".r1-admin-log-list .service-log-create-selected { justify-self: center; min-height: 44px; }", mobile)
@@ -354,6 +354,38 @@ class R1AdminLogListTests(SimpleTestCase):
         self.assertIn("background: var(--r1-warning-soft);", rule)
         self.assertNotIn("font-size", rule)
 
+    def test_filter_dates_keep_native_named_fields_and_unnamed_calendar_proxies(self):
+        markup = ListMarkup(self.render())
+        for name, value in [("date_from", "2026-10-01"), ("date_to", "2026-10-16")]:
+            self.assertEqual(len(markup.find("input", type="date", name=name, value=value)), 1)
+        proxies = [attrs for tag, attrs in markup.elements if tag == "input" and "data-log-date-proxy" in attrs]
+        self.assertEqual(len(proxies), 2)
+        for attrs in proxies:
+            self.assertEqual(attrs["type"], "hidden")
+            self.assertNotIn("name", attrs)
+        html = self.render()
+        self.assertIn(static("js/date_time_picker.js"), html)
+        self.assertIn(static("js/r1_admin_log_filters.js"), html)
+        self.assertNotIn("js/r1_cancellation_controls.js", html)
+
+    def test_compact_toolbar_only_changes_approved_text_and_keeps_touch_size(self):
+        css = (Path(__file__).resolve().parent.parent / "static/css/r1_admin_logs_list.css").read_text()
+        self.assertIn("/* Compact desktop status row only. */", css)
+        compact = css.split("/* Compact desktop status row only. */", 1)[1].split("@supports", 1)[0]
+        self.assertIn("min-height: 32px;", compact)
+        self.assertIn("font-size: 13px;", compact)
+        self.assertIn("font-size: 11px;", compact)
+        self.assertIn("padding: 4px 10px;", compact)
+        self.assertIn("min-height: 44px; margin-inline: auto;", css)
+
+    def test_native_select_enhancement_is_scoped_to_list_filters_and_desktop(self):
+        css = (Path(__file__).resolve().parent.parent / "static/css/r1_admin_logs_list.css").read_text()
+        self.assertIn("@supports (appearance: base-select) and selector(select::picker(select))", css)
+        rule = css.split("@supports (appearance: base-select) and selector(select::picker(select))", 1)[1]
+        self.assertIn("(min-width: 761px) and (hover: hover) and (pointer: fine)", rule)
+        self.assertIn(".r1-admin-log-list [data-service-log-filters] select::picker(select)", rule)
+        self.assertIn("appearance: base-select;", rule)
+
 
 @skipUnless(shutil.which("node"), "Node is required for the isolated list interaction test")
 class R1AdminLogListInteractionTests(SimpleTestCase):
@@ -391,7 +423,7 @@ const window = {
 };
 vm.runInNewContext(fs.readFileSync(process.argv[1], 'utf8'), {document, window});
 assert.equal(parseFloat(panel.style.top), 602);
-assert.equal(parseFloat(panel.style.left), 492, 'Left-aligned panel must clamp at the viewport right edge');
+assert.equal(parseFloat(panel.style.left), 380, 'Panel right edge must align with trigger right edge');
 anchor.left = 260;
 anchor.right = 460;
 panelHeight = 464;
@@ -402,6 +434,6 @@ for (const event of events) {
 assert.ok(parseFloat(panel.style.top) + panelHeight <= 788,
           'Expanded worker panel must remain inside the visible viewport');
 assert.ok(parseFloat(panel.style.top) >= 12);
-assert.equal(parseFloat(panel.style.left), 260, 'Panel left edge must align with trigger left edge');
+assert.equal(parseFloat(panel.style.left), 12, 'Oversized panel must clamp at the viewport left edge');
 """, str(script)], capture_output=True, text=True, check=False)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
