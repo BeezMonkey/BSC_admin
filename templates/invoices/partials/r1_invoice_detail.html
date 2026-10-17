@@ -1,0 +1,107 @@
+{% load static %}
+<div class="page-header invoice-detail-header">
+  <div>
+    <h1>{{ invoice.invoice_number }}</h1>
+    <p>{{ invoice.participant.display_name }} | {{ invoice.period_start|date:"d/m/Y" }} - {{ invoice.period_end|date:"d/m/Y" }}</p>
+  </div>
+  <div class="button-row">
+    <a class="button secondary" href="{{ return_url }}">{{ return_label }}</a>
+    <a class="button secondary" href="{% url 'invoice_csv' invoice.id %}">Download CSV</a>
+    <a class="button secondary" href="{% url 'invoice_pdf' invoice.id %}">Download PDF</a>
+  </div>
+</div>
+
+<div class="invoice-detail-layout">
+  <div class="invoice-detail-main">
+    <section class="invoice-detail-overview" aria-label="Invoice details">
+      <dl>
+        <div><dt>Participant</dt><dd>{{ invoice.participant.display_name }}</dd></div>
+        <div><dt>Invoice type</dt><dd>{{ invoice.get_invoice_type_display }}</dd></div>
+        <div><dt>Billing period</dt><dd>{{ invoice.period_start|date:"d/m/Y" }} - {{ invoice.period_end|date:"d/m/Y" }}</dd></div>
+        <div><dt>Created by</dt><dd>{{ invoice.created_by }}</dd></div>
+      </dl>
+    </section>
+
+    <section class="invoice-detail-lines" aria-labelledby="invoice-lines-title">
+      <h2 id="invoice-lines-title">Lines</h2>
+      <div class="invoice-detail-table-scroll" role="region" aria-label="Invoice lines" tabindex="0">
+        <table>
+          <thead><tr>
+            <th>Item</th><th>Description</th><th>Unit</th>
+            <th class="numeric-cell">Quantity</th><th class="numeric-cell">Unit price</th><th class="numeric-cell">Total</th>
+          </tr></thead>
+          <tbody>
+            {% for line in invoice.lines.all %}
+            <tr>
+              <td>{{ line.support_item_number }}</td>
+              <td class="invoice-detail-description">{{ line.description }}</td>
+              <td>{{ line.unit }}</td>
+              <td class="numeric-cell">{{ line.quantity|floatformat:2 }}</td>
+              <td class="numeric-cell">${{ line.unit_price|floatformat:2 }}</td>
+              <td class="numeric-cell invoice-detail-line-total">${{ line.line_total|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <dl class="invoice-detail-total"><dt>Total</dt><dd>${{ invoice.total_amount|floatformat:2 }}</dd></dl>
+    <div class="invoice-detail-history">
+      {% include "invoices/billing_adjustment_history.html" with billing_adjustments=invoice.billing_adjustments.all only %}
+    </div>
+  </div>
+
+  <aside class="invoice-detail-operations" aria-label="Invoice status and actions">
+    <section class="invoice-detail-status invoice-detail-status-{{ invoice.status }}">
+      <h2>Status</h2>
+      <p class="invoice-detail-status-value">
+        {% if invoice.status == "draft" %}
+          <img src="{% static 'img/r1/icons/invoice-status-draft.svg' %}" alt="" width="5" height="5">
+        {% elif invoice.status == "cancelled" %}
+          <img src="{% static 'img/r1/icons/invoice-status-cancelled.svg' %}" alt="" width="5" height="5">
+        {% else %}
+          <img src="{% static 'img/r1/icons/invoice-status-blue.svg' %}" alt="" width="5" height="5">
+        {% endif %}
+        <span>{{ invoice.get_status_display }}</span>
+      </p>
+      <p>{% if invoice.status == "draft" %}Review invoice lines before issuing.{% else %}Invoice marked as {{ invoice.get_status_display }}.{% endif %}</p>
+    </section>
+
+    {% if invoice.status == "draft" or invoice.status == "issued" %}
+    <section class="invoice-detail-actions" aria-labelledby="invoice-actions-title">
+      <h2 id="invoice-actions-title">Status Actions</h2>
+      {% if invoice.status == "draft" %}
+      <form method="post" action="{% url 'invoice_mark_issued' invoice.id %}">
+        {% csrf_token %}
+        <button type="submit">Mark as Issued</button>
+      </form>
+      {% endif %}
+      {% if invoice.status == "issued" %}
+      <form method="post" action="{% url 'invoice_mark_paid' invoice.id %}">
+        {% csrf_token %}
+        <button type="submit">Mark as Paid</button>
+      </form>
+      {% endif %}
+      <div class="invoice-detail-danger-action">
+        <h3>Cancel invoice</h3>
+        <p>Change the invoice status to Cancelled.</p>
+        <form method="post" action="{% url 'invoice_cancel' invoice.id %}">
+          {% csrf_token %}
+          <button class="danger" type="submit">Cancel Invoice</button>
+        </form>
+      </div>
+      {% if invoice.status == "draft" %}
+      <div class="invoice-detail-danger-action">
+        <h3>Delete draft</h3>
+        <p>Remove this draft invoice.</p>
+        <form method="post" action="{% url 'invoice_delete' invoice.id %}">
+          {% csrf_token %}
+          <button class="danger" type="submit">Delete Draft Invoice</button>
+        </form>
+      </div>
+      {% endif %}
+    </section>
+    {% endif %}
+  </aside>
+</div>

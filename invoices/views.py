@@ -968,6 +968,7 @@ def invoice_detail(request, invoice_id):
             "invoice": invoice,
             "return_url": get_safe_return_url(request, default_return_url),
             "return_label": return_label,
+            "r1_invoice_detail": not is_support_coordination_invoice and has_role(request.user, ADMIN_ROLES),
         },
     )
 
