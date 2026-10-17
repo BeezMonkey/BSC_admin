@@ -34,7 +34,7 @@
     const below = anchor.bottom + 8;
     const above = anchor.top - bounds.height - 8;
     const preferred = below + bounds.height <= top + height ? below : above;
-    panel.style.left = `${clamp(anchor.left, left, left + width - bounds.width)}px`;
+    panel.style.left = `${clamp(anchor.right - bounds.width, left, left + width - bounds.width)}px`;
     panel.style.top = `${clamp(preferred, top, top + height - bounds.height)}px`;
   };
 
