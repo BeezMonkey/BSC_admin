@@ -2,8 +2,10 @@
 from datetime import date, timedelta
 from html.parser import HTMLParser
 from pathlib import Path
+import re
 from tempfile import TemporaryDirectory
 from urllib.parse import parse_qs, urlsplit
+from xml.etree import ElementTree
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -259,6 +261,111 @@ class AdminDocumentsR1Tests(TestCase):
         self.assertTrue(filters[0].find('input', name='q'))
         self.assertTrue(filters[0].find('select', name='review_status'))
 
+    def test_person_actions_heading_group_and_uploaded_by_classes(self):
+        for owner in ('participant', 'worker'):
+            with self.subTest(owner=owner):
+                _, page = self.page(self.person_route(owner))
+                heading = page.find('th')[-1]
+                self.assertEqual(heading.text, 'Actions')
+                self.assertTrue(heading.has_class('actions-heading'))
+                rows = page.find('tbody')[0].find('tr')
+                self.assertEqual(len(rows), 3)
+                for row in rows:
+                    cells = row.find('td')
+                    self.assertTrue(cells[-1].has_class('actions'))
+                    self.assertTrue(cells[-1].has_class('document-actions'))
+                    groups = [node for node in cells[-1].find('div')
+                              if node.has_class('document-action-group')]
+                    self.assertEqual(len(groups), 1)
+                    self.assertEqual(len(groups[0].find('a')), 3)
+                    self.assertTrue(cells[5].has_class('r1-document-uploaded-by'))
+                    self.assertEqual(cells[5].text, str(self.users['admin']))
+
+    def test_person_primary_actions_keep_labels_urls_and_preview_hooks(self):
+        for owner in ('participant', 'worker'):
+            _, page = self.page(self.person_route(owner))
+            for status in Document.ReviewStatus.values:
+                doc = self.docs[owner, status]
+                with self.subTest(owner=owner, status=status):
+                    download = page.find('a', href=reverse('document_download', args=[doc.pk]))[0]
+                    group = download.parent
+                    self.assertTrue(group.has_class('document-action-group'))
+                    primary = group.find('a')[0]
+                    self.assertEqual(primary.text, 'Preview' if doc.is_previewable else 'View')
+                    self.assertEqual(primary.attrs['href'],
+                        reverse('document_preview', args=[doc.pk]) if doc.is_previewable
+                        else doc.get_absolute_url())
+                    self.assertTrue(primary.has_class('button'))
+                    self.assertTrue(primary.has_class('secondary'))
+                    self.assertFalse(primary.has_class('r1-document-icon-action'))
+                    if doc.is_previewable:
+                        self.assertIn('data-document-preview-open', primary.attrs)
+                        self.assertEqual(primary.attrs['data-preview-title'], doc.title)
+                        self.assertEqual(primary.attrs['data-preview-filename'], doc.filename)
+                        self.assertEqual(primary.attrs['data-preview-download-url'],
+                                         reverse('document_download', args=[doc.pk]))
+
+    def assert_decorative_action_icon(self, link, action):
+        icons = link.find('img') + link.find('svg') + [
+            span for span in link.find('span') if span.has_class('r1-document-action-icon')]
+        self.assertEqual(len(icons), 1)
+        icon = icons[0]
+        self.assertEqual(icon.attrs.get('aria-hidden'), 'true')
+        if icon.tag == 'img':
+            self.assertEqual(icon.attrs.get('alt'), '')
+            self.assertTrue(icon.attrs.get('src'))
+        elif icon.tag == 'svg':
+            self.assertEqual(icon.attrs.get('focusable'), 'false')
+        else:
+            self.assertIn(action, ('download', 'delete'))
+            self.assertTrue(icon.has_class(f'r1-document-icon-{action}'))
+            self.assertEqual(icon.children, [])
+            stylesheet = Path(settings.BASE_DIR) / 'static/css/r1_admin_documents.css'
+            css = stylesheet.read_text(encoding='utf-8')
+            self.assertRegex(css,
+                r'\.r1-admin-documents\s+\.r1-document-action-icon\s*\{[^{}]*'
+                r'\bmask:\s*var\(--r1-document-icon\)[^{}]*\}')
+            for declaration in ('width: 16px;', 'height: 16px;', 'background-color: currentColor;'):
+                self.assertRegex(css,
+                    r'\.r1-admin-documents\s+\.r1-document-action-icon\s*\{[^{}]*'
+                    + re.escape(declaration) + r'[^{}]*\}')
+            relative_asset = f'../img/r1/icons/document-{action}.svg'
+            self.assertRegex(css,
+                r'\.r1-admin-documents\s+\.r1-document-icon-' + action
+                + r'\s*\{\s*--r1-document-icon:\s*url\([\'"]?'
+                + re.escape(relative_asset) + r'[\'"]?\);\s*\}')
+            asset = (stylesheet.parent / relative_asset).resolve()
+            self.assertTrue(asset.is_file(), f'Expected vendored {action} SVG')
+            svg = ElementTree.parse(asset).getroot()
+            self.assertEqual(svg.tag, '{http://www.w3.org/2000/svg}svg')
+            self.assertEqual(svg.attrib.get('viewBox'), '0 0 24 24')
+            paths = svg.findall('.//{http://www.w3.org/2000/svg}path')
+            self.assertTrue(paths, 'Expected nonempty Lucide SVG geometry')
+            self.assertTrue(all(path.attrib.get('d', '').strip() for path in paths))
+
+    def test_person_download_delete_are_accessible_icon_only_links(self):
+        for owner in ('participant', 'worker'):
+            response, page = self.page(self.person_route(owner))
+            for status in Document.ReviewStatus.values:
+                doc = self.docs[owner, status]
+                for action, style, label in [('download', 'secondary', 'Download file'),
+                                             ('delete', 'danger-outline', 'Delete file')]:
+                    with self.subTest(owner=owner, status=status, action=action):
+                        route = reverse(f'document_{action}', args=[doc.pk])
+                        links = [link for link in page.find('a')
+                                 if urlsplit(link.attrs.get('href', '')).path == route]
+                        self.assertEqual(len(links), 1)
+                        link = links[0]
+                        self.assertEqual(parse_qs(urlsplit(link.attrs['href']).query),
+                            {'next': [response.context['current_list_url']]} if action == 'delete' else {})
+                        self.assertTrue(link.has_class('button'))
+                        self.assertTrue(link.has_class(style))
+                        self.assertTrue(link.has_class('r1-document-icon-action'))
+                        self.assertEqual(link.attrs.get('aria-label'), label)
+                        self.assertEqual(link.attrs.get('title'), label)
+                        self.assertEqual(link.text, '')
+                        self.assert_decorative_action_icon(link, action)
+
     def test_preview_only_pdf_and_images_on_lists_and_detail(self):
         for owner in ('participant', 'worker'):
             _, listing = self.page(self.person_route(owner))
@@ -284,15 +391,21 @@ class AdminDocumentsR1Tests(TestCase):
             doc = self.docs[owner, 'pending_review']
             response, page = self.page(doc.get_absolute_url())
             metadata = [dl for dl in page.find('dl') if dl.has_class('r1-document-metadata')]
-            self.assertEqual(len(metadata), 1, 'Expected r1-document-metadata definition list')
-            self.assertEqual([dt.text for dt in metadata[0].find('dt')],
+            self.assertEqual(len(metadata), 2, 'Expected file and linked-record metadata lists')
+            self.assertEqual([dt.text for dl in metadata for dt in dl.find('dt')],
                 ['File', 'Status', 'Folder', 'Required type', 'Issue date', 'Expiry date',
-                 'Participant', 'Worker', 'Uploaded by', 'Notes'])
+                 'Participant', 'Worker', 'Uploaded by'])
+            values = [dd.text for dl in metadata for dd in dl.find('dd')]
+            self.assertEqual(len(values), 9)
+            metadata_text = ' '.join(dl.text for dl in metadata)
             for value in [doc.filename, 'Pending review', 'Police Check', '02/01/2026',
                           doc.expiry_date.strftime('%d/%m/%Y'), str(getattr(doc, owner)),
-                          doc.notes, str(doc.uploaded_by)]:
-                self.assertIn(value, metadata[0].text)
-            self.assertIn('Compliance' if owner == 'worker' else 'NDIS Forms', metadata[0].text)
+                          str(doc.uploaded_by)]:
+                self.assertIn(value, metadata_text)
+            self.assertIn('Compliance' if owner == 'worker' else 'NDIS Forms', metadata_text)
+            notes = [node for node in page.find('p') if node.has_class('r1-document-notes')]
+            self.assertEqual(len(notes), 1)
+            self.assertEqual(''.join(notes[0].children), doc.notes)
             self.assertContains(response, 'Back to files')
 
     def test_blank_metadata_and_storage_basename_fallback_are_retained(self):
@@ -306,17 +419,20 @@ class AdminDocumentsR1Tests(TestCase):
                     **({owner: getattr(self, owner)} if owner else {}))
                 _, page = self.page(doc.get_absolute_url())
                 metadata = [dl for dl in page.find('dl') if dl.has_class('r1-document-metadata')]
-                self.assertEqual(len(metadata), 1)
-                labels = [dt.text for dt in metadata[0].find('dt')]
-                values = [dd.text for dd in metadata[0].find('dd')]
+                self.assertEqual(len(metadata), 2)
+                labels = [dt.text for dl in metadata for dt in dl.find('dt')]
+                values = [dd.text for dl in metadata for dd in dl.find('dd')]
                 self.assertEqual(len(labels), len(values))
                 self.assertEqual(dict(zip(labels, values)), {
                     'File': 'blank-fallback.pdf', 'Status': 'Approved', 'Folder': 'Others',
                     'Required type': 'Not provided', 'Issue date': '-', 'Expiry date': '-',
                     'Participant': str(self.participant) if owner == 'participant' else '-',
                     'Worker': str(self.worker) if owner == 'worker' else '-',
-                    'Uploaded by': str(self.users['admin']), 'Notes': '-',
+                    'Uploaded by': str(self.users['admin']),
                 })
+                notes = [node for node in page.find('p') if node.has_class('r1-document-notes')]
+                self.assertEqual(len(notes), 1)
+                self.assertEqual(notes[0].text, '-')
                 if owner:
                     response, listing = self.page(self.person_route(owner))
                     self.assertContains(response, 'blank-fallback.pdf')
@@ -325,6 +441,97 @@ class AdminDocumentsR1Tests(TestCase):
                     while row.tag != 'tr':
                         row = row.parent
                     self.assertEqual(row.find('td')[4].text, 'Not provided')
+
+    def test_detail_record_has_three_labelled_sections_and_separate_notes(self):
+        for owner in ('participant', 'worker'):
+            doc = self.docs[owner, 'pending_review']
+            notes = 'Fictional notes: <retain> & preserve.\nSecond line,  two spaces.'
+            Document.objects.filter(pk=doc.pk).update(notes=notes)
+            with self.subTest(owner=owner):
+                _, page = self.page(doc.get_absolute_url())
+                records = [node for node in page.find('section')
+                           if node.has_class('r1-document-record')]
+                self.assertEqual(len(records), 1)
+                sections = [node for node in records[0].children
+                            if isinstance(node, Element) and node.tag == 'section']
+                self.assertEqual(len(sections), 3)
+                expected = [
+                    ('r1-file-information', 'File information',
+                     ['File', 'Status', 'Folder', 'Required type', 'Issue date', 'Expiry date']),
+                    ('r1-linked-records', 'Linked records', ['Participant', 'Worker', 'Uploaded by']),
+                    ('r1-file-notes', 'Notes', []),
+                ]
+                for section, (heading_id, title, labels) in zip(sections, expected):
+                    self.assertEqual(section.attrs.get('aria-labelledby'), heading_id)
+                    headings = section.find('h2')
+                    self.assertEqual(len(headings), 1)
+                    self.assertEqual(headings[0].attrs.get('id'), heading_id)
+                    self.assertEqual(headings[0].text, title)
+                    lists = section.find('dl')
+                    self.assertEqual(len(lists), int(bool(labels)))
+                    if labels:
+                        self.assertTrue(lists[0].has_class('r1-document-metadata'))
+                        self.assertEqual([dt.text for dt in lists[0].find('dt')], labels)
+                        self.assertEqual(len(lists[0].find('dd')), len(labels))
+                paragraphs = sections[2].find('p')
+                self.assertEqual(len(paragraphs), 1)
+                self.assertTrue(paragraphs[0].has_class('r1-document-notes'))
+                self.assertEqual(''.join(paragraphs[0].children), notes)
+
+    def test_detail_header_status_repeats_metadata_status(self):
+        for owner in ('participant', 'worker'):
+            for status in Document.ReviewStatus.values:
+                doc = self.docs[owner, status]
+                with self.subTest(owner=owner, status=status):
+                    _, page = self.page(doc.get_absolute_url())
+                    headers = [node for node in page.find('div')
+                               if node.has_class('r1-document-detail-header')]
+                    self.assertEqual(len(headers), 1)
+                    pills = [node for node in headers[0].find('span')
+                             if node.has_class('r1-document-header-status')]
+                    self.assertEqual(len(pills), 1)
+                    self.assertTrue(pills[0].has_class('status-pill'))
+                    self.assertTrue(pills[0].has_class(f'status-{status}'))
+                    self.assertEqual(pills[0].text, doc.get_review_status_display())
+                    metadata = [dl for dl in page.find('dl') if dl.has_class('r1-document-metadata')]
+                    status_values = [dd for dl in metadata for dt, dd in
+                                     zip(dl.find('dt'), dl.find('dd')) if dt.text == 'Status']
+                    self.assertEqual(len(status_values), 1)
+                    self.assertEqual(status_values[0].text, doc.get_review_status_display())
+
+    def test_detail_top_actions_keep_text_order_urls_and_preview_hooks(self):
+        for owner in ('participant', 'worker'):
+            for status in Document.ReviewStatus.values:
+                doc = self.docs[owner, status]
+                with self.subTest(owner=owner, status=status):
+                    response, page = self.page(doc.get_absolute_url())
+                    groups = [node for node in page.find('div')
+                              if node.has_class('document-detail-actions')]
+                    self.assertEqual(len(groups), 1)
+                    back = response.context['document_owner_url']
+                    expected = [('Back to files', back, {})]
+                    if doc.is_previewable:
+                        expected.append(('Preview', reverse('document_preview', args=[doc.pk]), {}))
+                    expected.extend([
+                        ('Download', reverse('document_download', args=[doc.pk]), {}),
+                        ('Edit', reverse('document_edit', args=[doc.pk]), {'next': [back]}),
+                        ('Delete', reverse('document_delete', args=[doc.pk]), {'next': [back]}),
+                    ])
+                    links = groups[0].find('a')
+                    self.assertEqual([(link.text, urlsplit(link.attrs['href']).path,
+                                       parse_qs(urlsplit(link.attrs['href']).query))
+                                      for link in links], expected)
+                    for link in links:
+                        self.assertTrue(link.has_class('button'))
+                        self.assertTrue(link.has_class('danger-outline' if link.text == 'Delete' else 'secondary'))
+                        self.assertFalse(link.has_class('r1-document-icon-action'))
+                    if doc.is_previewable:
+                        preview = links[1]
+                        self.assertIn('data-document-preview-open', preview.attrs)
+                        self.assertEqual(preview.attrs['data-preview-title'], doc.title)
+                        self.assertEqual(preview.attrs['data-preview-filename'], doc.filename)
+                        self.assertEqual(preview.attrs['data-preview-download-url'],
+                                         reverse('document_download', args=[doc.pk]))
 
     def review_forms(self, page, doc):
         return [form for form in page.find('form') if form.attrs.get('action') == reverse('document_review', args=[doc.pk])]

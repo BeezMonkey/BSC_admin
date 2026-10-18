@@ -136,7 +136,7 @@
               <span class="status-pill status-{{ document.review_status }}">{{ document.get_review_status_display }}</span>
             </td>
             <td>{% if document.expiry_date %}{{ document.expiry_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
-            <td>{{ document.uploaded_by }}</td>
+            <td class="r1-document-uploaded-by">{{ document.uploaded_by }}</td>
             <td class="actions document-actions">
               <div class="document-action-group">
                 {% if document.is_previewable %}
@@ -144,8 +144,8 @@
                 {% else %}
                   <a class="button secondary" href="{% url 'document_detail' document.id %}">View</a>
                 {% endif %}
-                <a class="button secondary" href="{% url 'document_download' document.id %}">Download</a>
-                <a class="button danger-outline" href="{% url 'document_delete' document.id %}?next={{ current_list_url|urlencode }}">Delete</a>
+                <a class="button secondary r1-document-icon-action" href="{% url 'document_download' document.id %}" aria-label="Download file" title="Download file"><span class="r1-document-action-icon r1-document-icon-download" aria-hidden="true"></span></a>
+                <a class="button danger-outline r1-document-icon-action" href="{% url 'document_delete' document.id %}?next={{ current_list_url|urlencode }}" aria-label="Delete file" title="Delete file"><span class="r1-document-action-icon r1-document-icon-delete" aria-hidden="true"></span></a>
               </div>
             </td>
           </tr>
