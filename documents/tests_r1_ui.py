@@ -281,6 +281,43 @@ class AdminDocumentsR1Tests(TestCase):
                     self.assertTrue(cells[5].has_class('r1-document-uploaded-by'))
                     self.assertEqual(cells[5].text, str(self.users['admin']))
 
+    def test_person_file_cell_shows_one_original_name_without_status_or_subline(self):
+        for owner in ('participant', 'worker'):
+            _, page = self.page(self.person_route(owner))
+            for status in Document.ReviewStatus.values:
+                doc = self.docs[owner, status]
+                with self.subTest(owner=owner, status=status):
+                    cell = next(cell for cell in page.find('td')
+                        if cell.has_class('document-file-cell')
+                        and cell.find('a', href=doc.get_absolute_url()))
+                    self.assertEqual(cell.text, doc.filename)
+                    self.assertEqual(cell.find('small'), [])
+                    self.assertEqual(len(cell.find('a')), 1)
+                    self.assertEqual(cell.find('a')[0].attrs.get('title'), doc.title)
+
+    def test_review_feedback_has_state_tag_without_changing_success_semantics(self):
+        from django.contrib.messages import SUCCESS, get_messages
+        doc = self.docs['worker', 'pending_review']
+        for status in ('approved', 'rejected'):
+            with self.subTest(status=status):
+                response = self.client.post(reverse('document_review', args=[doc.pk]),
+                    {'review_status': status}, follow=True)
+                feedback = list(get_messages(response.wsgi_request))
+                self.assertEqual(len(feedback), 1)
+                self.assertEqual(feedback[0].level, SUCCESS)
+                self.assertEqual(str(feedback[0]), f'Document marked {status}.')
+                self.assertIn(f'document-review-{status}', feedback[0].tags.split())
+                doc.refresh_from_db()
+                self.assertEqual(doc.review_status, status)
+
+    def test_file_name_and_feedback_styles_use_existing_r1_palette(self):
+        css = (Path(settings.BASE_DIR) / 'static/css/r1_admin_documents.css').read_text(encoding='utf-8')
+        name_rule = re.search(r'\.r1-admin-documents \.document-file-cell a\s*\{([^{}]*)\}', css).group(1)
+        for declaration in ('color: var(--r1-text);', 'font-weight: 600;', 'text-decoration: none;'):
+            self.assertIn(declaration, name_rule)
+        self.assertRegex(css, r'\.r1-admin-documents \.document-manager-table tbody tr:hover\s*\{\s*background: #fbfcfd;\s*\}')
+        self.assertRegex(css, r'\.r1-admin-documents \.message\.document-review-rejected\s*\{[^{}]*color: var\(--r1-danger\);[^{}]*background: #faeef0;')
+
     def test_person_primary_actions_keep_labels_urls_and_preview_hooks(self):
         for owner in ('participant', 'worker'):
             _, page = self.page(self.person_route(owner))
