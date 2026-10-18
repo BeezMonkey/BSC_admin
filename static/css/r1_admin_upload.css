@@ -279,3 +279,17 @@
   .r1-upload-dialog .document-upload-dialog-form { flex: 0 0 auto; }
   .r1-upload-dialog .document-upload-dialog-body { overflow: visible; }
 }
+
+/* Match accepted list pickers; keep native mobile and unsupported-browser fallback. */
+@supports (appearance: base-select) and selector(select::picker(select)) {
+  @media (min-width: 761px) and (hover: hover) and (pointer: fine) {
+    :is(.r1-admin-upload .r1-upload-form, .r1-upload-dialog) select,
+    :is(.r1-admin-upload .r1-upload-form, .r1-upload-dialog) select::picker(select) { appearance: base-select; }
+    .app-shell.r1-ui.r1-admin-upload .r1-upload-form .field select,
+    .r1-upload-dialog .document-upload-dialog-body select { align-items: center; line-height: normal; }
+    :is(.r1-admin-upload .r1-upload-form, .r1-upload-dialog) select::picker(select) { box-sizing: border-box; max-height: 280px; overflow-y: auto; margin: 4px 0; border: 1px solid var(--r1-border); border-radius: 8px; padding: 4px; background: var(--r1-surface); color: var(--r1-text); box-shadow: 0 6px 16px rgb(23 33 43 / 12%); }
+    :is(.r1-admin-upload .r1-upload-form, .r1-upload-dialog) select option { min-height: 32px; padding: 6px 8px; border-radius: 4px; font-size: 13px; font-weight: 400; line-height: 18px; white-space: normal; overflow-wrap: anywhere; }
+    :is(.r1-admin-upload .r1-upload-form, .r1-upload-dialog) select option:is(:checked, :hover, :focus) { color: var(--r1-accent); background: var(--r1-blue-soft); }
+    :is(.r1-admin-upload .r1-upload-form, .r1-upload-dialog) select option::checkmark { color: var(--r1-accent); }
+  }
+}

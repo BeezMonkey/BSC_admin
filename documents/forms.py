@@ -105,6 +105,10 @@ class DocumentForm(forms.ModelForm):
             else ""
         )
         self.fields["required_document_type"].widget = forms.HiddenInput()
+        self.fields["participant"].empty_label = "Select participant"
+        self.fields["worker"].empty_label = "Select worker"
+        self.fields["invoice"].empty_label = "Select invoice"
+        self.fields["service_log"].empty_label = "Select service log"
         if self.locked_required_document_type:
             label = Document.RequiredDocumentType(self.locked_required_document_type).label
             self.fields["title"].required = False
