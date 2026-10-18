@@ -11,6 +11,7 @@ from django.urls import reverse
 
 from accounts.models import UserProfile
 from core.models import AuditLog
+from documents.forms import DocumentForm
 from documents.models import Document
 from documents.storage import StorageOperationError
 from documents.tests_r1_ui import Page
@@ -178,3 +179,41 @@ class UploadR1Tests(TestCase):
         self.assertIn('872px', css)
         self.assertIn('44px', css)
         self.assertIn('overflow-y: auto', css)
+
+    def test_linked_empty_choices_have_readable_labels_and_empty_values(self):
+        response = self.client.get(reverse('document_create'))
+        _, form = self.form(response)
+        for name, label in {'participant': 'Select participant', 'worker': 'Select worker',
+                            'invoice': 'Select invoice', 'service_log': 'Select service log'}.items():
+            select = form.find('select', name=name)[0]
+            empty = select.find('option', value='')
+            self.assertEqual(len(empty), 1)
+            self.assertEqual(empty[0].text, label)
+            self.assertIn('selected', empty[0].attrs)
+        self.assertNotContains(response, '>---------<')
+
+    def test_readable_choices_preserve_optional_fields_and_native_values(self):
+        form = DocumentForm(initial={'worker': self.worker.pk})
+        for name in form.LINKED_RECORD_FIELDS:
+            self.assertFalse(form.fields[name].required)
+            self.assertEqual(list(form.fields[name].choices)[0][0], '')
+        page = Page(self.client.get(reverse('document_create'))).root
+        worker = page.find('select', name='worker')[0]
+        self.assertTrue(worker.find('option', value=str(self.worker.pk)))
+        self.assertEqual(form['worker'].value(), self.worker.pk)
+        data = self.payload(participant='', worker=self.worker.pk)
+        bound = DocumentForm(data, {'file': data['file']})
+        self.assertTrue(bound.is_valid(), bound.errors)
+        self.assertEqual(bound.cleaned_data['worker'], self.worker)
+        self.assertIsNone(bound.cleaned_data['participant'])
+
+    def test_upload_selects_inherit_confirmed_desktop_native_picker(self):
+        css = (Path(settings.BASE_DIR) / 'static/css/r1_admin_upload.css').read_text(encoding='utf-8')
+        self.assertIn('@supports (appearance: base-select) and selector(select::picker(select))', css)
+        self.assertIn('@media (min-width: 761px) and (hover: hover) and (pointer: fine)', css)
+        self.assertIn(':is(.r1-admin-upload .r1-upload-form, .r1-upload-dialog) select::picker(select)', css)
+        self.assertIn('appearance: base-select', css)
+        self.assertIn('option:is(:checked, :hover, :focus)', css)
+        self.assertIn('min-height: 32px', css)
+        self.assertIn('font-size: 13px', css)
+        self.assertIn('background: var(--r1-blue-soft)', css)
