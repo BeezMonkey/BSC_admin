@@ -29,8 +29,12 @@
 .app-shell.r1-admin-invoice-create .invoice-billing-row .invoice-travel-claim { padding-left: 10px; }
 .app-shell.r1-admin-invoice-create .invoice-billing-row .invoice-travel-claim input { width: 80px; height: 30px; min-height: 30px; padding: 4px 6px; font-size: 14px; line-height: 20px; }
 .app-shell.r1-admin-invoice-create .invoice-billing-row .invoice-travel-claim [data-billing-claim-field] > small { font-size: 12px; line-height: 16px; }
+.r1-admin-invoice-create .invoice-claim-help-inline { display: none; }
+.r1-admin-invoice-create .invoice-travel-claim .invoice-claim-help-inline { display: inline; }
+.r1-admin-invoice-create .invoice-travel-claim .invoice-claim-help-full { display: none; }
 .app-shell.r1-admin-invoice-create .invoice-travel-empty { color: var(--r1-muted); font-size: 12px; line-height: 16px; }
 .app-shell.r1-admin-invoice-create .invoice-billing-row .invoice-adjust-button { box-sizing: border-box; width: 36px; height: 36px; min-height: 36px; padding: 0; border: 1px solid var(--r1-border); border-radius: 6px; background: var(--r1-surface) url('../img/r1/icons/invoice-adjust.svg') center / 18px 18px no-repeat; }
+.app-shell.r1-ui.r1-admin-invoice-create .invoice-billing-row .invoice-adjust-button:is(:hover, :focus-visible) { border-color: var(--r1-strong-border); background: #f0f4f8 url('../img/r1/icons/invoice-adjust.svg') center / 18px 18px no-repeat; }
 .r1-admin-invoice-create .invoice-adjust-button > svg { visibility: hidden; }
 .app-shell.r1-admin-invoice-create .invoice-preview-actions { gap: 16px; padding: 20px; margin-top: 24px; border: 0; border-radius: 8px; background: var(--r1-subtle); }
 .app-shell.r1-admin-invoice-create .invoice-form-total { font-size: 18px; line-height: 24px; font-weight: 600; }

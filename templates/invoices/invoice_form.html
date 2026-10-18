@@ -126,7 +126,7 @@
               </thead>
               <tbody>
                 {% for row in group.invoice_rows %}
-                  {% include "invoices/invoice_billing_row.html" with row=row only %}
+                  {% include "invoices/invoice_billing_row.html" with row=row r1_invoice_create=r1_invoice_create only %}
                 {% endfor %}
               </tbody>
             </table>
@@ -168,7 +168,7 @@
         </thead>
         <tbody>
           {% for row in invoice_rows %}
-            {% include "invoices/invoice_billing_row.html" with row=row only %}
+            {% include "invoices/invoice_billing_row.html" with row=row r1_invoice_create=r1_invoice_create only %}
           {% endfor %}
         </tbody>
       </table>

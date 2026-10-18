@@ -25,7 +25,7 @@
       <div data-billing-claim-home><div data-billing-claim-field>
         {{ row.travel_form.non_field_errors }}{{ row.travel_form.amount.errors }}
         <label for="{{ row.travel_form.amount.id_for_label }}" class="invoice-claim-label">Travel claim amount</label>
-        <div data-billing-claim class="invoice-money-input"><span class="invoice-input-prefix" aria-hidden="true">$</span>{{ row.travel_form.amount }}</div><small>Admin-approved amount<span class="invoice-claim-currency"> &middot; AUD</span></small>
+        <div data-billing-claim class="invoice-money-input"><span class="invoice-input-prefix" aria-hidden="true">$</span>{{ row.travel_form.amount }}</div><small{% if r1_invoice_create %} title="Admin-approved amount"{% endif %}>{% if r1_invoice_create %}<span class="invoice-claim-help-inline">Approved amount</span><span class="invoice-claim-help-full">Admin-approved amount</span>{% else %}Admin-approved amount{% endif %}<span class="invoice-claim-currency"> &middot; AUD</span></small>
       </div></div>
       <span data-billing-claim-empty class="invoice-travel-empty" hidden>No travel recorded</span>
       {% else %}<span class="invoice-travel-empty">No travel recorded</span>{% endif %}

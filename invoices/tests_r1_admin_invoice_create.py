@@ -179,6 +179,19 @@ class R1AdminInvoiceCreateTests(TestCase):
             self.client.force_login(user)
             self.assertEqual(self.client.get(reverse("invoice_create")).status_code, 403)
 
+    def test_short_claim_help_is_scoped_to_r1_and_retains_the_full_description(self):
+        data = {"service_log_ids": [self.km_log.pk]}
+        for user in (self.admin_user, self.super_admin):
+            response = self.preview(data, user)
+            self.assertContains(response, 'class="invoice-claim-help-inline">Approved amount</span>', count=1)
+            self.assertContains(response, 'class="invoice-claim-help-full">Admin-approved amount</span>', count=1)
+            self.assertContains(response, 'title="Admin-approved amount"', count=1)
+            self.assertEqual(len(self.markup(response).find("input", name=f"travel-{self.km_log.pk}-amount")), 1)
+        response = self.preview(data, self.accountant_user)
+        self.assertNotContains(response, "invoice-claim-help-inline")
+        self.assertNotContains(response, "invoice-claim-help-full")
+        self.assertContains(response, "Admin-approved amount")
+
     def test_drawer_time_enhancement_is_scoped_and_keeps_native_post_controls(self):
         asset = static("js/r1_invoice_adjustment_time.js")
         for user in (self.admin_user, self.super_admin):
