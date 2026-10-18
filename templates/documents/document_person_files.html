@@ -1,23 +1,28 @@
-{% extends "admin_base.html" %}
+{% extends "documents/r1_admin_base.html" %}
 
 {% block title %}{{ selected_person.display_name }} Uploaded Files - Brisbane Star Care{% endblock %}
+{% block documents_breadcrumb %}{% if owner == "workers" %}Support Workers{% else %}Participants{% endif %} / {{ selected_person.display_name }} / Files{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1>{{ selected_person.display_name }}</h1>
+    <h1>Files</h1>
+    <p class="r1-document-person-name">{{ selected_person.display_name }}</p>
     <p>{{ selected_person_description }}</p>
   </div>
   <div class="button-row">
+    <a class="button" href="{{ upload_url }}" data-document-upload-open data-upload-category="{{ upload_category_value }}">Upload File</a>
+  </div>
+</div>
+
+<section class="document-person-hero">
+  <div class="r1-document-return">
     {% if owner == "workers" %}
       <a class="button secondary" href="{% url 'worker_detail' selected_person.id %}">Back to Support Worker</a>
     {% else %}
       <a class="button secondary" href="{% url 'participant_detail' selected_person.id %}">Back to Participant</a>
     {% endif %}
   </div>
-</div>
-
-<section class="card document-person-hero">
   <div class="document-person-hero-main">
     <span class="document-person-avatar document-person-avatar-large">{{ selected_person.initials }}</span>
     <div>
@@ -51,7 +56,7 @@
   </dl>
 </section>
 
-<section class="card document-file-controls">
+<section class="document-file-controls">
   <nav class="document-category-tabs" aria-label="File folders">
     {% for tab in category_tabs %}
       <a class="document-category-tab{% if tab.is_active %} active{% endif %}" href="{{ tab.url }}">
@@ -59,7 +64,7 @@
       </a>
     {% endfor %}
   </nav>
-  <form class="filter-bar document-file-filter" method="get">
+  <form class="filter-bar document-file-filter" method="get" data-document-filters>
     {% if active_category != "all" %}
       <input type="hidden" name="category" value="{{ active_category }}">
     {% endif %}
@@ -81,7 +86,7 @@
   </form>
 </section>
 
-<section class="card document-file-panel">
+<section class="document-file-panel">
   <div class="document-section-header">
     <div>
       <h3>{{ active_category_label }}</h3>
@@ -91,10 +96,9 @@
         <p>Files shown by original filename while secure storage names stay private.</p>
       {% endif %}
     </div>
-    <a class="button" href="{{ upload_url }}" data-document-upload-open data-upload-category="{{ upload_category_value }}">Upload File</a>
   </div>
 
-  <div class="document-table-frame">
+  <div class="document-table-frame" role="region" aria-label="Person files table" tabindex="0">
     <table class="document-manager-table">
       <thead>
         <tr>
@@ -160,6 +164,12 @@
   </div>
 </section>
 
-{% include "documents/partials/upload_dialog.html" with upload_dialog_owner=owner upload_dialog_person=selected_person upload_dialog_next_url=current_list_url upload_dialog_category_choices=upload_category_choices upload_dialog_category_value=upload_category_value %}
 {% include "documents/partials/preview_dialog.html" %}
+{% endblock %}
+
+{% block body %}
+  {{ block.super }}
+  <div data-admin-theme>
+    {% include "documents/partials/upload_dialog.html" with upload_dialog_owner=owner upload_dialog_person=selected_person upload_dialog_next_url=current_list_url upload_dialog_category_choices=upload_category_choices upload_dialog_category_value=upload_category_value %}
+  </div>
 {% endblock %}
