@@ -1,0 +1,144 @@
+/* B06.1 opt-in: directory, person lists and detail only. Upload stays outside. */
+.app-shell.r1-admin-documents { --r1-control-height: 40px; }
+.r1-admin-documents .r1-breadcrumb { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.r1-admin-documents .page-header { align-items: flex-start; gap: 20px; margin-bottom: 24px; }
+.r1-admin-documents .page-header > div { min-width: 0; }
+.r1-admin-documents .page-header :is(h1, p) { overflow-wrap: anywhere; }
+.r1-admin-documents .page-header p { margin: 6px 0 0; font-size: 14px; line-height: 20px; }
+.r1-admin-documents .page-header .r1-document-person-name { color: var(--r1-text); font-weight: 500; }
+.r1-admin-documents .button-row { flex-wrap: wrap; gap: 8px; }
+.r1-admin-documents :is(.button, button) { white-space: nowrap; }
+.r1-admin-documents :is(.document-directory-panel, .document-file-panel, .document-file-controls, .document-person-hero) { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; overflow: visible; }
+.r1-admin-documents .document-directory-summary { gap: 12px; margin-bottom: 24px; }
+.r1-admin-documents .document-summary-card { padding: 12px 16px; border-color: var(--r1-border); box-shadow: none; }
+.r1-admin-documents .document-summary-card span { font-size: 12px; line-height: 16px; font-weight: 500; }
+.r1-admin-documents .document-summary-card strong { margin-top: 4px; font-size: 20px; line-height: 28px; font-weight: 600; color: var(--r1-text); }
+.r1-admin-documents .document-directory-header { grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 0; border: 0; margin-bottom: 20px; }
+.r1-admin-documents .document-directory-header > div { min-width: 0; }
+.r1-admin-documents .document-directory-header h2 { font-size: 16px; line-height: 24px; }
+.r1-admin-documents .document-directory-header p { margin: 4px 0 0; font-size: 14px; line-height: 20px; }
+.r1-admin-documents .document-owner-switch { display: flex; flex-wrap: wrap; gap: 8px; border: 0; padding: 0; }
+.r1-admin-documents .document-owner-tab { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; min-height: 40px; padding: 9px 12px; border-color: var(--r1-strong-border); background: var(--r1-surface); color: var(--r1-text); }
+.r1-admin-documents .document-owner-tab strong { font-size: 14px; line-height: 20px; font-weight: 500; }
+.r1-admin-documents .document-owner-tab span { font-size: 12px; line-height: 16px; color: var(--r1-muted); }
+.r1-admin-documents .document-owner-tab:is(:hover, .active) { border-color: var(--r1-accent); background: var(--r1-accent-soft); color: var(--r1-accent); }
+.r1-admin-documents [data-document-filters] { display: grid; align-items: end; gap: 10px; margin: 0 0 24px; padding: 12px; border: 0; border-radius: 8px; background: var(--r1-subtle); box-shadow: none; }
+.r1-admin-documents .document-directory-filter { grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)) auto auto; }
+.r1-admin-documents .document-file-filter { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) auto auto; }
+.r1-admin-documents [data-document-filters] label { display: grid; gap: 6px; min-width: 0; color: var(--r1-muted); font-size: 12px; line-height: 16px; font-weight: 400; }
+.r1-admin-documents [data-document-filters] :is(input, select) { box-sizing: border-box; width: 100%; min-width: 0; height: 40px; margin: 0; padding: 9px 12px; border: 1px solid var(--r1-strong-border); border-radius: 6px; background: var(--r1-surface); color: var(--r1-text); font-size: 14px; line-height: 20px; font-weight: 400; }
+.r1-admin-documents [data-document-filters] > :is(button, .button) { min-height: 40px; margin: 0; padding: 9px 12px; }
+.r1-admin-documents .document-person-hero { display: grid; gap: 16px; margin-bottom: 24px; }
+.r1-admin-documents .r1-document-return { margin-bottom: 4px; }
+.r1-admin-documents .document-person-hero-main { min-width: 0; }
+.r1-admin-documents .document-person-hero-main > div { min-width: 0; }
+.r1-admin-documents .document-person-hero h2 { font-size: 16px; line-height: 24px; }
+.r1-admin-documents .document-person-hero p { margin: 4px 0 0; color: var(--r1-muted); font-size: 12px; line-height: 18px; }
+.r1-admin-documents .document-person-meta { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+.r1-admin-documents .document-person-meta > div { padding: 0; border: 0; border-radius: 0; background: transparent; min-width: 0; }
+.r1-admin-documents .document-person-meta dt { font-size: 12px; line-height: 16px; color: var(--r1-muted); font-weight: 500; }
+.r1-admin-documents .document-person-meta dd { margin: 6px 0 0; font-size: 14px; line-height: 20px; color: var(--r1-text); overflow-wrap: anywhere; font-weight: 400; }
+.r1-admin-documents .document-person-avatar { flex-shrink: 0; background: var(--r1-blue-soft); color: var(--r1-accent); }
+.r1-admin-documents .document-file-controls { margin-bottom: 0; }
+.r1-admin-documents .document-file-controls .document-category-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0; margin: 0 0 20px; border: 0; }
+.r1-admin-documents .document-category-tab { min-height: 40px; padding: 9px 12px; border: 1px solid var(--r1-strong-border); border-radius: 6px; font-size: 14px; line-height: 20px; font-weight: 400; white-space: nowrap; color: var(--r1-text); background: var(--r1-surface); }
+.r1-admin-documents .document-category-tab:is(:hover, .active) { color: var(--r1-accent); background: var(--r1-accent-soft); border-color: var(--r1-accent); }
+.r1-admin-documents .document-category-tab span { font-size: inherit; }
+.r1-admin-documents .document-file-panel .document-section-header { align-items: flex-start; gap: 16px; padding: 0; margin-bottom: 16px; border: 0; }
+.r1-admin-documents .document-section-header > div { min-width: 0; }
+.r1-admin-documents .document-section-header h3 { font-size: 16px; line-height: 24px; font-weight: 600; }
+.r1-admin-documents .document-section-header p { margin: 4px 0 0; font-size: 12px; line-height: 18px; }
+.r1-admin-documents :is(.document-directory-table-wrap, .document-table-frame) { max-width: 100%; padding: 0; overflow-x: auto; overscroll-behavior-x: contain; }
+.r1-admin-documents :is(.document-directory-table, .document-manager-table) { width: 100%; margin: 0; border-collapse: collapse; table-layout: fixed; }
+.r1-admin-documents .document-directory-table { min-width: 1050px; }
+.r1-admin-documents .document-manager-table { min-width: 1040px; }
+.r1-admin-documents :is(.document-directory-table, .document-manager-table) th { padding: 12px; background: var(--r1-subtle); color: var(--r1-muted); font-size: 12px; line-height: 16px; font-weight: 500; }
+.r1-admin-documents :is(.document-directory-table, .document-manager-table) td { padding: 16px 12px; border-color: var(--r1-border); color: var(--r1-text); font-size: 14px; line-height: 20px; vertical-align: top; overflow-wrap: anywhere; }
+.r1-admin-documents .document-directory-table th:first-child { width: 23%; }
+.r1-admin-documents .document-directory-table th:nth-child(2) { width: 17%; }
+.r1-admin-documents .document-directory-table th:last-child { width: 17%; }
+.r1-admin-documents .document-person-cell { min-width: 0; }
+.r1-admin-documents .document-person-copy a { color: var(--r1-accent); font-size: 14px; line-height: 20px; white-space: normal; overflow: visible; text-overflow: clip; }
+.r1-admin-documents .document-person-copy small { font-size: 12px; line-height: 16px; white-space: normal; }
+.r1-admin-documents .document-manager-table th:first-child { width: 26%; }
+.r1-admin-documents .document-manager-table th:last-child { width: 23%; }
+.r1-admin-documents .document-file-cell { min-width: 0; }
+.r1-admin-documents .document-file-cell a { color: var(--r1-accent); font-size: 14px; line-height: 20px; font-weight: 500; text-decoration: underline; }
+.r1-admin-documents :is(.document-file-cell small, .document-table-subline) { margin-top: 6px; color: var(--r1-muted); font-size: 12px; line-height: 16px; overflow-wrap: anywhere; }
+.r1-admin-documents .document-file-cell small { white-space: normal; }
+.r1-admin-documents .document-count-pill { background: var(--r1-subtle); color: var(--r1-text); font-size: 12px; line-height: 16px; font-weight: 500; }
+.r1-admin-documents :is(.document-directory-actions, .document-actions) { min-width: 0; white-space: normal; }
+.r1-admin-documents .document-action-group { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-start; }
+.r1-admin-documents :is(.document-action-group, .document-directory-actions) .button { min-height: 40px; margin: 0; padding: 9px 8px; border-color: var(--r1-border); font-size: 14px; line-height: 20px; }
+.r1-admin-documents .document-action-group .danger-outline { color: var(--r1-danger); border-color: var(--r1-border); }
+.app-shell.r1-admin-documents .document-action-group .button { min-height: 40px; padding: 0; border: 0; border-radius: 0; background: transparent; font-size: 14px; font-weight: 500; color: var(--r1-accent); text-decoration: underline; text-underline-offset: 3px; }
+.app-shell.r1-admin-documents .document-action-group .danger-outline { color: var(--r1-danger); }
+.app-shell.r1-admin-documents .document-action-group .button:hover { background: transparent; color: var(--r1-text); }
+.app-shell.r1-admin-documents .r1-document-review button.danger { border: 1px solid var(--r1-strong-border); color: var(--r1-text); background: var(--r1-surface); }
+.r1-admin-documents .empty-state { padding: 48px 16px; text-align: center; }
+.r1-admin-documents .empty-state strong { font-size: 14px; line-height: 20px; font-weight: 500; }
+.r1-admin-documents .empty-state p { font-size: 12px; line-height: 18px; margin: 8px 0; }
+.r1-admin-documents .r1-document-detail-header { flex-direction: column; gap: 24px; }
+.r1-admin-documents .document-detail-actions { justify-content: flex-start; }
+.r1-admin-documents .r1-document-record { max-width: 872px; margin-bottom: 24px; }
+.r1-admin-documents .r1-document-metadata { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin: 0; }
+.r1-admin-documents .r1-document-metadata > div { min-width: 0; }
+.r1-admin-documents .r1-document-metadata dt { margin: 0 0 8px; color: var(--r1-muted); font-size: 12px; line-height: 16px; font-weight: 500; }
+.r1-admin-documents .r1-document-metadata dd { margin: 0; color: var(--r1-text); font-size: 14px; line-height: 20px; font-weight: 400; overflow-wrap: anywhere; }
+.r1-admin-documents .r1-document-notes { white-space: pre-wrap; }
+.r1-admin-documents .r1-document-review { box-sizing: border-box; max-width: 872px; padding: 24px; background: var(--r1-subtle); }
+.r1-admin-documents .r1-document-review h2 { margin: 0 0 16px; }
+.r1-admin-documents .r1-document-review form { margin: 0; }
+.r1-admin-documents .r1-document-review .button-row { margin: 0 0 16px; }
+.r1-admin-documents .r1-document-reject-form { display: grid; justify-items: start; gap: 12px; }
+.r1-admin-documents .r1-document-reject-form label { display: grid; gap: 8px; width: 100%; font-size: 14px; line-height: 20px; font-weight: 500; }
+.r1-admin-documents .r1-document-reject-form textarea { box-sizing: border-box; width: 100%; min-height: 88px; padding: 12px; margin: 0; resize: vertical; font-size: 14px; line-height: 20px; font-weight: 400; }
+.r1-admin-documents .document-preview-header { align-items: flex-start; }
+.r1-admin-documents .document-preview-header > div { min-width: 0; }
+.r1-admin-documents .document-preview-header .document-dialog-close { flex-shrink: 0; white-space: nowrap; }
+.r1-admin-documents .document-preview-header h2 { margin: 0; overflow-wrap: anywhere; }
+.r1-admin-documents .document-preview-header p { margin: 4px 0 0; color: var(--r1-muted); font-size: 12px; line-height: 18px; overflow-wrap: anywhere; }
+.r1-admin-documents .document-preview-footer { flex-wrap: wrap; gap: 8px; }
+
+/* Reuse accepted native-select enhancement, retaining native mobile/fallback. */
+@supports (appearance: base-select) and selector(select::picker(select)) {
+  @media (min-width: 761px) and (hover: hover) and (pointer: fine) {
+    .r1-admin-documents [data-document-filters] select,
+    .r1-admin-documents [data-document-filters] select::picker(select) { appearance: base-select; }
+    .r1-admin-documents [data-document-filters] select { align-items: center; line-height: normal; }
+    .r1-admin-documents [data-document-filters] select::picker(select) { box-sizing: border-box; max-height: 280px; overflow-y: auto; margin: 4px 0; border: 1px solid var(--r1-border); border-radius: 8px; padding: 4px; background: var(--r1-surface); color: var(--r1-text); box-shadow: 0 6px 16px rgb(23 33 43 / 12%); }
+    .r1-admin-documents [data-document-filters] select option { min-height: 32px; padding: 6px 8px; border-radius: 4px; font-size: 13px; line-height: 18px; white-space: normal; overflow-wrap: anywhere; }
+    .r1-admin-documents [data-document-filters] select option:is(:checked, :hover, :focus) { color: var(--r1-accent); background: var(--r1-blue-soft); }
+    .r1-admin-documents [data-document-filters] select option::checkmark { color: var(--r1-accent); }
+  }
+}
+@media (min-width: 761px) and (max-width: 1199px) {
+  .r1-admin-documents .document-directory-filter { grid-template-columns: repeat(2, minmax(0, 1fr)) auto auto; }
+  .r1-admin-documents .document-directory-filter label:nth-of-type(2) { grid-column: 2 / 5; }
+}
+@media (max-width: 760px) {
+  .app-shell.r1-admin-documents { --r1-control-height: 44px; }
+  .r1-admin-documents .page-header { flex-direction: column; gap: 16px; }
+  .r1-admin-documents .page-header .button-row { width: 100%; justify-content: flex-start; }
+  .r1-admin-documents .document-directory-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .r1-admin-documents .document-owner-tab { min-height: 44px; }
+  .r1-admin-documents .document-person-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .r1-admin-documents :is(.document-directory-filter, .document-file-filter) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .r1-admin-documents .document-file-filter label { grid-column: 1 / -1; }
+  .r1-admin-documents [data-document-filters] :is(input, select) { height: 44px; min-height: 44px; font-size: 16px; padding: 10px 8px; }
+  .r1-admin-documents [data-document-filters] > :is(button, .button) { min-height: 44px; }
+  .r1-admin-documents .document-category-tab { min-height: 44px; }
+  .r1-admin-documents .document-file-panel .document-section-header { flex-direction: column; align-items: flex-start; }
+  .r1-admin-documents :is(.document-action-group, .document-directory-actions) .button { min-height: 44px; }
+  .app-shell.r1-admin-documents .document-action-group .button { min-height: 44px; }
+  .r1-admin-documents .empty-state { box-sizing: border-box; width: calc(100vw - 40px); padding: 32px 12px; }
+  .r1-admin-documents .r1-document-metadata { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .r1-admin-documents .r1-document-review { padding: 16px; }
+  .r1-admin-documents .r1-document-reject-form textarea { font-size: 16px; line-height: 24px; }
+  .r1-admin-documents .r1-document-review button[type=submit] { min-height: 44px; }
+  .r1-admin-documents .document-preview-header { flex-wrap: wrap; gap: 12px; }
+  .r1-admin-documents .document-preview-header > div { flex: 1 1 180px; }
+}
+@media (max-width: 380px) {
+  .r1-admin-documents .document-directory-filter label { grid-column: 1 / -1; }
+}

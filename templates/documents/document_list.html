@@ -1,4 +1,4 @@
-{% extends "admin_base.html" %}
+{% extends "documents/r1_admin_base.html" %}
 
 {% block title %}Uploaded Files - Brisbane Star Care{% endblock %}
 
@@ -46,7 +46,7 @@
     </div>
   </div>
 
-  <form class="filter-bar document-directory-filter" method="get">
+  <form class="filter-bar document-directory-filter" method="get" data-document-filters>
     <input type="hidden" name="owner" value="{{ owner }}">
     <label>
       Search
@@ -81,7 +81,7 @@
     <a class="button secondary" href="{% if owner == 'workers' %}{% url 'document_list' %}?owner=workers{% else %}{% url 'document_list' %}{% endif %}">Reset</a>
   </form>
 
-  <div class="document-directory-table-wrap">
+  <div class="document-directory-table-wrap" role="region" aria-label="People file directory" tabindex="0">
     <table class="document-directory-table">
       <thead>
         <tr>

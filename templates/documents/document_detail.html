@@ -1,41 +1,29 @@
-{% extends "admin_base.html" %}
+{% extends "documents/r1_admin_base.html" %}
 
 {% block title %}Uploaded File - Brisbane Star Care{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-header r1-document-detail-header">
   <div>
     <h1>{{ document.title }}</h1>
-    <p>
-      {% if document.category == "general" %}
-        Others
-      {% elif document.category == "plan" %}
-        Agreement
-      {% elif document.category == "compliance" and document.participant_id %}
-        NDIS Forms
-      {% elif document.category == "compliance" %}
-        Compliance
-      {% else %}
-        {{ document.get_category_display }}
-      {% endif %}
-    </p>
+    <p>{{ document.filename }}</p>
   </div>
   <div class="button-row document-detail-actions">
     <a class="button secondary" href="{{ document_owner_url }}">Back to files</a>
     {% if document.is_previewable %}
       <a class="button secondary" href="{% url 'document_preview' document.id %}" data-document-preview-open data-preview-title="{{ document.title }}" data-preview-filename="{{ document.filename }}" data-preview-download-url="{% url 'document_download' document.id %}">Preview</a>
     {% endif %}
-    <a class="button" href="{% url 'document_download' document.id %}">Download</a>
+    <a class="button secondary" href="{% url 'document_download' document.id %}">Download</a>
     <a class="button secondary" href="{% url 'document_edit' document.id %}?next={{ document_owner_url|urlencode }}">Edit</a>
     <a class="button danger-outline" href="{% url 'document_delete' document.id %}?next={{ document_owner_url|urlencode }}">Delete</a>
   </div>
 </div>
 
-<section class="card">
-  <dl class="detail-list">
-    <dt>File</dt><dd>{{ document.filename }}</dd>
-    <dt>Status</dt><dd>{{ document.get_review_status_display }}</dd>
-    <dt>Folder</dt>
+<section class="r1-document-record" aria-label="File details">
+  <dl class="r1-document-metadata">
+    <div><dt>File</dt><dd>{{ document.filename }}</dd></div>
+    <div><dt>Status</dt><dd><span class="status-pill status-{{ document.review_status }}">{{ document.get_review_status_display }}</span></dd></div>
+    <div><dt>Folder</dt>
     <dd>
       {% if document.category == "general" %}
         Others
@@ -48,22 +36,20 @@
       {% else %}
         {{ document.get_category_display }}
       {% endif %}
-    </dd>
-    {% if document.required_document_type %}
-      <dt>Required type</dt><dd>{{ document.get_required_document_type_display }}</dd>
-    {% endif %}
-    <dt>Issue date</dt><dd>{% if document.issue_date %}{{ document.issue_date|date:"d/m/Y" }}{% else %}-{% endif %}</dd>
-    <dt>Expiry date</dt><dd>{% if document.expiry_date %}{{ document.expiry_date|date:"d/m/Y" }}{% else %}-{% endif %}</dd>
-    <dt>Participant</dt><dd>{{ document.participant|default:"-" }}</dd>
-    <dt>Worker</dt><dd>{{ document.worker|default:"-" }}</dd>
-    <dt>Notes</dt><dd>{{ document.notes|default:"-" }}</dd>
-    <dt>Uploaded by</dt><dd>{{ document.uploaded_by }}</dd>
+    </dd></div>
+    <div><dt>Required type</dt><dd>{% if document.required_document_type %}{{ document.get_required_document_type_display }}{% else %}Not provided{% endif %}</dd></div>
+    <div><dt>Issue date</dt><dd>{% if document.issue_date %}{{ document.issue_date|date:"d/m/Y" }}{% else %}-{% endif %}</dd></div>
+    <div><dt>Expiry date</dt><dd>{% if document.expiry_date %}{{ document.expiry_date|date:"d/m/Y" }}{% else %}-{% endif %}</dd></div>
+    <div><dt>Participant</dt><dd>{{ document.participant|default:"-" }}</dd></div>
+    <div><dt>Worker</dt><dd>{{ document.worker|default:"-" }}</dd></div>
+    <div><dt>Uploaded by</dt><dd>{{ document.uploaded_by }}</dd></div>
+    <div><dt>Notes</dt><dd class="r1-document-notes">{{ document.notes|default:"-" }}</dd></div>
   </dl>
 </section>
 
 {% if document.review_status == "pending_review" %}
-<section class="card">
-  <h2>Review</h2>
+<section class="r1-document-review" aria-labelledby="document-review-heading">
+  <h2 id="document-review-heading">Review document</h2>
   <div class="button-row">
     <form method="post" action="{% url 'document_review' document.id %}">
       {% csrf_token %}
@@ -71,10 +57,10 @@
       <button type="submit">Approve</button>
     </form>
   </div>
-  <form method="post" action="{% url 'document_review' document.id %}" class="filter-bar">
+  <form method="post" action="{% url 'document_review' document.id %}" class="r1-document-reject-form">
     {% csrf_token %}
     <input type="hidden" name="review_status" value="rejected">
-    <label>Reason <input type="text" name="review_note"></label>
+    <label>Rejection reason (optional)<textarea name="review_note" rows="3" placeholder="Optional reason submitted only with Reject"></textarea></label>
     <button class="danger" type="submit">Reject</button>
   </form>
 </section>
