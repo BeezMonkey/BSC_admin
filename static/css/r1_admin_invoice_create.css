@@ -65,6 +65,34 @@
 .app-shell.r1-admin-invoice-create .invoice-adjustment-drawer .support-item-picker-trigger-label[data-invoice-item-code]::after { font-size: 12px; line-height: 16px; }
 .app-shell.r1-admin-invoice-create .invoice-adjustment-drawer .support-item-picker-panel { border-radius: 6px; border-color: var(--r1-border); }
 .app-shell.r1-admin-invoice-create .invoice-adjustment-drawer .support-item-picker-option { font-size: 14px; line-height: 20px; }
+/* Approved drawer menu states; other support-item pickers retain their own theme. */
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .support-item-picker-search { font-size: 13px; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .support-item-picker-results { padding: 4px; overflow-x: hidden; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .support-item-picker-group { min-height: 36px; padding: 8px 10px; border-radius: 4px; color: var(--r1-text); background: var(--r1-subtle); font-size: 12px; line-height: 18px; font-weight: 500; white-space: normal; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .support-item-picker-group-count { color: var(--r1-muted); font-size: 12px; font-weight: 400; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .support-item-picker-option { min-height: 36px; padding: 8px 12px; border-radius: 4px; border-top: 0; color: var(--r1-text); background: var(--r1-surface); font-size: 13px; line-height: 18px; white-space: normal; overflow-wrap: anywhere; box-shadow: inset 3px 0 transparent; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer :is(.support-item-picker-group, .support-item-picker-option):focus { outline: none; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer :is(.support-item-picker-group, .support-item-picker-option):hover { color: var(--r1-text); background: #f0f4f8; outline: none; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .support-item-picker-option[aria-selected=true] { color: #2449a3; background: #eaf0ff; box-shadow: inset 3px 0 var(--r1-accent); }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .support-item-picker-option[aria-selected=true]:hover { background: #e1eaff; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer :is(.support-item-picker-group, .support-item-picker-option):focus-visible { outline: 2px solid var(--r1-accent); outline-offset: -2px; }
+
+.r1-admin-invoice-create .r1-invoice-time { position: relative; min-width: 0; }
+.r1-admin-invoice-create .r1-invoice-time.is-enhanced > input[type=time] { position: absolute; width: 1px; height: 1px; min-height: 0; padding: 0; border: 0; clip-path: inset(50%); opacity: 0; pointer-events: none; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .r1-invoice-time-trigger { display: block; width: 100%; min-width: 0; height: 40px; min-height: 40px; padding: 9px 36px 9px 12px; border: 1px solid var(--r1-strong-border); border-radius: 6px; color: var(--r1-text); background: var(--r1-surface) url('../img/r1/icons/clock.svg') right 12px center / 16px 16px no-repeat; text-align: left; font-size: 14px; line-height: 20px; font-weight: 400; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .r1-invoice-time-trigger[aria-expanded=true] { border-color: var(--r1-accent); }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .r1-invoice-time-trigger[aria-invalid=true] { border-color: var(--r1-danger); }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .r1-invoice-time-panel { position: fixed; z-index: 30; width: 272px; max-width: calc(100vw - 32px); padding: 12px; overflow-y: auto; border: 1px solid var(--r1-border); border-radius: 8px; background: var(--r1-surface); box-shadow: 0 6px 16px rgb(23 33 43 / 12%); }
+.r1-admin-invoice-create .r1-invoice-time-parts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .r1-invoice-time-parts label { display: grid; gap: 4px; margin: 0; color: var(--r1-muted); font-size: 12px; line-height: 16px; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .r1-invoice-time-parts select { width: 100%; min-width: 0; min-height: 36px; height: 36px; margin: 0; padding: 6px; font-size: 13px; line-height: 20px; }
+.r1-admin-invoice-create .r1-invoice-time-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--r1-border); }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .r1-invoice-time-actions button { min-height: 32px; padding: 5px 10px; border: 1px solid var(--r1-border); border-radius: 4px; color: var(--r1-text); background: var(--r1-surface); font-size: 13px; line-height: 20px; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .r1-invoice-time-actions button:hover { background: #f0f4f8; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .r1-invoice-time-actions .r1-invoice-time-apply { color: var(--r1-surface); background: var(--r1-accent); border-color: var(--r1-accent); }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .r1-invoice-time-actions .r1-invoice-time-apply:hover { color: var(--r1-surface); background: #2449a3; border-color: #2449a3; }
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .r1-invoice-time-trigger[hidden],
+.app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .r1-invoice-time-panel[hidden] { display: none; }
 .app-shell.r1-admin-invoice-create .invoice-billing-reset-item { min-height: 32px; padding: 6px 0; font-size: 12px; line-height: 20px; }
 .app-shell.r1-admin-invoice-create .invoice-travel-fields { gap: 16px; }
 .app-shell.r1-admin-invoice-create .invoice-billing-fields .invoice-travel-fields input { height: 40px; }
@@ -91,13 +119,13 @@
 /* Progressive desktop controls retain native selection on mobile and touch. */
 @supports (appearance: base-select) and selector(select::picker(select)) {
   @media (min-width: 761px) and (hover: hover) and (pointer: fine) {
-    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason]) select,
-    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason]) select::picker(select) { appearance: base-select; }
+    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason], .r1-invoice-time-parts) select,
+    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason], .r1-invoice-time-parts) select::picker(select) { appearance: base-select; }
     .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason]) select { align-items: center; line-height: normal; }
-    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason]) select::picker(select) { box-sizing: border-box; max-height: 280px; overflow-y: auto; margin: 4px 0; border: 1px solid var(--r1-border); border-radius: 8px; padding: 4px; color: var(--r1-text); background: var(--r1-surface); box-shadow: 0 6px 16px rgb(23 33 43 / 12%); }
-    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason]) select option { min-height: 32px; padding: 6px 8px; border-radius: 4px; font-size: 13px; line-height: 18px; white-space: normal; overflow-wrap: anywhere; }
-    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason]) select option:is(:checked, :hover, :focus) { color: var(--r1-accent); background: var(--r1-blue-soft); }
-    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason]) select option::checkmark { color: var(--r1-accent); }
+    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason], .r1-invoice-time-parts) select::picker(select) { box-sizing: border-box; max-height: 280px; overflow-y: auto; margin: 4px 0; border: 1px solid var(--r1-border); border-radius: 8px; padding: 4px; color: var(--r1-text); background: var(--r1-surface); box-shadow: 0 6px 16px rgb(23 33 43 / 12%); }
+    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason], .r1-invoice-time-parts) select option { min-height: 32px; padding: 6px 8px; border-radius: 4px; font-size: 13px; line-height: 18px; white-space: normal; overflow-wrap: anywhere; }
+    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason], .r1-invoice-time-parts) select option:is(:checked, :hover, :focus) { color: var(--r1-accent); background: var(--r1-blue-soft); }
+    .r1-admin-invoice-create :is(.invoice-preview-filter, [data-billing-reason], .r1-invoice-time-parts) select option::checkmark { color: var(--r1-accent); }
   }
 }
 .app-shell.r1-admin-invoice-create .invoice-filter-date { display: grid; gap: 6px; min-width: 0; position: relative; }
@@ -133,6 +161,9 @@
   .app-shell.r1-admin-invoice-create .invoice-preview-filter > button { justify-self: start; grid-column: 1 / -1; }
 }
 @media (max-width: 760px) {
+  .app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .support-item-picker-search { font-size: 16px; }
+  .app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .support-item-picker-group { min-height: 44px; font-size: 13px; line-height: 20px; }
+  .app-shell.r1-admin-invoice-create #invoice-adjustment-drawer .support-item-picker-option { min-height: 44px; padding: 10px 12px; font-size: 14px; line-height: 20px; }
   .app-shell.r1-admin-invoice-create { --r1-control-height: 44px; }
   .app-shell.r1-admin-invoice-create .invoice-preview-filter { padding: 12px; }
   .app-shell.r1-admin-invoice-create .invoice-preview-filter :is(input, select),

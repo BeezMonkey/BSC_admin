@@ -179,6 +179,20 @@ class R1AdminInvoiceCreateTests(TestCase):
             self.client.force_login(user)
             self.assertEqual(self.client.get(reverse("invoice_create")).status_code, 403)
 
+    def test_drawer_time_enhancement_is_scoped_and_keeps_native_post_controls(self):
+        asset = static("js/r1_invoice_adjustment_time.js")
+        for user in (self.admin_user, self.super_admin):
+            response = self.preview({"service_log_ids": [self.km_log.pk]}, user)
+            markup = self.markup(response)
+            self.assertContains(response, asset, count=1)
+            for part in ("actual_start_time", "actual_end_time"):
+                name = f"adjustment-{self.km_log.pk}-{part}"
+                self.assertEqual(len(markup.find("input", type="time", name=name)), 1)
+                self.assertEqual(sum(attrs.get("name") == name for _, attrs in markup.elements), 1)
+            self.assertNotContains(response, "data-r1-time-panel")
+        response = self.preview({"service_log_ids": [self.km_log.pk]}, self.accountant_user)
+        self.assertNotContains(response, asset)
+
     def test_scoped_assets_load_once_after_existing_billing_assets(self):
         for user in (self.admin_user, self.super_admin):
             with self.subTest(role=user.userprofile.role):
