@@ -1,0 +1,9 @@
+<label class="field{% if field_class %} {{ field_class }}{% endif %}">
+  <span>{{ field.label }}</span>
+  {{ field }}
+  {% if field.errors %}
+    <span class="field-error" id="{{ field.auto_id }}_error">{{ field.errors|striptags }}</span>
+  {% endif %}
+  {% if field_help %}<small class="r1-upload-help">{{ field_help }}</small>{% endif %}
+  {% if file_reselect and field.name == "file" %}<small class="r1-upload-help">Choose the file again before uploading.</small>{% endif %}
+</label>

@@ -767,8 +767,8 @@ class DocumentManagementTests(TestCase):
 
         response = self.client.get(reverse("document_create"))
 
-        self.assertContains(response, 'class="record-form"')
-        self.assertContains(response, 'class="card form-section"')
+        self.assertContains(response, 'class="record-form r1-upload-form"')
+        self.assertContains(response, 'class="r1-upload-section"')
         self.assertNotContains(response, "<p>\n    <label")
 
     def test_admin_can_view_and_download_document(self):
