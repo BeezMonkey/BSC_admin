@@ -32,16 +32,16 @@
   }
   function position() {
     if (!active) return;
-    const { trigger, panel } = active;
+    const { input, trigger, panel } = active;
     if (!drawer.open || trigger.disabled || !trigger.getClientRects().length) { close(false); return; }
-    const rect = trigger.getBoundingClientRect();
+    const rect = input.getBoundingClientRect();
     const bounds = drawer.getBoundingClientRect();
     const top = Math.max(8, drawer.querySelector("header").getBoundingClientRect().bottom + 6);
     const bottom = Math.min(window.innerHeight - 8, drawer.querySelector("footer").getBoundingClientRect().top - 6);
     if (rect.bottom <= top || rect.top >= bottom || bottom - top < 80) { close(false); return; }
     const left = Math.max(8, bounds.left + 12);
     const right = Math.min(document.documentElement.clientWidth - 8, bounds.right - 12);
-    panel.style.width = Math.min(272, right - left) + "px";
+    panel.style.width = Math.min(248, right - left) + "px";
     panel.style.maxHeight = (bottom - top) + "px";
     const height = panel.getBoundingClientRect().height;
     const below = bottom - rect.bottom - 6;
@@ -61,6 +61,7 @@
     trigger.hidden = true;
     trigger.setAttribute("aria-haspopup", "dialog");
     trigger.setAttribute("aria-expanded", "false");
+    trigger.setAttribute("title", `Choose ${caption.toLowerCase()}`);
     const panel = element("div", "r1-invoice-time-panel");
     panel.dataset.r1TimePanel = "";
     panel.id = `r1-invoice-time-${index}`;
@@ -93,21 +94,13 @@
     actions.append(cancel, apply);
     panel.append(fields, actions);
     root.append(trigger, panel);
-    const oldTabIndex = input.getAttribute("tabindex");
-    const oldAriaHidden = input.getAttribute("aria-hidden");
     const control = { input, trigger, panel, sync() {
       const enhanced = desktop.matches;
       root.classList.toggle("is-enhanced", enhanced);
       trigger.hidden = !enhanced;
       trigger.disabled = input.disabled;
-      trigger.textContent = format(input.value);
-      trigger.setAttribute("aria-label", `${caption} ${format(input.value)}`);
+      trigger.setAttribute("aria-label", `Choose ${caption.toLowerCase()}, ${format(input.value)}`);
       trigger.setAttribute("aria-invalid", String(serverInvalid || (!input.disabled && !input.validity.valid)));
-      if (enhanced) { input.tabIndex = -1; input.setAttribute("aria-hidden", "true"); }
-      else {
-        if (oldTabIndex === null) input.removeAttribute("tabindex"); else input.setAttribute("tabindex", oldTabIndex);
-        if (oldAriaHidden === null) input.removeAttribute("aria-hidden"); else input.setAttribute("aria-hidden", oldAriaHidden);
-      }
       if (active === control && (!enhanced || input.disabled || !drawer.open || !trigger.getClientRects().length)) close(false);
     } };
     controls.push(control);
@@ -137,19 +130,6 @@
       input.dispatchEvent(new Event("change", { bubbles: true }));
       control.sync();
       close();
-    });
-    root.querySelector("label").addEventListener("click", event => {
-      if (desktop.matches) { event.preventDefault(); control.sync(); trigger.focus(); }
-    });
-    input.addEventListener("focus", () => {
-      if (desktop.matches) { control.sync(); if (!trigger.disabled) trigger.focus(); }
-    });
-    input.addEventListener("invalid", event => {
-      if (!desktop.matches) return;
-      event.preventDefault();
-      control.sync();
-      close(false);
-      if (input.form.querySelector(":invalid") === input) trigger.focus();
     });
     new MutationObserver(control.sync).observe(input, { attributes: true, attributeFilter: ["disabled", "required"] });
     control.sync();
