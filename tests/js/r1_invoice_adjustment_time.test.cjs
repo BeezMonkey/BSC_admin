@@ -171,7 +171,7 @@ test("the visible trigger preserves all bound error descriptions and server inva
   const describedBy = "id_log-7-actual_start_time_error id_log-7-actual_start_time_helptext";
   const h = setup({ boundInvalid: true, describedBy });
   assert.equal(h.native.validity.valid, true);
-  assert.equal(h.native.getAttribute("aria-hidden"), "true");
+  assert.equal(h.native.getAttribute("aria-hidden"), null);
   assert.equal(h.native.getAttribute("aria-describedby"), describedBy);
   assert.equal(h.trigger.getAttribute("aria-describedby"), describedBy);
   assert.equal(h.trigger.getAttribute("aria-invalid"), "true");
@@ -190,7 +190,7 @@ test("the desktop minute picker offers and preserves every minute from 00 throug
     h.parts.minute.value = minute;
     h.apply.click();
     assert.equal(h.native.value, `09:${minute}`);
-    assert.equal(h.trigger.textContent, `09:${minute} AM`);
+    assert.ok(h.trigger.getAttribute("aria-label").endsWith(`09:${minute} AM`));
   }
 });
 
@@ -203,7 +203,7 @@ test("opening and applying preserves an existing non-five-minute time exactly", 
   assert.equal(h.parts.period.value, "AM");
   h.apply.click();
   assert.equal(h.native.value, "09:17");
-  assert.equal(h.trigger.textContent, "09:17 AM");
+  assert.ok(h.trigger.getAttribute("aria-label").endsWith("09:17 AM"));
   assert.equal(h.panel.hidden, true);
 });
 
@@ -215,7 +215,7 @@ test("applying an arbitrary minute updates only the named native value with inpu
   h.parts.period.value = "PM";
   h.apply.click();
   assert.equal(h.native.value, "23:43");
-  assert.equal(h.trigger.textContent, "11:43 PM");
+  assert.ok(h.trigger.getAttribute("aria-label").endsWith("11:43 PM"));
   assert.deepEqual(h.native.events.map(event => [event.type, event.bubbles]), [["input", true], ["change", true]]);
   assert.equal(h.trigger.getAttribute("aria-expanded"), "false");
   assert.equal(h.document.activeElement, h.trigger);
@@ -227,14 +227,14 @@ for (const [value, hour, period, display] of [
 ]) {
   test(`${value} roundtrips correctly as ${display}`, () => {
     const h = setup({ value });
-    assert.equal(h.trigger.textContent, display);
+    assert.ok(h.trigger.getAttribute("aria-label").endsWith(display));
     h.trigger.click();
     assert.equal(h.parts.hour.value, hour);
     assert.equal(h.parts.minute.value, value.slice(3));
     assert.equal(h.parts.period.value, period);
     h.apply.click();
     assert.equal(h.native.value, value);
-    assert.equal(h.trigger.textContent, display);
+    assert.ok(h.trigger.getAttribute("aria-label").endsWith(display));
   });
 }
 
@@ -269,7 +269,7 @@ test("switching to touch closes the picker and restores original native attribut
   const h = setup({ tabIndex: "2", ariaHidden: "false" });
   h.trigger.click();
   assert.equal(h.panel.hidden, false);
-  assert.equal(h.native.tabIndex, -1);
+  assert.equal(h.native.tabIndex, 2);
   h.setDesktop(false);
   assert.equal(h.panel.hidden, true);
   assert.equal(h.trigger.hidden, true);
@@ -278,7 +278,7 @@ test("switching to touch closes the picker and restores original native attribut
   assert.equal(h.native.getAttribute("aria-hidden"), "false");
   assert.equal(h.native.value, "09:17");
   h.setDesktop(true);
-  assert.equal(h.native.tabIndex, -1);
+  assert.equal(h.native.tabIndex, 2);
   assert.equal(h.trigger.hidden, false);
   assert.equal(h.panel.hidden, true);
 });
@@ -305,4 +305,47 @@ test("picker controls add no named fields and retain original native form owners
     assert.equal(node.form, h.form);
     if (node.tagName === "button") assert.equal(node.type, "button");
   }
+});
+
+test("desktop native time remains directly editable and receives focus and validation", () => {
+  const h = setup();
+  assert.equal(h.native.getAttribute("tabindex"), null);
+  assert.equal(h.native.getAttribute("aria-hidden"), null);
+  h.native.focus();
+  assert.equal(h.document.activeElement, h.native);
+  assert.equal(h.label.fire("click").defaultPrevented, false);
+  h.native.value = "10:23";
+  h.native.fire("input", { bubbles: true });
+  h.native.fire("change", { bubbles: true });
+  h.trigger.click();
+  assert.equal(h.parts.hour.value, "10");
+  assert.equal(h.parts.minute.value, "23");
+  h.cancel.click();
+  assert.equal(h.native.value, "10:23");
+  h.native.value = "";
+  assert.equal(h.native.fire("invalid").defaultPrevented, false);
+  assert.equal(h.native.validity.valid, false);
+});
+
+test("clock entry is an icon-only named button, not a replacement for typing", () => {
+  const h = setup();
+  assert.equal(h.trigger.textContent, "");
+  assert.equal(h.trigger.getAttribute("title"), "Choose actual start");
+  assert.equal(h.trigger.getAttribute("aria-label"), "Choose actual start, 09:17 AM");
+});
+
+test("local styles keep the time input visible, compact the panel, and use regular item text", () => {
+  const css = readFileSync(path.resolve(__dirname, "../../static/css/r1_admin_invoice_create.css"), "utf8");
+  const rule = selector => {
+    const blocks = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)];
+    return blocks.find(match => match[1].trim() === selector)?.[2] || "";
+  };
+  const prefix = ".app-shell.r1-admin-invoice-create #invoice-adjustment-drawer ";
+  assert.match(rule(prefix + ".support-item-picker-option"), /font-weight:\s*400/);
+  assert.match(rule(prefix + ".r1-invoice-time-parts select"), /height:\s*30px/);
+  assert.match(rule(prefix + ".r1-invoice-time-parts select"), /font-size:\s*12px/);
+  assert.match(rule(prefix + ".r1-invoice-time-actions button"), /height:\s*28px/);
+  assert.match(rule(prefix + ".r1-invoice-time-actions button"), /font-size:\s*12px/);
+  assert.match(rule(prefix + ".r1-invoice-time.is-enhanced > input[type=time]"), /padding-right:\s*40px/);
+  assert.doesNotMatch(rule(".r1-admin-invoice-create .r1-invoice-time.is-enhanced > input[type=time]"), /clip-path|opacity:\s*0|width:\s*1px/);
 });
