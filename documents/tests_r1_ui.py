@@ -645,7 +645,7 @@ class AdminDocumentsR1Tests(TestCase):
                 self.assertIn('required', fields[field].attrs)
             close_buttons = dialog.find('button', **{'data-document-upload-close': None})
             open_links = page.find('a', **{'data-document-upload-open': None})
-            self.assertEqual(len(close_buttons), 1)
+            self.assertEqual(len(close_buttons), 2)
             self.assertEqual(len(open_links), 1)
             self.assertIn('data-document-upload-close', close_buttons[0].attrs)
             self.assertEqual(close_buttons[0].attrs['type'], 'button')

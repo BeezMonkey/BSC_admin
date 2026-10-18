@@ -1,4 +1,7 @@
-<dialog class="document-upload-dialog" id="document-upload-dialog" aria-labelledby="document-upload-dialog-title" data-upload-default-category="{{ upload_dialog_category_value }}">
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
+<link rel="stylesheet" href="{% static 'css/r1_admin_upload.css' %}">
+<dialog class="document-upload-dialog r1-ui r1-upload-dialog" id="document-upload-dialog" aria-labelledby="document-upload-dialog-title" data-upload-default-category="{{ upload_dialog_category_value }}">
   <form class="document-upload-dialog-form" method="post" action="{% url 'document_create' %}" enctype="multipart/form-data">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ upload_dialog_next_url }}" data-document-upload-next>
@@ -28,9 +31,10 @@
           {% endfor %}
         </select>
       </label>
-      <label>
+      <label class="r1-upload-file">
         File
-        <input type="file" name="file" required>
+        <input type="file" name="file" required aria-describedby="document-upload-file-help">
+        <small class="r1-upload-help" id="document-upload-file-help">PDF, JPG, JPEG, PNG, DOC or DOCX &middot; Maximum 10 MB</small>
       </label>
       <label class="document-dialog-notes">
         Notes
@@ -38,6 +42,7 @@
       </label>
     </div>
     <div class="document-upload-dialog-footer">
+      <button class="button secondary" type="button" data-document-upload-close aria-label="Cancel upload">Cancel</button>
       <button type="submit">Upload File</button>
     </div>
   </form>
