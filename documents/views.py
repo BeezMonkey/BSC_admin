@@ -729,7 +729,11 @@ def document_review(request, document_id):
         document,
         f"{document.get_review_status_display()} document {document.id}: {document.title}.",
     )
-    messages.success(request, f"Document marked {document.get_review_status_display().lower()}.")
+    messages.success(
+        request,
+        f"Document marked {document.get_review_status_display().lower()}.",
+        extra_tags=f"document-review-{review_status}",
+    )
     return redirect("document_detail", document_id=document.id)
 
 

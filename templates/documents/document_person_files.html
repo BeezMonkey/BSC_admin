@@ -115,8 +115,7 @@
         {% for document in documents %}
           <tr>
             <td class="document-file-cell">
-              <a href="{% url 'document_detail' document.id %}">{{ document.title }}</a>
-              <small>{{ document.filename }}</small>
+              <a href="{% url 'document_detail' document.id %}" title="{{ document.title }}">{{ document.filename }}</a>
             </td>
             <td>
               {% if document.category == "general" %}

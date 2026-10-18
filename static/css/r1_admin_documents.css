@@ -71,7 +71,8 @@
 .r1-admin-documents .document-manager-table td { vertical-align: middle; padding-block: 12px; }
 .r1-admin-documents .document-manager-table .r1-document-uploaded-by { word-break: normal; }
 .r1-admin-documents .document-file-cell { min-width: 0; }
-.r1-admin-documents .document-file-cell a { color: var(--r1-accent); font-size: 14px; line-height: 20px; font-weight: 500; text-decoration: underline; }
+.r1-admin-documents .document-file-cell a { color: var(--r1-text); font-size: 14px; line-height: 20px; font-weight: 600; text-decoration: none; }
+.r1-admin-documents .document-manager-table tbody tr:hover { background: #fbfcfd; }
 .r1-admin-documents :is(.document-file-cell small, .document-table-subline) { margin-top: 6px; color: var(--r1-muted); font-size: 12px; line-height: 16px; overflow-wrap: anywhere; }
 .r1-admin-documents .document-file-cell small { white-space: normal; }
 .r1-admin-documents .document-count-pill { background: var(--r1-subtle); color: var(--r1-text); font-size: 12px; line-height: 16px; font-weight: 500; }
@@ -92,6 +93,12 @@
 .r1-admin-documents :is(.document-manager-table, .r1-document-detail-header, .r1-document-record) .status-pill.status-pending_review { background: #fff7e7; }
 .r1-admin-documents :is(.document-manager-table, .r1-document-detail-header, .r1-document-record) .status-pill.status-approved { background: #edf5f0; }
 .r1-admin-documents :is(.document-manager-table, .r1-document-detail-header, .r1-document-record) .status-pill.status-rejected { background: #faeef0; }
+.r1-admin-documents .message { border-color: var(--r1-border); box-shadow: none; font-size: 14px; line-height: 20px; }
+.r1-admin-documents .message.success { border-left-color: var(--r1-success); color: var(--r1-success); background: #edf5f0; }
+.r1-admin-documents .message.error,
+.r1-admin-documents .message.document-review-rejected { border-left-color: var(--r1-danger); color: var(--r1-danger); background: #faeef0; }
+.r1-admin-documents .message.warning { border-left-color: var(--r1-warning); color: var(--r1-warning); background: var(--r1-warning-soft); }
+.r1-admin-documents .message.info { border-left-color: var(--r1-accent); color: var(--r1-accent); background: var(--r1-blue-soft); }
 .app-shell.r1-admin-documents .r1-document-review button.danger { border: 1px solid var(--r1-strong-border); color: var(--r1-text); background: var(--r1-surface); }
 .r1-admin-documents .empty-state { padding: 48px 16px; text-align: center; }
 .r1-admin-documents .empty-state strong { font-size: 14px; line-height: 20px; font-weight: 500; }
