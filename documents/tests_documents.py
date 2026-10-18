@@ -585,8 +585,8 @@ class DocumentManagementTests(TestCase):
         actions_end = content.index("</div>", actions_index)
         action_content = content[actions_index:actions_end]
         preview_index = content.index(">Preview<", actions_index)
-        download_index = content.index(">Download<", actions_index)
-        delete_index = content.index(">Delete<", actions_index)
+        download_index = content.index('aria-label="Download file"', actions_index)
+        delete_index = content.index('aria-label="Delete file"', actions_index)
 
         self.assertLess(preview_index, download_index)
         self.assertLess(download_index, delete_index)
@@ -614,8 +614,8 @@ class DocumentManagementTests(TestCase):
         actions_end = content.index("</div>", actions_index)
         action_content = content[actions_index:actions_end]
         view_index = content.index(">View<", actions_index)
-        download_index = content.index(">Download<", actions_index)
-        delete_index = content.index(">Delete<", actions_index)
+        download_index = content.index('aria-label="Download file"', actions_index)
+        delete_index = content.index('aria-label="Delete file"', actions_index)
 
         self.assertLess(view_index, download_index)
         self.assertLess(download_index, delete_index)

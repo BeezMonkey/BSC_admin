@@ -6,21 +6,26 @@
 <div class="page-header r1-document-detail-header">
   <div>
     <h1>{{ document.title }}</h1>
-    <p>{{ document.filename }}</p>
+    <div class="r1-document-header-meta">
+      <p>{{ document.filename }}</p>
+      <span class="status-pill status-{{ document.review_status }} r1-document-header-status">{{ document.get_review_status_display }}</span>
+    </div>
   </div>
   <div class="button-row document-detail-actions">
-    <a class="button secondary" href="{{ document_owner_url }}">Back to files</a>
+    <a class="button secondary" href="{{ document_owner_url }}">{% include "r1/partials/icon.html" with name="back" %}Back to files</a>
     {% if document.is_previewable %}
       <a class="button secondary" href="{% url 'document_preview' document.id %}" data-document-preview-open data-preview-title="{{ document.title }}" data-preview-filename="{{ document.filename }}" data-preview-download-url="{% url 'document_download' document.id %}">Preview</a>
     {% endif %}
-    <a class="button secondary" href="{% url 'document_download' document.id %}">Download</a>
-    <a class="button secondary" href="{% url 'document_edit' document.id %}?next={{ document_owner_url|urlencode }}">Edit</a>
-    <a class="button danger-outline" href="{% url 'document_delete' document.id %}?next={{ document_owner_url|urlencode }}">Delete</a>
+    <a class="button secondary" href="{% url 'document_download' document.id %}"><span class="r1-document-action-icon r1-document-icon-download" aria-hidden="true"></span>Download</a>
+    <a class="button secondary" href="{% url 'document_edit' document.id %}?next={{ document_owner_url|urlencode }}"><span class="r1-document-action-icon r1-document-icon-edit" aria-hidden="true"></span>Edit</a>
+    <a class="button danger-outline" href="{% url 'document_delete' document.id %}?next={{ document_owner_url|urlencode }}"><span class="r1-document-action-icon r1-document-icon-delete" aria-hidden="true"></span>Delete</a>
   </div>
 </div>
 
 <section class="r1-document-record" aria-label="File details">
-  <dl class="r1-document-metadata">
+  <section class="r1-document-section" aria-labelledby="r1-file-information">
+    <h2 id="r1-file-information">File information</h2>
+    <dl class="r1-document-metadata">
     <div><dt>File</dt><dd>{{ document.filename }}</dd></div>
     <div><dt>Status</dt><dd><span class="status-pill status-{{ document.review_status }}">{{ document.get_review_status_display }}</span></dd></div>
     <div><dt>Folder</dt>
@@ -40,11 +45,20 @@
     <div><dt>Required type</dt><dd>{% if document.required_document_type %}{{ document.get_required_document_type_display }}{% else %}Not provided{% endif %}</dd></div>
     <div><dt>Issue date</dt><dd>{% if document.issue_date %}{{ document.issue_date|date:"d/m/Y" }}{% else %}-{% endif %}</dd></div>
     <div><dt>Expiry date</dt><dd>{% if document.expiry_date %}{{ document.expiry_date|date:"d/m/Y" }}{% else %}-{% endif %}</dd></div>
+    </dl>
+  </section>
+  <section class="r1-document-section" aria-labelledby="r1-linked-records">
+    <h2 id="r1-linked-records">Linked records</h2>
+    <dl class="r1-document-metadata">
     <div><dt>Participant</dt><dd>{{ document.participant|default:"-" }}</dd></div>
     <div><dt>Worker</dt><dd>{{ document.worker|default:"-" }}</dd></div>
     <div><dt>Uploaded by</dt><dd>{{ document.uploaded_by }}</dd></div>
-    <div><dt>Notes</dt><dd class="r1-document-notes">{{ document.notes|default:"-" }}</dd></div>
-  </dl>
+    </dl>
+  </section>
+  <section class="r1-document-section" aria-labelledby="r1-file-notes">
+    <h2 id="r1-file-notes">Notes</h2>
+    <p class="r1-document-notes">{{ document.notes|default:"-" }}</p>
+  </section>
 </section>
 
 {% if document.review_status == "pending_review" %}
