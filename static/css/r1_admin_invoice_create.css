@@ -27,7 +27,7 @@
 .app-shell.r1-admin-invoice-create .invoice-preview-table .invoice-preview-worker-cell { white-space: normal; font-weight: 400; }
 .app-shell.r1-admin-invoice-create .invoice-billing-row :is(small, .invoice-billing-original) { font-size: 12px; line-height: 16px; }
 .app-shell.r1-admin-invoice-create .invoice-billing-row .invoice-travel-claim { padding-left: 10px; }
-.app-shell.r1-admin-invoice-create .invoice-billing-row .invoice-travel-claim input { width: 88px; height: 36px; min-height: 36px; padding: 7px 8px; font-size: 14px; line-height: 20px; }
+.app-shell.r1-admin-invoice-create .invoice-billing-row .invoice-travel-claim input { width: 80px; height: 30px; min-height: 30px; padding: 4px 6px; font-size: 14px; line-height: 20px; }
 .app-shell.r1-admin-invoice-create .invoice-billing-row .invoice-travel-claim [data-billing-claim-field] > small { font-size: 12px; line-height: 16px; }
 .app-shell.r1-admin-invoice-create .invoice-travel-empty { color: var(--r1-muted); font-size: 12px; line-height: 16px; }
 .app-shell.r1-admin-invoice-create .invoice-billing-row .invoice-adjust-button { box-sizing: border-box; width: 36px; height: 36px; min-height: 36px; padding: 0; border: 1px solid var(--r1-border); border-radius: 6px; background: var(--r1-surface) url('../img/r1/icons/invoice-adjust.svg') center / 18px 18px no-repeat; }
