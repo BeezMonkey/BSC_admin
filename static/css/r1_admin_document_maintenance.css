@@ -1,0 +1,85 @@
+/* B06.3 opt-in metadata/deletion layout; shared UI and business rules are unchanged. */
+.r1-admin-document-maintenance .document-maintenance-header { align-items: flex-start; gap: 20px; margin-bottom: 24px; }
+.r1-admin-document-maintenance .document-maintenance-header > div { min-width: 0; }
+.r1-admin-document-maintenance .document-maintenance-header h1 { margin: 0; }
+.r1-admin-document-maintenance .document-maintenance-header p { max-width: 680px; margin: 6px 0 0; color: var(--r1-muted); font-size: 14px; line-height: 20px; }
+.r1-admin-document-maintenance .button-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.r1-admin-document-maintenance :is(.document-file-reference, .document-metadata-form, .document-delete-confirm) { width: 100%; max-width: 872px; min-width: 0; }
+.r1-admin-document-maintenance .document-file-reference { margin-bottom: 24px; border-bottom: 1px solid var(--r1-border); padding-bottom: 24px; }
+.r1-admin-document-maintenance h2 { margin: 0; }
+.r1-admin-document-maintenance .document-maintenance-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 24px; margin: 16px 0 0; }
+.r1-admin-document-maintenance .document-maintenance-meta > div { min-width: 0; }
+.r1-admin-document-maintenance .document-maintenance-meta dt { color: var(--r1-muted); font-size: 12px; font-weight: 400; line-height: 16px; }
+.r1-admin-document-maintenance .document-maintenance-meta dd { margin: 6px 0 0; color: var(--r1-text); font-size: 14px; font-weight: 400; line-height: 20px; overflow-wrap: anywhere; }
+.r1-admin-document-maintenance .document-maintenance-wide { grid-column: 1 / -1; }
+.r1-admin-document-maintenance .document-metadata-form { display: grid; gap: 24px; margin: 0; }
+.r1-admin-document-maintenance .document-maintenance-section { display: grid; gap: 16px; min-width: 0; }
+.r1-admin-document-maintenance .document-metadata-form .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px; min-width: 0; }
+.r1-admin-document-maintenance .document-metadata-form .form-grid.single { grid-template-columns: minmax(0, 1fr); }
+.r1-admin-document-maintenance .document-metadata-form .field,
+.r1-admin-document-maintenance .document-maintenance-date > label { display: grid; gap: 8px; min-width: 0; margin: 0; color: var(--r1-text); font-size: 14px; font-weight: 500; line-height: 20px; }
+.app-shell.r1-admin-document-maintenance .document-metadata-form .field :is(input:not([type=hidden]), select, textarea) { width: 100%; min-width: 0; height: auto; min-height: 36px; margin: 0; border: 1px solid var(--r1-strong-border); border-radius: 6px; padding: 7px 12px; color: var(--r1-text); background: var(--r1-surface); font: 400 14px/20px "BSC Inter", Inter, Arial, sans-serif; letter-spacing: 0; box-shadow: none; }
+.app-shell.r1-admin-document-maintenance .document-metadata-form .field textarea { min-height: 88px; padding: 12px; resize: vertical; }
+.r1-admin-document-maintenance .document-maintenance-notes > span:first-child,
+.r1-admin-document-maintenance .document-maintenance-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.r1-admin-document-maintenance .document-metadata-form .field-error { color: var(--r1-danger); font-size: 12px; font-weight: 400; line-height: 16px; }
+.app-shell.r1-admin-document-maintenance .document-metadata-form .field:has(.field-error) :is(input:not([type=hidden]), select, textarea) { border-color: var(--r1-danger); }
+.r1-admin-document-maintenance :is(.document-metadata-form .form-actions, .document-delete-actions) { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 12px; margin: 0; border-top: 1px solid var(--r1-border); padding-top: 20px; }
+.app-shell.r1-admin-document-maintenance .document-metadata-form button[type=submit] { border-color: var(--r1-accent); background: var(--r1-accent); color: var(--r1-surface); }
+.r1-admin-document-maintenance .document-delete-warning { border: 1px solid var(--r1-border); border-left: 3px solid var(--r1-warning); border-radius: 6px; padding: 16px; background: var(--r1-warning-soft); }
+.r1-admin-document-maintenance .document-delete-warning h2 { color: var(--r1-warning); font-size: 16px; font-weight: 600; line-height: 24px; }
+.r1-admin-document-maintenance .document-delete-warning p { margin: 8px 0 0; color: var(--r1-text); font-size: 14px; line-height: 20px; }
+.r1-admin-document-maintenance :is(.document-maintenance-error, .message.error) { max-width: 872px; border: 1px solid var(--r1-border); border-left: 3px solid var(--r1-danger); border-radius: 6px; padding: 12px 16px; color: var(--r1-danger); background: #faeef0; font-size: 14px; line-height: 20px; overflow-wrap: anywhere; }
+.r1-admin-document-maintenance .document-maintenance-error .errorlist { margin: 0; padding: 0; list-style: none; }
+.r1-admin-document-maintenance .document-delete-meta { margin-top: 24px; gap: 24px; }
+.r1-admin-document-maintenance .document-delete-actions { margin-top: 24px; }
+.r1-admin-document-maintenance .document-maintenance-status { display: inline-block; border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 500; line-height: 16px; }
+.r1-admin-document-maintenance .document-status-approved { color: var(--r1-success); background: #edf5f0; }
+.r1-admin-document-maintenance .document-status-rejected { color: var(--r1-danger); background: #faeef0; }
+.r1-admin-document-maintenance .document-status-pending_review { color: var(--r1-warning); background: var(--r1-warning-soft); }
+.app-shell.r1-admin-document-maintenance :is(.document-maintenance-header, .document-metadata-form, .document-delete-confirm) :is(.button, button) { white-space: normal; min-height: 36px; }
+.app-shell.r1-admin-document-maintenance .button.danger-outline:hover { color: var(--r1-danger); background: var(--r1-subtle); }
+.r1-admin-document-maintenance .document-maintenance-date-control { position: relative; min-width: 0; }
+.r1-admin-document-maintenance .document-maintenance-date.is-enhanced input[type=date]::-webkit-calendar-picker-indicator { display: none; }
+.app-shell.r1-admin-document-maintenance .document-maintenance-date.is-enhanced input[type=date] { padding-right: 44px; }
+.app-shell.r1-admin-document-maintenance .document-maintenance-calendar-trigger { position: absolute; top: 1px; right: 1px; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: calc(100% - 2px); min-height: 0; margin: 0; border: 0; border-radius: 5px; padding: 0; color: var(--r1-muted); background: transparent; }
+.r1-admin-document-maintenance .document-maintenance-calendar { position: fixed; z-index: 20; box-sizing: border-box; width: 292px; overflow-y: auto; border: 1px solid var(--r1-border); border-radius: 8px; padding: 10px; color: var(--r1-text); background: var(--r1-surface); box-shadow: 0 8px 18px rgb(23 33 43 / 14%); }
+.r1-admin-document-maintenance .document-maintenance-calendar .calendar-picker-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 4px; }
+.r1-admin-document-maintenance .document-maintenance-calendar .calendar-picker-header strong { font-size: 13px; font-weight: 600; line-height: 20px; }
+.r1-admin-document-maintenance .calendar-picker-navigation { display: flex; gap: 4px; }
+.r1-admin-document-maintenance .document-maintenance-calendar :is(.calendar-picker-weekdays, .calendar-picker-grid) { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; padding: 4px 0; }
+.r1-admin-document-maintenance .calendar-picker-weekdays span { color: var(--r1-muted); font-size: 11px; line-height: 16px; text-align: center; }
+.app-shell.r1-admin-document-maintenance .document-maintenance-calendar button { min-width: 0; min-height: 28px; border: 1px solid transparent; border-radius: 4px; padding: 4px; color: var(--r1-text); background: transparent; font-size: 12px; font-weight: 400; line-height: 18px; white-space: nowrap; }
+.app-shell.r1-admin-document-maintenance .calendar-picker-navigation button { width: 28px; color: var(--r1-accent); font-size: 20px; }
+.r1-admin-document-maintenance .calendar-day.outside { color: var(--r1-muted); }
+.r1-admin-document-maintenance .calendar-day.weekend { background: var(--r1-warning-soft); }
+.r1-admin-document-maintenance .calendar-day.today { border-color: var(--r1-strong-border); }
+.app-shell.r1-admin-document-maintenance .document-maintenance-calendar button:hover { color: var(--r1-accent); background: var(--r1-blue-soft); }
+.app-shell.r1-admin-document-maintenance .document-maintenance-calendar .calendar-day.selected { color: var(--r1-surface); background: var(--r1-accent); }
+.r1-admin-document-maintenance .date-picker-footer { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; border-top: 1px solid var(--r1-border); padding-top: 4px; }
+.app-shell.r1-admin-document-maintenance .date-picker-footer button { padding-inline: 6px; color: var(--r1-accent); }
+.r1-admin-document-maintenance [hidden] { display: none !important; }
+@media (max-width: 760px), (pointer: coarse) {
+  .app-shell.r1-admin-document-maintenance .document-metadata-form .field :is(input:not([type=hidden]), select) { min-height: 44px; padding-top: 11px; padding-bottom: 11px; font-size: 16px; }
+  .app-shell.r1-admin-document-maintenance .document-metadata-form .field textarea { font-size: 16px; }
+  .app-shell.r1-admin-document-maintenance :is(.document-maintenance-header, .document-metadata-form, .document-delete-confirm) :is(.button, button) { min-height: 44px; }
+}
+@media (max-width: 760px) {
+  .app-shell.r1-admin-document-maintenance .content { padding: 0 16px 32px; }
+  .r1-admin-document-maintenance .topbar { margin-left: -16px; margin-right: -16px; padding-left: 16px; padding-right: 16px; }
+  .r1-admin-document-maintenance .document-maintenance-header { flex-direction: column; gap: 16px; }
+  .r1-admin-document-maintenance :is(.document-maintenance-meta, .document-metadata-form .form-grid) { grid-template-columns: minmax(0, 1fr); }
+  .r1-admin-document-maintenance .document-maintenance-meta { gap: 16px; }
+  .r1-admin-document-maintenance .document-maintenance-spacer { display: none; }
+}
+@supports (appearance: base-select) and selector(select::picker(select)) {
+  @media (min-width: 761px) and (hover: hover) and (pointer: fine) {
+    .r1-admin-document-maintenance .document-metadata-form select,
+    .r1-admin-document-maintenance .document-metadata-form select::picker(select) { appearance: base-select; }
+    .app-shell.r1-admin-document-maintenance .document-metadata-form .field select { align-items: center; line-height: normal; }
+    .r1-admin-document-maintenance .document-metadata-form select::picker(select) { box-sizing: border-box; max-height: 280px; overflow-y: auto; margin: 4px 0; border: 1px solid var(--r1-border); border-radius: 8px; padding: 4px; color: var(--r1-text); background: var(--r1-surface); box-shadow: 0 6px 16px rgb(23 33 43 / 12%); }
+    .r1-admin-document-maintenance .document-metadata-form select option { min-height: 32px; border-radius: 4px; padding: 6px 8px; font-size: 13px; font-weight: 400; line-height: 18px; white-space: normal; overflow-wrap: anywhere; }
+    .r1-admin-document-maintenance .document-metadata-form select option:is(:checked, :hover, :focus) { color: var(--r1-accent); background: var(--r1-blue-soft); }
+    .r1-admin-document-maintenance .document-metadata-form select option::checkmark { color: var(--r1-accent); }
+  }
+}
