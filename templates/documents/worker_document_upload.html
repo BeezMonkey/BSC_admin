@@ -1,67 +1,43 @@
-{% extends "worker_base.html" %}
+{% extends "r1/worker_documents_base.html" %}
+{% load static %}
 
 {% block title %}{% if is_required_upload %}Upload {{ selected_required_document_label }}{% else %}Upload Other Document{% endif %} - Brisbane Star Care{% endblock %}
 
 {% block content %}
-<section class="worker-card worker-document-upload-page">
-  <div class="page-header">
-    <div>
-      <h1>{% if is_required_upload %}Upload {{ selected_required_document_label }}{% else %}Upload Other Document{% endif %}</h1>
-      <p>{% if is_required_upload %}Submit this required compliance document for admin review.{% else %}Submit an extra worker document for admin review.{% endif %}</p>
-    </div>
-    <a class="button secondary" href="{% url 'worker_document_list' %}">Back to Documents</a>
-  </div>
-
-  <form class="worker-document-upload-form" method="post" enctype="multipart/form-data" novalidate>
+<section class="worker-card sw-documents sw-document-upload-page">
+  <a class="sw-document-back" href="{% url 'worker_document_list' %}">{% include "r1/partials/icon.html" with name="back" size=16 %}Back to Documents</a>
+  <header class="page-header"><div>
+    <h1>{% if is_required_upload %}Upload {{ selected_required_document_label }}{% else %}Upload Other Document{% endif %}</h1>
+    <p>{% if is_required_upload %}Submit this required compliance document for admin review.{% else %}Submit an extra worker document for admin review.{% endif %}</p>
+  </div></header>
+  <form class="sw-document-form" method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
-    {% if form.non_field_errors %}
-      <div class="error">{{ form.non_field_errors }}</div>
-    {% endif %}
-
-    {% if is_required_upload %}
-      {{ form.required_document_type }}
-      <div class="worker-document-locked-type">
-        <span>Document type</span>
-        <strong>{{ selected_required_document_label }}</strong>
-      </div>
-    {% else %}
-      <label class="field" for="{{ form.title.id_for_label }}">
-        {{ form.title.label }}
-        {{ form.title }}
-        {{ form.title.errors }}
-      </label>
-    {% endif %}
-
-    <div class="worker-document-date-grid">
-      <label class="field" for="{{ form.issue_date.id_for_label }}">
-        {{ form.issue_date.label }}
-        {{ form.issue_date }}
-        {{ form.issue_date.errors }}
-      </label>
-      <label class="field" for="{{ form.expiry_date.id_for_label }}">
-        {{ form.expiry_date.label }}
-        {{ form.expiry_date }}
-        {{ form.expiry_date.errors }}
-      </label>
+    {% if form.non_field_errors %}<div class="sw-document-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    <p class="sw-document-meta">* Required</p>
+    <div class="sw-document-upload-grid">
+      <section class="sw-document-form-section">
+        <h2>Document details</h2>
+        {% if is_required_upload %}
+          {{ form.required_document_type }}
+          <div class="sw-document-locked"><span class="sw-document-meta">Document type</span><strong>{{ selected_required_document_label }}</strong></div>
+        {% else %}<label class="field" for="{{ form.title.id_for_label }}">{{ form.title.label }} *{{ form.title }}{{ form.title.errors }}</label>{% endif %}
+        {% include "documents/partials/maintenance_date.html" with field=form.issue_date %}
+        {% include "documents/partials/maintenance_date.html" with field=form.expiry_date %}
+        <label class="field" for="{{ form.notes.id_for_label }}">{{ form.notes.label }} (optional){{ form.notes }}{{ form.notes.errors }}</label>
+      </section>
+      <section class="sw-document-form-section">
+        <h2>{{ form.file.label }} *</h2>
+        <div class="sw-document-file">
+          <label class="field" for="{{ form.file.id_for_label }}"><span class="sw-document-sr">{{ form.file.label }}</span>{{ form.file }}</label>
+          <p class="sw-document-selected" data-sw-selected-file aria-live="polite" hidden></p>
+        </div>
+        <p class="sw-document-meta">PDF, JPG, PNG, DOC, or DOCX up to 10 MB.</p>
+        {{ form.file.errors }}
+      </section>
     </div>
-
-    <label class="field worker-document-file-field" for="{{ form.file.id_for_label }}">
-      {{ form.file.label }}
-      {{ form.file }}
-      <span>PDF, JPG, PNG, DOC, or DOCX up to 10 MB.</span>
-      {{ form.file.errors }}
-    </label>
-
-    <label class="field" for="{{ form.notes.id_for_label }}">
-      {{ form.notes.label }}
-      {{ form.notes }}
-      {{ form.notes.errors }}
-    </label>
-
-    <div class="button-row worker-log-form-actions worker-bottom-actions">
-      <button type="submit">Submit for Review</button>
-      <a class="button secondary" href="{% url 'worker_document_list' %}">Cancel</a>
-    </div>
+    <div class="sw-document-form-actions"><button type="submit">Submit for Review</button><a class="button secondary" href="{% url 'worker_document_list' %}">Cancel</a></div>
   </form>
 </section>
+<script src="{% static 'js/date_time_picker.js' %}" defer></script>
+<script src="{% static 'js/r1_worker_documents.js' %}" defer></script>
 {% endblock %}
