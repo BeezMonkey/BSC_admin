@@ -1,4 +1,9 @@
 /* B06.4 approved R2; opt-in SW list/upload presentation only. */
+.r1-worker-documents .message { border:1px solid var(--r1-border); border-left-width:3px; border-radius:6px; padding:12px 16px; box-shadow:none; font-size:14px; line-height:20px; overflow-wrap:anywhere; }
+.r1-worker-documents .message.error { border-left-color:var(--r1-danger); color:var(--r1-danger); background:#faeef0; }
+.r1-worker-documents .message.success { border-left-color:var(--r1-success); color:var(--r1-success); background:#edf5f0; }
+.r1-worker-documents .message.warning { border-left-color:var(--r1-warning); color:var(--r1-warning); background:var(--r1-warning-soft); }
+.r1-worker-documents .message.info { border-left-color:var(--r1-accent); color:var(--r1-accent); background:var(--r1-blue-soft); }
 .app-shell.r1-ui .sw-documents { width:100%; max-width:1180px; margin:0 auto; }
 .sw-documents .page-header { margin:0 0 24px; }
 .sw-documents .sw-document-section { margin:0 0 28px; padding:0; }

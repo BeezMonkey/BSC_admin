@@ -129,3 +129,30 @@ class WorkerDocumentsR2Tests(TestCase):
         for declaration in ('border:1px solid var(--r1-strong-border)', 'background:var(--r1-surface)',
                             'padding:9px 12px', 'height:auto', 'min-height:56px'):
             self.assertIn(declaration, rule)
+
+    def test_global_notifications_inherit_confirmed_r1_document_styles(self):
+        css = (Path(settings.BASE_DIR) / 'static/css/r1_worker_documents.css').read_text()
+        base = css.split('.r1-worker-documents .message {', 1)[-1].split('}', 1)[0]
+        for declaration in ('padding:12px 16px', 'font-size:14px', 'line-height:20px',
+                            'box-shadow:none', 'border-radius:6px'):
+            self.assertIn(declaration, base)
+        for state, color, background in (
+            ('error', '--r1-danger', '#faeef0'), ('success', '--r1-success', '#edf5f0'),
+            ('warning', '--r1-warning', 'var(--r1-warning-soft)'),
+            ('info', '--r1-accent', 'var(--r1-blue-soft)'),
+        ):
+            selector = f'.r1-worker-documents .message.{state} {{'
+            self.assertIn(selector, css)
+            rule = css.split(selector, 1)[1].split('}', 1)[0]
+            self.assertIn(f'color:var({color})', rule)
+            self.assertIn(f'border-left-color:var({color})', rule)
+            self.assertIn(f'background:{background}', rule)
+
+    def test_storage_failure_does_not_report_a_missing_file(self):
+        message = 'Could not upload document to private storage. Please try again later or contact admin.'
+        with patch('documents.views.Document.save', side_effect=StorageOperationError(message)):
+            response = self.client.post(reverse('worker_document_upload'), self.payload())
+        self.assertContains(response, message)
+        self.assertNotContains(response, 'This field is required.')
+        self.assertFalse(response.context['form'].errors)
+        self.assertEqual(Document.objects.count(), 0)
