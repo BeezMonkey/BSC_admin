@@ -197,3 +197,7 @@ class FileMaintenanceR1Tests(TestCase):
             self.assertContains(response, self.worker.display_name)
             self.assertContains(response, label)
             self.assertContains(response, f'document-status-{status}')
+
+    def test_notes_height_override_matches_the_control_rule_specificity(self):
+        css = (Path(settings.BASE_DIR) / 'static/css/r1_admin_document_maintenance.css').read_text(encoding='utf-8')
+        self.assertIn('.app-shell.r1-ui.r1-admin-document-maintenance .document-metadata-form .field textarea { min-height: 88px;', css)
