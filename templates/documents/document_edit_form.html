@@ -1,26 +1,26 @@
-{% extends "admin_base.html" %}
+{% extends "documents/r1_maintenance_base.html" %}
+{% load static %}
 
 {% block title %}Edit Uploaded File - Brisbane Star Care{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-header document-maintenance-header">
   <div>
     <h1>Edit file details</h1>
     <p>Update the Admin filing details without replacing the private CrazyDomains file.</p>
   </div>
   <div class="button-row">
     <a class="button secondary" href="{{ return_url }}">Back to files</a>
-    <a class="button" href="{% url 'document_download' document.id %}">Download</a>
+    <a class="button secondary" href="{% url 'document_download' document.id %}">Download</a>
     <a class="button danger-outline" href="{% url 'document_delete' document.id %}?next={{ return_url|urlencode }}">Delete</a>
   </div>
 </div>
 
-<section class="card document-file-reference">
-  <h2>Current file</h2>
-  <dl class="detail-list">
-    <dt>Original filename</dt><dd>{{ document.filename }}</dd>
-    <dt>CrazyDomains secure file name</dt><dd class="document-storage-name">{{ document.file.name }}</dd>
-    <dt>Owner</dt>
+<section class="document-file-reference" aria-labelledby="document-current-file">
+  <h2 id="document-current-file">Current file</h2>
+  <dl class="document-maintenance-meta">
+    <div><dt>Original filename</dt><dd>{{ document.filename }}</dd></div>
+    <div><dt>Owner</dt>
     <dd>
       {% if document.participant_id %}
         Participant - {{ document.participant.display_name }}
@@ -29,7 +29,8 @@
       {% else %}
         -
       {% endif %}
-    </dd>
+    </dd></div>
+    <div class="document-maintenance-wide"><dt>CrazyDomains secure file name</dt><dd class="document-storage-name">{{ document.file.name }}</dd></div>
   </dl>
 </section>
 
@@ -37,24 +38,25 @@
   {% csrf_token %}
   <input type="hidden" name="next" value="{{ return_url }}">
   {% if form.non_field_errors %}
-    <div class="error">{{ form.non_field_errors }}</div>
+    <div class="document-maintenance-error" role="alert">{{ form.non_field_errors }}</div>
   {% endif %}
 
-  <section class="card form-section">
+  <section class="document-maintenance-section">
     <h2>Filing details</h2>
     <div class="form-grid">
-      {% include "participants/partials/field.html" with field=form.title %}
-      {% include "participants/partials/field.html" with field=form.category %}
-      {% include "participants/partials/field.html" with field=form.review_status %}
-      {% include "participants/partials/field.html" with field=form.issue_date %}
-      {% include "participants/partials/field.html" with field=form.expiry_date %}
+      {% include "documents/partials/upload_field.html" with field=form.title %}
+      {% include "documents/partials/upload_field.html" with field=form.category %}
+      {% include "documents/partials/upload_field.html" with field=form.review_status %}
+      <div class="document-maintenance-spacer" aria-hidden="true"></div>
+      {% include "documents/partials/maintenance_date.html" with field=form.issue_date %}
+      {% include "documents/partials/maintenance_date.html" with field=form.expiry_date %}
     </div>
   </section>
 
-  <section class="card form-section">
+  <section class="document-maintenance-section">
     <h2>Notes</h2>
     <div class="form-grid single">
-      {% include "participants/partials/field.html" with field=form.notes %}
+      {% include "documents/partials/upload_field.html" with field=form.notes field_class="document-maintenance-notes" %}
     </div>
   </section>
 
@@ -63,4 +65,6 @@
     <a class="button secondary" href="{{ return_url }}">Cancel</a>
   </div>
 </form>
+<script src="{% static 'js/date_time_picker.js' %}" defer></script>
+<script src="{% static 'js/r1_document_maintenance.js' %}" defer></script>
 {% endblock %}

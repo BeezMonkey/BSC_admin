@@ -1,0 +1,32 @@
+<div class="field document-maintenance-date" data-maintenance-date>
+  <label for="{{ field.id_for_label }}" id="{{ field.auto_id }}_label">{{ field.label }}</label>
+  <div class="document-maintenance-date-control">
+    {{ field }}
+    <input type="hidden" data-maintenance-date-proxy>
+    <button type="button" class="document-maintenance-calendar-trigger" data-picker-trigger hidden
+            aria-expanded="false" aria-controls="{{ field.auto_id }}_calendar"
+            aria-label="Choose {{ field.label|lower }}">
+      {% include "r1/partials/icon.html" with name="calendar" size=16 %}
+      <span class="document-maintenance-sr-only" data-picker-display></span>
+    </button>
+    <div id="{{ field.auto_id }}_calendar" class="document-maintenance-calendar" data-picker-popover hidden
+         role="dialog" aria-labelledby="{{ field.auto_id }}_label">
+      <header class="calendar-picker-header">
+        <strong data-calendar-title></strong>
+        <div class="calendar-picker-navigation">
+          <button type="button" data-calendar-previous aria-label="Previous month">&lsaquo;</button>
+          <button type="button" data-calendar-next aria-label="Next month">&rsaquo;</button>
+        </div>
+      </header>
+      <div class="calendar-picker-weekdays" aria-hidden="true">
+        <span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span>
+      </div>
+      <div class="calendar-picker-grid" data-calendar-grid></div>
+      <footer class="date-picker-footer">
+        <button type="button" data-calendar-clear>Clear</button>
+        <button type="button" data-calendar-today>Today</button>
+      </footer>
+    </div>
+  </div>
+  {% if field.errors %}<span class="field-error" id="{{ field.auto_id }}_error">{{ field.errors|striptags }}</span>{% endif %}
+</div>

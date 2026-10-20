@@ -1,9 +1,9 @@
-{% extends "admin_base.html" %}
+{% extends "documents/r1_maintenance_base.html" %}
 
 {% block title %}Delete Uploaded File - Brisbane Star Care{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-header document-maintenance-header">
   <div>
     <h1>Delete uploaded file</h1>
     <p>Review the file details before permanently deleting it.</p>
@@ -11,17 +11,17 @@
   <a class="button secondary" href="{{ return_url }}">Back to files</a>
 </div>
 
-<section class="card document-delete-confirm">
+<section class="document-delete-confirm">
   <div class="document-delete-warning">
     <h2>This will delete the database record and private file.</h2>
     <p>The uploaded file will be removed from Admin and from CrazyDomains private storage. This action cannot be undone. The document record will stay in Admin if the private file cannot be removed.</p>
   </div>
 
-  <dl class="detail-list">
-    <dt>Title</dt><dd>{{ document.title }}</dd>
-    <dt>Original filename</dt><dd>{{ document.filename }}</dd>
-    <dt>CrazyDomains secure file name</dt><dd class="document-storage-name">{{ document.file.name }}</dd>
-    <dt>Owner</dt>
+  <dl class="document-maintenance-meta document-delete-meta">
+    <div><dt>Title</dt><dd>{{ document.title }}</dd></div>
+    <div><dt>Original filename</dt><dd>{{ document.filename }}</dd></div>
+    <div class="document-maintenance-wide"><dt>CrazyDomains secure file name</dt><dd class="document-storage-name">{{ document.file.name }}</dd></div>
+    <div><dt>Owner</dt>
     <dd>
       {% if document.participant_id %}
         Participant - {{ document.participant.display_name }}
@@ -30,8 +30,8 @@
       {% else %}
         -
       {% endif %}
-    </dd>
-    <dt>Folder</dt>
+    </dd></div>
+    <div><dt>Folder</dt>
     <dd>
       {% if document.category == "general" %}
         Others
@@ -44,16 +44,16 @@
       {% else %}
         {{ document.get_category_display }}
       {% endif %}
-    </dd>
-    <dt>Status</dt><dd>{{ document.get_review_status_display }}</dd>
-    <dt>Uploaded by</dt><dd>{{ document.uploaded_by }}</dd>
-    <dt>Uploaded</dt><dd>{{ document.created_at|date:"d/m/Y" }}</dd>
+    </dd></div>
+    <div><dt>Status</dt><dd><span class="document-maintenance-status document-status-{{ document.review_status }}">{{ document.get_review_status_display }}</span></dd></div>
+    <div><dt>Uploaded by</dt><dd>{{ document.uploaded_by }}</dd></div>
+    <div><dt>Uploaded</dt><dd>{{ document.created_at|date:"d/m/Y" }}</dd></div>
   </dl>
 
   <form method="post" class="form-actions document-delete-actions">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ return_url }}">
-    <button class="danger" type="submit">Delete uploaded file</button>
+    <button class="button danger-outline" type="submit">Delete uploaded file</button>
     <a class="button secondary" href="{{ return_url }}">Cancel</a>
   </form>
 </section>
