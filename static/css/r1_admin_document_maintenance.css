@@ -19,7 +19,7 @@
 .r1-admin-document-maintenance .document-metadata-form .field,
 .r1-admin-document-maintenance .document-maintenance-date > label { display: grid; gap: 8px; min-width: 0; margin: 0; color: var(--r1-text); font-size: 14px; font-weight: 500; line-height: 20px; }
 .app-shell.r1-admin-document-maintenance .document-metadata-form .field :is(input:not([type=hidden]), select, textarea) { width: 100%; min-width: 0; height: auto; min-height: 36px; margin: 0; border: 1px solid var(--r1-strong-border); border-radius: 6px; padding: 7px 12px; color: var(--r1-text); background: var(--r1-surface); font: 400 14px/20px "BSC Inter", Inter, Arial, sans-serif; letter-spacing: 0; box-shadow: none; }
-.app-shell.r1-admin-document-maintenance .document-metadata-form .field textarea { min-height: 88px; padding: 12px; resize: vertical; }
+.app-shell.r1-ui.r1-admin-document-maintenance .document-metadata-form .field textarea { min-height: 88px; padding: 12px; resize: vertical; }
 .r1-admin-document-maintenance .document-maintenance-notes > span:first-child,
 .r1-admin-document-maintenance .document-maintenance-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .r1-admin-document-maintenance .document-metadata-form .field-error { color: var(--r1-danger); font-size: 12px; font-weight: 400; line-height: 16px; }
@@ -61,7 +61,7 @@
 .r1-admin-document-maintenance [hidden] { display: none !important; }
 @media (max-width: 760px), (pointer: coarse) {
   .app-shell.r1-admin-document-maintenance .document-metadata-form .field :is(input:not([type=hidden]), select) { min-height: 44px; padding-top: 11px; padding-bottom: 11px; font-size: 16px; }
-  .app-shell.r1-admin-document-maintenance .document-metadata-form .field textarea { font-size: 16px; }
+  .app-shell.r1-ui.r1-admin-document-maintenance .document-metadata-form .field textarea { font-size: 16px; }
   .app-shell.r1-admin-document-maintenance :is(.document-maintenance-header, .document-metadata-form, .document-delete-confirm) :is(.button, button) { min-height: 44px; }
 }
 @media (max-width: 760px) {
