@@ -1,0 +1,8 @@
+{% extends "r1/worker_navigation_base.html" %}
+{% load static %}
+
+{% block extra_styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/r1_worker_documents.css' %}">
+{% endblock %}
+{% block r1_shell_class %}{{ block.super }} r1-worker-documents{% endblock %}
