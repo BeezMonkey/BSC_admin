@@ -1,9 +1,11 @@
 """SW R2 presentation contracts with isolated storage and unchanged business rules."""
 from datetime import date
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -118,3 +120,12 @@ class WorkerDocumentsR2Tests(TestCase):
         response = self.client.get(reverse('worker_document_detail', args=[doc.pk]))
         self.assertNotContains(response, 'css/r1_worker_documents.css')
         self.assertNotContains(response, 'js/r1_worker_documents.js')
+
+    def test_native_file_control_keeps_approved_inner_frame(self):
+        css = (Path(settings.BASE_DIR) / 'static/css/r1_worker_documents.css').read_text()
+        selector = '.app-shell.r1-ui .sw-documents .sw-document-file input[type=file]'
+        self.assertIn(selector, css)
+        rule = css.split(selector, 1)[1].split('}', 1)[0]
+        for declaration in ('border:1px solid var(--r1-strong-border)', 'background:var(--r1-surface)',
+                            'padding:9px 12px', 'height:auto', 'min-height:56px'):
+            self.assertIn(declaration, rule)

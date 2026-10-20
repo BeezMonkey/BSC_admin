@@ -43,6 +43,7 @@
 .app-shell.r1-ui .sw-documents.sw-document-upload-page .sw-document-form .field input[type=date] { box-sizing:border-box; height:40px; min-height:40px; padding:9px 12px; }
 .sw-document-file { padding:16px; border:1px solid var(--r1-border); border-radius:6px; background:var(--r1-subtle); min-width:0; }
 .app-shell.r1-ui .sw-documents input[type=file] { width:100%; min-width:0; max-width:100%; padding:0; border:0; background:transparent; font:400 14px/20px 'BSC Inter',Inter,Arial,sans-serif; }
+.app-shell.r1-ui .sw-documents .sw-document-file input[type=file] { box-sizing:border-box; height:auto; min-height:56px; border:1px solid var(--r1-strong-border); border-radius:6px; padding:9px 12px; background:var(--r1-surface); }
 .sw-documents input[type=file]::file-selector-button { min-height:36px; margin-right:12px; border:1px solid var(--r1-strong-border); border-radius:6px; padding:7px 12px; color:var(--r1-text); background:var(--r1-surface); font:500 14px/20px 'BSC Inter',Inter,Arial,sans-serif; }
 .sw-documents input[type=file]::file-selector-button:hover { background:var(--r1-subtle); }
 .sw-document-selected { margin:12px 0 0; color:var(--r1-muted); font-size:14px; line-height:20px; overflow-wrap:anywhere; }
