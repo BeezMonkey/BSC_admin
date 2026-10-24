@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block body %}
-<div class="app-shell worker-app-shell" data-portal-theme>
+<div class="app-shell worker-app-shell{% block r1_shell_class %}{% endblock %}" data-portal-theme>
   <header class="worker-mobile-header">
     <button class="worker-mobile-menu-button" type="button" aria-label="Open Support Coordinator menu" aria-controls="coordinator-mobile-drawer" aria-expanded="false">
       <span class="worker-mobile-menu-icon" aria-hidden="true"></span>
@@ -17,13 +17,14 @@
     </div>
   </header>
   <aside class="sidebar worker-sidebar">
-    <div class="brand">Brisbane Star Care</div>
+    <div class="brand">{% block sidebar_brand %}Brisbane Star Care{% endblock %}</div>
     <nav class="sidebar-nav worker-sidebar-nav" aria-label="Support Coordinator navigation">
       <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_dashboard' %} active{% endif %}" href="{% url 'coordinator_dashboard' %}">Dashboard</a>
       <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_participant_list' or request.resolver_match.url_name == 'coordinator_participant_detail' %} active{% endif %}" href="{% url 'coordinator_participant_list' %}">My Participants</a>
       <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_log_list' or request.resolver_match.url_name == 'coordinator_log_detail' or request.resolver_match.url_name == 'coordinator_log_create' or request.resolver_match.url_name == 'coordinator_log_edit' %} active{% endif %}" href="{% url 'coordinator_log_list' %}">My Coordination Logs</a>
       <a class="sidebar-link{% if request.resolver_match.url_name == 'coordinator_account' %} active{% endif %}" href="{% url 'coordinator_account' %}">Account</a>
     </nav>
+    {% block sidebar_account %}{% endblock %}
   </aside>
   <div class="worker-mobile-drawer-backdrop" data-worker-menu-close hidden></div>
   <aside class="worker-mobile-drawer" id="coordinator-mobile-drawer" aria-label="Support Coordinator menu" hidden>
@@ -80,13 +81,13 @@
     </a>
   </nav>
   <section class="content worker-main">
-    <header class="topbar worker-topbar">
+    {% block coordinator_topbar %}<header class="topbar worker-topbar">
       <span class="user-label">{{ request.user.get_username }}</span>
       <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}
         <button class="button secondary topbar-logout" type="submit">Logout</button>
       </form>
-    </header>
+    </header>{% endblock %}
     {% if messages %}
       <div class="messages" role="status" aria-live="polite">
         {% for message in messages %}
