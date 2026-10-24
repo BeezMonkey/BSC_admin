@@ -1,0 +1,99 @@
+/* B07.1 opt-in: approved account and participant cards only. */
+.app-shell.r1-coordinator-details { grid-template-columns:232px minmax(0,1fr); background:var(--r1-subtle); }
+.r1-coordinator-details .sidebar { display:flex; flex-direction:column; padding:32px 20px 24px; }
+.r1-coordinator-details .brand { min-height:0; margin:0 0 40px; padding:0; color:var(--r1-accent); font-size:24px; font-weight:600; line-height:32px; }
+.r1-coordinator-details .brand small { display:block; margin-top:8px; color:var(--r1-muted); font-size:14px; font-weight:400; line-height:20px; text-transform:none; }
+.r1-coordinator-details .sidebar-link { min-height:48px; gap:12px; padding:12px; }
+.r1-coordinator-details .sidebar-link::before { flex-basis:24px; width:24px; height:24px; }
+.r1-coordinator-details .sidebar-link[href$="/sc/dashboard/"] { --r1-nav-icon:url('../img/r1/icons/home.svg'); }
+.r1-coordinator-details .sidebar-link[href*="/sc/participants/"] { --r1-nav-icon:url('../img/r1/icons/admin-users.svg'); }
+.r1-coordinator-details .sidebar-link[href*="/sc/logs/"] { --r1-nav-icon:url('../img/r1/icons/logs.svg'); }
+.r1-coordinator-details .sidebar-link[href$="/sc/account/"] { --r1-nav-icon:url('../img/r1/icons/profile.svg'); }
+.r1-coordinator-details .worker-sidebar-nav { flex:0 0 auto; }
+.r1-coordinator-details .r1-account { margin-top:auto; padding-top:48px; }
+.coordinator-account-username { display:block; margin-top:6px; color:var(--r1-muted); font-size:12px; line-height:18px; }
+.r1-coordinator-details .r1-logout { margin-top:8px; }
+.r1-coordinator-details .worker-main { padding:28px 40px 48px; background:var(--r1-subtle); }
+.r1-coordinator-details .coordinator-profile-page { display:block; width:100%; max-width:1128px; margin:0 auto; }
+.r1-coordinator-details .page-header { margin-bottom:28px; }
+.r1-coordinator-details .page-header h1 { margin:0; font-size:24px; line-height:32px; }
+.r1-coordinator-details .page-header p { margin:8px 0 0; font-size:14px; line-height:20px; }
+.coordinator-info-card { min-width:0; padding:20px 24px; background:var(--r1-surface); border:1px solid var(--r1-border); border-radius: 8px; box-shadow:none; }
+.r1-coordinator-details .coordinator-info-card > h2 { margin:0 0 20px; font-size:16px; font-weight:600; line-height:24px; }
+.coordinator-profile-page dt { color:var(--r1-muted); font-size:12px; font-weight:400; line-height:18px; }
+.coordinator-profile-page dd { margin:0; color:var(--r1-text); font-size:14px; line-height:20px; overflow-wrap:anywhere; white-space:pre-line; }
+.coordinator-profile-page :is(dl,p) { margin:0; }
+.coordinator-status { display:inline-flex; align-items:center; justify-content:center; min-height:24px; padding:4px 8px; border-radius:6px; background:var(--r1-subtle); color:var(--r1-muted); font-size:12px; font-weight:500; line-height:16px; white-space:nowrap; }
+.coordinator-status-active { background:#edf5f0; color:var(--r1-success); }
+.coordinator-account-cards { display:grid; grid-template-columns:minmax(240px,320px) minmax(0,1fr); align-items:start; gap:24px; }
+.coordinator-account-identity { padding:24px; }
+.coordinator-identity-icon { display:block; width:32px; height:32px; color:var(--r1-muted); }
+.r1-coordinator-details .coordinator-account-identity > h2 { margin:20px 0 8px; font-size:20px; line-height:28px; overflow-wrap:anywhere; }
+.coordinator-account-identity p { color:var(--r1-muted); }
+.coordinator-account-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:20px; }
+.coordinator-account-grid > div { display:grid; grid-template-columns:128px minmax(0,1fr); gap:16px; align-items:start; min-width:0; }
+.coordinator-account-actions { border-top:1px solid var(--r1-border); margin-top:24px; padding-top:16px; }
+.coordinator-account-actions form { margin:0; }
+.coordinator-account-actions .button { display:inline-flex; align-items:center; gap:8px; }
+.r1-coordinator-details .coordinator-setup-pending > h2 { margin-bottom:8px; }
+.coordinator-setup-pending p { color:var(--r1-muted); }
+.coordinator-back-link { display:inline-flex; align-items:center; gap:8px; min-height:36px; margin:0 0 16px; color:var(--r1-accent); text-decoration:none; }
+.coordinator-back-link:hover { color:var(--r1-accent); text-decoration:underline; text-underline-offset:3px; }
+.coordinator-participant-heading { margin-bottom:24px; }
+.r1-coordinator-details .coordinator-participant-heading h1 { margin:0; font-size:24px; line-height:32px; overflow-wrap:anywhere; }
+.coordinator-participant-meta { display:flex; align-items:center; flex-wrap:wrap; gap:12px 20px; margin-top:12px; color:var(--r1-muted); font-size:12px; line-height:18px; overflow-wrap:anywhere; }
+.coordinator-detail-columns { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; align-items:start; }
+.coordinator-contact-card { grid-column:1; }
+.coordinator-emergency-card { grid-column:2; }
+.coordinator-support-section { grid-column: 1 / -1; }
+.coordinator-field-grid,.coordinator-address-fields { display:grid; gap:16px; }
+.coordinator-field-grid > div,.coordinator-address-fields > div { display:grid; grid-template-columns:112px minmax(0,1fr); gap:12px; align-items:start; min-width:0; }
+.coordinator-address-section { margin-top:20px; border-top:1px solid var(--r1-border); padding-top:20px; }
+.r1-coordinator-details .coordinator-address-section h3 { margin:0 0 16px; font-size:14px; line-height:20px; font-weight:600; }
+.coordinator-address-fields { gap:12px; }
+.coordinator-notes-fields > div { display:grid; grid-template-columns:176px minmax(0,1fr); gap:24px; border-top:1px solid var(--r1-border); padding:16px 0; min-width:0; }
+.coordinator-notes-fields > div:first-child { border-top:0; padding-top:0; }
+.coordinator-notes-fields > div:last-child { padding-bottom:0; }
+.coordinator-notes-fields dd { line-height:22px; }
+.r1-coordinator-details .detail-empty { color:var(--r1-muted); }
+@media (min-width:981px) and (max-width:1100px) {
+  .app-shell.r1-coordinator-details { grid-template-columns:212px minmax(0,1fr); }
+  .r1-coordinator-details .sidebar { padding-left:16px; padding-right:16px; }
+  .r1-coordinator-details .worker-main { padding:24px; }
+  .coordinator-info-card { padding:20px; }
+  .coordinator-account-cards { grid-template-columns:minmax(200px,.8fr) minmax(0,1.2fr); gap:20px; }
+  .coordinator-account-grid > div,.coordinator-field-grid > div,.coordinator-address-fields > div { grid-template-columns:minmax(0,1fr); gap:6px; }
+  .coordinator-notes-fields > div { grid-template-columns:152px minmax(0,1fr); gap:16px; }
+}
+@media (max-width:980px) {
+  .app-shell.r1-coordinator-details { display:block; }
+  .r1-coordinator-details .worker-sidebar { display:none; }
+  .r1-coordinator-details .worker-main { padding:20px 16px calc(100px + env(safe-area-inset-bottom)); }
+  .r1-coordinator-details .page-header { margin-bottom:20px; }
+  .r1-coordinator-details .worker-mobile-brand { color:var(--r1-accent); font-size:14px; font-weight:600; line-height:20px; }
+  .r1-coordinator-details .worker-mobile-role { color:var(--r1-muted); font-size:12px; line-height:18px; }
+  .r1-coordinator-details :is(.worker-mobile-header,.worker-mobile-drawer,.worker-bottom-nav) { background:var(--r1-surface); border-color:var(--r1-border); }
+  .r1-coordinator-details .worker-bottom-nav { box-shadow:none; }
+  .r1-coordinator-details :is(.worker-mobile-menu-button,.worker-mobile-close-button) { min-width:44px; min-height:44px; border:1px solid var(--r1-border); border-radius:6px; color:var(--r1-text); background:var(--r1-surface); }
+  .r1-coordinator-details :is(.worker-mobile-menu-button,.worker-mobile-close-button):is(:hover,:focus-visible) { border-color:var(--r1-strong-border); color:var(--r1-text); background:var(--r1-subtle); }
+  .r1-coordinator-details .worker-bottom-nav-link { min-height:54px; border-radius:0; padding:4px; color:var(--r1-muted); font-size:12px; font-weight:400; line-height:18px; }
+  .r1-coordinator-details .worker-bottom-nav-link.active { color:var(--r1-accent); background:transparent; font-weight:500; }
+  .r1-coordinator-details .worker-mobile-drawer .sidebar-link { min-height:44px; }
+  .r1-coordinator-details .worker-mobile-logout .button,.coordinator-account-actions .button { min-height:44px; padding:11px 16px; }
+  .coordinator-account-cards,.coordinator-detail-columns { grid-template-columns:minmax(0,1fr); gap:16px; }
+  .coordinator-contact-card,.coordinator-emergency-card,.coordinator-support-section { grid-column:auto; }
+  .coordinator-info-card { padding:20px 16px; }
+  .r1-coordinator-details .coordinator-info-card > h2 { margin-bottom:16px; }
+  .r1-coordinator-details .coordinator-account-identity > h2 { margin:16px 0 8px; font-size:18px; line-height:26px; }
+  .coordinator-account-grid > div,.coordinator-field-grid > div,.coordinator-address-fields > div { grid-template-columns:100px minmax(0,1fr); gap:12px; }
+  .coordinator-back-link { min-height:44px; margin-bottom:12px; }
+  .coordinator-participant-heading { margin-bottom:20px; }
+  .coordinator-participant-meta { margin-top:10px; }
+  .coordinator-notes-fields > div { grid-template-columns:minmax(0,1fr); gap:8px; }
+}
+@media (max-width:350px) {
+  .r1-coordinator-details .worker-main { padding-left:12px; padding-right:12px; }
+  .coordinator-info-card { padding:16px; }
+  .coordinator-account-grid > div,.coordinator-field-grid > div,.coordinator-address-fields > div { grid-template-columns:minmax(0,1fr); gap:6px; }
+  .coordinator-field-grid { gap:18px; }
+}

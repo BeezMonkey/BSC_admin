@@ -1,33 +1,41 @@
-{% extends "coordinator_base.html" %}
+{% extends "r1/coordinator_details_base.html" %}
 
 {% block title %}My Account - Brisbane Star Care{% endblock %}
 
 {% block content %}
-<section class="worker-content">
+<section class="worker-content coordinator-profile-page">
   <header class="page-header">
-    <div>
-      <h1>My Account</h1>
-      <p>Review your Support Coordinator portal details.</p>
-    </div>
+    <div><h1>My Account</h1><p>Review your Support Coordinator portal details.</p></div>
   </header>
 
-  <section class="worker-card">
-    {% if coordinator %}
-      <h2>{{ coordinator.display_name }}</h2>
-      <dl class="detail-list">
-        <dt>Username</dt>
-        <dd>{{ request.user.get_username }}</dd>
-        <dt>Email</dt>
-        <dd>{{ coordinator.email }}</dd>
-        <dt>Phone</dt>
-        <dd>{{ coordinator.phone|default:"-" }}</dd>
-        <dt>Status</dt>
-        <dd>{{ coordinator.get_status_display }}</dd>
-      </dl>
-    {% else %}
+  {% if coordinator %}
+    <div class="coordinator-account-cards">
+      <section class="coordinator-info-card coordinator-account-identity" aria-labelledby="coordinator-name">
+        <span class="coordinator-identity-icon" aria-hidden="true">{% include "r1/partials/icon.html" with name="profile" size=32 %}</span>
+        <h2 id="coordinator-name">{{ coordinator.display_name }}</h2>
+        <p>Support coordinator</p>
+      </section>
+      <section class="coordinator-info-card coordinator-account-details" aria-labelledby="account-details-title">
+        <h2 id="account-details-title">Account details</h2>
+        <dl class="coordinator-account-grid">
+          <div><dt>Username</dt><dd>{{ request.user.get_username }}</dd></div>
+          <div><dt>Email</dt><dd>{{ coordinator.email }}</dd></div>
+          <div><dt>Phone</dt><dd>{{ coordinator.phone|default:"-" }}</dd></div>
+          <div><dt>Status</dt><dd><span class="coordinator-status coordinator-status-{{ coordinator.status }}">{{ coordinator.get_status_display }}</span></dd></div>
+        </dl>
+        <div class="coordinator-account-actions">
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button class="button secondary" type="submit">{% include "r1/partials/icon.html" with name="logout" size=20 %}Logout</button>
+          </form>
+        </div>
+      </section>
+    </div>
+  {% else %}
+    <section class="coordinator-info-card coordinator-setup-pending">
       <h2>Account setup pending</h2>
       <p>Your coordinator profile has not been set up yet.</p>
-    {% endif %}
-  </section>
+    </section>
+  {% endif %}
 </section>
 {% endblock %}
