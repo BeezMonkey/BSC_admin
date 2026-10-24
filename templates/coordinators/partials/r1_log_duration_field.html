@@ -1,0 +1,5 @@
+<label class="field r1-sc-duration-field" for="{{ field.id_for_label }}">
+  {{ field }}
+  <span class="r1-sc-duration-caption">{{ field.label }}</span>
+  {% if field.errors %}<span class="field-error" id="{{ field.auto_id }}_error">{{ field.errors|striptags }}</span>{% endif %}
+</label>
