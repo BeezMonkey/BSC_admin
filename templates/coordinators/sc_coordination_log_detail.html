@@ -1,12 +1,12 @@
-{% extends "coordinator_base.html" %}
+{% extends "r1/coordinator_log_base.html" %}
 {% load static %}
 
-{% block extra_styles %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/coordination_revisions.css' %}">{% endblock %}
+{% block log_legacy_styles %}<link rel="stylesheet" href="{% static 'css/coordination_revisions.css' %}">{% endblock %}
 
 {% block title %}Coordination Log - Brisbane Star Care{% endblock %}
 
 {% block content %}
-<section class="worker-content">
+<section class="worker-content r1-sc-log-detail">
   <header class="page-header">
     <div>
       <h1>Coordination Log</h1>

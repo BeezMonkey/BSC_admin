@@ -1,16 +1,15 @@
-{% extends "coordinator_base.html" %}
+{% extends "r1/coordinator_log_base.html" %}
 {% load static %}
 
 {% block title %}{% if editing %}Edit{% else %}Submit{% endif %} Coordination Log - Brisbane Star Care{% endblock %}
 
-{% block extra_styles %}
-  {{ block.super }}
+{% block log_legacy_styles %}
   <link rel="stylesheet" href="{% static 'css/sc_log_form.css' %}?v=4">
   {% if editing %}<link rel="stylesheet" href="{% static 'css/sc_log_revision.css' %}">{% endif %}
 {% endblock %}
 
 {% block content %}
-<section class="worker-content">
+<section class="worker-content r1-sc-log-form-page">
   <header class="page-header">
     <div>
       <h1>{% if editing %}Edit{% else %}Submit{% endif %} Coordination Log</h1>
@@ -29,8 +28,8 @@
     {% csrf_token %}
     {% if editing %}<input type="hidden" name="revision_token" value="{{ revision_token }}">{% endif %}
     {% if form.non_field_errors %}
-      <div class="error">{{ form.non_field_errors }}</div>
-      {% if stale_record %}<p><a href="{% url 'coordinator_log_edit' log.id %}">Reload latest version</a></p>{% endif %}
+      <div class="error" role="alert">{{ form.non_field_errors }}</div>
+      {% if stale_record %}<p class="r1-sc-reload"><a class="button secondary" href="{% url 'coordinator_log_edit' log.id %}">Reload latest version</a></p>{% endif %}
     {% endif %}
 
     <section class="card form-section">
@@ -42,8 +41,8 @@
         <fieldset class="sc-service-duration">
           <legend>Service duration</legend>
           <div class="sc-service-duration-inputs">
-            {% include "participants/partials/field.html" with field=form.duration_hours %}
-            {% include "participants/partials/field.html" with field=form.duration_minutes %}
+            {% include "coordinators/partials/r1_log_duration_field.html" with field=form.duration_hours %}
+            {% include "coordinators/partials/r1_log_duration_field.html" with field=form.duration_minutes %}
           </div>
         </fieldset>
       </div>
