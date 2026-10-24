@@ -287,7 +287,23 @@ class ThemeTokenTests(SimpleTestCase):
         self.assertIn('class="document-owner-switch"', template)
         self.assertIn("Open files", template)
         self.assertIn("Upload File", template)
-        self.assertIn('class="card document-person-hero"', detail_template)
+        # FUP-002 v03 groups original metadata in a flat band, not a legacy card.
+        self.assertIn('<section class="document-person-hero">', detail_template)
+        self.assertIn('<div class="fup-document-summary">', detail_template)
+        self.assertIn('class="document-person-hero-main"', detail_template)
+        self.assertIn('class="document-person-meta"', detail_template)
+        self.assertIn('class="button-row fup-header-actions"', detail_template)
+        for field in ('Person type', 'Email', 'NDIS', 'Files', 'Review',
+                      'selected_person.email', 'selected_person.ndis_number',
+                      'summary.total', 'summary.pending_review'):
+            self.assertIn(field, detail_template)
+        self.assertIn('Files are grouped for CrazyDomains storage while original filenames remain visible for Admin.', detail_template)
+        self.assertIn('data-document-upload-open', detail_template)
+        self.assertIn('data-upload-category="{{ upload_category_value }}"', detail_template)
+        self.assertIn("href=\"{% url 'worker_detail' selected_person.id %}\"", detail_template)
+        self.assertIn("href=\"{% url 'participant_detail' selected_person.id %}\"", detail_template)
+        self.assertLess(detail_template.index('Back to Participant'), detail_template.index('>Upload File</a>'))
+        self.assertLess(detail_template.index('Back to Support Worker'), detail_template.index('>Upload File</a>'))
         self.assertIn('class="document-category-tabs"', detail_template)
         self.assertIn('class="filter-bar document-file-filter"', detail_template)
         self.assertIn("Back to Support Worker", detail_template)

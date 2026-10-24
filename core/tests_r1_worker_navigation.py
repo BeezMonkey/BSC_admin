@@ -70,9 +70,12 @@ class R1WorkerNavigationTests(TestCase):
                 self.assertNotContains(response, "r1_worker_logs.css")
 
     def test_other_pages_do_not_load_navigation_styles(self):
+        response = self.client.get(reverse("worker_document_list"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "r1_worker_navigation.css", count=1)
         for user, urls in (
             (self.worker_user, [reverse(name) for name in
-             ("worker_document_list", "worker_profile", "worker_unscheduled_service_log_create")]
+             ("worker_profile", "worker_unscheduled_service_log_create")]
              + [reverse("worker_service_log_create", args=[self.shift.pk]),
                 reverse("worker_participant_cancellation_create", args=[self.shift.pk])]),
             (self.admin, [reverse(name) for name in

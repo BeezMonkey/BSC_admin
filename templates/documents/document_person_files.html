@@ -10,19 +10,18 @@
     <p class="r1-document-person-name">{{ selected_person.display_name }}</p>
     <p>{{ selected_person_description }}</p>
   </div>
-  <div class="button-row">
-    <a class="button" href="{{ upload_url }}" data-document-upload-open data-upload-category="{{ upload_category_value }}">Upload File</a>
-  </div>
-</div>
-
-<section class="document-person-hero">
-  <div class="r1-document-return">
+  <div class="button-row fup-header-actions">
     {% if owner == "workers" %}
       <a class="button secondary" href="{% url 'worker_detail' selected_person.id %}">Back to Support Worker</a>
     {% else %}
       <a class="button secondary" href="{% url 'participant_detail' selected_person.id %}">Back to Participant</a>
     {% endif %}
+    <a class="button" href="{{ upload_url }}" data-document-upload-open data-upload-category="{{ upload_category_value }}">Upload File</a>
   </div>
+</div>
+
+<section class="document-person-hero">
+  <div class="fup-document-summary">
   <div class="document-person-hero-main">
     <span class="document-person-avatar document-person-avatar-large">{{ selected_person.initials }}</span>
     <div>
@@ -54,6 +53,7 @@
       <dd>{{ summary.pending_review }} pending</dd>
     </div>
   </dl>
+  </div>
 </section>
 
 <section class="document-file-controls">

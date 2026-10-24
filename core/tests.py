@@ -50,6 +50,8 @@ class WorkerMobileShellTests(TestCase):
                 )
 
     def test_untouched_worker_pages_retain_legacy_portal_icons(self):
+        from documents.tests_r1_ui import Page
+
         user = self.create_user_with_role("worker", UserProfile.Role.SUPPORT_WORKER)
         SupportWorker.objects.create(
             user=user, first_name="Fictional", last_name="Worker", email=user.email,
@@ -60,9 +62,28 @@ class WorkerMobileShellTests(TestCase):
             with self.subTest(route=route):
                 response = self.client.get(reverse(route))
                 self.assertEqual(response.status_code, 200)
-                for name in ("home", "calendar", "logs", "file"):
-                    self.assertContains(response, f"portal-nav-icon portal-nav-icon-{name}")
-                self.assertNotContains(response, "r1_worker_navigation.css")
+                # B06.4 accepted the R1 icons; keep every mobile destination checked.
+                page = Page(response).root
+                navs = [node for node in page.find('nav') if node.has_class('worker-bottom-nav')]
+                self.assertEqual(len(navs), 1)
+                links = navs[0].find('a')
+                self.assertEqual([link.attrs['href'] for link in links], [reverse(name) for name in
+                    ('worker_dashboard', 'worker_shift_list', 'worker_log_list', 'worker_document_list')])
+                self.assertEqual([link.text for link in links], ['Home', 'Shifts', 'Logs', 'Docs'])
+                for link, name in zip(links, ('home', 'shifts', 'logs', 'documents')):
+                    icons = link.find('img')
+                    self.assertEqual(len(icons), 1)
+                    self.assertTrue(icons[0].has_class('r1-icon'))
+                    self.assertEqual(icons[0].attrs['src'], static(f'img/r1/icons/{name}.svg'))
+                    self.assertEqual(icons[0].attrs['alt'], '')
+                    self.assertEqual(icons[0].attrs['aria-hidden'], 'true')
+                self.assertTrue(links[-1].has_class('active'))
+                self.assertEqual(links[-1].attrs['aria-current'], 'page')
+                self.assertEqual([node.attrs['href'] for node in page.find('link', rel='stylesheet')].count(
+                    static('css/r1_worker_navigation.css')), 1)
+                self.client.logout()
+                self.assertEqual(self.client.get(reverse(route)).status_code, 302)
+                self.client.force_login(user)
 
     def test_profile_uses_support_icons_without_changing_mobile_destinations(self):
         user = self.create_user_with_role("worker", UserProfile.Role.SUPPORT_WORKER)
