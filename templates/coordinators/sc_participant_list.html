@@ -1,4 +1,4 @@
-{% extends "coordinator_base.html" %}
+{% extends "r1/coordinator_workspace_base.html" %}
 
 {% block title %}My Participants - Brisbane Star Care{% endblock %}
 
@@ -11,52 +11,50 @@
     </div>
   </header>
 
-  <section class="card table-card participant-table-card">
-    <table class="participant-table">
-      <thead>
-        <tr>
-          <th>Participant</th>
-          <th>Contact</th>
-          <th>Address</th>
-          <th class="actions-heading">Actions</th>
+  <section class="card table-card participant-table-card r1-workspace-table">
+    <table class="participant-table" role="table">
+      <colgroup><col><col><col><col></colgroup>
+      <thead role="rowgroup">
+        <tr role="row">
+          <th role="columnheader">Participant</th>
+          <th role="columnheader">Contact</th>
+          <th role="columnheader">Address</th>
+          <th class="actions-heading" role="columnheader">Actions</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody role="rowgroup">
         {% for participant in participants %}
-          <tr>
-            <td class="participant-identity-cell">
-              <div class="participant-identity">
-                <span class="participant-avatar" aria-hidden="true">{{ participant.initials }}</span>
-                <div class="participant-name-stack">
-                  <a href="{% url 'coordinator_participant_detail' participant.id %}">{{ participant.display_name }}</a>
-                  <span>NDIS {{ participant.ndis_number|default:"not recorded" }}</span>
-                </div>
+          <tr role="row">
+            <td class="participant-identity-cell" data-label="Participant" role="cell">
+              <div class="participant-name-stack">
+                <a class="r1-workspace-name" href="{% url 'coordinator_participant_detail' participant.id %}">{{ participant.display_name }}</a>
+                <span>NDIS {{ participant.ndis_number|default:"not recorded" }}</span>
               </div>
             </td>
-            <td class="participant-contact-cell">
+            <td class="participant-contact-cell" data-label="Contact" role="cell">
               <div class="participant-contact-stack">
                 <strong>{{ participant.phone|default:"No phone" }}</strong>
                 <span>{{ participant.email|default:"No email" }}</span>
               </div>
             </td>
-            <td>
-              {% if participant.address_line_1 %}
-                {{ participant.address_line_1 }}
-                {% if participant.suburb %}<br>{{ participant.suburb }} {{ participant.state }} {{ participant.postcode }}{% endif %}
-              {% else %}
-                <span class="detail-empty">No address</span>
-              {% endif %}
+            <td data-label="Address" role="cell">
+              <div>
+                {% if participant.address_line_1 %}
+                  {{ participant.address_line_1 }}
+                  {% if participant.suburb %}<br>{{ participant.suburb }} {{ participant.state }} {{ participant.postcode }}{% endif %}
+                {% else %}
+                  <span class="detail-empty">No address</span>
+                {% endif %}
+              </div>
             </td>
-            <td class="actions">
-              <a href="{% url 'coordinator_participant_detail' participant.id %}">View</a>
+            <td class="actions" data-label="Actions" role="cell">
+              <a class="button secondary" href="{% url 'coordinator_participant_detail' participant.id %}">View</a>
             </td>
           </tr>
         {% empty %}
-          <tr>
-            <td colspan="4">
-              <div class="empty-state">
-                <strong>No assigned participants yet.</strong>
-              </div>
+          <tr class="r1-workspace-empty-row" role="row">
+            <td colspan="4" role="cell">
+              <div class="empty-state"><strong>No assigned participants yet.</strong></div>
             </td>
           </tr>
         {% endfor %}

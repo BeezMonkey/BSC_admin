@@ -1,4 +1,4 @@
-{% extends "coordinator_base.html" %}
+{% extends "r1/coordinator_workspace_base.html" %}
 
 {% block title %}Support Coordinator Dashboard - Brisbane Star Care{% endblock %}
 
@@ -10,18 +10,20 @@
       <p>Manage your assigned participants and coordination logs.</p>
     </div>
   </header>
-  <div class="card-grid worker-dashboard-grid worker-tool-grid coordinator-summary-grid coordinator-dashboard-actions">
+  <div class="card-grid worker-dashboard-grid worker-tool-grid coordinator-summary-grid coordinator-dashboard-actions r1-workspace-dashboard">
     <section class="card worker-tool-card coordinator-dashboard-card">
+      {% include "r1/partials/icon.html" with name="admin-users" %}
       <h2>My Participants</h2>
       <p>{{ assigned_participant_count }} active participant{{ assigned_participant_count|pluralize }} assigned to you.</p>
-      <a class="card-action" href="{% url 'coordinator_participant_list' %}">Open participants</a>
+      <a class="card-action button" href="{% url 'coordinator_participant_list' %}">Open participants</a>
     </section>
     <section class="card worker-tool-card coordinator-dashboard-card">
+      {% include "r1/partials/icon.html" with name="logs" %}
       <h2>Coordination Logs</h2>
       <p>Review your submitted support coordination records.</p>
       <div class="button-row coordinator-dashboard-card-actions">
-        <a class="card-action" href="{% url 'coordinator_log_list' %}">Open logs</a>
-        <a class="card-action secondary" href="{% url 'coordinator_log_create' %}">Submit log</a>
+        <a class="card-action button secondary" href="{% url 'coordinator_log_list' %}">Open logs</a>
+        <a class="card-action button" href="{% url 'coordinator_log_create' %}">Submit log</a>
       </div>
     </section>
   </div>

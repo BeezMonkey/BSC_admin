@@ -1,10 +1,9 @@
-{% extends "coordinator_base.html" %}
+{% extends "r1/coordinator_workspace_base.html" %}
 {% load static %}
 
 {% block title %}My Coordination Logs - Brisbane Star Care{% endblock %}
 
-{% block extra_styles %}
-  {{ block.super }}
+{% block workspace_legacy_styles %}
   <link rel="stylesheet" href="{% static 'css/sc_log_list.css' %}">
 {% endblock %}
 
@@ -20,31 +19,32 @@
     </div>
   </header>
 
-  <section class="card table-card participant-table-card">
-    <table class="participant-table coordinator-log-table">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Participant</th>
-          <th>Type</th>
-          <th>Hours</th>
-          <th>Status</th>
-          <th>Notes</th>
-          <th class="actions-heading">Actions</th>
+  <section class="card table-card participant-table-card r1-workspace-table">
+    <table class="participant-table coordinator-log-table" role="table">
+      <colgroup><col><col><col><col><col><col><col></colgroup>
+      <thead role="rowgroup">
+        <tr role="row">
+          <th role="columnheader">Date</th>
+          <th role="columnheader">Participant</th>
+          <th role="columnheader">Type</th>
+          <th class="r1-workspace-hours" role="columnheader">Hours</th>
+          <th role="columnheader">Status</th>
+          <th role="columnheader">Notes</th>
+          <th class="actions-heading" role="columnheader">Actions</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody role="rowgroup">
         {% for log in logs %}
-          <tr>
-            <td>{{ log.service_date|date:"d/m/Y" }}</td>
-            <td>
-              <a href="{% url 'coordinator_log_detail' log.id %}">{{ log.participant.display_name }}</a>
+          <tr role="row">
+            <td data-label="Date" role="cell"><div>{{ log.service_date|date:"d/m/Y" }}</div></td>
+            <td class="participant-identity-cell" data-label="Participant" role="cell">
+              <a class="r1-workspace-name" href="{% url 'coordinator_log_detail' log.id %}">{{ log.participant.display_name }}</a>
             </td>
-            <td>{{ log.get_coordination_type_display }}</td>
-            <td>{{ log.actual_hours }}</td>
-            <td><span class="status-pill status-{{ log.status }}">{{ log.get_status_display }}</span></td>
-            <td>{{ log.case_notes|truncatewords:12 }}</td>
-            <td class="actions">
+            <td data-label="Type" role="cell"><div>{{ log.get_coordination_type_display }}</div></td>
+            <td class="r1-workspace-hours" data-label="Hours" role="cell"><div>{{ log.actual_hours }}</div></td>
+            <td data-label="Status" role="cell"><span class="status-pill status-{{ log.status }}">{{ log.get_status_display }}</span></td>
+            <td class="r1-workspace-notes" data-label="Notes" role="cell"><div>{{ log.case_notes|truncatewords:12 }}</div></td>
+            <td class="actions" data-label="Actions" role="cell">
               <div class="sc-log-actions">
                 <a class="sc-log-action sc-log-action--view" href="{% url 'coordinator_log_detail' log.id %}">View</a>
                 {% if log.can_coordinator_edit %}<a class="sc-log-action sc-log-action--edit" href="{% url 'coordinator_log_edit' log.id %}">Edit</a>{% endif %}
@@ -52,11 +52,9 @@
             </td>
           </tr>
         {% empty %}
-          <tr>
-            <td colspan="7">
-              <div class="empty-state">
-                <strong>No coordination logs submitted yet.</strong>
-              </div>
+          <tr class="r1-workspace-empty-row" role="row">
+            <td colspan="7" role="cell">
+              <div class="empty-state"><strong>No coordination logs submitted yet.</strong></div>
             </td>
           </tr>
         {% endfor %}
