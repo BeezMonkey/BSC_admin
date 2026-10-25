@@ -220,3 +220,15 @@ class R1AdminPeopleListTests(TestCase):
         self.assertIn("line-height: normal", fallback)
         self.assertIn("padding: 10px 8px", fallback)
         self.assertIn("label:has(select)::after { display: none; }", fallback)
+
+    def test_actions_reserve_space_and_prevent_desktop_and_mobile_button_wrapping(self):
+        css = (Path(settings.BASE_DIR) / "static/css/r1_admin_people_lists.css").read_text(encoding="utf-8")
+        marker = "/* Keep original View/Edit controls on one row at every list breakpoint. */"
+        self.assertIn(marker, css)
+        actions = css.split(marker, 1)[1]
+        self.assertIn(".table-card td.actions { white-space: nowrap; }", actions)
+        self.assertIn(".table-card td.actions .button { flex: 0 0 auto; white-space: nowrap; }", actions)
+        self.assertIn("@media (min-width: 761px)", actions)
+        self.assertIn("width: 168px", actions)
+        self.assertIn("@media (max-width: 760px)", actions)
+        self.assertIn(".table-card td.actions { flex-wrap: nowrap; }", actions)
