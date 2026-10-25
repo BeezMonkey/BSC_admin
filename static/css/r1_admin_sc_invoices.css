@@ -90,4 +90,3 @@
 @media(max-width:760px) {
  .app-shell.r1-admin-sc-invoices.r1-admin-sc-preview .invoice-preview-filter > :is(label,.invoice-filter-date) { grid-template-rows:20px 44px auto; }
 }
-
