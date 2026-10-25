@@ -1,8 +1,6 @@
-{% extends "admin_base.html" %}
+{% extends "r1/admin_coordination_log_base.html" %}
 {% load bsc_formatting %}
 {% load static %}
-
-{% block extra_styles %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/coordination_revisions.css' %}">{% endblock %}
 
 {% block title %}Coordination Log - Brisbane Star Care{% endblock %}
 
@@ -18,30 +16,32 @@
   </div>
 </div>
 
-<div class="service-log-detail-page">
+<div class="service-log-detail-page r1-admin-coordination-detail">
 <div class="detail-grid">
   <section class="card">
     <h2>Coordination Log</h2>
-    <dl class="detail-list">
-      <dt>Coordinator</dt><dd>{{ log.coordinator.display_name }}</dd>
-      <dt>Coordination type</dt><dd>{{ log.get_coordination_type_display }}</dd>
-      <dt>Service duration</dt><dd>{{ log.service_duration_display }}</dd>
+    <dl class="detail-list r1-coordination-facts">
+      <div><dt>Service date</dt><dd>{{ log.service_date|date:"d/m/Y" }}</dd></div>
+      <div><dt>Status</dt><dd><span class="status-pill status-{{ log.status }}">{{ log.get_status_display }}</span></dd></div>
+      <div><dt>Coordinator</dt><dd>{{ log.coordinator.display_name }}</dd></div>
+      <div><dt>Coordination type</dt><dd>{{ log.get_coordination_type_display }}</dd></div>
+      <div><dt>Service duration</dt><dd>{{ log.service_duration_display }}</dd></div>
       {% if log.start_time and log.end_time %}
-        <dt>Previously recorded time</dt><dd>{{ log.start_time|display_time }} - {{ log.end_time|display_time }}</dd>
-        <dt>Recorded break</dt><dd>{{ log.break_minutes }} minutes</dd>
+        <div><dt>Previously recorded time</dt><dd>{{ log.start_time|display_time }} - {{ log.end_time|display_time }}</dd></div>
+        <div><dt>Recorded break</dt><dd>{{ log.break_minutes }} minutes</dd></div>
       {% endif %}
-      <dt>Submitted</dt><dd>{{ log.submitted_at|date:"d/m/Y H:i" }}</dd>
+      <div><dt>Submitted</dt><dd>{{ log.submitted_at|date:"d/m/Y H:i" }}</dd></div>
       {% if log.reviewed_by %}
-        <dt>Reviewed by</dt><dd>{{ log.reviewed_by }}</dd>
+        <div><dt>Reviewed by</dt><dd>{{ log.reviewed_by }}</dd></div>
       {% endif %}
       {% if log.reviewed_at %}
-        <dt>Reviewed at</dt><dd>{{ log.reviewed_at|date:"d/m/Y H:i" }}</dd>
+        <div><dt>Reviewed at</dt><dd>{{ log.reviewed_at|date:"d/m/Y H:i" }}</dd></div>
       {% endif %}
     </dl>
   </section>
   <section class="card">
     <h2>Notes</h2>
-    <dl class="detail-list">
+    <dl class="detail-list r1-coordination-notes">
       <dt>Case notes</dt><dd>{{ log.case_notes }}</dd>
       {% if log.coordinator_notes %}
         <dt>Coordinator notes</dt><dd>{{ log.coordinator_notes }}</dd>
