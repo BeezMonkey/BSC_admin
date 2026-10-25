@@ -100,7 +100,7 @@ function setup({ desktop = true, boundInvalid = false, value = "", engine = true
   });
   root.parentElement = form;
   document.querySelector = selector => {
-    assert.equal(selector, ".r1-admin-invoice-create .invoice-preview-filter");
+    assert.equal(selector, ".r1-admin-invoice-create .invoice-preview-filter, .r1-admin-sc-preview .invoice-preview-filter");
     return form;
   };
   const media = target({ matches: desktop });

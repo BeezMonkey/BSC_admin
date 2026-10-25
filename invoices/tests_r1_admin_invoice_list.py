@@ -149,7 +149,7 @@ class R1AdminInvoiceListTests(TestCase):
                 self.assertNotContains(response, "r1_admin_logs")
                 self.assertNotContains(response, "r1_worker_navigation")
 
-    def test_accountant_and_sc_lists_keep_presentation_off(self):
+    def test_accountant_stays_legacy_and_authorized_sc_lists_opt_in(self):
         for user, route in (
             (self.accountant, "invoice_placeholder"),
             (self.admin, "support_coordination_invoice_list"),
@@ -157,10 +157,14 @@ class R1AdminInvoiceListTests(TestCase):
         ):
             with self.subTest(role=user.userprofile.role, route=route):
                 response = self.get_list(user, route=route)
-                self.assertIs(response.context.get("r1_invoice_list"), False)
+                enhanced = route == "support_coordination_invoice_list"
+                self.assertIs(response.context.get("r1_invoice_list"), enhanced)
                 for marker in ("r1-ui", "r1-admin-invoice-list", "r1_tokens.css",
                                "r1_shell.css", "r1_admin_invoice_list.css"):
-                    self.assertNotContains(response, marker)
+                    if enhanced:
+                        self.assertContains(response, marker)
+                    else:
+                        self.assertNotContains(response, marker)
                 self.assertContains(response, static("css/admin.css"), count=1)
                 if route == "support_coordination_invoice_list":
                     self.assertContains(response, "SC Invoices")
@@ -445,7 +449,7 @@ class R1AdminInvoiceListTests(TestCase):
                     self.assertNotIn("async", attrs)
                 self.assertLess(positions[0], positions[1])
 
-    def test_accountant_and_sc_lists_have_no_filter_enhancement(self):
+    def test_accountant_filters_stay_legacy_and_sc_filters_reuse_r1(self):
         for user, route in (
             (self.accountant, "invoice_placeholder"),
             (self.admin, "support_coordination_invoice_list"),
@@ -456,8 +460,14 @@ class R1AdminInvoiceListTests(TestCase):
                     "period_from": "2026-10-01", "period_to": "2026-10-31"})
                 for marker in ("data-invoice-filters", "data-invoice-date", "data-invoice-date-proxy",
                                "r1_admin_invoice_filters.js", "date_time_picker.js"):
-                    self.assertNotContains(response, marker)
-                self.assertTemplateNotUsed(response, "invoices/partials/filter_date.html")
+                    if route == "support_coordination_invoice_list":
+                        self.assertContains(response, marker)
+                    else:
+                        self.assertNotContains(response, marker)
+                if route == "support_coordination_invoice_list":
+                    self.assertTemplateUsed(response, "invoices/partials/filter_date.html")
+                else:
+                    self.assertTemplateNotUsed(response, "invoices/partials/filter_date.html")
                 markup = self.markup(response)
                 self.assertEqual(len(markup.find("select", name="status")), 1)
                 for name, value in (("period_from", "2026-10-01"), ("period_to", "2026-10-31")):
@@ -476,9 +486,13 @@ class R1AdminInvoiceListTests(TestCase):
                     self.assertEqual(response.status_code, 200)
                     for marker in ("data-invoice-filters", "data-invoice-date", "data-invoice-date-proxy",
                                    "r1_admin_invoice_filters.js", "date_time_picker.js"):
-                        if url == reverse("invoice_create") and marker in (
+                        if url in (reverse("invoice_create"), reverse("support_coordination_invoice_create")) and marker in (
                             "data-invoice-date", "data-invoice-date-proxy", "date_time_picker.js"
                         ):
+                            self.assertContains(response, marker)
+                            continue
+                        if url == reverse("support_coordination_invoice_create") and marker == "data-invoice-filters":
+                            self.assertContains(response, marker)
                             continue
                         self.assertNotContains(response, marker)
                     self.assertTemplateNotUsed(response, "invoices/partials/filter_date.html")

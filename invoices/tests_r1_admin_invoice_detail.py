@@ -146,16 +146,23 @@ class R1AdminInvoiceDetailTests(TestCase):
                                    self.participant.display_name, "01/06/2026 - 30/06/2026", "$183.23"):
                         self.assertContains(response, marker)
 
-    def test_accountant_service_and_admin_sc_details_remain_unenhanced(self):
+    def test_accountant_service_stays_legacy_and_admin_sc_details_opt_in(self):
         for user, records in ((self.accountant_user, self.records),
                               (self.admin_user, self.sc_records), (self.super_admin, self.sc_records)):
             for status, invoice in records.items():
                 with self.subTest(role=user.userprofile.role, invoice_type=invoice.invoice_type, status=status):
                     response = self.detail(invoice, user)
-                    self.assertIs(response.context.get("r1_invoice_detail"), False)
-                    self.assertTemplateNotUsed(response, "invoices/partials/r1_invoice_detail.html")
+                    enhanced = records is self.sc_records
+                    self.assertIs(response.context.get("r1_invoice_detail"), enhanced)
+                    if enhanced:
+                        self.assertTemplateUsed(response, "invoices/partials/r1_invoice_detail.html")
+                    else:
+                        self.assertTemplateNotUsed(response, "invoices/partials/r1_invoice_detail.html")
                     for marker in ("r1-admin-invoice-detail", "r1_admin_invoice_detail.css", "r1_shell.css"):
-                        self.assertNotContains(response, marker)
+                        if enhanced:
+                            self.assertContains(response, marker)
+                        else:
+                            self.assertNotContains(response, marker)
                     label = "Back to SC Invoices" if records is self.sc_records else "Back to Invoices"
                     self.assertContains(response, label)
                     self.assertContains(response, static("css/invoice_billing.css"), count=1)
