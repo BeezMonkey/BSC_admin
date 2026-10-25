@@ -1,4 +1,4 @@
-{% extends "admin_base.html" %}
+{% extends "r1/admin_coordination_log_base.html" %}
 
 {% block title %}Coordination Logs - Brisbane Star Care{% endblock %}
 
@@ -24,7 +24,7 @@
 </form>
 
 <form method="get" action="{% url 'support_coordination_invoice_create' %}">
-<section class="card table-card service-log-table-card">
+<section class="r1-coordination-list" aria-label="Coordination logs and billing">
   <div class="bulk-actions service-log-bulk-actions">
     <div>
       <strong>Billing action</strong>
@@ -32,7 +32,9 @@
     </div>
     <button type="submit">Create SC Invoice from Selected</button>
   </div>
-  <table class="service-log-table">
+  <div class="r1-coordination-table-wrap" role="region" aria-label="Coordination logs" tabindex="0">
+  <table class="service-log-table r1-coordination-table">
+    <colgroup><col><col><col><col><col><col><col><col><col></colgroup>
     <thead>
       <tr>
         <th>Select</th>
@@ -49,42 +51,42 @@
     <tbody>
       {% for log in logs %}
         <tr>
-          <td class="service-log-select-cell">
+          <td class="service-log-select-cell" data-label="Select">
             {% if log.status == "approved" and not log.invoice_lines.exists %}
-              <input type="checkbox" name="coordination_log_ids" value="{{ log.id }}">
+              <input type="checkbox" name="coordination_log_ids" value="{{ log.id }}" aria-label="Select {{ log.participant.display_name }} {{ log.service_date|date:'d/m/Y' }}">
             {% endif %}
           </td>
-          <td class="service-log-date-cell">
+          <td class="service-log-date-cell" data-label="Date">
             <div class="service-log-date-stack">
               <a href="{% url 'coordination_log_detail' log.id %}?next={{ current_list_url|urlencode }}">{{ log.service_date|date:"d/m/Y" }}</a>
               <span>Submitted {{ log.submitted_at|date:"d/m/Y H:i" }}</span>
             </div>
           </td>
-          <td class="service-log-person-cell">
+          <td class="service-log-person-cell" data-label="Participant">
             <div class="service-log-person-stack">
               <strong class="service-log-person-name">{{ log.participant.display_name }}</strong>
               <span class="service-log-role-label">Participant</span>
             </div>
           </td>
-          <td class="service-log-person-cell">
+          <td class="service-log-person-cell" data-label="Coordinator">
             <div class="service-log-person-stack">
               <strong class="service-log-person-name">{{ log.coordinator.display_name }}</strong>
               <span class="service-log-role-label">Support coordinator</span>
             </div>
           </td>
-          <td>{{ log.get_coordination_type_display }}</td>
-          <td class="service-log-status-cell">
+          <td data-label="Type">{{ log.get_coordination_type_display }}</td>
+          <td class="service-log-status-cell" data-label="Status">
             <span class="status-pill status-{{ log.status }}">{{ log.get_status_display }}</span>
           </td>
-          <td class="service-log-hours-cell numeric-cell">{{ log.actual_hours }}</td>
-          <td class="notes-cell"><div class="service-log-notes-preview">{{ log.case_notes|truncatechars:80 }}</div></td>
-          <td class="actions service-log-actions-cell">
-            <a href="{% url 'coordination_log_detail' log.id %}?next={{ current_list_url|urlencode }}">View</a>
+          <td class="service-log-hours-cell numeric-cell" data-label="Hours">{{ log.actual_hours }}</td>
+          <td class="notes-cell" data-label="Notes"><div class="service-log-notes-preview">{{ log.case_notes|truncatechars:80 }}</div></td>
+          <td class="actions service-log-actions-cell" data-label="Actions">
+            <a class="button secondary" href="{% url 'coordination_log_detail' log.id %}?next={{ current_list_url|urlencode }}">View</a>
           </td>
         </tr>
       {% empty %}
-        <tr>
-          <td colspan="9">
+        <tr class="r1-coordination-empty-row">
+          <td colspan="9" class="r1-coordination-empty-cell">
             <div class="empty-state">
               {% if has_filters %}
                 <strong>No coordination logs match the current filters.</strong>
@@ -102,6 +104,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 </section>
 </form>
 {% endblock %}
