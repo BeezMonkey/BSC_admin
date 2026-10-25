@@ -1,0 +1,154 @@
+/* B09.1 three Admin list routes only; business controls remain native. */
+.app-shell.r1-admin-people-lists {grid-template-columns:212px minmax(0,1fr);}
+.r1-admin-people-lists .admin-mobile-surface {min-width:0;}
+.r1-admin-people-lists .content {width:100%;min-width:0;max-width:none;padding:0 28px 40px;}
+.r1-admin-people-lists .topbar {margin:0 -28px 28px;}
+.r1-admin-people-lists .page-header {align-items:flex-start;gap:24px;margin-bottom:28px;}
+.r1-admin-people-lists .page-header>div {min-width:0;}
+.r1-admin-people-lists h1 {font-size:24px;line-height:32px;margin:0;overflow-wrap:anywhere;}
+.r1-admin-people-lists .page-header p {font-size:14px;line-height:20px;margin:8px 0 0;color:var(--r1-muted);}
+.r1-admin-people-lists h2 {font-size:16px;line-height:24px;margin:0;}
+.app-shell.r1-admin-people-lists :is(.content button,.content .button) {display:inline-flex;align-items:center;justify-content:center;min-height:36px;box-sizing:border-box;max-width:100%;padding:7px 16px;border:1px solid var(--r1-accent);border-radius:6px;background:var(--r1-accent);color:var(--r1-surface);font-size:14px;line-height:20px;font-weight:500;text-decoration:none;white-space:normal;}
+.app-shell.r1-admin-people-lists .content .button.secondary {background:var(--r1-surface);color:var(--r1-text);border-color:var(--r1-strong-border);}
+.app-shell.r1-admin-people-lists .content .button.secondary:hover {background:var(--r1-subtle);}
+.app-shell.r1-admin-people-lists .content .button.secondary.active {background:var(--r1-accent-soft);border-color:var(--r1-accent);}
+.r1-admin-people-lists .quick-filter-row {display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px;}
+.r1-admin-people-lists .participant-workbench {margin:0 0 28px;padding:0;border:0;background:none;box-shadow:none;}
+.r1-admin-people-lists :is(.dashboard-section-heading,.participant-filter-copy) {display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:16px;}
+.r1-admin-people-lists :is(.dashboard-section-heading p,.participant-filter-copy span) {margin:0;color:var(--r1-muted);font-size:14px;line-height:20px;}
+.r1-admin-people-lists .participant-status-grid {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;}
+.r1-admin-people-lists .participant-status-card {display:flex;flex-direction:column;gap:8px;min-width:0;padding:16px;border:1px solid var(--r1-border);border-radius:8px;background:var(--r1-surface);text-decoration:none;color:var(--r1-text);box-shadow:none;}
+.r1-admin-people-lists .participant-status-card.active {border-color:var(--r1-accent);background:var(--r1-accent-soft);}
+.r1-admin-people-lists .participant-status-card strong {font-size:16px;line-height:24px;font-weight:600;}
+.r1-admin-people-lists .participant-status-card small {font-size:12px;line-height:18px;color:var(--r1-muted);}
+.r1-admin-people-lists .participant-filter-panel {background:none;padding:0;border:0;box-shadow:none;}
+.r1-admin-people-lists .filter-bar {display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;margin:0 0 24px;padding:16px;background:var(--r1-subtle);border:0;border-radius:8px;}
+.r1-admin-people-lists .filter-bar label {display:grid;gap:8px;flex:1 1 180px;min-width:0;font-size:14px;line-height:20px;font-weight:500;}
+.r1-admin-people-lists .filter-bar label:first-of-type {flex:2 1 260px;}
+.app-shell.r1-admin-people-lists .filter-bar :is(input,select) {width:100%;box-sizing:border-box;min-width:0;height:36px;margin:0;padding:7px 12px;border:1px solid var(--r1-strong-border);border-radius:6px;background:var(--r1-surface);color:var(--r1-text);font-size:14px;line-height:20px;font-weight:400;}
+.r1-admin-people-lists .filter-bar label:has(select) {position:relative;}
+.r1-admin-people-lists .filter-bar label:has(select)::after {content:"";position:absolute;right:12px;bottom:10px;width:16px;height:16px;background:url('../img/r1/icons/chevron.svg') center/16px no-repeat;transform:rotate(90deg);pointer-events:none;}
+.app-shell.r1-admin-people-lists .filter-bar select {appearance:none;padding-right:36px;}
+.r1-admin-people-lists .table-card {margin:0;padding:0;border:1px solid var(--r1-border);border-radius:8px;background:var(--r1-surface);box-shadow:none;overflow:hidden;}
+.r1-admin-people-lists table {width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font-size:14px;line-height:20px;}
+.r1-admin-people-lists :is(th,td) {height:auto;padding:18px 12px;border-bottom:1px solid var(--r1-border);text-align:left;vertical-align:middle;overflow-wrap:anywhere;}
+.r1-admin-people-lists th {padding:14px 12px;color:var(--r1-muted);background:var(--r1-subtle);font-size:12px;line-height:18px;font-weight:400;}
+.r1-admin-people-lists :is(th,td).actions,.r1-admin-people-lists th.actions-heading {width:148px;text-align:right;}
+.r1-admin-people-lists td.actions {display:table-cell;white-space:normal;}
+.r1-admin-people-lists td.actions .button {padding:6px 12px;margin:2px 0 2px 4px;}
+.r1-admin-people-lists tbody tr:last-child td {border-bottom:0;}
+.r1-admin-people-lists tbody tr:hover {background:var(--r1-subtle);}
+.r1-admin-people-lists td.identity {font-weight:600;}
+.r1-admin-people-lists .sort-link {color:var(--r1-muted);font-weight:400;}
+.r1-admin-people-lists :is(.participant-name-stack,.participant-contact-stack,.participant-plan-stack,.participant-worker-stack) {display:grid;gap:4px;min-width:0;}
+.r1-admin-people-lists .participant-identity {display:flex;align-items:center;gap:12px;min-width:0;}
+.r1-admin-people-lists :is(.participant-avatar,.participant-worker-avatar) {display:inline-flex;align-items:center;justify-content:center;flex:none;width:32px;height:32px;border-radius:50%;background:var(--r1-accent-soft);color:var(--r1-invoiced);font-size:12px;font-weight:400;}
+.r1-admin-people-lists .participant-worker-avatar {width:24px;height:24px;}
+.r1-admin-people-lists .participant-name-stack a {color:var(--r1-text);font-weight:600;text-decoration:none;}
+.r1-admin-people-lists .participant-worker-avatars {display:flex;gap:4px;}
+.r1-admin-people-lists :is(.participant-name-stack span,.participant-contact-stack span,.participant-plan-stack span,.participant-worker-stack strong,.participant-no-worker) {font-size:12px;line-height:18px;color:var(--r1-muted);font-weight:400;}
+.r1-admin-people-lists .participant-table th:nth-child(1) {width:19%;}
+.r1-admin-people-lists .participant-table th:nth-child(2) {width:17%;}
+.r1-admin-people-lists .participant-table th:nth-child(3) {width:9%;}
+.r1-admin-people-lists .participant-table th:nth-child(4) {width:15%;}
+.r1-admin-people-lists .participant-table th:nth-child(5) {width:12%;}
+.r1-admin-people-lists .participant-table th:nth-child(6) {width:14%;}
+.r1-admin-people-lists .status-pill {font-size:12px;line-height:18px;font-weight:400;border-radius:4px;padding:4px 8px;}
+.r1-admin-people-lists .status-active {color:var(--r1-success);background:#eef5f0;}
+.r1-admin-people-lists :is(.status-inactive,.status-archived) {color:var(--r1-muted);background:var(--r1-subtle);}
+.r1-admin-people-lists .empty-state {padding:24px;text-align:center;}
+.r1-admin-people-lists .pagination {font-size:14px;line-height:20px;}
+.app-shell.r1-ui.r1-admin-people-lists .table-card :is(th,td) {height:auto;line-height:20px;white-space:normal;}
+.app-shell.r1-ui.r1-admin-people-lists .table-card th {padding:14px 12px;background:var(--r1-subtle);color:var(--r1-muted);font-size:12px;line-height:18px;}
+.app-shell.r1-ui.r1-admin-people-lists .table-card td {padding:18px 12px;}
+.app-shell.r1-ui.r1-admin-people-lists .status-pill {justify-self:start;max-width:100%;font-size:12px;line-height:18px;font-weight:400;border-radius:4px;}
+.app-shell.r1-ui.r1-admin-people-lists .status-active {color:var(--r1-success);background:#eef5f0;}
+.app-shell.r1-ui.r1-admin-people-lists :is(.status-inactive,.status-archived) {color:var(--r1-muted);background:var(--r1-subtle);}
+.app-shell.r1-ui.r1-admin-people-lists :is(.participant-avatar,.participant-worker-avatar) {border:0;background:var(--r1-accent-soft);color:var(--r1-invoiced);}
+.app-shell.r1-ui.r1-admin-people-lists .participant-contact-stack strong,.app-shell.r1-ui.r1-admin-people-lists .participant-plan-stack strong {font-weight:400;}
+.app-shell.r1-ui.r1-admin-people-lists .r1-account {display:grid;gap:8px;}
+.app-shell.r1-ui.r1-admin-people-lists .r1-account form {margin:0;}
+@media(max-width:1100px) {.r1-admin-people-lists .participant-status-grid {grid-template-columns:repeat(3,minmax(0,1fr));}}
+@media(max-width:760px) {
+ .app-shell.r1-admin-people-lists {display:block;}
+ .app-shell.r1-ui.r1-admin-people-lists .sidebar {display:none;}
+ .app-shell.r1-ui.r1-admin-people-lists .content {padding:0 20px 32px;}
+ .app-shell.r1-ui.r1-admin-people-lists .topbar {margin:0 -20px 24px;padding:16px 20px;}
+ .r1-admin-people-lists .page-header {flex-wrap:wrap;gap:16px;}
+ .r1-admin-people-lists :is(.dashboard-section-heading,.participant-filter-copy) {display:grid;gap:8px;}
+ .r1-admin-people-lists .participant-status-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+ .r1-admin-people-lists .participant-status-card {padding:12px;}
+ .r1-admin-people-lists .filter-bar label {flex-basis:100%;}
+ .app-shell.r1-admin-people-lists :is(.content button,.content .button) {min-height:44px;}
+ .app-shell.r1-admin-people-lists .filter-bar :is(input,select) {height:44px;}
+ .r1-admin-people-lists .filter-bar label:has(select)::after {bottom:14px;}
+ .r1-admin-people-lists table,.r1-admin-people-lists tbody {display:block;width:100%;min-width:0;}
+ .r1-admin-people-lists thead {display:block;padding:12px 16px;border-bottom:1px solid var(--r1-border);background:var(--r1-subtle);}
+ .r1-admin-people-lists thead::before {content:"Sort by";display:block;margin-bottom:8px;color:var(--r1-muted);font-size:12px;line-height:18px;}
+ .r1-admin-people-lists thead tr {display:flex;flex-wrap:wrap;gap:8px 16px;}
+ .app-shell.r1-ui.r1-admin-people-lists .table-card th {display:none;}
+ .app-shell.r1-ui.r1-admin-people-lists .table-card th:has(.sort-link) {display:block;width:auto;max-width:100%;height:auto;padding:0;border:0;}
+ .r1-admin-people-lists thead .sort-link {display:inline-flex;align-items:center;min-height:44px;font-size:14px;line-height:20px;color:var(--r1-text);}
+ .r1-admin-people-lists tbody tr {display:block;padding:16px;border-bottom:1px solid var(--r1-border);}
+ .r1-admin-people-lists tbody tr:last-child {border-bottom:0;}
+ .app-shell.r1-admin-people-lists :is(td,td.actions) {display:grid;grid-template-columns:100px minmax(0,1fr);gap:12px;width:auto;min-width:0;height:auto;padding:6px 0;border:0;text-align:left;}
+ .app-shell.r1-ui.r1-admin-people-lists .table-card td {height:auto;padding:6px 0;white-space:normal;}
+ .r1-admin-people-lists td[data-label]::before {content:attr(data-label);font-size:12px;line-height:18px;font-weight:400;color:var(--r1-muted);}
+ .app-shell.r1-admin-people-lists td.actions {display:flex;justify-content:flex-end;flex-wrap:wrap;margin-top:8px;}
+ .r1-admin-people-lists td.actions::before {content:none;}
+ .app-shell.r1-admin-people-lists td[colspan] {display:block;}
+ .r1-admin-people-lists .empty-state {padding:12px 0;}
+}
+
+
+/* v02: exact accepted Invoice card/filter rules, scoped to the three people list routes. */
+.app-shell.r1-ui.r1-admin-people-lists .participant-status-card { align-content: start; gap: 4px; min-height: 96px; padding: 12px; border: 1px solid var(--r1-border); border-radius: 8px; background: var(--r1-surface); box-shadow: none; }
+.app-shell.r1-ui.r1-admin-people-lists .participant-status-card span { font-size: 12px; line-height: 16px; font-weight: 500; color: var(--r1-muted); }
+.app-shell.r1-ui.r1-admin-people-lists .participant-status-card strong { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--r1-text); overflow-wrap: anywhere; }
+.app-shell.r1-ui.r1-admin-people-lists .participant-status-card small { font-size: 12px; line-height: 16px; color: var(--r1-muted); }
+.app-shell.r1-ui.r1-admin-people-lists .participant-status-card:hover { border-color: var(--r1-strong-border); background: var(--r1-subtle); }
+.app-shell.r1-ui.r1-admin-people-lists .participant-status-card.active { border-color: var(--r1-accent); background: var(--r1-accent-soft); }
+.app-shell.r1-ui.r1-admin-people-lists .participant-status-card.active span { color: var(--r1-accent); }
+.app-shell.r1-ui.r1-admin-people-lists .filter-bar label { display: grid; gap: 6px; min-width: 0; font-size: 12px; line-height: 16px; font-weight: 400; color: var(--r1-muted); }
+.app-shell.r1-ui.r1-admin-people-lists .filter-bar :is(input, select) { box-sizing: border-box; width: 100%; min-width: 0; height: 40px; padding: 9px 12px; font-size: 14px; line-height: 20px; font-weight: 400; border: 1px solid var(--r1-strong-border); border-radius: var(--r1-control-radius); background-color: var(--r1-surface); color: var(--r1-text); }
+.app-shell.r1-ui.r1-admin-people-lists .filter-bar :is(input, select):focus { border-color: var(--r1-accent); outline: 3px solid var(--r1-blue-soft); outline-offset: 0; box-shadow: none; }
+.app-shell.r1-ui.r1-admin-people-lists .filter-bar :is(button, .button) { min-height: 40px; margin: 0; padding: 9px 12px; }
+.app-shell.r1-ui.r1-admin-people-lists .filter-bar select { padding-right: 36px; }
+@supports (appearance: base-select) and selector(select::picker(select)) {
+  @media (min-width: 761px) and (hover: hover) and (pointer: fine) {
+    .app-shell.r1-ui.r1-admin-people-lists .filter-bar select,
+    .app-shell.r1-ui.r1-admin-people-lists .filter-bar select::picker(select) { appearance: base-select; }
+    .app-shell.r1-ui.r1-admin-people-lists .filter-bar select { align-items: center; }
+    .app-shell.r1-ui.r1-admin-people-lists .filter-bar.filter-bar select { line-height: normal; }
+    .app-shell.r1-ui.r1-admin-people-lists .filter-bar select::picker(select) {
+      box-sizing: border-box; max-height: 280px; overflow-y: auto; margin: 4px 0;
+      border: 1px solid var(--r1-border); border-radius: 8px; padding: 4px;
+      color: var(--r1-text); background: var(--r1-surface); box-shadow: 0 6px 16px rgb(23 33 43 / 12%);
+    }
+    .app-shell.r1-ui.r1-admin-people-lists .filter-bar select option { min-height: 32px; padding: 6px 8px; border-radius: 4px; font-size: 13px; line-height: 18px; white-space: normal; overflow-wrap: anywhere; }
+    .app-shell.r1-ui.r1-admin-people-lists .filter-bar select option:is(:checked, :hover, :focus) { color: var(--r1-accent); background: var(--r1-blue-soft); }
+    .app-shell.r1-ui.r1-admin-people-lists .filter-bar select option::checkmark { color: var(--r1-accent); }
+  }
+}
+@supports (appearance: base-select) and selector(select::picker(select)) {
+  @media (min-width: 761px) and (hover: hover) and (pointer: fine) {
+    .app-shell.r1-ui.r1-admin-people-lists .filter-bar label:has(select)::after { display: none; }
+    .app-shell.r1-ui.r1-admin-people-lists .filter-bar select { padding-right: 12px; }
+  }
+}
+.app-shell.r1-ui.r1-admin-people-lists .participant-status-card { display: grid; height: auto; }
+.app-shell.r1-ui.r1-admin-people-lists .filter-bar { gap: 10px; padding: 12px; }
+.app-shell.r1-ui.r1-admin-people-lists .filter-bar label:has(select)::after { bottom: 12px; }
+@media (max-width: 760px) {
+  .app-shell.r1-ui.r1-admin-people-lists .participant-status-card { min-height: 88px; }
+  .app-shell.r1-ui.r1-admin-people-lists .filter-bar :is(input, select) { height: 44px; min-height: 44px; font-size: 16px; padding: 10px 8px; }
+  .app-shell.r1-ui.r1-admin-people-lists .filter-bar :is(button, .button) { min-height: 44px; }
+  .app-shell.r1-ui.r1-admin-people-lists .filter-bar select { padding-right: 36px; }
+  .app-shell.r1-ui.r1-admin-people-lists .filter-bar label:has(select)::after { bottom: 14px; }
+}
+
+/* Match accepted native Invoice select fallback on touch screens. */
+@media (max-width: 760px) {
+  .app-shell.r1-ui.r1-admin-people-lists .filter-bar select { appearance: auto; line-height: normal; padding: 10px 8px; }
+  .app-shell.r1-ui.r1-admin-people-lists .filter-bar label:has(select)::after { display: none; }
+}

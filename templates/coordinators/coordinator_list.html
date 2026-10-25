@@ -1,6 +1,7 @@
-{% extends "admin_base.html" %}
+{% extends "r1/admin_people_list_base.html" %}
 
 {% block title %}Support Coordinators - Brisbane Star Care{% endblock %}
+{% block people_breadcrumb %}Coordination / Support Coordinators{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -44,14 +45,14 @@
     <tbody>
       {% for coordinator in coordinators %}
         <tr>
-          <td>{{ coordinator.display_name }}</td>
-          <td>{{ coordinator.email }}</td>
-          <td>{{ coordinator.phone|default:"-" }}</td>
-          <td><span class="status-pill status-{{ coordinator.status }}">{{ coordinator.get_status_display }}</span></td>
-          <td>{{ coordinator.active_assignment_count }}</td>
-          <td class="actions">
-            <a href="{% url 'coordinator_detail' coordinator.id %}?next={{ current_list_url|urlencode }}">View</a>
-            <a href="{% url 'coordinator_edit' coordinator.id %}?next={{ current_list_url|urlencode }}">Edit</a>
+          <td class="identity" data-label="Name">{{ coordinator.display_name }}</td>
+          <td data-label="Email">{{ coordinator.email }}</td>
+          <td data-label="Phone">{{ coordinator.phone|default:"-" }}</td>
+          <td data-label="Status"><span class="status-pill status-{{ coordinator.status }}">{{ coordinator.get_status_display }}</span></td>
+          <td data-label="Active Assignments">{{ coordinator.active_assignment_count }}</td>
+          <td class="actions" data-label="Actions">
+            <a class="button secondary" href="{% url 'coordinator_detail' coordinator.id %}?next={{ current_list_url|urlencode }}">View</a>
+            <a class="button secondary" href="{% url 'coordinator_edit' coordinator.id %}?next={{ current_list_url|urlencode }}">Edit</a>
           </td>
         </tr>
       {% empty %}

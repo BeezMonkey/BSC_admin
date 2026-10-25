@@ -1,6 +1,7 @@
-{% extends "admin_base.html" %}
+{% extends "r1/admin_people_list_base.html" %}
 
 {% block title %}Participants - Brisbane Star Care{% endblock %}
+{% block people_breadcrumb %}Operations / Participants{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -75,7 +76,7 @@
     <tbody>
       {% for participant in participants %}
         <tr>
-          <td class="participant-identity-cell">
+          <td class="participant-identity-cell identity" data-label="Participant">
             <div class="participant-identity">
               <span class="participant-avatar" aria-hidden="true">{{ participant.initials }}</span>
               <div class="participant-name-stack">
@@ -84,14 +85,14 @@
               </div>
             </div>
           </td>
-          <td class="participant-contact-cell">
+          <td class="participant-contact-cell" data-label="Contact">
             <div class="participant-contact-stack">
               <strong>{{ participant.phone|default:"No phone" }}</strong>
               <span>{{ participant.email|default:"No email" }}</span>
             </div>
           </td>
-          <td class="participant-status-cell"><span class="status-pill status-{{ participant.status }}">{{ participant.get_status_display }}</span></td>
-          <td class="participant-plan-cell">
+          <td class="participant-status-cell" data-label="Status"><span class="status-pill status-{{ participant.status }}">{{ participant.get_status_display }}</span></td>
+          <td class="participant-plan-cell" data-label="Plan">
             <div class="participant-plan-stack">
               <strong>{{ participant.get_management_type_display|default:"Management not set" }}</strong>
               <span>
@@ -103,7 +104,7 @@
               </span>
             </div>
           </td>
-          <td class="participant-workers-cell">
+          <td class="participant-workers-cell" data-label="Assigned Workers">
             {% with active_worker_count=participant.active_worker_assignments|length %}
               {% if active_worker_count %}
                 <div class="participant-worker-stack">
@@ -124,10 +125,10 @@
               {% endif %}
             {% endwith %}
           </td>
-          <td class="participant-coordinator-cell">{{ participant.support_coordinator_name|default:"-" }}</td>
-          <td class="actions">
-            <a href="{% url 'participant_detail' participant.id %}?next={{ current_list_url|urlencode }}">View</a>
-            <a href="{% url 'participant_edit' participant.id %}?next={{ current_list_url|urlencode }}">Edit</a>
+          <td class="participant-coordinator-cell" data-label="Coordinator">{{ participant.support_coordinator_name|default:"-" }}</td>
+          <td class="actions" data-label="Actions">
+            <a class="button secondary" href="{% url 'participant_detail' participant.id %}?next={{ current_list_url|urlencode }}">View</a>
+            <a class="button secondary" href="{% url 'participant_edit' participant.id %}?next={{ current_list_url|urlencode }}">Edit</a>
           </td>
         </tr>
       {% empty %}
