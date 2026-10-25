@@ -207,14 +207,14 @@ class SupportWorkerManagementTests(TestCase):
         archived_response = self.client.get(reverse("worker_list"), {"scope": "archived"})
         all_response = self.client.get(reverse("worker_list"), {"scope": "all"})
 
-        self.assertContains(default_response, "<td>Active Worker</td>", html=True)
-        self.assertNotContains(default_response, "<td>Inactive Worker</td>", html=True)
+        self.assertContains(default_response, '<td class="identity" data-label="Name">Active Worker</td>', html=True)
+        self.assertNotContains(default_response, '<td class="identity" data-label="Name">Inactive Worker</td>', html=True)
         self.assertContains(default_response, "Active Workers")
         self.assertContains(default_response, "Archived Workers")
-        self.assertContains(archived_response, "<td>Inactive Worker</td>", html=True)
-        self.assertNotContains(archived_response, "<td>Active Worker</td>", html=True)
-        self.assertContains(all_response, "<td>Active Worker</td>", html=True)
-        self.assertContains(all_response, "<td>Inactive Worker</td>", html=True)
+        self.assertContains(archived_response, '<td class="identity" data-label="Name">Inactive Worker</td>', html=True)
+        self.assertNotContains(archived_response, '<td class="identity" data-label="Name">Active Worker</td>', html=True)
+        self.assertContains(all_response, '<td class="identity" data-label="Name">Active Worker</td>', html=True)
+        self.assertContains(all_response, '<td class="identity" data-label="Name">Inactive Worker</td>', html=True)
 
     def test_worker_list_is_paginated_and_preserves_filters(self):
         for index in range(25):
@@ -305,8 +305,8 @@ class SupportWorkerManagementTests(TestCase):
         content = response.content.decode()
 
         self.assertLess(
-            content.index("<td>Inactive Worker</td>"),
-            content.index("<td>Active Worker</td>"),
+            content.index('<td class="identity" data-label="Name">Inactive Worker</td>'),
+            content.index('<td class="identity" data-label="Name">Active Worker</td>'),
         )
         self.assertContains(
             response,
