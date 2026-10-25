@@ -1,0 +1,41 @@
+/* Detail-only v03 overrides; shared R1 and Service Logs assets remain unchanged. */
+.r1-admin-log-detail .r1-log-layout { grid-template-columns:minmax(0,1fr) 280px; }
+.r1-admin-log-detail .r1-log-record { min-width:0; }
+.r1-admin-log-detail .r1-log-section h2 { margin:0; }
+.r1-admin-log-detail .r1-log-identity { margin:24px 0 0; }
+.r1-admin-log-detail .r1-log-facts { grid-template-columns:repeat(2,minmax(0,1fr)); margin-bottom:0; }
+.r1-admin-log-detail .r1-log-legacy { margin:24px 0 0; }
+.r1-admin-log-detail .r1-log-notes { margin:20px 0 0; }
+.r1-admin-log-detail .r1-log-notes > dt { color:var(--r1-muted); font-size:12px; line-height:18px; font-weight:400; }
+.r1-admin-log-detail .r1-log-notes > dd { margin:8px 0 0; }
+.r1-admin-log-detail .r1-log-notes > dd + dt { margin-top:24px; border-top:1px solid var(--r1-border); padding-top:24px; }
+.r1-admin-log-detail .r1-log-status > h2 { margin:0 0 16px; }
+.r1-admin-log-detail .r1-log-status-fact dd { margin-top:8px; }
+.r1-admin-log-detail .r1-log-status .status-pill { margin:0; }
+.r1-admin-log-detail .r1-log-status-submitted { background:var(--r1-warning-soft); }
+.r1-admin-log-detail .r1-log-status-invoiced { background:var(--r1-accent-soft); }
+.r1-admin-log-detail .r1-log-status .service-log-review-actions { margin-top:20px; display:grid; gap:12px; }
+.app-shell.r1-admin-log-detail .r1-log-status .service-log-review-actions :is(form,details,summary,button) { width:100%; max-width:100%; }
+.r1-admin-log-detail .r1-log-status .service-log-reject-disclosure { margin:0; }
+.r1-admin-log-detail .r1-log-status .service-log-reject-form { margin-top:12px; }
+.r1-admin-log-detail .r1-log-rejection { margin-top:20px; padding-top:16px; border-top:1px solid var(--r1-border); }
+.r1-admin-log-detail .r1-log-rejection dd { white-space:pre-wrap; }
+.r1-admin-log-detail .r1-log-activity h2 { margin:0; }
+.r1-admin-log-detail .r1-log-activity-list { margin-top:20px; }
+.r1-admin-log-detail .r1-log-record .sc-log-history { margin:0; padding:24px 0 0; border:0; border-radius:0; background:transparent; }
+.r1-admin-log-detail .r1-log-record .sc-log-history h2 { margin:0 0 20px; }
+.r1-admin-log-detail .r1-log-history-section { padding-bottom:0; border:0; }
+@media (min-width:761px) and (max-width:1120px) {
+  .r1-admin-log-detail .r1-log-layout { grid-template-columns:minmax(0,1fr) 240px; gap:20px; }
+}
+@media (max-width:1000px) {
+  .r1-admin-log-detail .r1-log-layout { grid-template-columns:minmax(0,1fr); gap:24px; }
+}
+@media (max-width:760px) {
+  .r1-admin-log-detail .r1-log-rail { gap:24px; }
+  .r1-admin-log-detail .r1-log-record .sc-log-history { padding-top:20px; }
+  .r1-admin-log-detail .r1-log-identity { margin-top:20px; gap:20px 16px; }
+}
+@media (max-width:350px) {
+  .r1-admin-log-detail :is(.r1-log-identity,.r1-log-facts) { grid-template-columns:minmax(0,1fr); }
+}
