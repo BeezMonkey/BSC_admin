@@ -143,8 +143,12 @@ class R1ShellIsolationTests(TestCase):
                 with self.subTest(route=route):
                     response = self.client.get(reverse(route))
                     self.assertEqual(response.status_code, 200)
-                    self.assertNotContains(response, "r1_shell.css")
-                    self.assertNotContains(response, "r1-ui")
+                    if route == "support_coordination_invoice_list":
+                        self.assert_r1_resources(response, "admin")
+                        self.assertContains(response, "r1_admin_sc_invoices.css", count=1)
+                    else:
+                        self.assertNotContains(response, "r1_shell.css")
+                        self.assertNotContains(response, "r1-ui")
 
     def test_profile_opts_into_independent_support_shell(self):
         self.client.force_login(self.worker_user)

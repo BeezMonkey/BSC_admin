@@ -173,7 +173,10 @@ class R1AdminInvoiceCreateTests(TestCase):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 200)
                 for marker in ("r1-admin-invoice-create", "r1_admin_invoice_create.css", "r1_admin_invoice_create.js"):
-                    self.assertNotContains(response, marker)
+                    if url == reverse("support_coordination_invoice_create") and marker == "r1_admin_invoice_create.js":
+                        self.assertContains(response, static("js/r1_admin_invoice_create.js"), count=1)
+                    else:
+                        self.assertNotContains(response, marker)
                 self.assertTemplateNotUsed(response, "invoices/partials/create_date.html")
         for user in (self.worker_user, self.coordinator_user):
             self.client.force_login(user)

@@ -1,7 +1,7 @@
 /* Preview-only adapter; original bound dates remain the submitted controls. */
 (() => {
   "use strict";
-  const form = document.querySelector(".r1-admin-invoice-create .invoice-preview-filter");
+  const form = document.querySelector(".r1-admin-invoice-create .invoice-preview-filter, .r1-admin-sc-preview .invoice-preview-filter");
   if (!form || typeof window.initDateTimePickers !== "function") return;
   const desktop = window.matchMedia("(min-width: 761px) and (hover: hover) and (pointer: fine)");
   form.querySelectorAll("[data-invoice-date]").forEach(root => {

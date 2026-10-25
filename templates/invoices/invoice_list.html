@@ -9,10 +9,11 @@
   <link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/r1_shell.css' %}">
   <link rel="stylesheet" href="{% static 'css/r1_admin_invoice_list.css' %}">
+  {% if r1_sc_invoice %}<link rel="stylesheet" href="{% static 'css/r1_admin_sc_invoices.css' %}">{% endif %}
   {% endif %}
 {% endblock %}
 
-{% block r1_shell_class %}{% if r1_invoice_list %} r1-ui r1-admin r1-admin-invoice-list{% endif %}{% endblock %}
+{% block r1_shell_class %}{% if r1_invoice_list %} r1-ui r1-admin r1-admin-invoice-list{% if r1_sc_invoice %} r1-admin-sc-invoices{% endif %}{% endif %}{% endblock %}
 {% block sidebar_account %}
   {% if r1_invoice_list %}
   <div class="r1-account">
@@ -26,7 +27,7 @@
 {% endblock %}
 {% block topbar_content %}
   {% if r1_invoice_list %}
-  <nav class="r1-breadcrumb" aria-label="Breadcrumb">Business / Invoices</nav>
+  <nav class="r1-breadcrumb" aria-label="Breadcrumb">{% if r1_sc_invoice %}Coordination / SC Invoices{% else %}Business / Invoices{% endif %}</nav>
   {% else %}{{ block.super }}{% endif %}
 {% endblock %}
 

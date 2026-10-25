@@ -27,7 +27,7 @@
 {% endblock %}
 {% block topbar_content %}
   {% if r1_invoice_detail %}
-  <nav class="r1-breadcrumb" aria-label="Breadcrumb">Business / {{ invoice.invoice_number }}</nav>
+  <nav class="r1-breadcrumb" aria-label="Breadcrumb">{% if r1_sc_invoice %}Coordination / SC Invoices / {% else %}Business / {% endif %}{{ invoice.invoice_number }}</nav>
   {% else %}{{ block.super }}{% endif %}
 {% endblock %}
 

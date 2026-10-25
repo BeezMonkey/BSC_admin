@@ -231,7 +231,8 @@ def invoice_list_for_type(
         "invoices/invoice_list.html",
         {
             "page_title": page_title,
-            "r1_invoice_list": list_url_name == "invoice_placeholder" and has_role(request.user, ADMIN_ROLES),
+            "r1_invoice_list": has_role(request.user, ADMIN_ROLES),
+            "r1_sc_invoice": list_url_name == "support_coordination_invoice_list",
             "page_description": page_description,
             "list_url_name": list_url_name,
             "create_url_name": create_url_name,
@@ -969,7 +970,8 @@ def invoice_detail(request, invoice_id):
             "invoice": invoice,
             "return_url": get_safe_return_url(request, default_return_url),
             "return_label": return_label,
-            "r1_invoice_detail": not is_support_coordination_invoice and has_role(request.user, ADMIN_ROLES),
+            "r1_invoice_detail": has_role(request.user, ADMIN_ROLES),
+            "r1_sc_invoice": is_support_coordination_invoice,
         },
     )
 
