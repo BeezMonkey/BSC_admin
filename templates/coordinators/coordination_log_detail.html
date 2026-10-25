@@ -3,6 +3,12 @@
 {% load static %}
 
 {% block title %}Coordination Log - Brisbane Star Care{% endblock %}
+{% block extra_styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/r1_admin_log_detail.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_admin_coordination_detail.css' %}">
+{% endblock %}
+{% block r1_shell_class %}{{ block.super }} r1-admin-log-detail{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -17,45 +23,44 @@
 </div>
 
 <div class="service-log-detail-page r1-admin-coordination-detail">
-<div class="detail-grid">
-  <section class="card">
+<div class="r1-log-layout">
+<div class="r1-log-record">
+  <section class="r1-log-section" aria-label="Coordination Log">
     <h2>Coordination Log</h2>
-    <dl class="detail-list r1-coordination-facts">
-      <div><dt>Service date</dt><dd>{{ log.service_date|date:"d/m/Y" }}</dd></div>
-      <div><dt>Status</dt><dd><span class="status-pill status-{{ log.status }}">{{ log.get_status_display }}</span></dd></div>
+    <dl class="r1-log-identity">
       <div><dt>Coordinator</dt><dd>{{ log.coordinator.display_name }}</dd></div>
-      <div><dt>Coordination type</dt><dd>{{ log.get_coordination_type_display }}</dd></div>
+      <div><dt>Service date</dt><dd>{{ log.service_date|date:"d/m/Y" }}</dd></div>
+    </dl>
+    <dl class="r1-log-facts">
       <div><dt>Service duration</dt><dd>{{ log.service_duration_display }}</dd></div>
+      <div><dt>Coordination type</dt><dd>{{ log.get_coordination_type_display }}</dd></div>
+    </dl>
       {% if log.start_time and log.end_time %}
+      <dl class="r1-log-identity r1-log-legacy">
         <div><dt>Previously recorded time</dt><dd>{{ log.start_time|display_time }} - {{ log.end_time|display_time }}</dd></div>
         <div><dt>Recorded break</dt><dd>{{ log.break_minutes }} minutes</dd></div>
+      </dl>
       {% endif %}
-      <div><dt>Submitted</dt><dd>{{ log.submitted_at|date:"d/m/Y H:i" }}</dd></div>
-      {% if log.reviewed_by %}
-        <div><dt>Reviewed by</dt><dd>{{ log.reviewed_by }}</dd></div>
-      {% endif %}
-      {% if log.reviewed_at %}
-        <div><dt>Reviewed at</dt><dd>{{ log.reviewed_at|date:"d/m/Y H:i" }}</dd></div>
-      {% endif %}
-    </dl>
   </section>
-  <section class="card">
+  <section class="r1-log-section" aria-label="Notes">
     <h2>Notes</h2>
-    <dl class="detail-list r1-coordination-notes">
+    <dl class="r1-log-notes">
       <dt>Case notes</dt><dd>{{ log.case_notes }}</dd>
       {% if log.coordinator_notes %}
         <dt>Coordinator notes</dt><dd>{{ log.coordinator_notes }}</dd>
       {% endif %}
-      {% if log.rejection_reason %}
-        <dt>Rejection reason</dt><dd>{{ log.rejection_reason }}</dd>
-      {% endif %}
     </dl>
   </section>
+{% include "coordinators/partials/log_history.html" %}
 </div>
-
-{% if log.status == "submitted" and not invoice_locked %}
-<section class="card service-log-review-card">
+<aside class="r1-log-rail" aria-label="Review and record activity">
+<section class="r1-log-status r1-log-status-{{ log.status }}">
   <h2>Review</h2>
+  <dl class="r1-log-status-fact">
+    <div><dt>Status</dt><dd><span class="status-pill status-{{ log.status }}">{{ log.get_status_display }}</span></dd></div>
+  </dl>
+  <p class="r1-log-caption">Submitted by {{ log.coordinator.display_name }}</p>
+{% if log.status == "submitted" and not invoice_locked %}
   <div class="service-log-review-actions coordinator-log-actions">
     <form method="post" action="{% url 'coordination_log_approve' log.id %}">
       {% csrf_token %}
@@ -74,8 +79,26 @@
       </form>
     </details>
   </div>
-</section>
 {% endif %}
-{% include "coordinators/partials/log_history.html" %}
+  {% if log.rejection_reason %}
+  <dl class="r1-log-rejection">
+    <dt>Rejection reason</dt><dd>{{ log.rejection_reason }}</dd>
+  </dl>
+  {% endif %}
+</section>
+<section class="r1-log-activity">
+  <h2>Record activity</h2>
+  <dl class="r1-log-activity-list">
+    <div><dt>Submitted</dt><dd>{{ log.submitted_at|date:"d/m/Y H:i" }}</dd></div>
+    {% if log.reviewed_by %}
+      <div><dt>Reviewed by</dt><dd>{{ log.reviewed_by }}</dd></div>
+    {% endif %}
+    {% if log.reviewed_at %}
+      <div><dt>Reviewed at</dt><dd>{{ log.reviewed_at|date:"d/m/Y H:i" }}</dd></div>
+    {% endif %}
+  </dl>
+</section>
+</aside>
+</div>
 </div>
 {% endblock %}
