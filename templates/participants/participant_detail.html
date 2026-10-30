@@ -1,164 +1,82 @@
-{% extends "admin_base.html" %}
-
+{% extends "r1/admin_people_detail_base.html" %}
 {% block title %}{{ participant.display_name }} - Brisbane Star Care{% endblock %}
-
-{% block content %}
+{% block detail_class %}pid-v02 pid-v03 participant-detail{% endblock %}
+{% block people_content %}
 <div class="page-header">
-  <div>
-    <h1>{{ participant.display_name }}</h1>
-    <p>{{ participant.get_status_display }}{% if participant.ndis_number %} | NDIS {{ participant.ndis_number }}{% endif %}</p>
-  </div>
+  <div><h1>{{ participant.display_name }}</h1><p>{{ participant.get_status_display }}{% if participant.ndis_number %} | NDIS {{ participant.ndis_number }}{% endif %}</p></div>
   <div class="button-row">
     <a class="button secondary" href="{{ return_url }}">Back to Participants</a>
     <a class="button" href="{% url 'participant_edit' participant.id %}">Edit</a>
-    <a class="button" href="{% url 'participant_assign_worker' participant.id %}">Assign Worker</a>
-    {% if participant.status == "archived" %}
-      <form method="post" action="{% url 'participant_restore' participant.id %}">
-        {% csrf_token %}
-        <button type="submit">Restore</button>
-      </form>
-    {% else %}
-      <form method="post" action="{% url 'participant_archive' participant.id %}">
-        {% csrf_token %}
-        <button class="danger" type="submit">Archive</button>
-      </form>
-    {% endif %}
+    {% if participant.status == "archived" %}<form method="post" action="{% url 'participant_restore' participant.id %}">{% csrf_token %}<button type="submit">Restore</button></form>
+    {% else %}<form method="post" action="{% url 'participant_archive' participant.id %}">{% csrf_token %}<button class="danger" type="submit">Archive</button></form>{% endif %}
   </div>
 </div>
-
 <div class="participant-detail-page">
-<div class="detail-grid">
-  <section class="card">
-    <h2>Readiness</h2>
-    <ul class="readiness-list">
-      {% for item in readiness_items %}
-        <li class="{% if item.is_ready %}is-ready{% else %}needs-attention{% endif %}">
-          <span>{{ item.is_ready|yesno:"Ready,Needs attention" }}</span>
-          <strong>{% if item.is_ready %}{{ item.label }}{% else %}{{ item.missing_label }}{% endif %}</strong>
-        </li>
-      {% endfor %}
-    </ul>
-  </section>
-
-  <section class="card">
-    <h2>Next steps</h2>
-    <div class="button-row">
-      <a class="button" href="{% url 'participant_assign_worker' participant.id %}">Assign Worker</a>
-      <a class="button secondary" href="{% url 'shift_create' %}?participant={{ participant.id }}">Create Shift</a>
+<div class="pid-detail">
+  {% include "r1/partials/people_record_checks.html" with check_count=3 check_kind="participant" %}
+  <div class="pid-layout">
+    <div class="pid-primary" id="participant-primary">
+      <section class="card"><h2>Overview</h2>
+        <dl class="detail-list pid-fields">
+          <div class="pid-field"><dt>Preferred name</dt><dd>{% if participant.preferred_name %}{{ participant.preferred_name }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd></div>
+          <div class="pid-field"><dt>Date of birth</dt><dd>{% if participant.date_of_birth %}{{ participant.date_of_birth|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd></div>
+          <div class="pid-field"><dt>Phone</dt><dd>{% if participant.phone %}{{ participant.phone }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd></div>
+          <div class="pid-field"><dt>Email</dt><dd>{% if participant.email %}{{ participant.email }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd></div>
+          <div class="pid-field pid-field-wide"><dt>Address</dt><dd>{% if participant.address_line_1 %}{{ participant.address_line_1 }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}{% if participant.suburb %}<br>{{ participant.suburb }} {{ participant.state }} {{ participant.postcode }}{% endif %}</dd></div>
+        </dl>
+      </section>
+      <section class="card"><h2>NDIS Plan</h2>
+        <dl class="detail-list pid-fields">
+          <div class="pid-field"><dt>Management type</dt><dd>{% if participant.management_type %}{{ participant.get_management_type_display }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd></div>
+          <div class="pid-field pid-field-wide"><dt>Plan period</dt><dd>{% if participant.plan_start_date or participant.plan_end_date %}{% if participant.plan_start_date %}{{ participant.plan_start_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %} to {% if participant.plan_end_date %}{{ participant.plan_end_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd></div>
+          <div class="pid-field"><dt>Plan manager</dt><dd>{% if participant.plan_manager_name %}{{ participant.plan_manager_name }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd></div>
+          <div class="pid-field"><dt>Support coordinator</dt><dd>{% if participant.support_coordinator_name %}{{ participant.support_coordinator_name }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd></div>
+        </dl>
+      </section>
+      <section class="card pid-notes"><h2>Notes</h2>
+        <dl class="detail-list pid-fields">
+          <div class="pid-field"><dt>Worker visible notes</dt><dd>{% if participant.worker_visible_notes %}{{ participant.worker_visible_notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd></div>
+          <div class="pid-field"><dt>Address access instructions</dt><dd>{% if participant.address_access_instructions %}{{ participant.address_access_instructions }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd></div>
+          <div class="pid-field"><dt>Risk/safety notes</dt><dd>{% if participant.risk_safety_notes %}{{ participant.risk_safety_notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd></div>
+          <div class="pid-field"><dt>Internal notes</dt><dd>{% if participant.internal_notes %}{{ participant.internal_notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd></div>
+        </dl>
+      </section>
     </div>
-  </section>
-</div>
-
-<div class="detail-grid">
-  <section class="card">
-    <h2>Overview</h2>
-    <dl class="detail-list">
-      <dt>Preferred name</dt>
-      <dd>{% if participant.preferred_name %}{{ participant.preferred_name }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
-      <dt>Date of birth</dt>
-      <dd>{% if participant.date_of_birth %}{{ participant.date_of_birth|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
-      <dt>Phone</dt>
-      <dd>{% if participant.phone %}{{ participant.phone }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
-      <dt>Email</dt>
-      <dd>{% if participant.email %}{{ participant.email }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
-      <dt>Address</dt>
-      <dd>
-        {% if participant.address_line_1 %}{{ participant.address_line_1 }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}
-        {% if participant.suburb %}<br>{{ participant.suburb }} {{ participant.state }} {{ participant.postcode }}{% endif %}
-      </dd>
-    </dl>
-  </section>
-
-  <section class="card">
-    <h2>NDIS Plan</h2>
-    <dl class="detail-list">
-      <dt>Management type</dt>
-      <dd>{% if participant.management_type %}{{ participant.get_management_type_display }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
-      <dt>Plan period</dt>
-      <dd>
-        {% if participant.plan_start_date or participant.plan_end_date %}
-          {% if participant.plan_start_date %}{{ participant.plan_start_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %} to {% if participant.plan_end_date %}{{ participant.plan_end_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}
-        {% else %}
-          <span class="detail-empty">Not provided</span>
-        {% endif %}
-      </dd>
-      <dt>Plan manager</dt>
-      <dd>{% if participant.plan_manager_name %}{{ participant.plan_manager_name }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
-      <dt>Support coordinator</dt>
-      <dd>{% if participant.support_coordinator_name %}{{ participant.support_coordinator_name }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
-    </dl>
-  </section>
-</div>
-
-<section class="card">
-  <h2>Notes</h2>
-  <dl class="detail-list">
-    <dt>Worker visible notes</dt>
-    <dd>{% if participant.worker_visible_notes %}{{ participant.worker_visible_notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
-    <dt>Address access instructions</dt>
-    <dd>{% if participant.address_access_instructions %}{{ participant.address_access_instructions }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
-    <dt>Risk/safety notes</dt>
-    <dd>{% if participant.risk_safety_notes %}{{ participant.risk_safety_notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
-    <dt>Internal notes</dt>
-    <dd>{% if participant.internal_notes %}{{ participant.internal_notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
-  </dl>
-</section>
-
-<section class="card related-records-card">
-  <h2>Assigned Workers</h2>
-  <table class="related-records-table">
-    <thead>
-      <tr>
-        <th>Worker</th>
-        <th>Start</th>
-        <th>End</th>
-        <th>Status</th>
-        <th>Notes</th>
-        <th class="actions-heading">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for assignment in participant.worker_assignments.all %}
-        <tr>
-          <td>{{ assignment.worker.display_name }}</td>
-          <td>{{ assignment.start_date|date:"d/m/Y" }}</td>
-          <td>{% if assignment.end_date %}{{ assignment.end_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
-          <td><span class="status-pill {% if assignment.is_active %}status-active{% else %}status-inactive{% endif %}">{{ assignment.is_active|yesno:"Active,Ended" }}</span></td>
-          <td>{% if assignment.notes %}{{ assignment.notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
-          <td class="actions">
-            {% if assignment.is_active %}
-              <form method="post" action="{% url 'assignment_end' assignment.id %}" class="inline-form assignment-end-form">
-                {% csrf_token %}
-                <input type="date" name="end_date">
-                <button type="submit">End</button>
-              </form>
-            {% else %}
-              <span class="assignment-ended-action detail-empty">No action</span>
-            {% endif %}
-          </td>
-        </tr>
-      {% empty %}
-        <tr>
-          <td colspan="6"><span class="detail-empty">No workers assigned.</span></td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</section>
-
-<section class="card person-file-entry-card">
-  <div class="person-file-entry">
-    <div>
-      <h2>Files</h2>
-      <p>Open this participant's file folder to review, download, upload, or remove documents.</p>
-    </div>
-    <div class="button-row">
-      <a class="button secondary" href="{% url 'participant_document_files' participant.id %}">View all files</a>
-      <a class="button secondary" href="{% url 'document_create' %}?participant={{ participant.id }}&amp;category=general&amp;next={% url 'participant_document_files' participant.id %}" data-document-upload-open data-upload-category="general" data-upload-next="{% url 'participant_document_files' participant.id %}">Upload file</a>
-    </div>
+    <aside class="pid-support" id="participant-support" aria-label="Assignments and existing actions">
+      <section class="card pid-current" id="current-workers"><h2>Current workers</h2>
+        <p class="pid-current-count">{{ active_assignments|length }} active assignment{{ active_assignments|length|pluralize }}</p>
+        {% if active_assignments %}<ul class="pid-current-list">{% for assignment in active_assignments %}<li><strong>{{ assignment.worker.display_name }}</strong><span class="pid-current-state">Active assignment</span></li>{% endfor %}</ul><a class="pid-inline-link" href="#assigned-workers">Manage existing assignments</a>
+        {% else %}<p class="pid-empty">No workers assigned.</p>{% endif %}
+        <div class="button-row pid-existing-actions">
+          <a class="button" href="{% url 'participant_assign_worker' participant.id %}">{% if active_assignments %}Add assignment{% else %}Assign Worker{% endif %}</a>
+          <a class="button secondary" href="{% url 'shift_create' %}?participant={{ participant.id }}">Create Shift</a>
+        </div>
+      </section>
+      <section class="card person-file-entry-card pid-files"><div class="person-file-entry">
+        <div><h2>Files</h2><p>Open this participant's file folder to review, download, upload, or remove documents.</p></div>
+        <div class="button-row">
+          <a class="button secondary" href="{% url 'participant_document_files' participant.id %}">View all files</a>
+          <a class="button secondary" href="{% url 'document_create' %}?participant={{ participant.id }}&amp;category=general&amp;next={% url 'participant_document_files' participant.id %}" data-document-upload-open data-upload-category="general" data-upload-next="{% url 'participant_document_files' participant.id %}">Upload file</a>
+        </div>
+      </div></section>
+    </aside>
   </div>
-</section>
+  <section class="card related-records-card" id="assigned-workers"><h2>Assigned Workers</h2>
+    <table class="related-records-table">
+      <thead><tr><th>Worker</th><th>Start</th><th>End</th><th>Status</th><th>Notes</th><th class="actions-heading">Actions</th></tr></thead>
+      <tbody>{% for assignment in participant.worker_assignments.all %}<tr>
+        <td data-label="Worker">{{ assignment.worker.display_name }}</td>
+        <td data-label="Start">{{ assignment.start_date|date:"d/m/Y" }}</td>
+        <td data-label="End">{% if assignment.end_date %}{{ assignment.end_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
+        <td data-label="Status"><span class="status-pill {% if assignment.is_active %}status-active{% else %}status-inactive{% endif %}">{{ assignment.is_active|yesno:"Active,Ended" }}</span></td>
+        <td data-label="Notes">{% if assignment.notes %}{{ assignment.notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
+        <td class="actions" data-label="Actions">{% if assignment.is_active %}<form method="post" action="{% url 'assignment_end' assignment.id %}" class="inline-form assignment-end-form">{% csrf_token %}<input type="date" name="end_date" aria-label="End date"><button type="submit">End</button></form>{% else %}<span class="assignment-ended-action detail-empty">No action</span>{% endif %}</td>
+      </tr>{% empty %}<tr><td colspan="6"><span class="detail-empty">No workers assigned.</span></td></tr>{% endfor %}</tbody>
+    </table>
+  </section>
 </div>
-
+</div>
+{% endblock %}
+{% block people_dialogs %}
 {% include "documents/partials/upload_dialog.html" with upload_dialog_owner="participants" upload_dialog_person=participant upload_dialog_next_url=current_detail_url upload_dialog_category_choices=upload_category_choices upload_dialog_category_value="general" %}
 {% endblock %}

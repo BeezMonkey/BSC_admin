@@ -575,10 +575,10 @@ class ParticipantManagementTests(TestCase):
 
         response = self.client.get(reverse("participant_detail", args=[participant.id]))
 
-        self.assertContains(response, "Readiness")
+        self.assertContains(response, "Record checks")
         self.assertContains(response, "Needs NDIS number")
         self.assertContains(response, "Active worker assigned")
-        self.assertContains(response, "Next steps")
+        self.assertContains(response, "Current workers")
         self.assertNotContains(response, "Upload Document")
         self.assertContains(response, "Create Shift")
         self.assertContains(response, "Files")

@@ -1,68 +1,42 @@
-{% extends "admin_base.html" %}
-
+{% extends "r1/admin_people_detail_base.html" %}
 {% block title %}{{ coordinator.display_name }} - Brisbane Star Care{% endblock %}
-
-{% block content %}
+{% block detail_class %}pid-v02 pid-v03 people-v04 sc-v10{% endblock %}
+{% block people_content %}
 <div class="page-header">
-  <div>
-    <h1>{{ coordinator.display_name }}</h1>
-    <p>{{ coordinator.get_status_display }}</p>
-  </div>
-  <div class="button-row">
-    <a class="button secondary" href="{{ return_url }}">Back to Support Coordinators</a>
-    <a class="button secondary" href="{% url 'coordinator_assign_participant' coordinator.id %}">Assign Participant</a>
-    <a class="button secondary" href="{% url 'coordinator_reset_password' coordinator.id %}">Reset Password</a>
-    <a class="button" href="{% url 'coordinator_edit' coordinator.id %}">Edit</a>
-  </div>
+  <div><h1>{{ coordinator.display_name }}</h1><p>{{ coordinator.get_status_display }}</p></div>
+  <div class="button-row"><a class="button secondary" href="{{ return_url }}">Back to Support Coordinators</a><a class="button" href="{% url 'coordinator_edit' coordinator.id %}">Edit</a></div>
 </div>
-
-<div class="detail-grid">
-  <section class="card">
-    <h2>Coordinator Details</h2>
-    <dl class="detail-list">
-      <dt>Email</dt>
-      <dd>{{ coordinator.email }}</dd>
-      <dt>Login username</dt>
-      <dd>{{ coordinator.user.username }}</dd>
-      <dt>Phone</dt>
-      <dd>{% if coordinator.phone %}{{ coordinator.phone }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
-      <dt>Status</dt>
-      <dd><span class="status-pill status-{{ coordinator.status }}">{{ coordinator.get_status_display }}</span></dd>
-      <dt>Login enabled</dt>
-      <dd><span class="status-pill {% if coordinator.user.is_active %}status-active{% else %}status-inactive{% endif %}">{{ coordinator.user.is_active|yesno:"Yes,No" }}</span></dd>
-      <dt>Notes</dt>
-      <dd>{% if coordinator.notes %}{{ coordinator.notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
-    </dl>
+<div class="pid-detail">
+  <section class="card"><h2>Coordinator Details</h2>
+    <div class="sc-information">
+      <div class="sc-group sc-contact"><h3>Contact</h3>
+        <dl class="detail-list pid-fields sc-contact-fields">
+          <div class="pid-field"><dt>Email</dt><dd>{{ coordinator.email }}</dd></div>
+          <div class="pid-field"><dt>Phone</dt><dd>{% if coordinator.phone %}{{ coordinator.phone }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd></div>
+        </dl>
+      </div>
+      <div class="sc-group sc-account"><h3>Account</h3>
+        <dl class="detail-list pid-fields sc-account-fields">
+          <div class="pid-field pid-field-wide"><dt>Login username</dt><dd>{{ coordinator.user.username }}</dd></div>
+          <div class="pid-field"><dt>Status</dt><dd><span class="status-pill status-{{ coordinator.status }}">{{ coordinator.get_status_display }}</span></dd></div>
+          <div class="pid-field"><dt>Login enabled</dt><dd><span class="status-pill {% if coordinator.user.is_active %}status-active{% else %}status-inactive{% endif %}">{{ coordinator.user.is_active|yesno:"Yes,No" }}</span></dd></div>
+        </dl>
+        <div class="button-row person-account-actions"><a class="button secondary" href="{% url 'coordinator_reset_password' coordinator.id %}">Reset Password</a></div>
+      </div>
+    </div>
+    <dl class="detail-list pid-fields sc-notes-fields"><div class="pid-field pid-field-wide"><dt>Notes</dt><dd>{% if coordinator.notes %}{{ coordinator.notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd></div></dl>
+  </section>
+  <section class="card related-records-card" id="assigned-participants">
+    <div class="sc-assignment-heading"><h2>Participant Assignments</h2><a class="button secondary" href="{% url 'coordinator_assign_participant' coordinator.id %}">Assign Participant</a></div>
+    <table class="related-records-table"><thead><tr><th>Participant</th><th>Start</th><th>End</th><th>Status</th><th>Notes</th></tr></thead>
+      <tbody>{% for assignment in assignments %}<tr>
+        <td data-label="Participant"><a href="{% url 'participant_detail' assignment.participant.id %}">{{ assignment.participant.display_name }}</a></td>
+        <td data-label="Start">{{ assignment.start_date|date:"d/m/Y" }}</td>
+        <td data-label="End">{% if assignment.end_date %}{{ assignment.end_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
+        <td data-label="Status"><span class="status-pill {% if assignment.is_active %}status-active{% else %}status-inactive{% endif %}">{{ assignment.is_active|yesno:"Active,Ended" }}</span></td>
+        <td data-label="Notes">{% if assignment.notes %}{{ assignment.notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
+      </tr>{% empty %}<tr><td colspan="5"><span class="detail-empty">No participants assigned.</span></td></tr>{% endfor %}</tbody>
+    </table>
   </section>
 </div>
-
-<section class="card related-records-card">
-  <h2>Participant Assignments</h2>
-  <table class="related-records-table">
-    <thead>
-      <tr>
-        <th>Participant</th>
-        <th>Start</th>
-        <th>End</th>
-        <th>Status</th>
-        <th>Notes</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for assignment in assignments %}
-        <tr>
-          <td><a href="{% url 'participant_detail' assignment.participant.id %}">{{ assignment.participant.display_name }}</a></td>
-          <td>{{ assignment.start_date|date:"d/m/Y" }}</td>
-          <td>{% if assignment.end_date %}{{ assignment.end_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
-          <td><span class="status-pill {% if assignment.is_active %}status-active{% else %}status-inactive{% endif %}">{{ assignment.is_active|yesno:"Active,Ended" }}</span></td>
-          <td>{% if assignment.notes %}{{ assignment.notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
-        </tr>
-      {% empty %}
-        <tr>
-          <td colspan="5"><span class="detail-empty">No participants assigned.</span></td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</section>
 {% endblock %}

@@ -1,0 +1,37 @@
+{% load static %}
+<section class="pid-check-region" aria-label="Record checks">
+  <details class="pid-checks" id="record-checks"{% if not readiness_items.0.is_ready or not readiness_items.1.is_ready or not readiness_items.2.is_ready or check_count == 4 and not readiness_items.3.is_ready %} open{% endif %}>
+    <summary>
+      <strong>Record checks</strong>
+      {% if not readiness_items.0.is_ready or not readiness_items.1.is_ready or not readiness_items.2.is_ready or check_count == 4 and not readiness_items.3.is_ready %}
+        <span class="pid-check-count needs-attention">Items need attention</span>
+      {% else %}
+        <span class="pid-check-count">{{ check_count }} checks recorded</span>
+      {% endif %}
+      <img src="{% static 'img/r1/icons/chevron.svg' %}" alt="" width="16" height="16">
+    </summary>
+    <ul class="pid-check-items">
+      {% for item in readiness_items %}
+        <li class="pid-check-row{% if not item.is_ready %} needs-attention{% endif %}" data-existing-result="{{ item.is_ready|yesno:'true,false' }}">
+          <div class="pid-check-copy">
+            <strong>{% if item.is_ready %}{{ item.label }}{% else %}{{ item.missing_label }}{% endif %}</strong>
+            <span>{% if not item.is_ready %}Needs attention{% elif check_kind == "worker" %}{% if forloop.first %}Active{% elif forloop.last %}Assigned{% else %}Current{% endif %}{% elif forloop.last %}Assigned{% else %}Recorded{% endif %}</span>
+          </div>
+          {% if not item.is_ready %}
+            {% if check_kind == "worker" %}
+              {% if forloop.counter == 1 %}<a class="pid-inline-link" href="#employment-details">View worker status</a>
+              {% elif forloop.counter == 2 %}<a class="pid-inline-link" href="#compliance-documents">View compliance records</a>
+              {% elif forloop.counter == 3 and readiness_items.1.is_ready %}<a class="pid-inline-link" href="#compliance-documents">View compliance records</a>
+              {% elif forloop.counter == 4 %}<a class="pid-inline-link" href="#assigned-participants">View assignments</a>{% endif %}
+            {% else %}
+              {% if forloop.counter == 1 %}<a class="pid-inline-link" href="{% url 'participant_edit' participant.id %}">Edit details</a>
+              {% elif forloop.counter == 2 and readiness_items.0.is_ready %}<a class="pid-inline-link" href="{% url 'participant_edit' participant.id %}">Edit details</a>
+              {% elif forloop.counter == 3 %}<a class="pid-inline-link" href="#current-workers">Review assignments</a>{% endif %}
+            {% endif %}
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </details>
+  <p class="pid-check-scope">{% if check_kind == "worker" %}Existing worker checks only. Stored statuses and assignment results; no new expiry, eligibility or clearance assessment.{% else %}Existing record checks only. Not a service eligibility or compliance decision.{% endif %}</p>
+</section>

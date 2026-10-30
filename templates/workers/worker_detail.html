@@ -1,182 +1,87 @@
-{% extends "admin_base.html" %}
-
+{% extends "r1/admin_people_detail_base.html" %}
 {% block title %}{{ worker.display_name }} - Brisbane Star Care{% endblock %}
-
-{% block content %}
+{% block detail_class %}pid-v02 pid-v03 people-v04 worker-v05{% endblock %}
+{% block people_content %}
 <div class="page-header">
-  <div>
-    <h1>{{ worker.display_name }}</h1>
-    <p>{{ worker.get_status_display }} | {{ worker.get_employment_type_display }}</p>
-  </div>
+  <div><h1>{{ worker.display_name }}</h1><p>{{ worker.get_status_display }} | {{ worker.get_employment_type_display }}</p></div>
   <div class="button-row">
     <a class="button secondary" href="{{ return_url }}">Back to Support Workers</a>
-    <a class="button secondary" href="{% url 'worker_reset_password' worker.id %}">Reset Password</a>
     <a class="button" href="{% url 'worker_edit' worker.id %}">Edit</a>
+    <a class="button secondary" href="{% url 'shift_create' %}?worker={{ worker.id }}">Create Shift</a>
   </div>
 </div>
-
-<div class="detail-grid">
-  <section class="card">
-    <h2>Readiness</h2>
-    <ul class="readiness-list">
-      {% for item in readiness_items %}
-        <li class="{% if item.is_ready %}is-ready{% else %}needs-attention{% endif %}">
-          <span>{{ item.is_ready|yesno:"Ready,Needs attention" }}</span>
-          <strong>{% if item.is_ready %}{{ item.label }}{% else %}{{ item.missing_label }}{% endif %}</strong>
-        </li>
-      {% endfor %}
-    </ul>
-  </section>
-
-  <section class="card">
-    <h2>Next steps</h2>
-    <div class="button-row">
-      <a class="button" href="{% url 'worker_edit' worker.id %}">Edit Worker</a>
-      <a class="button secondary" href="{% url 'shift_create' %}?worker={{ worker.id }}">Create Shift</a>
-    </div>
-  </section>
-</div>
-
-<div class="detail-grid">
-  <section class="card">
-    <h2>Contact</h2>
-    <dl class="detail-list">
-      <dt>Email</dt>
-      <dd>{{ worker.email }}</dd>
-      <dt>Login username</dt>
-      <dd>{{ worker.user.username }}</dd>
-      <dt>Phone</dt>
-      <dd>{% if worker.phone %}{{ worker.phone }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
-      <dt>Address</dt>
-      <dd>{% if worker.address %}{{ worker.address }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
-      <dt>Login enabled</dt>
-      <dd><span class="status-pill {% if worker.user.is_active %}status-active{% else %}status-inactive{% endif %}">{{ worker.user.is_active|yesno:"Yes,No" }}</span></dd>
-    </dl>
-  </section>
-
-  <section class="card">
-    <h2>Employment</h2>
-    <dl class="detail-list">
-      <dt>Employment type</dt>
-      <dd>{{ worker.get_employment_type_display }}</dd>
-      <dt>ABN</dt>
-      <dd>{% if worker.abn %}{{ worker.abn }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
-      <dt>Start date</dt>
-      <dd>{% if worker.start_date %}{{ worker.start_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
-      <dt>Worker status</dt>
-      <dd><span class="status-pill status-{{ worker.status }}">{{ worker.get_status_display }}</span></dd>
-    </dl>
-  </section>
-</div>
-
-<div class="worker-detail-sections">
-  <section class="card related-records-card worker-compliance-card">
-    <div>
-      <h2>Compliance Documents</h2>
-      <p class="section-note">Worker qualification and compliance upload status.</p>
-    </div>
-    <dl class="detail-list worker-record-status">
-      <dt>Police check</dt>
-      <dd>{% if worker.police_check_status == "not_provided" %}<span class="detail-empty">{{ worker.get_police_check_status_display }}</span>{% else %}{{ worker.get_police_check_status_display }}{% endif %}{% if worker.police_check_expiry %} | expires {{ worker.police_check_expiry|date:"d/m/Y" }}{% endif %}</dd>
-      <dt>WWCC / Blue Card</dt>
-      <dd>{% if worker.wwcc_status == "not_provided" %}<span class="detail-empty">{{ worker.get_wwcc_status_display }}</span>{% else %}{{ worker.get_wwcc_status_display }}{% endif %}{% if worker.wwcc_expiry %} | expires {{ worker.wwcc_expiry|date:"d/m/Y" }}{% endif %}</dd>
-    </dl>
-    <table class="related-records-table">
-      <thead>
-        <tr>
-          <th>Document</th>
-          <th>Status</th>
-          <th>Expiry</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in compliance_document_items %}
-          <tr>
-            <td>{{ item.label }}</td>
-            {% if item.document %}
-              <td><span class="status-pill status-{{ item.document.review_status }}">{{ item.document.get_review_status_display }}</span></td>
-              <td>{% if item.document.expiry_date %}Expires {{ item.document.expiry_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
-              <td><a href="{% url 'document_detail' item.document.id %}">View</a></td>
-            {% else %}
-              <td><span class="status-pill status-not_provided">Not uploaded</span></td>
-              <td><span class="detail-empty">Not provided</span></td>
-              <td><a href="{% url 'document_create' %}?worker={{ worker.id }}&amp;category=compliance&amp;required_document_type={{ item.value }}&amp;next={{ current_detail_url|urlencode }}" data-document-upload-open data-upload-category="compliance" data-upload-required-type="{{ item.value }}" data-upload-title="{{ item.label }}" data-upload-next="{{ current_detail_url }}">Upload</a></td>
-            {% endif %}
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    <div class="person-file-entry">
-      <div>
-        <h3>All worker files</h3>
-        <p>Open this worker's file folder to review, download, upload, or remove documents.</p>
+<div class="pid-detail">
+  {% include "r1/partials/people_record_checks.html" with check_count=4 check_kind="worker" %}
+  <div class="worker-middle" id="worker-middle">
+    <section class="card worker-contact"><h2>Contact</h2>
+      <dl class="detail-list pid-fields worker-contact-fields">
+        <div class="pid-field"><dt>Email</dt><dd>{{ worker.email }}</dd></div>
+        <div class="pid-field"><dt>Phone</dt><dd>{% if worker.phone %}{{ worker.phone }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd></div>
+        <div class="pid-field pid-field-wide"><dt>Address</dt><dd>{% if worker.address %}{{ worker.address }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd></div>
+      </dl>
+      <dl class="detail-list pid-fields worker-login-fields" aria-label="Login details">
+        <div class="pid-field"><dt>Login username</dt><dd>{{ worker.user.username }}</dd></div>
+        <div class="pid-field"><dt>Login enabled</dt><dd><span class="status-pill {% if worker.user.is_active %}status-active{% else %}status-inactive{% endif %}">{{ worker.user.is_active|yesno:"Yes,No" }}</span></dd></div>
+      </dl>
+      <div class="button-row person-account-actions"><a class="button secondary" href="{% url 'worker_reset_password' worker.id %}">Reset Password</a></div>
+    </section>
+    <section class="card worker-employment" id="employment-details"><h2>Employment</h2>
+      <dl class="detail-list pid-fields">
+        <div class="pid-field"><dt>Employment type</dt><dd>{{ worker.get_employment_type_display }}</dd></div>
+        <div class="pid-field"><dt>ABN</dt><dd>{% if worker.abn %}{{ worker.abn }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd></div>
+        <div class="pid-field"><dt>Start date</dt><dd>{% if worker.start_date %}{{ worker.start_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd></div>
+        <div class="pid-field"><dt>Worker status</dt><dd><span class="status-pill status-{{ worker.status }}">{{ worker.get_status_display }}</span></dd></div>
+      </dl>
+    </section>
+    <section class="card related-records-card worker-compliance-card" id="compliance-documents">
+      <div><h2>Compliance Documents</h2><p class="section-note">Worker qualification and compliance upload status.</p></div>
+      <table class="related-records-table">
+        <thead><tr><th>Document</th><th>Status</th><th>Expiry</th><th class="actions-heading">Actions</th></tr></thead>
+        <tbody>{% for item in compliance_document_items %}<tr>
+          <td data-label="Document">{{ item.label }}</td>
+          {% if item.document %}
+            <td data-label="Status"><span class="status-pill status-{{ item.document.review_status }}">{{ item.document.get_review_status_display }}</span></td>
+            <td data-label="Expiry">{% if item.document.expiry_date %}Expires {{ item.document.expiry_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
+            <td class="actions" data-label="Actions"><a class="button secondary" href="{% url 'document_detail' item.document.id %}">View</a></td>
+          {% else %}
+            <td data-label="Status"><span class="status-pill status-not_provided">Not uploaded</span></td>
+            <td data-label="Expiry"><span class="detail-empty">Not provided</span></td>
+            <td class="actions" data-label="Actions"><a class="button secondary" href="{% url 'document_create' %}?worker={{ worker.id }}&amp;category=compliance&amp;required_document_type={{ item.value }}&amp;next={{ current_detail_url|urlencode }}" data-document-upload-open data-upload-category="compliance" data-upload-required-type="{{ item.value }}" data-upload-title="{{ item.label }}" data-upload-next="{{ current_detail_url }}">Upload</a></td>
+          {% endif %}
+        </tr>{% endfor %}</tbody>
+      </table>
+      <div class="person-file-entry">
+        <div><h3>All worker files</h3><p>Open this worker's file folder to review, download, upload, or remove documents.</p></div>
+        <div class="button-row">
+          <a class="button secondary" href="{% url 'worker_document_files' worker.id %}">View all files</a>
+          <a class="button secondary" href="{% url 'document_create' %}?worker={{ worker.id }}&amp;category=general&amp;next={% url 'worker_document_files' worker.id %}" data-document-upload-open data-upload-category="general" data-upload-next="{% url 'worker_document_files' worker.id %}">Upload file</a>
+        </div>
       </div>
-      <div class="button-row">
-        <a class="button secondary" href="{% url 'worker_document_files' worker.id %}">View all files</a>
-        <a class="button secondary" href="{% url 'document_create' %}?worker={{ worker.id }}&amp;category=general&amp;next={% url 'worker_document_files' worker.id %}" data-document-upload-open data-upload-category="general" data-upload-next="{% url 'worker_document_files' worker.id %}">Upload file</a>
-      </div>
-    </div>
-  </section>
-
-  <section class="card related-records-card">
-    <h2>Assigned Participants</h2>
-    <table class="related-records-table">
-      <thead>
-        <tr>
-          <th>Participant</th>
-          <th>Start</th>
-          <th>End</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for assignment in worker.participant_assignments.all %}
-          <tr>
-            <td><a href="{% url 'participant_detail' assignment.participant.id %}">{{ assignment.participant.display_name }}</a></td>
-            <td>{{ assignment.start_date|date:"d/m/Y" }}</td>
-            <td>{% if assignment.end_date %}{{ assignment.end_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
-            <td><span class="status-pill {% if assignment.is_active %}status-active{% else %}status-inactive{% endif %}">{{ assignment.is_active|yesno:"Active,Ended" }}</span></td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td colspan="4"><span class="detail-empty">No participants assigned.</span></td>
-          </tr>
-        {% endfor %}
-      </tbody>
+    </section>
+  </div>
+  <section class="card related-records-card" id="assigned-participants"><h2>Assigned Participants</h2>
+    <table class="related-records-table"><thead><tr><th>Participant</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
+      <tbody>{% for assignment in worker.participant_assignments.all %}<tr>
+        <td data-label="Participant"><a href="{% url 'participant_detail' assignment.participant.id %}">{{ assignment.participant.display_name }}</a></td>
+        <td data-label="Start">{{ assignment.start_date|date:"d/m/Y" }}</td>
+        <td data-label="End">{% if assignment.end_date %}{{ assignment.end_date|date:"d/m/Y" }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</td>
+        <td data-label="Status"><span class="status-pill {% if assignment.is_active %}status-active{% else %}status-inactive{% endif %}">{{ assignment.is_active|yesno:"Active,Ended" }}</span></td>
+      </tr>{% empty %}<tr><td colspan="4"><span class="detail-empty">No participants assigned.</span></td></tr>{% endfor %}</tbody>
     </table>
   </section>
-
-  <section class="card related-records-card">
-    <h2>Recent Service Logs</h2>
-    <table class="related-records-table">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Participant</th>
-          <th>Hours</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for service_log in recent_service_logs %}
-          <tr>
-            <td>{{ service_log.service_date|date:"d/m/Y" }}</td>
-            <td>{{ service_log.participant.display_name }}</td>
-            <td>{{ service_log.actual_hours }}</td>
-            <td><span class="status-pill status-{{ service_log.status }}">{{ service_log.get_status_display }}</span></td>
-            <td><a href="{% url 'service_log_detail' service_log.id %}">View log</a></td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td colspan="5"><span class="detail-empty">No recent service logs yet.</span></td>
-          </tr>
-        {% endfor %}
-      </tbody>
+  <section class="card related-records-card"><h2>Recent Service Logs</h2>
+    <table class="related-records-table"><thead><tr><th>Date</th><th>Participant</th><th>Hours</th><th>Status</th><th class="actions-heading">Actions</th></tr></thead>
+      <tbody>{% for service_log in recent_service_logs %}<tr>
+        <td data-label="Date">{{ service_log.service_date|date:"d/m/Y" }}</td>
+        <td data-label="Participant">{{ service_log.participant.display_name }}</td>
+        <td data-label="Hours">{{ service_log.actual_hours }}</td>
+        <td data-label="Status"><span class="status-pill status-{{ service_log.status }}">{{ service_log.get_status_display }}</span></td>
+        <td class="actions" data-label="Actions"><a class="button secondary" href="{% url 'service_log_detail' service_log.id %}">View log</a></td>
+      </tr>{% empty %}<tr><td colspan="5"><span class="detail-empty">No recent service logs yet.</span></td></tr>{% endfor %}</tbody>
     </table>
   </section>
 </div>
-
+{% endblock %}
+{% block people_dialogs %}
 {% include "documents/partials/upload_dialog.html" with upload_dialog_owner="workers" upload_dialog_person=worker upload_dialog_next_url=current_detail_url upload_dialog_category_choices=upload_category_choices upload_dialog_category_value="general" %}
 {% endblock %}
