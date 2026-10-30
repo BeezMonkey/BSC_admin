@@ -552,12 +552,12 @@ class SupportWorkerManagementTests(TestCase):
 
         response = self.client.get(reverse("worker_detail", args=[worker.id]))
 
-        self.assertContains(response, "Readiness")
+        self.assertContains(response, "Record checks")
         self.assertContains(response, "Worker active")
         self.assertContains(response, "Police check current")
         self.assertContains(response, "Needs WWCC / Blue Card current")
         self.assertContains(response, "Has active participant assignment")
-        self.assertContains(response, "Next steps")
+        self.assertContains(response, f'href="{reverse("shift_create")}?worker={worker.id}"')
         self.assertNotContains(response, "Upload Document")
         self.assertContains(response, "Create Shift")
 

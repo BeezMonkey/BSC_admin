@@ -1,0 +1,15 @@
+{% extends "admin_base.html" %}
+{% load static %}
+
+{% block extra_styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_admin_people_details.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="r1-ui r1-people-detail {% block detail_class %}{% endblock %}">
+  {% block people_content %}{% endblock %}
+</div>
+{% block people_dialogs %}{% endblock %}
+{% endblock %}
