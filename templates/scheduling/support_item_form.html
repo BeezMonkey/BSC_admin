@@ -1,8 +1,17 @@
 {% extends "admin_base.html" %}
+{% load static %}
+
+{% block extra_styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_admin_people_forms.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_admin_support_items.css' %}">
+{% endblock %}
 
 {% block title %}{{ title }} - Brisbane Star Care{% endblock %}
 
 {% block content %}
+<div class="r1-ui r1-support-items r1-people-form">
 <div class="page-header">
   <div>
     <h1>{{ title }}</h1>
@@ -47,4 +56,5 @@
     <a class="button secondary" href="{% if support_item %}{% url 'support_item_detail' support_item.id %}{% else %}{% url 'support_item_list' %}{% endif %}">Cancel</a>
   </div>
 </form>
+</div>
 {% endblock %}

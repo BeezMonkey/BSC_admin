@@ -1,8 +1,17 @@
 {% extends "admin_base.html" %}
+{% load static %}
+
+{% block extra_styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_admin_people_forms.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_admin_support_items.css' %}">
+{% endblock %}
 
 {% block title %}{{ support_item.name }} - Brisbane Star Care{% endblock %}
 
 {% block content %}
+<div class="r1-ui r1-support-items">
 <div class="page-header">
   <div>
     <h1>{{ support_item.name }}</h1>
@@ -33,4 +42,5 @@
     <dd>{% if support_item.notes %}{{ support_item.notes }}{% else %}<span class="detail-empty">Not provided</span>{% endif %}</dd>
   </dl>
 </section>
+</div>
 {% endblock %}
