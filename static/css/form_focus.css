@@ -1,0 +1,58 @@
+/* Shared form focus policy; page layout, navigation and action buttons stay local. */
+:root {
+  --control-focus-border: #315bcb;
+  --control-focus-ring: #eaf1ff;
+}
+
+/* Explicit validation only: an empty required field is not a displayed error. */
+:where(.field, .form-group, .date-time-picker-field, label):has(
+  > .field-error,
+  > .errorlist:not(:empty),
+  > [id$="_errors"] .errorlist:not(:empty),
+  > [id$="_errors"] .r1-cancellation-invalid:not([hidden]),
+  > .people-date-error:not([hidden]):not(:empty)
+),
+[aria-invalid="true"],
+.has-error,
+.is-invalid {
+  --control-focus-border: var(--r1-danger, var(--danger-border, #a33443));
+  --control-focus-ring: rgba(163, 52, 67, .16);
+}
+
+/* These four properties intentionally win over legacy/R1 focus and expanded rules,
+   including styles loaded by inline dialogs. No dimensions or border widths change. */
+:is(
+  input:not([type="hidden"]):not([type="submit"]):not([type="reset"]):not([type="button"]):not([type="image"]),
+  select,
+  textarea,
+  button[data-picker-trigger],
+  button[data-cancellation-datetime-trigger],
+  .support-item-picker-trigger
+):where(:not(:disabled):not([aria-disabled="true"])):is(:focus, :focus-visible, [aria-expanded="true"]),
+.support-item-picker.is-open > .support-item-picker-trigger:where(:not(:disabled):not([aria-disabled="true"])) {
+  border-color: var(--control-focus-border) !important;
+  outline: 3px solid var(--control-focus-ring) !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Customizable selects can move focus into an option while their picker is open. */
+@supports selector(select:open) {
+  select:open:where(:not(:disabled):not([aria-disabled="true"])) {
+    border-color: var(--control-focus-border) !important;
+    outline: 3px solid var(--control-focus-ring) !important;
+    outline-offset: 0 !important;
+    box-shadow: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  :root,
+  :where(.field, .form-group, .date-time-picker-field, label),
+  [aria-invalid="true"],
+  .has-error,
+  .is-invalid {
+    --control-focus-border: Highlight;
+    --control-focus-ring: Highlight;
+  }
+}
