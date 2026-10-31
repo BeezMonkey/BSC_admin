@@ -1,8 +1,17 @@
 {% extends "admin_base.html" %}
+{% load static %}
+
+{% block extra_styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_admin_people_forms.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_admin_support_items.css' %}">
+{% endblock %}
 
 {% block title %}Support Items - Brisbane Star Care{% endblock %}
 
 {% block content %}
+<div class="r1-ui r1-support-items">
 <div class="page-header">
   <div>
     <h1>Support Items</h1>
@@ -54,21 +63,23 @@
     <tbody>
       {% for item in support_items %}
         <tr>
-          <td>{{ item.item_number }}</td>
-          <td>{{ item.name }}</td>
-          <td>{{ item.category|default:"-" }}</td>
-          <td>{{ item.get_unit_display }}</td>
-          <td class="numeric-cell">${{ item.price_limit }}</td>
-          <td>{{ item.get_gst_code_display }}</td>
-          <td><span class="status-pill status-{% if item.is_active %}active{% else %}inactive{% endif %}">{{ item.is_active|yesno:"Active,Inactive" }}</span></td>
-          <td class="actions">
+          <td data-label="Item number">{{ item.item_number }}</td>
+          <td data-label="Name">{{ item.name }}</td>
+          <td data-label="Category">{{ item.category|default:"-" }}</td>
+          <td data-label="Unit">{{ item.get_unit_display }}</td>
+          <td class="numeric-cell" data-label="Price limit">${{ item.price_limit }}</td>
+          <td data-label="GST">{{ item.get_gst_code_display }}</td>
+          <td data-label="Status"><span class="status-pill status-{% if item.is_active %}active{% else %}inactive{% endif %}">{{ item.is_active|yesno:"Active,Inactive" }}</span></td>
+          <td class="actions" data-label="Actions">
+            <div class="support-item-action-row">
             <a href="{% url 'support_item_detail' item.id %}">View</a>
             <a href="{% url 'support_item_edit' item.id %}">Edit</a>
+            </div>
           </td>
         </tr>
       {% empty %}
         <tr>
-          <td colspan="8">
+          <td colspan="8" class="empty-cell">
             <div class="empty-state">
               <strong>No support items found.</strong>
               <p>Add support items before creating shifts, service logs, or invoices.</p>
@@ -82,4 +93,5 @@
     </tbody>
   </table>
 </section>
+</div>
 {% endblock %}
