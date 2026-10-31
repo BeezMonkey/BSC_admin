@@ -1,8 +1,17 @@
 {% extends "admin_base.html" %}
+{% load static %}
 
 {% block title %}Audit Logs - Brisbane Star Care{% endblock %}
 
+{% block extra_styles %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
+<link rel="stylesheet" href="{% static 'css/r1_admin_people_forms.css' %}">
+<link rel="stylesheet" href="{% static 'css/r1_admin_system.css' %}">
+{% endblock %}
+
 {% block content %}
+<div class="r1-ui r1-admin-system">
 <div class="page-header">
   <div>
     <h1>Audit Logs</h1>
@@ -10,7 +19,7 @@
   </div>
 </div>
 
-<section class="card">
+<section class="card audit-table">
   <table>
     <thead>
       <tr>
@@ -24,15 +33,15 @@
     <tbody>
       {% for audit_log in audit_logs %}
         <tr>
-          <td><a href="{% url 'audit_log_detail' audit_log.id %}">{{ audit_log.created_at|date:"d/m/Y H:i" }}</a></td>
-          <td>{{ audit_log.actor|default:"System" }}</td>
-          <td>{{ audit_log.get_action_display }}</td>
-          <td>{{ audit_log.object_type }} {{ audit_log.object_id }}</td>
-          <td>{{ audit_log.summary }}</td>
+          <td data-label="Time"><a href="{% url 'audit_log_detail' audit_log.id %}">{{ audit_log.created_at|date:"d/m/Y H:i" }}</a></td>
+          <td data-label="Actor">{{ audit_log.actor|default:"System" }}</td>
+          <td data-label="Action">{{ audit_log.get_action_display }}</td>
+          <td data-label="Object">{{ audit_log.object_type }} {{ audit_log.object_id }}</td>
+          <td data-label="Summary">{{ audit_log.summary }}</td>
         </tr>
       {% empty %}
         <tr>
-          <td colspan="5">
+          <td colspan="5" class="audit-empty">
             <div class="empty-state">
               <strong>No audit logs yet.</strong>
               <p>Key business actions will appear here as the system is used.</p>
@@ -43,4 +52,5 @@
     </tbody>
   </table>
 </section>
+</div>
 {% endblock %}

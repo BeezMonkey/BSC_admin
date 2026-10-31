@@ -1,0 +1,67 @@
+/* Three Admin system pages only; navigation and shared headers excluded. */
+.r1-admin-system {color:var(--r1-text);font:14px/20px "BSC Inter",Inter,Arial,sans-serif;min-width:0;letter-spacing:0;}
+.r1-admin-system * {box-sizing:border-box;letter-spacing:0;}
+[data-admin-theme] .r1-admin-system h1 {font-size:24px;line-height:32px;font-weight:600;margin:0 0 6px;overflow-wrap:anywhere;}
+[data-admin-theme] .r1-admin-system h2 {font-size:16px;line-height:24px;font-weight:600;}
+[data-admin-theme] .r1-admin-system .page-header {display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:24px;}
+.r1-admin-system .page-header>div {min-width:0;}
+[data-admin-theme] .r1-admin-system .page-header p {color:var(--r1-muted);margin:0;font:14px/20px "BSC Inter",Inter,Arial,sans-serif;overflow-wrap:anywhere;}
+[data-admin-theme] .r1-admin-system :is(.button,button[type=submit]) {display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-height:36px;padding:7px 16px;border:1px solid var(--r1-accent);border-radius:6px;background:var(--r1-accent);color:white;font:500 14px/20px "BSC Inter",Inter,Arial,sans-serif;white-space:nowrap;text-decoration:none;}
+[data-admin-theme] .r1-admin-system .button.secondary {background:var(--r1-surface);border-color:var(--r1-strong-border);color:var(--r1-text);}
+.r1-admin-system .card {min-width:0;background:var(--r1-surface);border:1px solid var(--r1-border);border-radius:8px;box-shadow:none;}
+.r1-admin-system .form-section h2 {padding-bottom:16px;border-bottom:1px solid var(--r1-border);}
+.r1-admin-system .numbering-grid {grid-template-columns:repeat(3,minmax(0,1fr));}
+.r1-admin-system .invoice-logo-field {min-width:0;align-content:start;}
+.r1-admin-system .invoice-logo-current {display:flex;align-items:center;gap:12px;min-width:0;padding:0;border:0;background:transparent;}
+.r1-admin-system .invoice-logo-current>div:last-child {display:grid;gap:4px;min-width:0;}
+.r1-admin-system .invoice-logo-current span {overflow-wrap:anywhere;font-size:12px;line-height:18px;color:var(--r1-muted);}
+.r1-admin-system .invoice-logo-placeholder {width:56px;height:56px;display:grid;place-items:center;flex:0 0 56px;background:var(--r1-subtle);border:1px solid var(--r1-border);border-radius:6px;font-size:12px;}
+[data-admin-theme] .r1-admin-system.r1-people-form .record-form .field.invoice-logo-field input[type=file] {height:auto;min-height:56px;padding:9px 12px;overflow:hidden;}
+.r1-admin-system input[type=file]::file-selector-button {min-height:36px;margin-right:12px;border:1px solid var(--r1-strong-border);border-radius:6px;padding:7px 12px;color:var(--r1-text);background:var(--r1-surface);font:500 14px/20px "BSC Inter",Inter,Arial,sans-serif;}
+.r1-admin-system input[type=file]::file-selector-button:hover {background:var(--r1-subtle);}
+.r1-admin-system .invoice-logo-field .checkbox-row {display:flex;align-items:center;gap:8px;font-size:12px;line-height:18px;}
+.r1-admin-system .invoice-logo-field>p {margin:0;font-size:12px;line-height:18px;color:var(--r1-muted);}
+.r1-admin-system .audit-table {padding:0;overflow:hidden;}
+.r1-admin-system table {width:100%;min-width:0;max-width:100%;table-layout:fixed;border-collapse:collapse;margin:0;}
+.r1-admin-system th,.r1-admin-system td {padding:16px;vertical-align:middle;text-align:left;overflow-wrap:anywhere;border-bottom:1px solid var(--r1-border);}
+.r1-admin-system th {padding-block:12px;font-size:12px;line-height:18px;font-weight:400;color:var(--r1-muted);background:var(--r1-subtle);}
+.r1-admin-system tbody tr:last-child td {border-bottom:0;}
+.r1-admin-system th:nth-child(1) {width:16%;}
+.r1-admin-system th:nth-child(2) {width:15%;}
+.r1-admin-system th:nth-child(3) {width:19%;}
+.r1-admin-system th:nth-child(4) {width:18%;}
+.r1-admin-system th:nth-child(5) {width:32%;}
+.r1-admin-system td:last-child {white-space:pre-line;}
+.r1-admin-system tbody tr:hover {background:var(--r1-subtle);}
+.r1-admin-system .audit-empty {padding:40px 24px;text-align:center;}
+.r1-admin-system .audit-empty .empty-state {margin:0;}
+.r1-admin-system .detail-card {padding:24px;}
+.r1-admin-system .detail-list {display:grid;grid-template-columns:140px minmax(0,1fr) 140px minmax(0,1fr);gap:20px 24px;margin:0;padding:0;border:0;border-radius:0;background:transparent;overflow:visible;}
+.r1-admin-system .detail-list dt {font-size:12px;line-height:18px;color:var(--r1-muted);font-weight:400;margin:0;padding:0;border:0;background:transparent;}
+.r1-admin-system .detail-list dd {font-size:14px;line-height:20px;margin:0;padding:0;border:0;min-width:0;overflow-wrap:anywhere;}
+.r1-admin-system .detail-list dt:last-of-type {grid-column:1/-1;border-top:1px solid var(--r1-border);padding-top:20px;margin-top:4px;}
+.r1-admin-system .detail-list dd:last-of-type {grid-column:1/-1;white-space:pre-line;}
+@media(max-width:1100px) and (min-width:761px) {
+  .r1-admin-system .numbering-grid .field>span:first-child {min-height:40px;}
+  .r1-admin-system .detail-list {grid-template-columns:120px minmax(0,1fr);}
+  .r1-admin-system th,.r1-admin-system td {padding-inline:12px;}
+}
+@media(max-width:760px) {
+  [data-admin-theme] .r1-admin-system .page-header {flex-direction:column;gap:16px;}
+  [data-admin-theme] .r1-admin-system :is(.button,button[type=submit]) {min-height:44px;padding:11px 16px;}
+  .r1-admin-system .numbering-grid {grid-template-columns:minmax(0,1fr);}
+  [data-admin-theme] .r1-admin-system.r1-people-form .record-form .field.invoice-logo-field input[type=file] {min-height:68px;padding:11px;}
+  .r1-admin-system input[type=file]::file-selector-button {min-height:44px;padding-block:11px;}
+  .r1-admin-system .audit-table table,.r1-admin-system .audit-table tbody {display:block;}
+  .r1-admin-system .audit-table thead {display:none;}
+  .r1-admin-system .audit-table tbody tr {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:16px;gap:16px;border-bottom:1px solid var(--r1-border);}
+  .r1-admin-system .audit-table tbody tr:last-child {border-bottom:0;}
+  .r1-admin-system .audit-table td {padding:0;border:0;min-width:0;}
+  .r1-admin-system .audit-table td::before {content:attr(data-label);display:block;margin-bottom:6px;font-size:12px;line-height:18px;color:var(--r1-muted);}
+  .r1-admin-system .audit-table td:nth-child(1),.r1-admin-system .audit-table td:nth-child(4),.r1-admin-system .audit-table td:nth-child(5),.r1-admin-system .audit-table .audit-empty {grid-column:1/-1;}
+  .r1-admin-system .audit-empty::before {content:none;}
+  .r1-admin-system .detail-card {padding:20px;}
+  .r1-admin-system .detail-list {grid-template-columns:minmax(0,1fr);gap:6px;}
+  .r1-admin-system .detail-list dd {margin-bottom:14px;}
+  .r1-admin-system .detail-list dt:last-of-type {margin-top:4px;padding-top:20px;}
+}
