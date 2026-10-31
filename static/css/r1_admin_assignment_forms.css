@@ -1,0 +1,20 @@
+/* Two Admin assignment forms only; shared R1 controls and navigation are unchanged. */
+.r1-people-form .page-header p {overflow-wrap:anywhere;}
+.r1-people-form :is(.assignment-form-grid,.participant-assignment-grid) select {overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+@supports (appearance:base-select) and selector(select::picker(select)) {
+  @media(min-width:761px) and (hover:hover) and (pointer:fine) {
+    [data-admin-theme] .r1-people-form :is(.assignment-form-grid,.participant-assignment-grid) .field select {position:relative;padding-right:36px;}
+    .r1-people-form :is(.assignment-form-grid,.participant-assignment-grid) select::picker-icon {position:absolute;right:0;top:50%;transform:translateY(-50%);padding:0 12px;background:var(--r1-surface);}
+  }
+}
+.r1-people-form :is(.assignment-form-grid,.participant-assignment-grid):not(.single) {grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 24px;}
+.r1-people-form :is(.assignment-form-grid,.participant-assignment-grid)>.field:has(select),
+.r1-people-form :is(.assignment-form-grid,.participant-assignment-grid)>.field:has(textarea),
+.r1-people-form :is(.assignment-form-grid,.participant-assignment-grid)>.field:has(input[type=checkbox]) {grid-column:1/-1;}
+.r1-people-form .participant-assignment-active-control {display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.r1-people-form .participant-assignment-active-field {border-top:1px solid var(--r1-border);padding-top:16px;}
+.r1-people-form .assignment-form-grid>.field:has(>input[type=checkbox]) {display:flex;align-items:center;gap:10px;padding-top:16px;border-top:1px solid var(--r1-border);}
+.r1-people-form .assignment-form-grid>.field:has(>input[type=checkbox])>input {order:-1;}
+@media(max-width:760px) {
+  .r1-people-form :is(.assignment-form-grid,.participant-assignment-grid):not(.single) {grid-template-columns:minmax(0,1fr);gap:16px;}
+}

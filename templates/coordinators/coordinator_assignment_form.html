@@ -1,8 +1,14 @@
-{% extends "admin_base.html" %}
+{% extends "r1/admin_people_form_base.html" %}
+{% load r1_forms static %}
+
+{% block extra_styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/r1_admin_assignment_forms.css' %}">
+{% endblock %}
 
 {% block title %}Assign Participant - Brisbane Star Care{% endblock %}
 
-{% block content %}
+{% block people_content %}
 <div class="page-header">
   <div>
     <h1>Assign Participant</h1>
@@ -19,18 +25,18 @@
 
   <section class="card form-section">
     <h2>Assignment Details</h2>
-    <div class="form-grid">
-      {% include "participants/partials/field.html" with field=form.participant %}
-      {% include "participants/partials/field.html" with field=form.start_date %}
-      {% include "participants/partials/field.html" with field=form.end_date %}
-      {% include "participants/partials/field.html" with field=form.is_active %}
+    <div class="form-grid assignment-form-grid">
+      {% include "r1/partials/people_form_field.html" with field=form.participant|choice_hint:"Select participant" %}
+      {% include "r1/partials/people_form_field.html" with field=form.start_date %}
+      {% include "r1/partials/people_form_field.html" with field=form.end_date %}
+      {% include "r1/partials/people_form_field.html" with field=form.is_active %}
     </div>
   </section>
 
   <section class="card form-section">
     <h2>Notes</h2>
-    <div class="form-grid single">
-      {% include "participants/partials/field.html" with field=form.notes %}
+    <div class="form-grid assignment-form-grid single">
+      {% include "r1/partials/people_form_field.html" with field=form.notes %}
     </div>
   </section>
 
