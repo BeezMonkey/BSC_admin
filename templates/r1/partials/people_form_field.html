@@ -1,0 +1,9 @@
+{% if field.field.widget.input_type == "date" %}
+  {% include "r1/partials/people_form_date.html" with field=field %}
+{% else %}
+<label class="field{% if field_class %} {{ field_class }}{% endif %}">
+  <span>{{ caption|default:field.label }}</span>
+  {{ field }}
+  {% if field.errors %}<span class="field-error" id="{{ field.id_for_label }}_error">{{ field.errors|striptags }}</span>{% endif %}
+</label>
+{% endif %}

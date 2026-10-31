@@ -1,8 +1,8 @@
-{% extends "admin_base.html" %}
+{% extends "r1/admin_people_form_base.html" %}
 
 {% block title %}{{ title }} - Brisbane Star Care{% endblock %}
 
-{% block content %}
+{% block people_content %}
 <div class="page-header">
   <div>
     <h1>{{ title }}</h1>
@@ -24,17 +24,17 @@
     <section class="card form-section">
       <h2>Login Account</h2>
       <div class="form-grid">
-        {% include "participants/partials/field.html" with field=form.username %}
-        {% include "participants/partials/field.html" with field=form.email %}
-        {% include "participants/partials/field.html" with field=form.password1 %}
-        {% include "participants/partials/field.html" with field=form.password2 %}
+        {% include "r1/partials/people_form_field.html" with field=form.username %}
+        {% include "r1/partials/people_form_field.html" with field=form.email %}
+        {% include "r1/partials/people_form_field.html" with field=form.password1 %}
+        {% include "r1/partials/people_form_field.html" with field=form.password2 %}
       </div>
     </section>
   {% else %}
     <section class="card form-section">
       <h2>Login Account</h2>
       <div class="form-grid">
-        {% include "participants/partials/field.html" with field=form.email %}
+        {% include "r1/partials/people_form_field.html" with field=form.email %}
       </div>
     </section>
   {% endif %}
@@ -42,21 +42,21 @@
   <section class="card form-section">
     <h2>Personal Details</h2>
     <div class="form-grid">
-      {% include "participants/partials/field.html" with field=form.first_name %}
-      {% include "participants/partials/field.html" with field=form.last_name %}
-      {% include "participants/partials/field.html" with field=form.phone %}
-      {% include "participants/partials/field.html" with field=form.address %}
+      {% include "r1/partials/people_form_field.html" with field=form.first_name %}
+      {% include "r1/partials/people_form_field.html" with field=form.last_name %}
+      {% include "r1/partials/people_form_field.html" with field=form.phone %}
+      {% include "r1/partials/people_form_field.html" with field=form.address field_class="field-wide" %}
     </div>
   </section>
 
   <section class="card form-section">
     <h2>Employment</h2>
     <div class="form-grid">
-      {% include "participants/partials/field.html" with field=form.employment_type %}
-      {% include "participants/partials/field.html" with field=form.abn %}
-      {% include "participants/partials/field.html" with field=form.start_date %}
+      {% include "r1/partials/people_form_field.html" with field=form.employment_type %}
+      {% include "r1/partials/people_form_field.html" with field=form.abn %}
+      {% include "r1/partials/people_form_field.html" with field=form.start_date %}
       {% if form.username %}
-        {% include "participants/partials/field.html" with field=form.status %}
+        {% include "r1/partials/people_form_field.html" with field=form.status %}
       {% endif %}
     </div>
   </section>
@@ -64,17 +64,17 @@
   <section class="card form-section">
     <h2>Compliance</h2>
     <div class="form-grid">
-      {% include "participants/partials/field.html" with field=form.police_check_status %}
-      {% include "participants/partials/field.html" with field=form.police_check_expiry %}
-      {% include "participants/partials/field.html" with field=form.wwcc_status %}
-      {% include "participants/partials/field.html" with field=form.wwcc_expiry %}
+      {% include "r1/partials/people_form_field.html" with field=form.police_check_status %}
+      {% include "r1/partials/people_form_field.html" with field=form.police_check_expiry %}
+      {% include "r1/partials/people_form_field.html" with field=form.wwcc_status %}
+      {% include "r1/partials/people_form_field.html" with field=form.wwcc_expiry %}
     </div>
   </section>
 
   <section class="card form-section">
     <h2>Internal Notes</h2>
     <div class="form-grid single">
-      {% include "participants/partials/field.html" with field=form.notes %}
+      {% include "r1/partials/people_form_field.html" with field=form.notes %}
     </div>
   </section>
 
@@ -98,7 +98,7 @@
       {% if not form.username %}
         <div class="worker-access-panel worker-access-panel-warning worker-archive-panel">
           <h3>Archive status</h3>
-          {% include "participants/partials/field.html" with field=form.status %}
+          {% include "r1/partials/people_form_field.html" with field=form.status %}
           <p class="form-section-note">Set Worker status to Inactive to archive this worker.</p>
           <p class="form-section-note">Archived workers are removed from new scheduling and assignment choices. Existing shifts, service logs, invoices, and documents are kept.</p>
         </div>

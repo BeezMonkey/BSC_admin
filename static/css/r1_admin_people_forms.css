@@ -1,0 +1,96 @@
+/* Six Admin people forms only; existing navigation is not opted in. */
+.r1-people-form {color:var(--r1-text);font:14px/20px "BSC Inter",Inter,Arial,sans-serif;letter-spacing:0;min-width:0;}
+.r1-people-form * {box-sizing:border-box;letter-spacing:0;}
+.r1-people-form .page-header {display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:24px;}
+.r1-people-form .page-header>div {min-width:0;}
+.r1-people-form h1 {font-size:24px;line-height:32px;font-weight:600;margin:0 0 6px;overflow-wrap:anywhere;}
+.r1-people-form .page-header p {margin:0;color:var(--r1-muted);}
+.r1-people-form h2 {font-size:16px;line-height:24px;font-weight:600;margin:0 0 16px;}
+.r1-people-form h3 {font-size:14px;line-height:20px;font-weight:600;margin:0 0 16px;}
+.r1-people-form .record-form {width:100%;max-width:none;display:grid;gap:20px;margin:0;}
+.r1-people-form .record-form>.card {padding:24px;border:1px solid var(--r1-border);border-radius:8px;background:var(--r1-surface);box-shadow:none;margin:0;min-width:0;}
+.r1-people-form .form-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 24px;align-items:start;min-width:0;}
+.r1-people-form .locality-row {display:grid;grid-template-columns:2fr 1fr 1fr;gap:24px;min-width:0;}
+.r1-people-form .form-grid.single {grid-template-columns:minmax(0,1fr);}
+.r1-people-form .field {display:grid;align-content:start;gap:8px;min-width:0;margin:0;color:var(--r1-text);font-size:14px;line-height:20px;font-weight:400;}
+.r1-people-form .field-wide {grid-column:1/-1;}
+.r1-people-form .field[hidden] {display:none !important;}
+.r1-people-form .field > :is(span:first-child,label:first-child) {color:var(--r1-text);font-size:14px;line-height:20px;font-weight:400;}
+.r1-people-form :is(input:not([type=checkbox]):not([type=hidden]),select,textarea) {width:100%;max-width:100%;min-width:0;min-height:40px;margin:0;padding:9px 12px;border:1px solid var(--r1-strong-border);border-radius:6px;background:var(--r1-surface);color:var(--r1-text);font:inherit;line-height:20px;}
+.r1-people-form textarea {height:auto;min-height:104px;resize:vertical;}
+[data-admin-theme] .r1-people-form .record-form .field :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select) {height:40px;min-height:40px;padding:9px 12px;border:1px solid var(--r1-strong-border);border-radius:6px;font:inherit;line-height:20px;}
+[data-admin-theme] .r1-people-form .record-form .field textarea {height:auto;min-height:104px;border:1px solid var(--r1-strong-border);border-radius:6px;}
+.r1-people-form :is(input,select,textarea):focus-visible {outline:2px solid var(--r1-accent);outline-offset:2px;}
+.r1-people-form .field:has(.field-error) :is(input,select,textarea) {border-color:var(--r1-danger);}
+[data-admin-theme] .r1-people-form .record-form .field:has(.field-error) :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea) {border-color:var(--r1-danger);}
+.r1-people-form .field-error {font-size:12px;line-height:18px;color:var(--r1-danger);margin:0;overflow-wrap:anywhere;}
+.r1-people-form .error {border-left:3px solid var(--r1-danger);border-radius:4px;background:#fbf0f2;color:var(--r1-danger);padding:12px 16px;margin:0;}
+.r1-people-form .error ul {margin:0;padding-left:20px;}
+.r1-people-form :is(.button,button[type=submit]) {display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-height:36px;padding:7px 16px;border-radius:6px;font:inherit;font-weight:500;white-space:nowrap;max-width:100%;}
+.r1-people-form .form-actions {display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0;}
+.r1-people-form .worker-access-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;align-items:start;}
+.r1-people-form .worker-access-panel {padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;min-width:0;}
+.r1-people-form .worker-archive-panel {padding-left:24px;border-left:1px solid var(--r1-border);}
+.r1-people-form .worker-access-toggle {display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.r1-people-form input[type=checkbox] {width:18px;height:18px;min-height:0;margin:0;accent-color:var(--r1-accent);flex:0 0 18px;}
+.r1-people-form .worker-access-copy {display:grid;gap:8px;margin-top:12px;}
+.r1-people-form .form-section-note {font-size:12px;line-height:18px;color:var(--r1-muted);margin:8px 0 0;overflow-wrap:anywhere;}
+@supports (appearance:base-select) and selector(select::picker(select)) {
+  @media (min-width:761px) and (hover:hover) and (pointer:fine) {
+    .r1-people-form select,.r1-people-form select::picker(select) {appearance:base-select;}
+    .r1-people-form select::picker(select) {margin:4px 0;padding:4px;max-height:280px;overflow:auto;border:1px solid var(--r1-border);border-radius:8px;color:var(--r1-text);background:var(--r1-surface);font:14px/20px "BSC Inter",Inter,Arial,sans-serif;box-shadow:0 6px 16px rgb(23 33 43 / 12%);}
+    .r1-people-form select option {min-height:36px;padding:8px 12px;border-radius:4px;white-space:normal;overflow-wrap:anywhere;}
+    .r1-people-form select option:is(:hover,:focus,:checked) {background:var(--r1-accent-soft);color:var(--r1-text);}
+    .r1-people-form select option::checkmark {color:var(--r1-accent);}
+    .r1-people-form select::picker-icon {color:var(--r1-muted);}
+  }
+}
+@media(max-width:760px) {
+  .r1-people-form .page-header {flex-direction:column;gap:16px;}
+  .r1-people-form .record-form>.card {padding:20px;}
+  .r1-people-form .form-grid,.r1-people-form .worker-access-grid,.r1-people-form .locality-row {grid-template-columns:minmax(0,1fr);gap:16px;}
+  .r1-people-form :is(input:not([type=checkbox]):not([type=hidden]),select,textarea) {min-height:44px;}
+  [data-admin-theme] .r1-people-form .record-form .field :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select) {height:44px;min-height:44px;}
+  .r1-people-form select {appearance:auto;line-height:normal;}
+  .r1-people-form :is(.button,button[type=submit]) {min-height:44px;padding:11px 16px;}
+  .r1-people-form .worker-archive-panel {padding:20px 0 0;border-left:0;border-top:1px solid var(--r1-border);}
+}
+
+/* Approved invoice calendar, selector scope only. */
+[data-admin-theme] .r1-people-form .people-date { display: grid; gap: 8px; min-width: 0; position: relative; }
+.r1-people-form .people-date [hidden] { display: none !important; }
+[data-admin-theme] .r1-people-form .record-form .field.people-date.is-enhanced > input[type=date] { position: absolute; width: 1px; height: 1px; min-height: 0; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); opacity: 0; pointer-events: none; }
+[data-admin-theme] .r1-people-form .people-date .people-date-trigger { display: flex; align-items: center; justify-content: space-between; gap: 8px; box-sizing: border-box; width: 100%; min-width: 0; min-height: 40px; margin: 0; padding: 9px 12px; border: 1px solid var(--r1-strong-border); border-radius: 6px; background: var(--r1-surface); color: var(--r1-text); font-size: 14px; font-weight: 400; line-height: 20px; text-align: left; }
+.r1-people-form .people-date-trigger > .r1-icon { width: 16px; height: 16px; flex: 0 0 16px; }
+[data-admin-theme] .r1-people-form .people-date .people-date-trigger[aria-expanded=true] { border-color: var(--r1-accent); box-shadow: 0 0 0 3px var(--r1-blue-soft); }
+[data-admin-theme] .r1-people-form .people-date .people-date-trigger[aria-invalid=true] { border-color: var(--r1-danger); }
+.r1-people-form .people-date-error { color: var(--r1-danger); font-size: 12px; line-height: 16px; }
+.r1-people-form .people-calendar { position: fixed; z-index: 20; box-sizing: border-box; width: 292px; padding: 10px; border: 1px solid var(--r1-border); border-radius: 8px; overflow-y: auto; background: var(--r1-surface); color: var(--r1-text); box-shadow: 0 8px 18px rgb(23 33 43 / 14%); }
+.r1-people-form .people-calendar .calendar-picker-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 4px; }
+.r1-people-form .people-calendar .calendar-picker-header strong { font-size: 13px; font-weight: 600; line-height: 20px; }
+.r1-people-form .people-calendar .calendar-picker-navigation { display: flex; gap: 4px; }
+.r1-people-form .people-calendar :is(.calendar-picker-weekdays, .calendar-picker-grid) { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; padding: 4px 0; }
+.r1-people-form .people-calendar .calendar-picker-weekdays span { color: var(--r1-muted); font-size: 11px; line-height: 16px; text-align: center; }
+[data-admin-theme] .r1-people-form .people-calendar button { min-width: 0; min-height: 28px; padding: 4px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--r1-text); font-size: 12px; font-weight: 400; line-height: 18px; }
+[data-admin-theme] .r1-people-form .people-calendar .calendar-picker-navigation button { width: 28px; color: var(--r1-accent); font-size: 20px; }
+.r1-people-form .people-calendar .calendar-day.outside { color: var(--r1-muted); }
+.r1-people-form .people-calendar .calendar-day.weekend { background: var(--r1-warning-soft); }
+.r1-people-form .people-calendar .calendar-day.today { border-color: var(--r1-strong-border); }
+[data-admin-theme] .r1-people-form .people-calendar button:hover { color: var(--r1-accent); background: var(--r1-blue-soft); }
+[data-admin-theme] .r1-people-form .people-calendar .calendar-day.selected { color: var(--r1-surface); background: var(--r1-accent); }
+.r1-people-form .people-calendar .date-picker-footer { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--r1-border); }
+[data-admin-theme] .r1-people-form .people-calendar .date-picker-footer button { color: var(--r1-accent); padding-inline: 6px; }
+
+
+/* v03: only the coordinator name input; do not move adjacent rows. */
+@media (min-width:761px) {
+  [data-admin-theme] .r1-people-form .coordinator-name-field input {
+    max-width:calc((100% - 24px) / 2);
+  }
+}
+
+.r1-people-form .optional-address {grid-column:1/-1;min-width:0;}
+.r1-people-form .optional-address > summary {width:fit-content;cursor:pointer;color:var(--r1-muted);font-size:12px;line-height:18px;}
+.r1-people-form .optional-address[open] > summary {margin-bottom:8px;}
+.r1-people-form .optional-address > .field {margin:0;}
+.r1-people-form .worker-access-toggle > span {font-size:14px;line-height:20px;font-weight:400;}
