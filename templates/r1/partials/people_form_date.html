@@ -1,0 +1,33 @@
+<div class="field people-date" data-people-date>
+  <label id="{{ field.id_for_label }}-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+  {{ field }}
+  <input type="hidden" data-people-date-proxy>
+  <button type="button" class="people-date-trigger" data-picker-trigger hidden
+          aria-expanded="false" aria-controls="{{ field.id_for_label }}-calendar"
+          {% if field.errors %}aria-invalid="true"{% endif %}
+          aria-describedby="{{ field.id_for_label }}-client-error{% if field.errors %} {{ field.id_for_label }}_error{% endif %}"
+          aria-labelledby="{{ field.id_for_label }}-label {{ field.id_for_label }}-display">
+    <span id="{{ field.id_for_label }}-display" data-picker-display>dd/mm/yyyy</span>
+    {% include "r1/partials/icon.html" with name="calendar" size=16 %}
+  </button>
+  <div id="{{ field.id_for_label }}-calendar" class="people-calendar" data-picker-popover hidden
+       role="dialog" aria-labelledby="{{ field.id_for_label }}-label">
+    <header class="calendar-picker-header">
+      <strong data-calendar-title></strong>
+      <div class="calendar-picker-navigation">
+        <button type="button" data-calendar-previous aria-label="Previous month">&lsaquo;</button>
+        <button type="button" data-calendar-next aria-label="Next month">&rsaquo;</button>
+      </div>
+    </header>
+    <div class="calendar-picker-weekdays" aria-hidden="true">
+      <span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span>
+    </div>
+    <div class="calendar-picker-grid" data-calendar-grid></div>
+    <footer class="date-picker-footer">
+      <button type="button" data-calendar-clear>Clear</button>
+      <button type="button" data-calendar-today>Today</button>
+    </footer>
+  </div>
+  <span id="{{ field.id_for_label }}-client-error" class="people-date-error" data-people-date-error hidden></span>
+  {% if field.errors %}<span class="field-error" id="{{ field.id_for_label }}_error">{{ field.errors|striptags }}</span>{% endif %}
+</div>

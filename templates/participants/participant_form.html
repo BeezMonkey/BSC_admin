@@ -1,8 +1,8 @@
-{% extends "admin_base.html" %}
+{% extends "r1/admin_people_form_base.html" %}
 
 {% block title %}{{ title }} - Brisbane Star Care{% endblock %}
 
-{% block content %}
+{% block people_content %}
 <div class="page-header">
   <div>
     <h1>{{ title }}</h1>
@@ -23,60 +23,65 @@
   <section class="card form-section">
     <h2>Basic Information</h2>
     <div class="form-grid">
-      {% include "participants/partials/field.html" with field=form.first_name %}
-      {% include "participants/partials/field.html" with field=form.last_name %}
-      {% include "participants/partials/field.html" with field=form.preferred_name %}
-      {% include "participants/partials/field.html" with field=form.date_of_birth %}
-      {% include "participants/partials/field.html" with field=form.ndis_number %}
-      {% include "participants/partials/field.html" with field=form.status %}
+      {% include "r1/partials/people_form_field.html" with field=form.first_name %}
+      {% include "r1/partials/people_form_field.html" with field=form.last_name %}
+      {% include "r1/partials/people_form_field.html" with field=form.preferred_name %}
+      {% include "r1/partials/people_form_field.html" with field=form.date_of_birth %}
+      {% include "r1/partials/people_form_field.html" with field=form.ndis_number %}
+      {% include "r1/partials/people_form_field.html" with field=form.status %}
     </div>
   </section>
 
   <section class="card form-section">
     <h2>Contact Information</h2>
     <div class="form-grid">
-      {% include "participants/partials/field.html" with field=form.phone %}
-      {% include "participants/partials/field.html" with field=form.email %}
-      {% include "participants/partials/field.html" with field=form.address_line_1 %}
-      {% include "participants/partials/field.html" with field=form.address_line_2 %}
-      {% include "participants/partials/field.html" with field=form.suburb %}
-      {% include "participants/partials/field.html" with field=form.state %}
-      {% include "participants/partials/field.html" with field=form.postcode %}
+      {% include "r1/partials/people_form_field.html" with field=form.phone %}
+      {% include "r1/partials/people_form_field.html" with field=form.email %}
+      {% include "r1/partials/people_form_field.html" with field=form.address_line_1 caption="Address" field_class="field-wide" %}
+      <details class="optional-address" data-optional-address{% if form.address_line_2.value or form.address_line_2.errors %} open{% endif %}>
+        <summary>Address line 2 (optional)</summary>
+        {% include "r1/partials/people_form_field.html" with field=form.address_line_2 %}
+      </details>
+      <div class="locality-row field-wide">
+        {% include "r1/partials/people_form_field.html" with field=form.suburb %}
+        {% include "r1/partials/people_form_field.html" with field=form.state %}
+        {% include "r1/partials/people_form_field.html" with field=form.postcode %}
+      </div>
     </div>
   </section>
 
   <section class="card form-section">
     <h2>Emergency Contact</h2>
     <div class="form-grid">
-      {% include "participants/partials/field.html" with field=form.emergency_contact_name %}
-      {% include "participants/partials/field.html" with field=form.emergency_contact_relationship %}
-      {% include "participants/partials/field.html" with field=form.emergency_contact_phone %}
-      {% include "participants/partials/field.html" with field=form.emergency_contact_email %}
+      {% include "r1/partials/people_form_field.html" with field=form.emergency_contact_name %}
+      {% include "r1/partials/people_form_field.html" with field=form.emergency_contact_relationship %}
+      {% include "r1/partials/people_form_field.html" with field=form.emergency_contact_phone %}
+      {% include "r1/partials/people_form_field.html" with field=form.emergency_contact_email %}
     </div>
   </section>
 
   <section class="card form-section">
     <h2>NDIS Plan</h2>
     <div class="form-grid">
-      {% include "participants/partials/field.html" with field=form.plan_start_date %}
-      {% include "participants/partials/field.html" with field=form.plan_end_date %}
-      {% include "participants/partials/field.html" with field=form.management_type %}
-      {% include "participants/partials/field.html" with field=form.plan_manager_name %}
-      {% include "participants/partials/field.html" with field=form.plan_manager_email %}
-      {% include "participants/partials/field.html" with field=form.plan_manager_phone %}
-      {% include "participants/partials/field.html" with field=form.support_coordinator_name %}
-      {% include "participants/partials/field.html" with field=form.support_coordinator_email %}
-      {% include "participants/partials/field.html" with field=form.support_coordinator_phone %}
+      {% include "r1/partials/people_form_field.html" with field=form.plan_start_date %}
+      {% include "r1/partials/people_form_field.html" with field=form.plan_end_date %}
+      {% include "r1/partials/people_form_field.html" with field=form.management_type %}
+      {% include "r1/partials/people_form_field.html" with field=form.plan_manager_name %}
+      {% include "r1/partials/people_form_field.html" with field=form.plan_manager_email %}
+      {% include "r1/partials/people_form_field.html" with field=form.plan_manager_phone %}
+      {% include "r1/partials/people_form_field.html" with field=form.support_coordinator_name field_class="field-wide coordinator-name-field" %}
+      {% include "r1/partials/people_form_field.html" with field=form.support_coordinator_email %}
+      {% include "r1/partials/people_form_field.html" with field=form.support_coordinator_phone %}
     </div>
   </section>
 
   <section class="card form-section">
     <h2>Notes</h2>
     <div class="form-grid single">
-      {% include "participants/partials/field.html" with field=form.worker_visible_notes %}
-      {% include "participants/partials/field.html" with field=form.address_access_instructions %}
-      {% include "participants/partials/field.html" with field=form.risk_safety_notes %}
-      {% include "participants/partials/field.html" with field=form.internal_notes %}
+      {% include "r1/partials/people_form_field.html" with field=form.worker_visible_notes %}
+      {% include "r1/partials/people_form_field.html" with field=form.address_access_instructions %}
+      {% include "r1/partials/people_form_field.html" with field=form.risk_safety_notes %}
+      {% include "r1/partials/people_form_field.html" with field=form.internal_notes %}
     </div>
   </section>
 

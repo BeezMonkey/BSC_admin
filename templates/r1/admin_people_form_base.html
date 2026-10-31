@@ -1,0 +1,16 @@
+{% extends "admin_base.html" %}
+{% load static %}
+
+{% block extra_styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_admin_people_forms.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="r1-ui r1-people-form">
+  {% block people_content %}{% endblock %}
+</div>
+<script src="{% static 'js/date_time_picker.js' %}" defer></script>
+<script src="{% static 'js/r1_people_form_dates.js' %}" defer></script>
+{% endblock %}

@@ -1,8 +1,8 @@
-{% extends "admin_base.html" %}
+{% extends "r1/admin_people_form_base.html" %}
 
 {% block title %}{{ title }} - Brisbane Star Care{% endblock %}
 
-{% block content %}
+{% block people_content %}
 <div class="page-header">
   <div>
     <h1>{{ title }}</h1>
@@ -24,12 +24,12 @@
     <h2>Login Account</h2>
     <div class="form-grid">
       {% if form.username %}
-        {% include "participants/partials/field.html" with field=form.username %}
+        {% include "r1/partials/people_form_field.html" with field=form.username %}
       {% endif %}
-      {% include "participants/partials/field.html" with field=form.email %}
+      {% include "r1/partials/people_form_field.html" with field=form.email %}
       {% if form.password1 %}
-        {% include "participants/partials/field.html" with field=form.password1 %}
-        {% include "participants/partials/field.html" with field=form.password2 %}
+        {% include "r1/partials/people_form_field.html" with field=form.password1 %}
+        {% include "r1/partials/people_form_field.html" with field=form.password2 %}
       {% endif %}
     </div>
   </section>
@@ -37,17 +37,17 @@
   <section class="card form-section">
     <h2>Coordinator Details</h2>
     <div class="form-grid">
-      {% include "participants/partials/field.html" with field=form.first_name %}
-      {% include "participants/partials/field.html" with field=form.last_name %}
-      {% include "participants/partials/field.html" with field=form.phone %}
-      {% include "participants/partials/field.html" with field=form.status %}
+      {% include "r1/partials/people_form_field.html" with field=form.first_name %}
+      {% include "r1/partials/people_form_field.html" with field=form.last_name %}
+      {% include "r1/partials/people_form_field.html" with field=form.phone %}
+      {% include "r1/partials/people_form_field.html" with field=form.status %}
     </div>
   </section>
 
   <section class="card form-section">
     <h2>Internal Notes</h2>
     <div class="form-grid single">
-      {% include "participants/partials/field.html" with field=form.notes %}
+      {% include "r1/partials/people_form_field.html" with field=form.notes %}
     </div>
   </section>
 
