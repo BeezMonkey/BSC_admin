@@ -1,8 +1,17 @@
 {% extends "admin_base.html" %}
+{% load static %}
 
 {% block title %}Invoice Settings - Brisbane Star Care{% endblock %}
 
+{% block extra_styles %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
+<link rel="stylesheet" href="{% static 'css/r1_admin_people_forms.css' %}">
+<link rel="stylesheet" href="{% static 'css/r1_admin_system.css' %}">
+{% endblock %}
+
 {% block content %}
+<div class="r1-ui r1-admin-system r1-people-form">
 <div class="page-header">
   <div>
     <h1>Invoice Settings</h1>
@@ -52,7 +61,7 @@
 
   <section class="card form-section">
     <h2>Invoice Numbering</h2>
-    <div class="form-grid">
+    <div class="form-grid numbering-grid">
       {% include "participants/partials/field.html" with field=form.invoice_prefix %}
       {% include "participants/partials/field.html" with field=form.next_invoice_sequence %}
       {% include "participants/partials/field.html" with field=form.accent_colour %}
@@ -75,4 +84,5 @@
     <a class="button secondary" href="{% url 'invoice_placeholder' %}">Cancel</a>
   </div>
 </form>
+</div>
 {% endblock %}
