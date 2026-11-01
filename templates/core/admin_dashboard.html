@@ -1,8 +1,16 @@
 {% extends "admin_base.html" %}
+{% load static %}
 
 {% block title %}Admin Dashboard - Brisbane Star Care{% endblock %}
 
+{% block extra_styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/r1_admin_dashboard.css' %}">
+{% endblock %}
+
 {% block content %}
+<div class="r1-ui r1-admin-dashboard">
 <header class="page-header dashboard-workbench-header">
   <div>
     <h1>Today at BSC</h1>
@@ -94,4 +102,5 @@
     {% endfor %}
   </div>
 </section>
+</div>
 {% endblock %}

@@ -154,7 +154,11 @@ class R1ShellIsolationTests(TestCase):
                         self.assertContains(response, "r1_admin_sc_invoices.css", count=1)
                     else:
                         self.assertNotContains(response, "r1_shell.css")
-                        self.assertNotContains(response, "r1-ui")
+                        if route == "admin_dashboard":
+                            self.assertContains(response, "r1-ui r1-admin-dashboard")
+                            self.assertContains(response, "r1_admin_dashboard.css", count=1)
+                        else:
+                            self.assertNotContains(response, "r1-ui")
 
     def test_profile_opts_into_independent_support_shell(self):
         self.client.force_login(self.worker_user)
