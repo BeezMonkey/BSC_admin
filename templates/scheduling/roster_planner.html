@@ -5,11 +5,14 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/holiday_reminders.css' %}">
 <link rel="stylesheet" href="{% static 'css/planner_billing.css' %}">
+<link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
+<link rel="stylesheet" href="{% static 'css/r1_admin_roster.css' %}">
 {% endblock %}
 
 {% block title %}Quick Roster Planner - Brisbane Star Care{% endblock %}
 
 {% block content %}
+<div class="r1-ui r1-admin-roster">
 <div class="page-header">
   <div>
     <h1>Quick Roster Planner</h1>
@@ -43,7 +46,7 @@
 </section>
 
 <section class="card planner-filter-card planner-filter-card-compact">
-  <form class="filter-bar planner-filter-bar planner-filter-bar-compact" method="get" id="planner-filter-form">
+  <form class="filter-bar planner-filter-bar planner-filter-bar-compact" method="get" id="planner-filter-form" data-roster-filters>
     <input type="hidden" name="view" value="{{ view_mode }}">
     {% if is_worker_view %}
       <label>{{ primary_filter_label }}
@@ -80,8 +83,8 @@
         </select>
       </label>
     {% endif %}
-    <label>Date from <input type="date" name="date_from" value="{{ date_from }}"></label>
-    <label>Date to <input type="date" name="date_to" value="{{ date_to }}"></label>
+    {% include "invoices/partials/filter_date.html" with name="date_from" caption="Date from" value=date_from %}
+    {% include "invoices/partials/filter_date.html" with name="date_to" caption="Date to" value=date_to %}
     <div class="planner-filter-actions">
       <button type="submit">Apply</button>
       <a class="button secondary" href="{% url 'roster_planner' %}">Reset</a>
@@ -253,6 +256,7 @@
   {% if holiday_warning %}<p class="holiday-coverage-warning">{{ holiday_warning }}</p>{% endif %}
   <p class="holiday-source-note">Holiday reminders: QLD statewide, Brisbane, Logan and Gold Coast. <a href="https://www.qld.gov.au/recreation/travel/holidays/public" target="_blank" rel="noopener noreferrer">QLD public holidays</a> &middot; <a href="https://www.qld.gov.au/recreation/travel/holidays/show" target="_blank" rel="noopener noreferrer">Show holidays</a></p>
 </section>
+</div>
 <div id="shift-modal-root"></div>
 {% if billing_enabled %}
 <dialog class="planner-billing-drawer" id="planner-billing-drawer" aria-labelledby="planner-billing-title">
@@ -270,6 +274,7 @@
 <script src="{% static 'js/planner_billing.js' %}" defer></script>
 {% include "scheduling/partials/holiday_assets.html" %}
 <script src="{% static 'js/date_time_picker.js' %}" defer></script>
+<script src="{% static 'js/r1_roster_filters.js' %}" defer></script>
 <script src="{% static 'js/support_item_picker.js' %}" defer data-support-item-picker-script></script>
 <script src="{% static 'js/shift_modal.js' %}" defer></script>
 {% endblock %}

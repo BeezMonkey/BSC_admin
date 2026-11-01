@@ -157,8 +157,9 @@ class R1ShellIsolationTests(TestCase):
                         if route == "admin_dashboard":
                             self.assertContains(response, "r1-ui r1-admin-dashboard")
                             self.assertContains(response, "r1_admin_dashboard.css", count=1)
-                        else:
-                            self.assertNotContains(response, "r1-ui")
+                        elif route == "roster_planner":
+                            self.assertContains(response, "r1-ui r1-admin-roster", count=1)
+                            self.assertContains(response, "r1_admin_roster.css", count=1)
 
     def test_profile_opts_into_independent_support_shell(self):
         self.client.force_login(self.worker_user)
