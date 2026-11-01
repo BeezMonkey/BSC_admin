@@ -200,6 +200,28 @@ class R1RosterTests(TestCase):
 
 
 class R1RosterStyleTests(SimpleTestCase):
+    def test_paste_button_retains_clipboard_icon_colors_and_zero_padding(self):
+        css = (Path(__file__).resolve().parents[1] / 'static/css/r1_admin_roster.css').read_text()
+        selector = '[data-admin-theme] .r1-admin-roster .planner-paste-shift {'
+        self.assertIn(selector, css)
+        rule = css.split(selector, 1)[1].split('}', 1)[0]
+        for declaration in ('padding:0;', 'width:32px;', 'min-width:32px;',
+                            'height:32px;', 'min-height:32px;',
+                            'color:var(--planner-copy-ink);', 'background:var(--planner-copy-bg);'):
+            self.assertIn(declaration, rule)
+        self.assertNotIn('display:', rule)
+        self.assertIn('[data-admin-theme] .r1-admin-roster .planner-paste-shift:hover,', css)
+        self.assertIn('background:var(--planner-copy-bg-hover);', css)
+        self.assertIn('.r1-admin-roster .planner-paste-shift svg {width:0.9rem;height:0.9rem;flex:none;}', css)
+
+    def test_all_planner_weekends_keep_main_background_distinction(self):
+        css = (Path(__file__).resolve().parents[1] / 'static/css/r1_admin_roster.css').read_text()
+        for selector in ('.r1-admin-roster .planner-day-card.planner-weekend,',
+                         '.r1-admin-roster .planner-resource-day.planner-weekend,',
+                         '.r1-admin-roster .planner-resource-day-heading.planner-weekend {background:#fff7ed;}',
+                         '.r1-admin-roster .planner-day-card.planner-weekend>header {background:#ffedd5;}'):
+            self.assertIn(selector, css)
+
     def test_view_keyboard_focus_remains_visible_inside_clipped_segments(self):
         css = (Path(__file__).resolve().parents[1] / 'static/css/r1_admin_roster.css').read_text()
         selector = '.r1-admin-roster .planner-view-option:focus-visible {'

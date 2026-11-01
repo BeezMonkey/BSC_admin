@@ -257,6 +257,26 @@
 [data-admin-theme] .r1-admin-roster .planner-shift-tile .planner-multi-worker-tag {font-size:0.66rem;line-height:1.1;font-weight:600;}
 [data-admin-theme] .r1-admin-roster .planner-shift-tile .source-pill {font-size:11px;line-height:1;font-weight:600;}
 
+/* Preserve the original Paste icon/color states against generic button styles. */
+[data-admin-theme] .r1-admin-roster .planner-paste-shift {
+  width:32px;min-width:32px;height:32px;min-height:32px;flex:0 0 32px;
+  padding:0;border:1px solid var(--planner-copy-border);border-radius:6px;
+  color:var(--planner-copy-ink);background:var(--planner-copy-bg);
+}
+.r1-admin-roster .planner-paste-shift svg {width:0.9rem;height:0.9rem;flex:none;}
+[data-admin-theme] .r1-admin-roster .planner-paste-shift:hover,
+[data-admin-theme] .r1-admin-roster .planner-paste-shift:focus {
+  border-color:var(--planner-copy-ink);background:var(--planner-copy-bg-hover);
+}
+@media(max-width:760px) {
+  [data-admin-theme] .r1-admin-roster .planner-paste-shift {width:44px;min-width:44px;height:44px;min-height:44px;flex-basis:44px;}
+}
+/* Main's weekend colors; Saturday and Sunday remain one weekend category. */
+.r1-admin-roster .planner-day-card.planner-weekend,
+.r1-admin-roster .planner-resource-day.planner-weekend,
+.r1-admin-roster .planner-resource-day-heading.planner-weekend {background:#fff7ed;}
+.r1-admin-roster .planner-day-card.planner-weekend>header {background:#ffedd5;}
+
 /* Approved view selector emphasis: appearance only. */
 .r1-admin-roster .planner-view-switch {border-color:var(--r1-accent);}
 .r1-admin-roster .planner-view-option.active,
