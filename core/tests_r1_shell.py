@@ -114,15 +114,21 @@ class R1ShellIsolationTests(TestCase):
         self.assertContains(response, f'method="post" action="{reverse("logout")}"', count=2)
         self.assertContains(response, static("js/worker_nav.js"))
 
-    def test_base_shells_are_default_off_including_sc_and_login(self):
+    def test_base_shells_are_default_off_while_login_opts_in_independently(self):
         request = RequestFactory().get("/")
         request.user = AnonymousUser()
-        for template in ("admin_base.html", "worker_base.html", "coordinator_base.html", "accounts/login.html"):
+        for template in ("admin_base.html", "worker_base.html", "coordinator_base.html"):
             with self.subTest(template=template):
                 html = render_to_string(template, {"request": request})
                 self.assertNotIn("r1_tokens.css", html)
                 self.assertNotIn("r1_shell.css", html)
                 self.assertNotIn("r1-ui", html)
+        html = render_to_string("accounts/login.html", {"request": request})
+        self.assertIn("r1_tokens.css", html)
+        self.assertIn("r1_login.css", html)
+        self.assertIn("r1-ui login-v3", html)
+        for stylesheet in ("r1_shell.css", "admin.css", "portal.css"):
+            self.assertNotIn(stylesheet, html)
 
     def test_navigation_pages_opt_in_but_other_worker_and_admin_pages_do_not(self):
         self.client.force_login(self.worker_user)

@@ -17,25 +17,25 @@ class LoginBrandingTests(TestCase):
     def test_admin_domain_shows_admin_portal_label(self):
         response = self.client.get(reverse("login"), HTTP_HOST="admin.bscare.com.au")
 
-        self.assertContains(response, "NDIS Admin Portal")
-        self.assertContains(response, "Login to Admin Portal")
-        self.assertContains(response, 'class="portal-badge"')
+        self.assertContains(response, "Administrator")
+        self.assertContains(response, ">Login</button>")
+        self.assertContains(response, 'class="v3-badge" data-role="ADMIN"')
 
     @override_settings(ALLOWED_HOSTS=allowed_hosts)
     def test_support_worker_domain_shows_worker_portal_label(self):
         response = self.client.get(reverse("login"), HTTP_HOST="sw.bscare.com.au")
 
-        self.assertContains(response, "Support Worker Portal")
-        self.assertContains(response, "Login to Worker Portal")
-        self.assertContains(response, 'class="portal-badge"')
+        self.assertContains(response, "Support Worker")
+        self.assertContains(response, ">Login</button>")
+        self.assertContains(response, 'class="v3-badge" data-role="SW"')
 
     @override_settings(ALLOWED_HOSTS=allowed_hosts)
     def test_support_coordinator_domain_shows_coordinator_portal_label(self):
         response = self.client.get(reverse("login"), HTTP_HOST="sc.bscare.com.au")
 
-        self.assertContains(response, "Support Coordinator Portal")
-        self.assertContains(response, "Login to Coordinator Portal")
-        self.assertContains(response, 'class="portal-badge"')
+        self.assertContains(response, "Support Coordinator")
+        self.assertContains(response, ">Login</button>")
+        self.assertContains(response, 'class="v3-badge" data-role="SC"')
 
     @override_settings(ALLOWED_HOSTS=allowed_hosts)
     def test_default_host_keeps_existing_generic_label(self):

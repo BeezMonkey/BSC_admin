@@ -13,16 +13,19 @@ from .permissions import (
 
 LOGIN_PORTAL_CONTEXT = {
     "admin.bscare.com.au": {
-        "portal_name": "NDIS Admin Portal",
-        "login_button_label": "Login to Admin Portal",
+        "portal_name": "Administrator",
+        "portal_badge": "ADMIN",
+        "login_button_label": "Login",
     },
     "sw.bscare.com.au": {
-        "portal_name": "Support Worker Portal",
-        "login_button_label": "Login to Worker Portal",
+        "portal_name": "Support Worker",
+        "portal_badge": "SW",
+        "login_button_label": "Login",
     },
     "sc.bscare.com.au": {
-        "portal_name": "Support Coordinator Portal",
-        "login_button_label": "Login to Coordinator Portal",
+        "portal_name": "Support Coordinator",
+        "portal_badge": "SC",
+        "login_button_label": "Login",
     },
 }
 
@@ -43,6 +46,7 @@ class BSCLoginView(LoginView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update(get_login_portal_context(self.request.get_host()))
+        context["form"].fields["username"].widget.attrs["placeholder"] = "Enter your username"
         return context
 
 
