@@ -256,3 +256,20 @@
 [data-admin-theme] .r1-admin-roster .planner-shift-tile .planner-conflict-tag {font-size:0.66rem;line-height:1.1;font-weight:600;}
 [data-admin-theme] .r1-admin-roster .planner-shift-tile .planner-multi-worker-tag {font-size:0.66rem;line-height:1.1;font-weight:600;}
 [data-admin-theme] .r1-admin-roster .planner-shift-tile .source-pill {font-size:11px;line-height:1;font-weight:600;}
+
+/* Approved view selector emphasis: appearance only. */
+.r1-admin-roster .planner-view-switch {border-color:var(--r1-accent);}
+.r1-admin-roster .planner-view-option.active,
+.r1-admin-roster .planner-view-option.active:hover {
+  background:var(--r1-accent);
+  color:var(--r1-surface);
+}
+.r1-admin-roster .planner-view-option:not(.active):hover {
+  background:var(--r1-blue-soft);
+  color:var(--r1-accent);
+}
+/* Keep keyboard focus inside the clipped group, contrasting with either fill. */
+.r1-admin-roster .planner-view-option:focus-visible {
+  outline:2px solid currentColor;
+  outline-offset:-4px;
+}

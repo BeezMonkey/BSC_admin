@@ -200,6 +200,30 @@ class R1RosterTests(TestCase):
 
 
 class R1RosterStyleTests(SimpleTestCase):
+    def test_view_keyboard_focus_remains_visible_inside_clipped_segments(self):
+        css = (Path(__file__).resolve().parents[1] / 'static/css/r1_admin_roster.css').read_text()
+        selector = '.r1-admin-roster .planner-view-option:focus-visible {'
+        self.assertIn(selector, css)
+        rule = css.split(selector, 1)[1].split('}', 1)[0]
+        self.assertIn('outline:2px solid currentColor;', rule)
+        self.assertIn('outline-offset:-4px;', rule)
+
+    def test_view_selection_uses_approved_colors_without_layout_overrides(self):
+        css = (Path(__file__).resolve().parents[1] / 'static/css/r1_admin_roster.css').read_text()
+        marker = '/* Approved view selector emphasis: appearance only. */'
+        self.assertIn(marker, css)
+        rules = css.split(marker, 1)[1]
+        self.assertIn('.r1-admin-roster .planner-view-switch {border-color:var(--r1-accent);}', rules)
+        self.assertIn('.r1-admin-roster .planner-view-option.active,', rules)
+        self.assertIn('.r1-admin-roster .planner-view-option.active:hover {', rules)
+        self.assertIn('background:var(--r1-accent);', rules)
+        self.assertIn('color:var(--r1-surface);', rules)
+        self.assertIn('.r1-admin-roster .planner-view-option:not(.active):hover {', rules)
+        self.assertIn('background:var(--r1-blue-soft);', rules)
+        self.assertIn('color:var(--r1-accent);', rules)
+        for property_name in ('font', 'padding', 'margin', 'width', 'height', 'display', 'position', 'gap', '!important'):
+            self.assertNotIn(property_name, rules)
+
     def test_shift_card_typography_matches_main_without_resizing_other_controls(self):
         css = (Path(__file__).resolve().parents[1] / 'static/css/r1_admin_roster.css').read_text()
         expected = {
