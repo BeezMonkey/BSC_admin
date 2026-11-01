@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="{% static 'css/planner_billing.css' %}">
 <link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
 <link rel="stylesheet" href="{% static 'css/r1_admin_roster.css' %}">
+{% include "scheduling/partials/roster_record_styles.html" with roster_tokens_loaded=True %}
 {% endblock %}
 
 {% block title %}Quick Roster Planner - Brisbane Star Care{% endblock %}
@@ -259,7 +260,7 @@
 </div>
 <div id="shift-modal-root"></div>
 {% if billing_enabled %}
-<dialog class="planner-billing-drawer" id="planner-billing-drawer" aria-labelledby="planner-billing-title">
+<dialog class="planner-billing-drawer r1-ui r1-people-form r1-roster-record" id="planner-billing-drawer" aria-labelledby="planner-billing-title">
   <header class="planner-billing-header">
     <div><h2 id="planner-billing-title">Billing check</h2><p data-planner-billing-context></p></div>
     <button type="button" class="planner-billing-icon" data-planner-billing-close aria-label="Close billing details" title="Close billing details">&times;</button>

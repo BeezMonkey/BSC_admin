@@ -1,9 +1,15 @@
 {% extends "admin_base.html" %}
 {% load bsc_formatting %}
 
+{% block extra_styles %}
+{{ block.super }}
+{% include "scheduling/partials/roster_record_styles.html" %}
+{% endblock %}
+
 {% block title %}Shift - Brisbane Star Care{% endblock %}
 
 {% block content %}
+<div class="r1-ui r1-people-form r1-roster-record">
 <div class="shift-detail-page">
 <div class="page-header">
   <div>
@@ -83,5 +89,6 @@
   </form>
 </section>
 {% endif %}
+</div>
 </div>
 {% endblock %}
