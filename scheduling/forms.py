@@ -355,6 +355,9 @@ class RecurringShiftForm(forms.Form):
         self.fields["participant"].queryset = Participant.objects.all()
         self.fields["worker"].queryset = schedulable_worker_queryset()
         self.fields["support_item"].queryset = SupportItem.active_items()
+        self.fields["participant"].empty_label = "Select participant"
+        self.fields["worker"].empty_label = "Select worker"
+        self.fields["support_item"].empty_label = "Select support item"
 
     def clean(self):
         cleaned_data = super().clean()

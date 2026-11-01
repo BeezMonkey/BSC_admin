@@ -1,0 +1,8 @@
+<label class="field">
+  <span>{{ field.label }}</span>
+  <span class="recurring-time-shell{% if not field.value %} is-empty{% endif %}">
+    {{ field }}
+    <span class="recurring-time-hint" aria-hidden="true">{{ caption }}</span>
+  </span>
+  {% if field.errors %}<span class="field-error">{{ field.errors|striptags }}</span>{% endif %}
+</label>

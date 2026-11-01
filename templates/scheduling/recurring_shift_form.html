@@ -4,11 +4,13 @@
 {% block extra_styles %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/holiday_reminders.css' %}">
+{% include "scheduling/partials/roster_record_styles.html" %}
 {% endblock %}
 
 {% block title %}Create Recurring Shifts - Brisbane Star Care{% endblock %}
 
 {% block content %}
+<div class="r1-ui r1-people-form r1-roster-record">
 <div class="page-header">
   <div>
     <h1>Create Recurring Shifts</h1>
@@ -42,8 +44,8 @@
       {% include "participants/partials/field.html" with field=form.frequency %}
       {% include "scheduling/partials/date_time_picker_field.html" with field=form.start_date picker_type="date" holiday_reminders=True %}
       {% include "scheduling/partials/date_time_picker_field.html" with field=form.end_date picker_type="date" holiday_reminders=True %}
-      {% include "participants/partials/field.html" with field=form.start_time %}
-      {% include "participants/partials/field.html" with field=form.end_time %}
+      {% include "scheduling/partials/recurring_time_field.html" with field=form.start_time caption="Select start time" %}
+      {% include "scheduling/partials/recurring_time_field.html" with field=form.end_time caption="Select end time" %}
       {% include "participants/partials/field.html" with field=form.break_minutes %}
     </div>
   </section>
@@ -101,4 +103,6 @@
 {% include "scheduling/partials/holiday_assets.html" %}
 <script src="{% static 'js/date_time_picker.js' %}" defer></script>
 <script src="{% static 'js/support_item_picker.js' %}" defer data-support-item-picker-script></script>
+<script src="{% static 'js/r1_recurring_time_hints.js' %}" defer></script>
+</div>
 {% endblock %}
