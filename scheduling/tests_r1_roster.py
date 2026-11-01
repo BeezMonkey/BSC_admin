@@ -200,6 +200,28 @@ class R1RosterTests(TestCase):
 
 
 class R1RosterStyleTests(SimpleTestCase):
+    def test_shift_card_typography_matches_main_without_resizing_other_controls(self):
+        css = (Path(__file__).resolve().parents[1] / 'static/css/r1_admin_roster.css').read_text()
+        expected = {
+            '.planner-shift-time': ('0.72rem', '1.3', '600'),
+            '.planner-shift-primary': ('0.72rem', '1.3', '500'),
+            '.planner-shift-meta': ('0.72rem', '1.3', '400'),
+            '.status-pill': ('0.69rem', '1.25', '600'),
+            '.planner-billing-link': ('11px', '1.35', '500'),
+            '.planner-conflict-tag': ('0.66rem', '1.1', '600'),
+            '.planner-multi-worker-tag': ('0.66rem', '1.1', '600'),
+            '.source-pill': ('11px', '1', '600'),
+        }
+        for suffix, (size, height, weight) in expected.items():
+            selector = '[data-admin-theme] .r1-admin-roster .planner-shift-tile ' + suffix + ' {'
+            with self.subTest(selector=suffix):
+                self.assertIn(selector, css)
+                rule = css.split(selector, 1)[1].split('}', 1)[0]
+                for declaration in (f'font-size:{size}', f'line-height:{height}', f'font-weight:{weight}'):
+                    self.assertIn(declaration, rule)
+                for property_name in ('padding:', 'margin:', 'width:', 'height:', 'color:', 'background:'):
+                    self.assertNotIn(property_name, rule.replace('line-height:', ''))
+
     def test_existing_copy_source_and_quick_date_active_styles_are_preserved(self):
         css = (Path(__file__).resolve().parents[1] / 'static/css/r1_admin_roster.css').read_text()
         for selector in (
