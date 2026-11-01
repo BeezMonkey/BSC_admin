@@ -1,0 +1,51 @@
+@font-face {
+  font-family: "BSC Inter";
+  src: url("../fonts/inter/InterVariable.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+html, body { margin: 0; background: #f7f8fa; }
+body > main.page { max-width: none; margin: 0; padding: 0; }
+.login-v3, .login-v3 * { box-sizing: border-box; letter-spacing: 0; }
+.login-v3 {
+  position: relative; isolation: isolate; display: flex; justify-content: center;
+  align-items: center; min-height: 100vh; min-height: 100svh; padding: 32px 24px;
+  font: 400 14px/20px "BSC Inter", Inter, sans-serif; color: #17212b;
+}
+.login-v3 .v3-stack { position: relative; z-index: 1; width: 416px; max-width: 100%; display: grid; gap: 28px; }
+.login-v3 .login-card {
+  display: grid; gap: 24px; width: 100%; min-width: 0; margin: 0; padding: 32px;
+  border: 1px solid #e4e8ee; border-radius: 8px; background: #fff; box-shadow: none;
+}
+.login-v3 .v3-logo { display: block; width: 248px; max-width: 100%; height: auto; }
+.login-v3 .v3-intro { display: grid; justify-items: start; gap: 8px; min-width: 0; }
+.login-v3 .v3-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; background: #eaf1ff; color: #526171; font: 500 11px/16px "BSC Inter", sans-serif; }
+.login-v3 .v3-badge[data-role="SW"] { background: #f0ebff; }
+.login-v3 h1 { margin: 0; color: #17212b; font: 600 24px/32px "BSC Inter", sans-serif; overflow-wrap: anywhere; }
+.login-v3 p { margin: 0; color: #526171; font: 400 14px/20px "BSC Inter", sans-serif; }
+.login-v3 .v3-fields { display: grid; gap: 16px; min-width: 0; }
+.login-v3 label { display: grid; gap: 8px; margin: 0; min-width: 0; color: #17212b; font: 500 14px/20px "BSC Inter", sans-serif; }
+.login-v3 input:not([type="hidden"]) {
+  display: block; width: 100%; min-width: 0; height: 44px; margin: 0; padding: 11px 12px;
+  border: 1px solid #8995a5; border-radius: 6px; background: #fff; color: #17212b;
+  font: 400 14px/20px "BSC Inter", sans-serif; box-shadow: none;
+}
+.login-v3 input::placeholder { color: #526171; opacity: 1; }
+.login-v3 button[type="submit"] {
+  width: 100%; min-width: 0; height: 44px; margin: 0; padding: 11px 12px;
+  border: 1px solid #315bcb; border-radius: 6px; background: #315bcb; color: #fff;
+  font: 400 14px/20px "BSC Inter", sans-serif; cursor: pointer; box-shadow: none;
+}
+.login-v3 button[type="submit"]:hover { background: #284cae; border-color: #284cae; }
+.login-v3 .v3-footer { text-align: center; }
+.login-v3 .error { margin: 0; padding: 12px; border: 0; border-left: 3px solid #a33443; border-radius: 4px; background: #fbf0f2; color: #a33443; font: 400 14px/20px "BSC Inter", sans-serif; overflow-wrap: anywhere; }
+.login-v3 .v3-watermark-layer { position: fixed; inset: 0; z-index: 0; overflow: clip; pointer-events: none; }
+/* Expose only the original PNG's 432x418 symbol, without editing the asset. */
+.login-v3 .v3-symbol { position: absolute; left: calc(50% + 250px); top: calc(50% - 262px); width: 860px; aspect-ratio: 432 / 418; overflow: hidden; opacity: .04; }
+.login-v3 .v3-symbol img { display: block; width: 468.287037%; max-width: none; height: 100%; }
+@media (max-width: 600px) {
+  .login-v3 .login-card { padding: 32px 24px; }
+  .login-v3 .v3-logo { width: 238px; }
+  .login-v3 .v3-symbol { width: min(340px, 87.1795vw); left: calc(50% - 45px); top: calc(100% - 269px); }
+}
