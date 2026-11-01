@@ -1,0 +1,248 @@
+/* B09.8 approved v02: content-only Roster List and Planner styles. */
+[data-admin-theme] .content:has(>.r1-admin-roster) {min-width:0;width:100%;max-width:none;}
+[data-admin-theme] .r1-admin-roster {min-width:0;max-width:100%;color:var(--r1-text);font:14px/20px "BSC Inter",Inter,Arial,sans-serif;letter-spacing:0;}
+.r1-admin-roster * {box-sizing:border-box;letter-spacing:0;}
+[data-admin-theme] .r1-admin-roster h1 {font-size:24px;line-height:32px;font-weight:600;margin:0;overflow-wrap:anywhere;}
+[data-admin-theme] .r1-admin-roster h2 {font-size:16px;line-height:24px;font-weight:600;margin:0;}
+.r1-admin-roster :is(p,a,strong,span,small) {overflow-wrap:anywhere;}
+[data-admin-theme] .r1-admin-roster .page-header {align-items:flex-start;gap:16px 24px;margin:0 0 24px;}
+.r1-admin-roster .page-header>div {min-width:0;}
+[data-admin-theme] .r1-admin-roster .page-header p {color:var(--r1-muted);font-size:14px;line-height:20px;margin:6px 0 0;}
+[data-admin-theme] .r1-admin-roster :is(button,.button) {display:inline-flex;align-items:center;justify-content:center;min-height:36px;max-width:100%;padding:7px 16px;border:1px solid var(--r1-accent);border-radius:6px;background:var(--r1-accent);color:var(--r1-surface);font:500 14px/20px "BSC Inter",Inter,Arial,sans-serif;white-space:normal;box-shadow:none;text-decoration:none;}
+[data-admin-theme] .r1-admin-roster .button.secondary {background:var(--r1-surface);border-color:var(--r1-strong-border);color:var(--r1-text);}
+[data-admin-theme] .r1-admin-roster .button.secondary:hover {background:var(--r1-subtle);}
+.r1-admin-roster .button-row {display:flex;flex-wrap:wrap;gap:8px;}
+.r1-admin-roster .roster-quick-dates {margin:0 0 20px;}
+.r1-admin-roster .roster-quick-dates summary {color:var(--r1-text);font-size:14px;font-weight:500;}
+.r1-admin-roster .roster-quick-dates .quick-filter-row {margin:12px 0 0;}
+.r1-admin-roster .filter-bar {display:grid;grid-template-columns:repeat(2,minmax(135px,.8fr)) repeat(2,minmax(160px,1fr)) minmax(150px,.8fr) auto;align-items:end;gap:12px;margin:0 0 24px;padding:16px;border:0;border-radius:8px;background:var(--r1-subtle);}
+.r1-admin-roster .filter-bar label,.r1-admin-roster .invoice-filter-date {display:grid;gap:6px;min-width:0;font-size:12px;line-height:16px;font-weight:400;color:var(--r1-muted);}
+[data-admin-theme] .r1-admin-roster .filter-bar :is(input:not([type=checkbox]),select) {box-sizing:border-box;width:100%;min-width:0;height:40px;margin:0;padding:9px 12px;border:1px solid var(--r1-strong-border);border-radius:6px;background:var(--r1-surface);color:var(--r1-text);font:400 14px/20px "BSC Inter",Inter,Arial,sans-serif;}
+.r1-admin-roster select {appearance:none;background-image:url('../img/r1/icons/chevron.svg')!important;background-size:16px!important;background-repeat:no-repeat!important;background-position:right 12px center!important;padding-right:36px!important;}
+.r1-admin-roster label:has(>select),.r1-admin-roster .planner-billing-filter {position:relative;}
+.r1-admin-roster label:has(>select)::after {content:"";position:absolute;right:12px;bottom:12px;width:16px;height:16px;background:url('../img/r1/icons/chevron.svg') center/16px no-repeat;transform:rotate(90deg);pointer-events:none;}
+.r1-admin-roster select {background-image:none!important;}
+.r1-admin-roster .filter-bar :is(.button,button) {min-height:40px;padding:9px 12px;margin:0;}
+.r1-admin-roster :is(.roster-filter-actions,.planner-filter-actions) {display:flex;flex-wrap:nowrap;gap:8px;}
+.r1-admin-roster .roster-filter-actions {grid-column:auto;}
+.r1-admin-roster .filter-summary {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;margin:0 0 20px;border:1px solid var(--r1-border);border-left:3px solid var(--r1-accent);border-radius:4px;background:var(--r1-blue-soft);color:var(--r1-muted);font-size:12px;line-height:18px;}
+.r1-admin-roster .filter-summary a {color:var(--r1-accent);white-space:nowrap;}
+.r1-admin-roster .roster-bulk-action-card {display:flex;justify-content:space-between;align-items:center;gap:16px;padding:0;margin:0 0 24px;border:0;background:none;box-shadow:none;}
+.r1-admin-roster .roster-bulk-action-card p {color:var(--r1-muted);margin:6px 0 0;}
+[data-admin-theme] .r1-admin-roster .table-card {padding:0;border:1px solid var(--r1-border);border-radius:8px;box-shadow:none;background:var(--r1-surface);overflow:hidden;}
+[data-admin-theme] .r1-admin-roster .roster-table {table-layout:fixed;width:100%;min-width:0;border-collapse:collapse;}
+[data-admin-theme] .r1-admin-roster .roster-table :is(th,td) {min-width:0;height:auto;padding:18px 12px;vertical-align:middle;text-align:left;border-bottom:1px solid var(--r1-border);overflow-wrap:anywhere;white-space:normal;font-size:14px;line-height:20px;}
+[data-admin-theme] .r1-admin-roster .roster-table th {padding:14px 12px;font-size:12px;line-height:18px;font-weight:400;color:var(--r1-muted);background:var(--r1-subtle);}
+.r1-admin-roster .roster-table th:nth-child(1) {width:10%;}
+.r1-admin-roster .roster-table th:nth-child(2) {width:13%;}
+.r1-admin-roster .roster-table th:nth-child(3),.r1-admin-roster .roster-table th:nth-child(4) {width:15%;}
+.r1-admin-roster .roster-table th:nth-child(5) {width:12%;}
+.r1-admin-roster .roster-table th:nth-child(6) {width:12%;}
+.r1-admin-roster .roster-table th:nth-child(7) {width:13%;}
+[data-admin-theme] .r1-admin-roster .roster-table :is(th,td):last-child {width:148px;text-align:right;}
+.r1-admin-roster .roster-table .roster-person-cell {font-weight:600;}
+.r1-admin-roster .roster-table .roster-next-action-cell {font-size:12px;line-height:18px;color:var(--r1-muted);}
+[data-admin-theme] .r1-admin-roster .roster-table tbody tr:last-child td {border-bottom:0;}
+.r1-admin-roster .roster-table tbody tr:hover {background:var(--r1-subtle);}
+[data-admin-theme] .r1-admin-roster td.actions {display:table-cell;white-space:nowrap;}
+.r1-admin-roster .roster-inline-actions {display:flex;flex-wrap:nowrap;justify-content:flex-end;gap:8px;}
+[data-admin-theme] .r1-admin-roster .roster-inline-actions a {display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-height:36px;margin:0;padding:7px 12px;border:1px solid var(--r1-strong-border);border-radius:6px;background:white;color:var(--r1-text);font-size:14px;line-height:20px;text-decoration:none;}
+[data-admin-theme] .r1-admin-roster .status-pill {font-size:12px;line-height:18px;font-weight:400;border-radius:4px;padding:4px 8px;max-width:100%;min-width:0;white-space:normal;}
+.r1-admin-roster :is(.status-confirmed,.status-completed) {color:var(--r1-success);background:#eef5f0;}
+[data-admin-theme] .r1-admin-roster :is(.status-confirmed,.status-completed) {color:var(--r1-success);background:#eef5f0;}
+[data-admin-theme] .r1-admin-roster .status-published {color:var(--r1-billed);background:var(--r1-blue-soft);}
+[data-admin-theme] .r1-admin-roster :is(.status-draft,.status-cancelled) {color:var(--r1-muted);background:var(--r1-subtle);}
+[data-admin-theme] .r1-admin-roster :is(.status-cancellation_review,.planner-summary-pill.warning,.planner-hours-pill.warning) {color:var(--r1-warning);background:var(--r1-warning-soft);}
+[data-admin-theme] .r1-admin-roster .status-no_show {color:var(--r1-danger);background:#fbf0f2;}
+.r1-admin-roster .status-published {color:var(--r1-billed);background:var(--r1-blue-soft);}
+.r1-admin-roster :is(.status-draft,.status-cancelled) {color:var(--r1-muted);background:var(--r1-subtle);}
+.r1-admin-roster :is(.status-cancellation_review,.planner-summary-pill.warning,.planner-hours-pill.warning) {color:var(--r1-warning);background:var(--r1-warning-soft);}
+.r1-admin-roster .status-no_show {color:var(--r1-danger);background:#fbf0f2;}
+.r1-admin-roster .source-pill {font-size:12px;line-height:18px;border-radius:4px;}
+.r1-admin-roster .sort-link {color:var(--r1-muted);font-weight:400;}
+.r1-admin-roster .pagination {font-size:12px;line-height:18px;color:var(--r1-muted);}
+.r1-admin-roster .empty-state {padding:28px 16px;text-align:center;}
+.r1-admin-roster .empty-state p {color:var(--r1-muted);}
+.r1-admin-roster :is(.planner-week-toolbar,.planner-filter-card,.planner-shift-card) {min-width:0;margin:0 0 24px;padding:0;border:0;border-radius:0;background:none;box-shadow:none;}
+.r1-admin-roster .planner-week-toolbar {display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.r1-admin-roster .planner-week-controls {gap:8px;flex:1 1 auto;}
+.r1-admin-roster .planner-week-range {font-size:14px;line-height:20px;color:var(--r1-text);white-space:normal;}
+.r1-admin-roster .planner-view-switch {display:inline-grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;padding:0;max-width:100%;border:1px solid var(--r1-strong-border);border-radius:6px;background:var(--r1-surface);overflow:hidden;}
+.r1-admin-roster .planner-view-option {min-height:36px;padding:7px 12px;border-radius:0;font-size:14px;line-height:20px;font-weight:400;text-decoration:none;color:var(--r1-text);}
+.r1-admin-roster .planner-view-option+ .planner-view-option {border-left:1px solid var(--r1-border);}
+.r1-admin-roster .planner-view-option.active {background:var(--r1-accent-soft);color:var(--r1-accent);}
+.r1-admin-roster .planner-view-option:hover {background:var(--r1-subtle);}
+.r1-admin-roster .planner-filter-bar {grid-template-columns:repeat(2,minmax(170px,1fr)) repeat(2,minmax(150px,.8fr)) auto;margin:0;}
+.r1-admin-roster .planner-billing-toolbar {margin:0;padding:12px 16px;border-top:1px solid var(--r1-border);border-radius:0 0 8px 8px;background:var(--r1-subtle);}
+.r1-admin-roster .planner-filter-card .filter-bar {border-radius:8px 8px 0 0;}
+.r1-admin-roster .planner-billing-switch {font-size:14px;line-height:20px;font-weight:400;color:var(--r1-text);}
+.r1-admin-roster .planner-billing-filter {display:flex;gap:12px;align-items:center;font-size:12px;color:var(--r1-muted);}
+.r1-admin-roster .planner-billing-filter select {min-height:36px;max-width:240px;padding:7px 12px;border:1px solid var(--r1-strong-border);border-radius:6px;background-color:white;color:var(--r1-text);font-size:14px;}
+.r1-admin-roster .planner-billing-filter[hidden],.r1-admin-roster [hidden] {display:none!important;}
+.r1-admin-roster .planner-conflict-banner {display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 24px;padding:12px 16px;border:1px solid var(--r1-border);border-left:3px solid var(--r1-warning);border-radius:4px;background:var(--r1-warning-soft);color:var(--r1-text);box-shadow:none;}
+.r1-admin-roster .planner-conflict-banner p {font-size:12px;line-height:18px;color:var(--r1-muted);margin:4px 0 0;}
+.r1-admin-roster .planner-conflict-icon {background:transparent;color:var(--r1-warning);}
+.r1-admin-roster .planner-section-heading {margin:0 0 16px;}
+.r1-admin-roster .planner-section-heading p {font-size:12px;line-height:18px;color:var(--r1-muted);}
+.r1-admin-roster :is(.planner-summary-pill,.planner-hours-pill) {padding:4px 8px;border:0;border-radius:4px;font-size:12px;line-height:18px;font-weight:400;background:var(--r1-subtle);color:var(--r1-muted);}
+.r1-admin-roster .planner-scroll-frame {min-width:0;max-width:100%;overflow:auto;border:1px solid var(--r1-border);border-radius:8px;background:white;}
+.r1-admin-roster .planner-date-grid {grid-template-columns:repeat(7,minmax(192px,1fr));min-width:1344px;}
+.r1-admin-roster .planner-day-card {min-width:0;border-color:var(--r1-border);background:var(--r1-surface);}
+.r1-admin-roster :is(.planner-day-card>header,.planner-resource-day-heading,.planner-resource-corner) {padding:12px;background:var(--r1-subtle);border-color:var(--r1-border);}
+.r1-admin-roster .planner-day-card>header strong,.r1-admin-roster .planner-resource-day-heading strong {font-size:14px;line-height:20px;font-weight:600;}
+.r1-admin-roster .planner-day-card>header span,.r1-admin-roster .planner-resource-day-heading span {font-size:12px;line-height:18px;color:var(--r1-muted);}
+.r1-admin-roster .planner-day-shifts {padding:8px;gap:8px;}
+.r1-admin-roster .planner-shift-tile {padding:12px 10px 8px;border:1px solid var(--r1-border);border-left:3px solid var(--r1-accent);border-radius:6px;background:var(--r1-surface);box-shadow:none;gap:12px;min-width:0;}
+.r1-admin-roster .planner-shift-tile.planner-shift-conflict {border-left-color:var(--r1-warning);background:var(--r1-warning-soft);}
+.r1-admin-roster .planner-shift-time {font-size:14px;line-height:20px;font-weight:600;white-space:normal;}
+.r1-admin-roster .planner-shift-primary {font-size:14px;line-height:20px;font-weight:500;}
+.r1-admin-roster .planner-shift-meta {font-size:12px;line-height:18px;color:var(--r1-muted);}
+.r1-admin-roster .planner-shift-tile-footer {border-color:var(--r1-border);padding-top:8px;gap:8px;}
+.r1-admin-roster .planner-shift-actions {display:flex;flex-wrap:nowrap;align-items:center;justify-content:flex-end;gap:2px;width:100%;max-width:none;}
+[data-admin-theme] .r1-admin-roster :is(.planner-shift-action,.planner-add-shift) {display:inline-flex;align-items:center;justify-content:center;width:32px;min-width:32px;height:32px;min-height:32px;flex:0 0 32px;border:1px solid var(--r1-border);border-radius:6px;padding:6px;margin:0;background:white;color:var(--r1-text);}
+.r1-admin-roster .planner-shift-action svg {width:16px;height:16px;}
+[data-admin-theme] .r1-admin-roster .planner-shift-delete {color:var(--r1-danger);}
+.r1-admin-roster .planner-shift-delete-form {display:flex;margin:0;}
+.r1-admin-roster .planner-shift-tile .planner-billing-link {color:var(--r1-accent);font-size:12px;line-height:18px;}
+.r1-admin-roster .planner-conflict-tag {font-size:12px;line-height:18px;background:var(--r1-warning-soft);color:var(--r1-warning);border-radius:4px;}
+.r1-admin-roster .planner-resource-grid {--planner-resource-width:212px;--planner-resource-day-width:192px;}
+.r1-admin-roster :is(.planner-resource-row,.planner-resource-label,.planner-resource-day,.planner-resource-day-heading) {border-color:var(--r1-border);}
+.r1-admin-roster .planner-resource-copy strong {font-size:14px;line-height:20px;font-weight:600;}
+.r1-admin-roster .planner-hours-pill {white-space:normal;max-width:100%;width:auto;justify-self:start;}
+[data-admin-theme] .r1-admin-roster .planner-paste-shift-hidden {display:none;}
+.r1-admin-roster .planner-resource-copy>span {font-size:12px;line-height:18px;color:var(--r1-muted);}
+.r1-admin-roster .planner-resource-avatar {width:32px;height:32px;background:var(--r1-accent-soft);color:var(--r1-invoiced);font-weight:400;}
+.r1-admin-roster .holiday-source-note {font-size:12px;line-height:18px;color:var(--r1-muted);}
+.r1-admin-roster .invoice-filter-date {position:relative;}
+.r1-admin-roster .invoice-filter-date.is-enhanced>input[type=date] {position:absolute;width:1px!important;height:1px!important;min-height:0;padding:0!important;border:0!important;clip-path:inset(50%);opacity:0;pointer-events:none;}
+[data-admin-theme] .r1-admin-roster .invoice-filter-date .invoice-date-trigger {display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:40px;margin:0;padding:9px 12px;border:1px solid var(--r1-strong-border);border-radius:6px;background:var(--r1-surface);color:var(--r1-text);font-size:14px;line-height:20px;font-weight:400;text-align:left;}
+.r1-admin-roster .invoice-date-trigger>.r1-icon {width:16px;height:16px;flex:0 0 16px;}
+.r1-admin-roster .invoice-calendar {position:fixed;z-index:20;box-sizing:border-box;width:292px;padding:10px;border:1px solid var(--r1-border);border-radius:8px;overflow-y:auto;background:var(--r1-surface);color:var(--r1-text);box-shadow:0 8px 18px rgb(23 33 43 / 14%);}
+.r1-admin-roster .invoice-calendar .calendar-picker-header {display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 4px;}
+.r1-admin-roster .invoice-calendar .calendar-picker-header strong {font-size:13px;line-height:20px;font-weight:600;}
+.r1-admin-roster .invoice-calendar .calendar-picker-navigation {display:flex;gap:4px;}
+.r1-admin-roster .invoice-calendar :is(.calendar-picker-weekdays,.calendar-picker-grid) {display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;padding:4px 0;}
+.r1-admin-roster .invoice-calendar .calendar-picker-weekdays span {text-align:center;font-size:11px;line-height:16px;color:var(--r1-muted);}
+[data-admin-theme] .r1-admin-roster .invoice-calendar button {min-height:28px;min-width:0;padding:4px;border:1px solid transparent;border-radius:4px;background:none;color:var(--r1-text);font-size:12px;line-height:18px;font-weight:400;}
+[data-admin-theme] .r1-admin-roster .invoice-calendar .calendar-picker-navigation button {width:28px;color:var(--r1-accent);font-size:20px;}
+.r1-admin-roster .invoice-calendar .calendar-day.outside {color:var(--r1-muted);}
+.r1-admin-roster .invoice-calendar .calendar-day.weekend {background:var(--r1-warning-soft);}
+[data-admin-theme] .r1-admin-roster .invoice-calendar .calendar-day.selected {background:var(--r1-accent);color:white;}
+.r1-admin-roster .invoice-calendar .date-picker-footer {display:flex;justify-content:space-between;gap:8px;margin-top:4px;padding-top:4px;border-top:1px solid var(--r1-border);}
+.r1-admin-roster .invoice-date-error {color:var(--r1-danger);font-size:12px;line-height:18px;}
+@supports (appearance:base-select) and selector(select::picker(select)) {
+ @media(min-width:761px) and (hover:hover) and (pointer:fine) {
+  .r1-admin-roster select,.r1-admin-roster select::picker(select) {appearance:base-select;}
+  .r1-admin-roster select {align-items:center;line-height:normal!important;}
+  .r1-admin-roster select::picker-icon {display:none;}
+  .r1-admin-roster select::picker(select) {max-height:280px;overflow-y:auto;margin:4px 0;border:1px solid var(--r1-border);border-radius:8px;padding:4px;background:var(--r1-surface);color:var(--r1-text);box-shadow:0 6px 16px rgb(23 33 43 / 12%);}
+  .r1-admin-roster select option {min-height:32px;padding:6px 8px;border-radius:4px;font-size:13px;line-height:18px;white-space:normal;overflow-wrap:anywhere;}
+  .r1-admin-roster select option:is(:checked,:hover,:focus) {background:var(--r1-blue-soft);color:var(--r1-accent);}
+ }
+}
+@media(max-width:1450px) {
+ .r1-admin-roster .filter-bar {grid-template-columns:repeat(3,minmax(0,1fr));}
+ .r1-admin-roster .planner-filter-bar {grid-template-columns:repeat(2,minmax(0,1fr)) auto;}
+ .r1-admin-roster .planner-filter-actions {grid-column:3;grid-row:1 / 3;align-self:end;}
+}
+@media(max-width:1050px) {
+ .r1-admin-roster .filter-bar {grid-template-columns:repeat(2,minmax(0,1fr));}
+ .r1-admin-roster .planner-filter-actions {grid-row:auto;grid-column:1 / -1;}
+ .r1-admin-roster .planner-week-toolbar {align-items:flex-start;}
+ .r1-admin-roster .roster-table {font-size:13px;}
+}
+@media(max-width:760px) {
+ .r1-admin-roster .page-header,.r1-admin-roster .roster-bulk-action-card,.r1-admin-roster .planner-section-heading {display:grid;gap:16px;}
+ [data-admin-theme] .r1-admin-roster :is(.button,button) {min-height:44px;}
+ .r1-admin-roster .filter-bar {grid-template-columns:minmax(0,1fr);padding:16px;}
+ [data-admin-theme] .r1-admin-roster .filter-bar :is(input:not([type=checkbox]),select) {height:44px;}
+ .r1-admin-roster .filter-bar :is(.button,button) {min-height:44px;}
+ .r1-admin-roster .filter-summary {align-items:flex-start;}
+ .r1-admin-roster .planner-filter-actions {grid-column:auto;}
+ .r1-admin-roster .planner-week-controls {flex-basis:100%;}
+ .r1-admin-roster .planner-week-range {flex-basis:100%;}
+ .r1-admin-roster .planner-view-switch {width:100%;}
+ .r1-admin-roster .planner-view-option {min-height:44px;padding:8px;font-size:12px;line-height:18px;}
+ .r1-admin-roster .planner-billing-toolbar,.r1-admin-roster .planner-billing-filter {flex-wrap:wrap;}
+ .r1-admin-roster .planner-conflict-banner {display:grid;gap:12px;}
+ .r1-admin-roster .planner-summary-pills {justify-content:flex-start;}
+ [data-admin-theme] .r1-admin-roster .roster-table,.r1-admin-roster .roster-table tbody {display:block;width:100%;min-width:0;}
+ .r1-admin-roster .roster-table thead {display:block;padding:12px 16px;border-bottom:1px solid var(--r1-border);background:var(--r1-subtle);}
+ .r1-admin-roster .roster-table thead tr {display:flex;flex-wrap:wrap;gap:8px 16px;}
+ [data-admin-theme] .r1-admin-roster .roster-table th {display:none;}
+ [data-admin-theme] .r1-admin-roster .roster-table th:has(.sort-link) {display:block;width:auto;padding:0;border:0;}
+ .r1-admin-roster .sort-link {display:inline-flex;align-items:center;min-height:44px;}
+ .r1-admin-roster .roster-table tbody tr {display:block;padding:16px;border-bottom:1px solid var(--r1-border);}
+ .r1-admin-roster .roster-table tbody tr:last-child {border-bottom:0;}
+ [data-admin-theme] .r1-admin-roster .roster-table td {display:grid;grid-template-columns:86px minmax(0,1fr);gap:12px;width:auto;padding:6px 0;border:0;}
+ .r1-admin-roster .roster-table td[data-label]::before {content:attr(data-label);font-size:12px;line-height:18px;font-weight:400;color:var(--r1-muted);}
+ [data-admin-theme] .r1-admin-roster .roster-table td.actions {display:block;width:auto;margin-top:12px;}
+ .r1-admin-roster .roster-table td.actions::before {content:none;}
+ .r1-admin-roster .roster-inline-actions a {min-height:44px!important;}
+ [data-admin-theme] .r1-admin-roster .roster-table td[colspan] {display:block;}
+ .r1-admin-roster .planner-resource-grid {--planner-resource-width:148px;--planner-resource-day-width:248px;}
+ .r1-admin-roster .planner-resource-label {display:grid;grid-template-columns:minmax(0,1fr);align-content:start;gap:8px;padding:12px;}
+ .r1-admin-roster .planner-date-grid {grid-template-columns:repeat(7,minmax(248px,1fr));min-width:1736px;}
+ .r1-admin-roster label:has(>select)::after {bottom:14px;}
+ [data-admin-theme] .r1-admin-roster :is(.planner-shift-action,.planner-add-shift) {width:44px;height:44px;min-width:44px;min-height:44px;flex-basis:44px;padding:10px;}
+ .r1-admin-roster .planner-shift-actions {gap:2px;}
+}
+
+/* Accepted v02 warning; existing counts, descriptions, links and conditions unchanged. */
+[data-admin-theme] .r1-admin-roster .planner-conflict-banner {
+  border:1px solid var(--r1-border);
+  border-left:3px solid var(--r1-warning);
+  border-radius:6px;
+  padding:12px 16px;
+  background:var(--r1-warning-soft);
+  color:var(--r1-warning);
+  font-size:14px;
+  line-height:20px;
+  box-shadow:none;
+}
+[data-admin-theme] .r1-admin-roster .planner-conflict-summary strong {
+  color:var(--r1-warning);
+  font-size:14px;
+  line-height:20px;
+  font-weight:600;
+}
+[data-admin-theme] .r1-admin-roster .planner-conflict-summary p {
+  margin:4px 0 0;
+  color:var(--r1-warning);
+  font-size:14px;
+  line-height:20px;
+  font-weight:400;
+}
+[data-admin-theme] .r1-admin-roster .planner-conflict-icon {
+  width:20px;
+  height:20px;
+  flex:0 0 20px;
+  border:0;
+  border-radius:0;
+  color:var(--r1-warning);
+  background:transparent;
+  font-size:14px;
+  line-height:20px;
+  font-weight:600;
+}
+
+/* Existing modal-open lock takes precedence over internal calendar scrolling. */
+.shift-modal-open .r1-admin-roster .planner-scroll-frame {overflow:hidden;}
+
+/* Preserve the original selected states after the scoped generic button styles. */
+[data-admin-theme] .r1-admin-roster .planner-shift-action-active {
+  border-color:var(--planner-copy-border);
+  color:var(--planner-copy-ink);
+  background:var(--planner-copy-bg);
+}
+[data-admin-theme] .r1-admin-roster .planner-shift-action-active:hover,
+[data-admin-theme] .r1-admin-roster .planner-shift-action-active:focus {
+  border-color:var(--planner-copy-ink);
+  color:var(--planner-copy-ink);
+  background:var(--planner-copy-bg-hover);
+}
+[data-admin-theme] .r1-admin-roster .quick-filter-row .button.active {
+  border-color:var(--r1-accent);
+  color:var(--r1-surface);
+  background:var(--r1-accent);
+}

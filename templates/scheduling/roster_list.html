@@ -1,9 +1,16 @@
 {% extends "admin_base.html" %}
-{% load bsc_formatting %}
+{% load static bsc_formatting %}
 
 {% block title %}Roster - Brisbane Star Care{% endblock %}
 
+{% block extra_styles %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
+<link rel="stylesheet" href="{% static 'css/r1_admin_roster.css' %}">
+{% endblock %}
+
 {% block content %}
+<div class="r1-ui r1-admin-roster">
 <div class="page-header">
   <div>
     <h1>Roster</h1>
@@ -28,9 +35,9 @@
 </div>
 </details>
 
-<form class="filter-bar roster-filter-bar" method="get">
-  <label>Date from <input type="date" name="date_from" value="{{ date_from }}"></label>
-  <label>Date to <input type="date" name="date_to" value="{{ date_to }}"></label>
+<form class="filter-bar roster-filter-bar" method="get" data-roster-filters>
+  {% include "invoices/partials/filter_date.html" with name="date_from" caption="Date from" value=date_from %}
+  {% include "invoices/partials/filter_date.html" with name="date_to" caption="Date to" value=date_to %}
   <label>Participant <input type="search" name="participant" value="{{ participant_query }}" placeholder="Name, NDIS, or phone"></label>
   <label>Worker
     <input type="search" name="worker" value="{{ worker_query }}" placeholder="Name, email, or phone">
@@ -93,12 +100,12 @@
     <tbody>
       {% for shift in shifts %}
         <tr>
-          <td class="roster-date-cell">{{ shift.service_date|date:"d/m/Y" }}</td>
-          <td class="roster-time-cell">{{ shift.start_time|display_time }} - {{ shift.end_time|display_time }}</td>
-          <td class="roster-person-cell">{{ shift.participant.display_name }}</td>
-          <td class="roster-person-cell">{{ shift.worker.display_name }}</td>
-          <td class="roster-service-cell">{{ shift.get_service_type_display }}</td>
-          <td class="roster-status-cell">
+          <td data-label="Date" class="roster-date-cell">{{ shift.service_date|date:"d/m/Y" }}</td>
+          <td class="roster-time-cell" data-label="Time">{{ shift.start_time|display_time }} - {{ shift.end_time|display_time }}</td>
+          <td class="roster-person-cell" data-label="Participant">{{ shift.participant.display_name }}</td>
+          <td class="roster-person-cell" data-label="Worker">{{ shift.worker.display_name }}</td>
+          <td class="roster-service-cell" data-label="Service">{{ shift.get_service_type_display }}</td>
+          <td class="roster-status-cell" data-label="Status">
             <div class="status-source-stack">
               <span class="status-pill status-{{ shift.status }}">{{ shift.get_status_display }}</span>
               {% if shift.source == "unscheduled" %}
@@ -106,10 +113,12 @@
               {% endif %}
             </div>
           </td>
-          <td class="roster-next-action-cell">{{ shift.next_action }}</td>
-          <td class="actions">
+          <td class="roster-next-action-cell" data-label="Next action">{{ shift.next_action }}</td>
+          <td class="actions" data-label="Actions">
+            <div class="roster-inline-actions">
             <a href="{% url 'shift_detail' shift.id %}?next={{ current_list_url|urlencode }}">View</a>
             <a href="{% url 'shift_edit' shift.id %}?next={{ current_list_url|urlencode }}">Edit</a>
+            </div>
           </td>
         </tr>
       {% empty %}
@@ -137,4 +146,7 @@
   </table>
 </section>
 {% include "core/pagination.html" %}
+</div>
+<script src="{% static 'js/date_time_picker.js' %}" defer></script>
+<script src="{% static 'js/r1_roster_filters.js' %}" defer></script>
 {% endblock %}
