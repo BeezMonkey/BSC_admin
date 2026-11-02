@@ -58,6 +58,7 @@
 
 <section class="card">
   <h2>Lines</h2>
+  <div class="legacy-invoice-lines-scroll" role="region" aria-label="Invoice lines" tabindex="0">
   <table>
     <thead>
       <tr>
@@ -82,6 +83,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
 </section>
 
 {% include "invoices/billing_adjustment_history.html" with billing_adjustments=invoice.billing_adjustments.all only %}

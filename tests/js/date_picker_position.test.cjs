@@ -284,3 +284,58 @@ test("replacing modal content closes the old calendar on the next open", () => {
   assert.equal(replacement.popover.style.top, "250px");
   assert.equal(replacement.popover.hidden, false);
 });
+
+test("Escape from inside a calendar returns focus without scrolling or changing values", () => {
+  const h = setup(); h.input.value = "2026-10-04"; h.open();
+  const previous = h.controls["[data-calendar-previous]"];
+  h.popover.children.push(previous); h.document.activeElement = previous;
+  const calls = [];
+  h.trigger.focus = options => { calls.push(options); h.document.activeElement = h.trigger; };
+  h.document.fire("keydown", { key: "Escape" });
+  assert.equal(h.popover.hidden, true);
+  assert.equal(h.document.activeElement, h.trigger);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].preventScroll, true);
+  assert.equal(h.input.value, "2026-10-04");
+  assert.deepEqual(h.input.events, []);
+});
+
+test("Escape does not steal focus from an outside input", () => {
+  const h = setup(); h.open();
+  const outside = element(); h.document.activeElement = outside;
+  h.trigger.focus = () => assert.fail("Do not steal outside focus");
+  h.document.fire("keydown", { key: "Escape" });
+  assert.equal(h.popover.hidden, true);
+  assert.equal(h.document.activeElement, outside);
+});
+
+test("outside clicks retain the outside control focus", () => {
+  const h = setup(); h.open();
+  const outside = element(); h.document.activeElement = outside;
+  h.trigger.focus = () => assert.fail("Outside clicks must not restore trigger focus");
+  h.document.fire("click", { target: outside });
+  assert.equal(h.popover.hidden, true);
+  assert.equal(h.document.activeElement, outside);
+});
+
+test("Escape never focuses a removed calendar trigger", () => {
+  const h = setup(); h.open();
+  const previous = h.controls["[data-calendar-previous]"];
+  h.popover.children.push(previous); h.document.activeElement = previous;
+  h.trigger.isConnected = false;
+  h.trigger.focus = () => assert.fail("Removed trigger cannot receive focus");
+  h.document.fire("keydown", { key: "Escape" });
+  assert.equal(h.popover.hidden, true);
+});
+
+test("time picker Escape retains its original focus and value behavior", () => {
+  const h = setup({ type: "time" }); h.input.value = "10:30"; h.open();
+  const control = h.controls["[data-time-apply]"];
+  h.popover.children.push(control); h.document.activeElement = control;
+  h.trigger.focus = () => assert.fail("Calendar fix must not change time picker focus");
+  h.document.fire("keydown", { key: "Escape" });
+  assert.equal(h.popover.hidden, true);
+  assert.equal(h.document.activeElement, control);
+  assert.equal(h.input.value, "10:30");
+  assert.deepEqual(h.input.events, []);
+});

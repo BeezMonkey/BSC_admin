@@ -449,7 +449,13 @@
     }
   });
   document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape") closePicker();
+    if (event.key !== "Escape") return;
+    const picker = activePicker;
+    const restoreFocus = picker && picker.isCalendar && picker.popover.contains(document.activeElement);
+    closePicker();
+    if (restoreFocus && picker.trigger.isConnected) {
+      picker.trigger.focus({ preventScroll: true });
+    }
   });
 
   window.initDateTimePickers = initDateTimePickers;

@@ -1,3 +1,9 @@
+.legacy-invoice-lines-scroll {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+
 .invoice-preview-table { overflow: visible; }
 .invoice-preview-table table { width: 100%; min-width: 0; table-layout: fixed; }
 .invoice-preview-table th:nth-child(1) { width: 11%; }
