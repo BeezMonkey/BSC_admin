@@ -1,9 +1,16 @@
 {% extends "admin_base.html" %}
-{% load bsc_formatting %}
+{% load static bsc_formatting %}
 
 {% block title %}Participant Cancellations - Brisbane Star Care{% endblock %}
 
+{% block extra_styles %}
+{{ block.super }}
+{% include "scheduling/partials/roster_record_styles.html" %}
+<link rel="stylesheet" href="{% static 'css/r1_admin_cancellations.css' %}">
+{% endblock %}
+
 {% block content %}
+<div class="r1-ui r1-people-form r1-roster-record r1-cancellations">
 <div class="page-header">
   <div>
     <h1>Participant Cancellations</h1>
@@ -27,12 +34,12 @@
     <tbody>
       {% for cancellation in pending_cancellations %}
       <tr>
-        <td>{{ cancellation.shift.service_date|date:"d/m/Y" }}<br><small>{{ cancellation.shift.start_time|display_time }} - {{ cancellation.shift.end_time|display_time }}</small></td>
-        <td>{{ cancellation.shift.participant.display_name }}</td>
-        <td>{{ cancellation.shift.worker.display_name }}</td>
-        <td>{{ cancellation.get_cancellation_type_display }}</td>
-        <td><span class="status-pill status-pending">{{ cancellation.get_status_display }}</span></td>
-        <td class="actions"><a href="{% url 'participant_cancellation_detail' cancellation.id %}">Review</a></td>
+        <td data-label="Date"><div class="cell-content">{{ cancellation.shift.service_date|date:"d/m/Y" }}<br><small>{{ cancellation.shift.start_time|display_time }} - {{ cancellation.shift.end_time|display_time }}</small></div></td>
+        <td data-label="Participant"><div class="cell-content">{{ cancellation.shift.participant.display_name }}</div></td>
+        <td data-label="Worker"><div class="cell-content">{{ cancellation.shift.worker.display_name }}</div></td>
+        <td data-label="Type"><div class="cell-content">{{ cancellation.get_cancellation_type_display }}</div></td>
+        <td data-label="Status"><div class="cell-content"><span class="status-pill status-pending">{{ cancellation.get_status_display }}</span></div></td>
+        <td class="actions" data-label="Action"><div class="cell-content"><a class="button secondary" href="{% url 'participant_cancellation_detail' cancellation.id %}">Review</a></div></td>
       </tr>
       {% empty %}
       <tr>
@@ -64,15 +71,16 @@
     <tbody>
       {% for cancellation in reviewed_cancellations %}
       <tr>
-        <td>{{ cancellation.shift.service_date|date:"d/m/Y" }}</td>
-        <td>{{ cancellation.shift.participant.display_name }}</td>
-        <td>{{ cancellation.shift.worker.display_name }}</td>
-        <td><span class="status-pill status-{{ cancellation.status }}">{{ cancellation.get_status_display }}</span></td>
-        <td class="actions"><a href="{% url 'participant_cancellation_detail' cancellation.id %}">View</a></td>
+        <td data-label="Date"><div class="cell-content">{{ cancellation.shift.service_date|date:"d/m/Y" }}</div></td>
+        <td data-label="Participant"><div class="cell-content">{{ cancellation.shift.participant.display_name }}</div></td>
+        <td data-label="Worker"><div class="cell-content">{{ cancellation.shift.worker.display_name }}</div></td>
+        <td data-label="Decision"><div class="cell-content"><span class="status-pill status-{{ cancellation.status }}">{{ cancellation.get_status_display }}</span></div></td>
+        <td class="actions" data-label="Action"><div class="cell-content"><a class="button secondary" href="{% url 'participant_cancellation_detail' cancellation.id %}">View</a></div></td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </section>
 {% endif %}
+</div>
 {% endblock %}

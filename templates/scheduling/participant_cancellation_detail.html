@@ -1,9 +1,16 @@
 {% extends "admin_base.html" %}
-{% load bsc_formatting %}
+{% load static bsc_formatting %}
 
 {% block title %}Participant Cancellation - Brisbane Star Care{% endblock %}
 
+{% block extra_styles %}
+{{ block.super }}
+{% include "scheduling/partials/roster_record_styles.html" %}
+<link rel="stylesheet" href="{% static 'css/r1_admin_cancellations.css' %}">
+{% endblock %}
+
 {% block content %}
+<div class="r1-ui r1-people-form r1-roster-record r1-cancellations">
 <div class="page-header">
   <div>
     <h1>{{ cancellation.shift.participant.display_name }}</h1>
@@ -66,4 +73,5 @@
   {% endif %}
 </section>
 {% endif %}
+</div>
 {% endblock %}
