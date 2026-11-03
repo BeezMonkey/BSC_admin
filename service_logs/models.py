@@ -57,6 +57,7 @@ class ServiceLog(models.Model):
         choices=Source.choices,
         default=Source.SCHEDULED,
     )
+    submission_key = models.UUIDField(null=True, blank=True, editable=False)
     actual_start_time = models.TimeField()
     actual_end_time = models.TimeField()
     break_minutes = models.PositiveIntegerField(default=0)
@@ -87,6 +88,11 @@ class ServiceLog(models.Model):
 
     class Meta:
         ordering = ["-service_date", "-submitted_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["submission_key"], name="unique_service_log_submission",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.service_date} {self.participant} / {self.worker}"
