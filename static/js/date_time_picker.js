@@ -187,10 +187,21 @@
     });
   }
 
-  function openPicker(instance) {
+  function openPicker(instance, revealTrigger) {
     const wasOpen = activePicker === instance;
     closePicker();
     if (wasOpen) return;
+    if (instance.isCalendar && revealTrigger) {
+      const bounds = calendarBounds(instance);
+      const rect = instance.trigger.getBoundingClientRect();
+      const delta = rect.top < bounds.top
+        ? rect.top - bounds.top
+        : Math.max(0, rect.bottom - bounds.bottom);
+      if (delta && bounds.bottom - bounds.top >= rect.height) {
+        const scrollTarget = instance.trigger.closest(".shift-modal-body") || window;
+        scrollTarget.scrollBy({ top: delta, behavior: "instant" });
+      }
+    }
     instance.prepare();
     instance.popover.hidden = false;
     instance.trigger.setAttribute("aria-expanded", "true");
@@ -297,7 +308,9 @@
       afterOpen: function () {},
     };
 
-    trigger.addEventListener("click", function () { openPicker(instance); });
+    trigger.addEventListener("click", function (event) {
+      openPicker(instance, event.detail === 0 && document.activeElement === trigger);
+    });
     container.querySelector("[data-calendar-previous]").addEventListener("click", function () {
       visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1);
       render();
