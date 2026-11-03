@@ -339,3 +339,111 @@ test("time picker Escape retains its original focus and value behavior", () => {
   assert.equal(h.input.value, "10:30");
   assert.deepEqual(h.input.events, []);
 });
+
+function keyboardVisibilityFixture(options = {}) {
+  const h = setup({ width: 713, height: 453, top: 410, ...options });
+  const scrolls = [];
+  const scroll = owner => options => {
+    scrolls.push({ owner, top: options.top, left: options.left, behavior: options.behavior });
+    const rect = h.trigger.rect;
+    h.trigger.rect = rectangle(rect.left, rect.top - options.top, rect.width, rect.height);
+  };
+  h.window.scrollBy = scroll("window");
+  if (options.modal) options.modal.scrollBy = scroll("modal");
+  h.document.activeElement = h.trigger;
+  return Object.assign(h, {
+    scrolls,
+    keyboardOpen() { h.trigger.fire("click", { detail: 0 }); h.flush(); },
+  });
+}
+
+test("keyboard opening reveals a date trigger below the fixed bottom safe area", () => {
+  const h = keyboardVisibilityFixture(); h.input.value = "2026-10-04";
+  h.keyboardOpen();
+  assert.equal(h.popover.hidden, false);
+  assert.equal(h.scrolls.length, 1);
+  assert.equal(h.scrolls[0].owner, "window");
+  assert.equal(h.scrolls[0].top, 76);
+  assert.equal(h.scrolls[0].left, undefined);
+  assert.equal(h.scrolls[0].behavior, "instant");
+  assert.equal(h.trigger.rect.bottom, 378);
+  assert.equal(h.document.activeElement, h.trigger);
+  assert.equal(h.input.value, "2026-10-04");
+  assert.deepEqual(h.input.events, []);
+});
+
+test("keyboard opening reveals a date trigger obscured by the fixed header", () => {
+  const h = keyboardVisibilityFixture({ top: 5 }); h.keyboardOpen();
+  assert.equal(h.popover.hidden, false);
+  assert.equal(h.scrolls.length, 1);
+  assert.equal(h.scrolls[0].top, -67);
+  assert.equal(h.trigger.rect.top, 72);
+});
+
+test("keyboard opening corrects only the overlapped part of the safe area", () => {
+  for (const [top, delta] of [[350, 16], [50, -22]]) {
+    const h = keyboardVisibilityFixture({ top }); h.keyboardOpen();
+    assert.equal(h.popover.hidden, false);
+    assert.equal(h.scrolls.length, 1);
+    assert.equal(h.scrolls[0].top, delta);
+  }
+});
+
+test("keyboard opening reveals a modal date by scrolling its own body only", () => {
+  const modal = { nodeType: 1, getBoundingClientRect: () => rectangle(20, 100, 650, 400) };
+  const h = keyboardVisibilityFixture({ top: 450, height: 640, modal }); h.keyboardOpen();
+  assert.equal(h.popover.hidden, false);
+  assert.deepEqual(h.scrolls.map(s => s.owner), ["modal"]);
+  assert.equal(h.scrolls[0].top, 2);
+  assert.equal(h.trigger.rect.bottom, 492);
+});
+
+test("keyboard opening does not scroll an already visible date trigger", () => {
+  const h = keyboardVisibilityFixture({ top: 160 }); h.keyboardOpen();
+  assert.equal(h.popover.hidden, false);
+  assert.equal(h.scrolls.length, 0);
+});
+
+test("pointer opening does not add keyboard reveal scrolling", () => {
+  const h = keyboardVisibilityFixture();
+  h.trigger.fire("click", { detail: 1 }); h.flush();
+  assert.equal(h.scrolls.length, 0);
+  assert.equal(h.popover.hidden, true);
+});
+
+test("unfocused scripted activation does not move the page or steal outside focus", () => {
+  const h = keyboardVisibilityFixture(), outside = element();
+  h.document.activeElement = outside; h.keyboardOpen();
+  assert.equal(h.scrolls.length, 0);
+  assert.equal(h.document.activeElement, outside);
+});
+
+test("time picker keyboard activation keeps its original scroll behavior", () => {
+  const h = keyboardVisibilityFixture({ type: "time" }); h.keyboardOpen();
+  assert.equal(h.popover.hidden, false);
+  assert.equal(h.scrolls.length, 0);
+  assert.deepEqual(h.input.events, []);
+});
+
+test("keyboard closing an open calendar does not reveal or scroll the trigger", () => {
+  const h = keyboardVisibilityFixture({ top: 160 }); h.keyboardOpen();
+  h.trigger.rect = rectangle(32, 410, 300, 44); h.keyboardOpen();
+  assert.equal(h.popover.hidden, true);
+  assert.equal(h.scrolls.length, 0);
+});
+
+test("Escape after keyboard reveal returns focus without a second scroll or value change", () => {
+  const h = keyboardVisibilityFixture(); h.input.value = "2026-10-04"; h.keyboardOpen();
+  assert.equal(h.popover.hidden, false);
+  const previous = h.controls["[data-calendar-previous]"];
+  h.popover.children.push(previous); h.document.activeElement = previous;
+  h.trigger.focus = options => {
+    assert.equal(options.preventScroll, true); h.document.activeElement = h.trigger;
+  };
+  h.document.fire("keydown", { key: "Escape" });
+  assert.equal(h.popover.hidden, true);
+  assert.equal(h.document.activeElement, h.trigger);
+  assert.equal(h.scrolls.length, 1);
+  assert.equal(h.input.value, "2026-10-04");
+  assert.deepEqual(h.input.events, []);
+});
