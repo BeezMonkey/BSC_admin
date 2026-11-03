@@ -1,7 +1,10 @@
 from datetime import date, time
 from decimal import Decimal
+from pathlib import Path
+import re
 
-from django.test import TestCase, override_settings
+from django.conf import settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.test.html import parse_html
 from django.templatetags.static import static
 from django.urls import reverse
@@ -11,6 +14,47 @@ from participants.models import Participant
 from scheduling.models import Shift
 from service_logs.models import ServiceLog
 from workers.models import SupportWorker
+
+
+class R1WorkerUnscheduledSelectStyleTests(SimpleTestCase):
+    selector = ".r1-worker.r1-ui .r1-log-page .worker-unscheduled-detail-grid select:not([data-support-item-picker])"
+
+    def declarations(self, text, selector):
+        blocks = re.findall(re.escape(selector) + r"\s*\{([^{}]*)\}", text)
+        return {key.strip(): value.strip() for block in blocks for part in block.split(";")
+                if ":" in part for key, value in [part.split(":", 1)]}
+
+    def test_unscheduled_picker_matches_accepted_admin_invoice_menu(self):
+        css = (Path(settings.BASE_DIR) / "static/css/r1_worker_logs.css").read_text(encoding="utf-8")
+        admin = (Path(settings.BASE_DIR) / "static/css/r1_admin_invoice_list.css").read_text(encoding="utf-8")
+        own = self.declarations(css, self.selector + "::picker(select)")
+        reference = self.declarations(admin, ".r1-admin-invoice-list [data-invoice-filters] select::picker(select)")
+        self.assertEqual(own.get("appearance"), "base-select")
+        for prop in ("box-sizing", "max-height", "overflow-y", "margin", "border", "border-radius", "padding", "color", "background", "box-shadow"):
+            self.assertEqual(own.get(prop), reference[prop], prop)
+        options = self.declarations(css, self.selector + " option")
+        admin_options = self.declarations(admin, ".r1-admin-invoice-list [data-invoice-filters] select option")
+        for prop in ("min-height", "padding", "border-radius", "font-size", "line-height", "white-space", "overflow-wrap"):
+            self.assertEqual(options.get(prop), admin_options[prop], prop)
+        self.assertEqual(self.declarations(css, self.selector + " option:is(:checked, :hover, :focus)"),
+                         {"color": "var(--r1-accent)", "background": "var(--r1-blue-soft)"})
+
+    def test_select_enhancement_is_scoped_and_keeps_native_fallback_and_host_dimensions(self):
+        css = (Path(settings.BASE_DIR) / "static/css/r1_worker_logs.css").read_text(encoding="utf-8")
+        marker = "/* Match accepted Admin desktop menus; keep the native mobile picker. */"
+        self.assertIn(marker, css)
+        enhancement = css.split(marker, 1)[1]
+        self.assertIn("@supports (appearance: base-select) and selector(select::picker(select))", enhancement)
+        self.assertIn("@media (min-width: 761px) and (hover: hover) and (pointer: fine)", enhancement)
+        host = self.declarations(enhancement, self.selector)
+        self.assertNotIn("height", host)
+        self.assertNotIn("font-size", host)
+        self.assertNotIn("padding", host)
+        self.assertNotIn("outline", host)
+        self.assertNotIn("line-height", host)
+        self.assertNotIn("!important", enhancement)
+        self.assertNotIn("::picker-icon", enhancement)
+        self.assertNotIn("support-item-picker-trigger", enhancement)
 
 
 def elements(node):

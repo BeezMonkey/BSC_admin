@@ -208,3 +208,20 @@
   }
   .r1-log-page .r1-time-heading { font-size: 24px; line-height: 32px; }
 }
+
+/* Match accepted Admin desktop menus; keep the native mobile picker. */
+@supports (appearance: base-select) and selector(select::picker(select)) {
+  @media (min-width: 761px) and (hover: hover) and (pointer: fine) {
+    .r1-worker.r1-ui .r1-log-page .worker-unscheduled-detail-grid select:not([data-support-item-picker]),
+    .r1-worker.r1-ui .r1-log-page .worker-unscheduled-detail-grid select:not([data-support-item-picker])::picker(select) { appearance: base-select; }
+    .r1-worker.r1-ui .r1-log-page .worker-unscheduled-detail-grid select:not([data-support-item-picker]) { align-items: center; }
+    .r1-worker.r1-ui .r1-log-page .worker-unscheduled-detail-grid select:not([data-support-item-picker])::picker(select) {
+      box-sizing: border-box; max-height: 280px; overflow-y: auto; margin: 4px 0;
+      border: 1px solid var(--r1-border); border-radius: 8px; padding: 4px;
+      color: var(--r1-text); background: var(--r1-surface); box-shadow: 0 6px 16px rgb(23 33 43 / 12%);
+    }
+    .r1-worker.r1-ui .r1-log-page .worker-unscheduled-detail-grid select:not([data-support-item-picker]) option { min-height: 32px; padding: 6px 8px; border-radius: 4px; font-size: 13px; line-height: 18px; white-space: normal; overflow-wrap: anywhere; }
+    .r1-worker.r1-ui .r1-log-page .worker-unscheduled-detail-grid select:not([data-support-item-picker]) option:is(:checked, :hover, :focus) { color: var(--r1-accent); background: var(--r1-blue-soft); }
+    .r1-worker.r1-ui .r1-log-page .worker-unscheduled-detail-grid select:not([data-support-item-picker]) option::checkmark { color: var(--r1-accent); }
+  }
+}
