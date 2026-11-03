@@ -132,6 +132,8 @@ class ServiceLogCompletionTests(TestCase):
             unscheduled_reason="Participant requested urgent support after a cancelled roster.",
         )
         data.update(overrides)
+        form = self.client.get(reverse("worker_unscheduled_service_log_create"))
+        data["submission_token"] = form.context["submission_token"]
         return data
 
     def login_worker(self):

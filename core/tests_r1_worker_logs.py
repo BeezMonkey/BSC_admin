@@ -187,7 +187,12 @@ class R1WorkerLogContractTests(TestCase):
                 controls = {dict(node.attributes)["name"]: node for node in elements(form)
                             if node.name in ("input", "select", "textarea")
                             and "name" in dict(node.attributes)}
-                self.assertEqual(set(controls), set(expected) | {"attachments", "csrfmiddlewaretoken"})
+                metadata = {"attachments", "csrfmiddlewaretoken"}
+                if unscheduled:
+                    metadata.add("submission_token")
+                    self.assertEqual(dict(controls["submission_token"].attributes).get("type"), "hidden")
+                    self.assertTrue(dict(controls["submission_token"].attributes).get("value"))
+                self.assertEqual(set(controls), set(expected) | metadata)
                 self.assertEqual(dict(form.attributes).get("method"), "post")
                 self.assertEqual(dict(form.attributes).get("enctype"), "multipart/form-data")
                 for name, is_required in expected.items():
@@ -291,7 +296,10 @@ class R1WorkerLogContractTests(TestCase):
             with self.subTest(unscheduled=unscheduled):
                 before = ServiceLog.objects.count()
                 shifts_before = Shift.objects.count()
-                response = self.client.post(url, self.payload(unscheduled))
+                payload = self.payload(unscheduled)
+                if unscheduled:
+                    payload["submission_token"] = self.client.get(url).context["submission_token"]
+                response = self.client.post(url, payload)
                 self.assertEqual(response.status_code, 302)
                 self.assertEqual(ServiceLog.objects.count(), before + 1)
                 log = ServiceLog.objects.exclude(pk=self.log.pk).get(source=(

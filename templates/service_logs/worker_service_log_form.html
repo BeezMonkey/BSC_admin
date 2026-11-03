@@ -68,6 +68,7 @@
 
   <form class="worker-log-form" method="post" enctype="multipart/form-data">
     {% csrf_token %}
+    {% if is_unscheduled %}<input type="hidden" name="submission_token" value="{{ submission_token|default:'' }}">{% endif %}
     {{ form.non_field_errors }}
 
     {% if is_unscheduled %}

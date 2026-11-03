@@ -6,7 +6,7 @@
 <section class="worker-card worker-log-list-page worker-desktop-page">
   <header class="worker-log-list-header">
     <div><h1>My Logs</h1><p>Your submitted service records.</p></div>
-    <a class="button worker-unscheduled-service-action" href="{% url 'worker_unscheduled_service_log_create' %}">Submit Unscheduled Service</a>
+    <a class="button worker-unscheduled-service-action" href="{% url 'worker_unscheduled_service_log_create' %}?new=1">Submit Unscheduled Service</a>
   </header>
   {% if service_logs %}
   <table class="r1-navigation-table r1-log-table" aria-label="My Logs">

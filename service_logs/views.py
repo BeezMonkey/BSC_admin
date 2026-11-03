@@ -5,7 +5,8 @@ from urllib.parse import urlencode
 from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.core import signing
+from django.db import IntegrityError, transaction
 from django.db.models import Count, Sum
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -42,6 +43,13 @@ from .follow_up import missing_log_summary
 from .forms import ServiceLogForm, UnscheduledServiceLogForm
 from .models import ServiceLog
 from .notifications import notify_admin_service_log_submitted
+from .submissions import (
+    SavedSubmissionRace,
+    is_submission_key_conflict,
+    read_submission_key,
+    remember_submission,
+    resume_submission,
+)
 
 
 def build_service_log_table_row(service_log):
@@ -649,7 +657,9 @@ def append_service_log_attachments(request, service_log, attachments, stored_att
         )
 
 
-def render_worker_service_log_form(request, form, shift=None, is_unscheduled=False):
+def render_worker_service_log_form(
+    request, form, shift=None, is_unscheduled=False, submission_token=None, status=200,
+):
     return render(
         request,
         "service_logs/worker_service_log_form.html",
@@ -657,7 +667,9 @@ def render_worker_service_log_form(request, form, shift=None, is_unscheduled=Fal
             "form": form,
             "shift": shift,
             "is_unscheduled": is_unscheduled,
+            "submission_token": submission_token,
         },
+        status=status,
     )
 
 
@@ -733,8 +745,52 @@ def worker_unscheduled_service_log_create(request):
     if worker is None:
         raise Http404("Worker profile is required.")
 
+    if request.method == "GET" and request.GET.get("new") == "1":
+        token = resume_submission(request, worker, new=True)
+        # Carry this attempt through the redirect; another tab may change the session.
+        return redirect(
+            f"{reverse('worker_unscheduled_service_log_create')}?{urlencode({'submission': token})}"
+        )
+
+    token = (
+        request.POST.get("submission_token") if request.method == "POST"
+        else request.GET.get("submission") or resume_submission(request, worker)
+    )
+    form = UnscheduledServiceLogForm(
+        request.POST if request.method == "POST" else None, worker=worker,
+    )
+    try:
+        key = read_submission_key(token, worker)
+    except (signing.BadSignature, ValueError, TypeError, KeyError):
+        if request.method == "POST" and not token and not form.is_valid():
+            return render_worker_service_log_form(
+                request, form, is_unscheduled=True,
+                submission_token=resume_submission(request, worker, new=True),
+            )
+        if request.method != "POST":
+            form = UnscheduledServiceLogForm({}, worker=worker)
+        form.is_valid()
+        form.add_error(None, "This submission could not be verified. Please reopen the form and try again.")
+        return render_worker_service_log_form(
+            request, form, is_unscheduled=True, status=400,
+        )
+
+    def saved_submission():
+        return ServiceLog.objects.filter(
+            worker=worker, source=ServiceLog.Source.UNSCHEDULED, submission_key=key,
+        ).first()
+
+    def return_saved(service_log):
+        messages.info(request, "This service has already been submitted. Showing the saved record.")
+        return redirect("worker_service_log_detail", service_log_id=service_log.id)
+
+    existing = saved_submission()
+    if existing is not None:
+        return return_saved(existing)
+
+    remember_submission(request, worker, token)
+
     if request.method == "POST":
-        form = UnscheduledServiceLogForm(request.POST, worker=worker)
         attachments = request.FILES.getlist("attachments")
         if form.is_valid():
             try:
@@ -745,6 +801,7 @@ def worker_unscheduled_service_log_create(request):
                     request,
                     form,
                     is_unscheduled=True,
+                    submission_token=token,
                 )
 
             stored_attachment_documents = []
@@ -766,24 +823,35 @@ def worker_unscheduled_service_log_create(request):
                         completed_at=completed_at,
                         created_by=request.user,
                     )
-                    service_log = ServiceLog.objects.create_from_shift(
-                        shift=shift,
-                        source=ServiceLog.Source.UNSCHEDULED,
-                        actual_start_time=form.cleaned_data["actual_start_time"],
-                        actual_end_time=form.cleaned_data["actual_end_time"],
-                        break_minutes=form.cleaned_data["break_minutes"],
-                        actual_hours=form.cleaned_data["actual_hours"],
-                        kilometres=form.cleaned_data["kilometres"],
-                        case_notes=form.cleaned_data["case_notes"],
-                        worker_notes=form.cleaned_data["worker_notes"],
-                        unscheduled_reason=form.cleaned_data["unscheduled_reason"],
-                    )
+                    try:
+                        service_log = ServiceLog.objects.create_from_shift(
+                            shift=shift,
+                            source=ServiceLog.Source.UNSCHEDULED,
+                            submission_key=key,
+                            actual_start_time=form.cleaned_data["actual_start_time"],
+                            actual_end_time=form.cleaned_data["actual_end_time"],
+                            break_minutes=form.cleaned_data["break_minutes"],
+                            actual_hours=form.cleaned_data["actual_hours"],
+                            kilometres=form.cleaned_data["kilometres"],
+                            case_notes=form.cleaned_data["case_notes"],
+                            worker_notes=form.cleaned_data["worker_notes"],
+                            unscheduled_reason=form.cleaned_data["unscheduled_reason"],
+                        )
+                    except IntegrityError as exc:
+                        if is_submission_key_conflict(exc):
+                            raise SavedSubmissionRace from exc
+                        raise
                     append_service_log_attachments(
                         request,
                         service_log,
                         attachments,
                         stored_attachment_documents,
                     )
+            except SavedSubmissionRace:
+                existing = saved_submission()
+                if existing is None:
+                    raise
+                return return_saved(existing)
             except StorageOperationError as exc:
                 for document in stored_attachment_documents:
                     if document.file:
@@ -794,16 +862,15 @@ def worker_unscheduled_service_log_create(request):
                     request,
                     form,
                     is_unscheduled=True,
+                    submission_token=token,
                 )
 
             notify_admin_service_log_submitted(service_log, request=request)
             messages.success(request, "Unscheduled service submitted for admin review.")
             return redirect("worker_service_log_detail", service_log_id=service_log.id)
-    else:
-        form = UnscheduledServiceLogForm(worker=worker)
-
     return render_worker_service_log_form(
         request,
         form,
         is_unscheduled=True,
+        submission_token=token,
     )
