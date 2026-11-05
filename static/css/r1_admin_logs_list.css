@@ -312,6 +312,7 @@
 }
 
 .r1-admin-log-list .service-log-table-card {
+  max-width: 2040px;
   overflow: hidden;
   margin: 0;
   border: 1px solid var(--r1-border);
@@ -366,12 +367,34 @@
   line-height: 16px;
 }
 .r1-admin-log-list .service-log-table th:nth-child(1) { width: 60px; }
-.r1-admin-log-list .service-log-table th:nth-child(2) { width: 168px; }
+.r1-admin-log-list .service-log-table th:nth-child(2) { width: 192px; }
 .r1-admin-log-list .service-log-table th:nth-child(3),
 .r1-admin-log-list .service-log-table th:nth-child(4) { width: 146px; }
 .r1-admin-log-list .service-log-table th:nth-child(5) { width: 108px; }
 .r1-admin-log-list .service-log-table th:nth-child(6) { width: 72px; }
 .r1-admin-log-list .service-log-table th:nth-child(8) { width: 220px; }
+
+/* Grow the content columns from the scroll region, not the viewport. */
+@supports (width: 1cqw) {
+  .r1-admin-log-list .service-log-table-scroll {
+    container-type: inline-size;
+    --service-log-extra: max(0px, calc(100cqw - 1172px));
+  }
+  .r1-admin-log-list .service-log-table th:nth-child(2) {
+    width: min(232px, calc(192px + var(--service-log-extra) * 0.045));
+  }
+  .r1-admin-log-list .service-log-table th:nth-child(3),
+  .r1-admin-log-list .service-log-table th:nth-child(4) {
+    width: min(296px, calc(146px + var(--service-log-extra) * 0.18));
+  }
+  .r1-admin-log-list .service-log-table th:nth-child(5) {
+    width: min(132px, calc(108px + var(--service-log-extra) * 0.03));
+  }
+  .r1-admin-log-list .service-log-table th:nth-child(6) {
+    width: min(82px, calc(72px + var(--service-log-extra) * 0.012));
+  }
+}
+
 .r1-admin-log-list .service-log-table td { height: 72px; font-size: 14px; line-height: 20px; }
 .r1-admin-log-list .service-log-table tbody tr:last-child td { border-bottom: 0; }
 .r1-admin-log-list .service-log-table .sort-link { color: inherit; }
@@ -385,7 +408,11 @@
 .r1-admin-log-list .service-log-table .service-log-hours-cell { font-weight: 600; }
 .r1-admin-log-list .service-log-table .notes-cell { min-width: 0; max-width: none; }
 .r1-admin-log-list .service-log-notes-preview { color: var(--r1-muted); overflow-wrap: anywhere; }
-.r1-admin-log-list .service-log-table .service-log-actions-cell { min-width: 0; white-space: normal; }
+.r1-admin-log-list .service-log-table td.service-log-actions-cell {
+  min-width: 0;
+  text-align: right;
+  white-space: nowrap;
+}
 .r1-admin-log-list .service-log-table .service-log-actions-cell a {
   min-height: 36px;
   border-radius: 6px;
