@@ -1,0 +1,122 @@
+/* Navigation-only opt-in: do not inherit shell tokens into business content. */
+html .app-shell[data-admin-theme] {
+  grid-template-columns: 212px minmax(0, 1fr);
+}
+
+html .app-shell[data-admin-theme] .sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  border-right: 1px solid #e4e8ee;
+  padding: 24px 16px 20px;
+  color: #17212b;
+  background: #ffffff;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+html .app-shell[data-admin-theme] .brand {
+  min-height: 64px;
+  margin: 0;
+  border: 0;
+  padding: 0 0 0 8px;
+  align-content: start;
+  color: #17212b;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+html .app-shell[data-admin-theme] .brand small {
+  margin-top: 2px;
+  color: #526171;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+html .app-shell[data-admin-theme] .sidebar-nav {
+  gap: 0;
+}
+
+html .app-shell[data-admin-theme] .sidebar-section-label {
+  min-height: 28px;
+  margin: 16px 0 0;
+  padding: 6px 12px;
+  color: #526171;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+}
+
+html .app-shell[data-admin-theme] .sidebar-section-label:first-child {
+  margin-top: 0;
+}
+
+html .app-shell[data-admin-theme] .sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  border-radius: 8px;
+  padding: 10px 4px 10px 8px;
+  color: #17212b;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: 0;
+  box-shadow: none;
+}
+
+html .app-shell[data-admin-theme] .sidebar-link:hover {
+  color: #17212b;
+  background: #f7f8fa;
+}
+
+html .app-shell[data-admin-theme] .sidebar-link.active {
+  color: #17212b;
+  background: #f0ebff;
+  font-weight: 500;
+}
+
+html .app-shell[data-admin-theme] .sidebar-link:focus-visible {
+  outline: 2px solid #315bcb;
+  outline-offset: 3px;
+}
+
+html .app-shell[data-admin-theme] .sidebar-link::before {
+  content: "";
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  background: var(--admin-navigation-icon) center / contain no-repeat;
+}
+
+html .app-shell[data-admin-theme] .sidebar-link[href$="/admin-dashboard/"] { --admin-navigation-icon: url("../img/r1/icons/admin-dashboard.svg"); }
+html .app-shell[data-admin-theme] .sidebar-link:is([href$="/participants/"], [href$="/workers/"], [href$="/coordinators/"]) { --admin-navigation-icon: url("../img/r1/icons/admin-users.svg"); }
+html .app-shell[data-admin-theme] .sidebar-link:is([href$="/roster/"], [href$="/participant-cancellations/"]) { --admin-navigation-icon: url("../img/r1/icons/admin-calendar.svg"); }
+html .app-shell[data-admin-theme] .sidebar-link:is([href$="/service-logs/"], [href$="/coordination-logs/"]) { --admin-navigation-icon: url("../img/r1/icons/admin-file.svg"); }
+html .app-shell[data-admin-theme] .sidebar-link:is([href$="/invoices/"], [href$="/support-coordination/"]) { --admin-navigation-icon: url("../img/r1/icons/admin-receipt.svg"); }
+html .app-shell[data-admin-theme] .sidebar-link[href$="/support-items/"] { --admin-navigation-icon: url("../img/r1/icons/admin-layers.svg"); }
+html .app-shell[data-admin-theme] .sidebar-link[href$="/audit-logs/"] { --admin-navigation-icon: url("../img/r1/icons/admin-shield.svg"); }
+
+@media (max-width: 760px) {
+  html .app-shell[data-admin-theme] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  html .app-shell[data-admin-theme] .sidebar {
+    display: none;
+  }
+
+  html .app-shell[data-admin-theme] .admin-mobile-drawer-nav {
+    gap: 0;
+  }
+
+  html .app-shell[data-admin-theme] .admin-mobile-drawer-nav .sidebar-link {
+    min-height: 44px;
+  }
+}
