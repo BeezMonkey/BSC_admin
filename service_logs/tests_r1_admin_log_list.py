@@ -316,13 +316,13 @@ class R1AdminLogListTests(SimpleTestCase):
         self.assertIn(".r1-admin-log-list .service-log-create-selected { justify-self: center; min-height: 44px; }", mobile)
         self.assertIn(".r1-admin-log-list .service-log-missing > summary { min-height: 44px; margin-inline: auto; }", mobile)
 
-    def test_table_width_is_bounded_and_actions_align_without_wrapping(self):
+    def test_table_fills_available_width_and_actions_align_without_wrapping(self):
         stylesheet = (Path(__file__).resolve().parent.parent / "static/css/r1_admin_logs_list.css").read_text(encoding="utf-8")
 
         def rule(selector):
             return stylesheet.split(selector + " {", 1)[1].split("}", 1)[0]
 
-        self.assertIn("max-width: 2040px;", rule(".r1-admin-log-list .service-log-table-card"))
+        self.assertIn("max-width: none;", rule(".r1-admin-log-list .service-log-table-card"))
         self.assertIn("min-width: 1172px;", rule(".r1-admin-log-list .service-log-table"))
         self.assertIn("overflow-x: auto;", rule(".r1-admin-log-list .service-log-table-scroll"))
         self.assertIn("width: 192px;", rule(".r1-admin-log-list .service-log-table th:nth-child(2)"))

@@ -312,7 +312,7 @@
 }
 
 .r1-admin-log-list .service-log-table-card {
-  max-width: 2040px;
+  max-width: none;
   overflow: hidden;
   margin: 0;
   border: 1px solid var(--r1-border);
@@ -374,24 +374,25 @@
 .r1-admin-log-list .service-log-table th:nth-child(6) { width: 72px; }
 .r1-admin-log-list .service-log-table th:nth-child(8) { width: 220px; }
 
-/* Grow the content columns from the scroll region, not the viewport. */
+/* Preserve the regular-width layout, then share extra width across content columns. */
 @supports (width: 1cqw) {
   .r1-admin-log-list .service-log-table-scroll {
     container-type: inline-size;
-    --service-log-extra: max(0px, calc(100cqw - 1172px));
+    --service-log-extra: clamp(0px, calc(100cqw - 1172px), 866px);
+    --service-log-wide-extra: max(0px, calc(100cqw - 2038px));
   }
   .r1-admin-log-list .service-log-table th:nth-child(2) {
-    width: min(232px, calc(192px + var(--service-log-extra) * 0.045));
+    width: calc(min(232px, 192px + var(--service-log-extra) * 0.045) + var(--service-log-wide-extra) * 0.1314);
   }
   .r1-admin-log-list .service-log-table th:nth-child(3),
   .r1-admin-log-list .service-log-table th:nth-child(4) {
-    width: min(296px, calc(146px + var(--service-log-extra) * 0.18));
+    width: calc(min(296px, 146px + var(--service-log-extra) * 0.18) + var(--service-log-wide-extra) * 0.1684);
   }
   .r1-admin-log-list .service-log-table th:nth-child(5) {
-    width: min(132px, calc(108px + var(--service-log-extra) * 0.03));
+    width: calc(min(132px, 108px + var(--service-log-extra) * 0.03) + var(--service-log-wide-extra) * 0.0751);
   }
   .r1-admin-log-list .service-log-table th:nth-child(6) {
-    width: min(82px, calc(72px + var(--service-log-extra) * 0.012));
+    width: calc(min(82px, 72px + var(--service-log-extra) * 0.012) + var(--service-log-wide-extra) * 0.0466);
   }
 }
 
