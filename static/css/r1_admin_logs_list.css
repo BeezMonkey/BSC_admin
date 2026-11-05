@@ -406,6 +406,7 @@
 .r1-admin-log-list .service-log-person-stack .service-log-role-label { color: var(--r1-muted); font-size: 12px; font-weight: 400; line-height: 16px; }
 .r1-admin-log-list .service-log-table .numeric-cell { text-align: right; }
 .r1-admin-log-list .service-log-table .service-log-hours-cell { font-weight: 600; }
+.r1-admin-log-list .service-log-table :is(th:nth-child(7), td.notes-cell) { padding-inline-start: 24px; }
 .r1-admin-log-list .service-log-table .notes-cell { min-width: 0; max-width: none; }
 .r1-admin-log-list .service-log-notes-preview { color: var(--r1-muted); overflow-wrap: anywhere; }
 .r1-admin-log-list .service-log-table td.service-log-actions-cell {
