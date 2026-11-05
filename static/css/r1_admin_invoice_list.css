@@ -51,6 +51,27 @@
 .app-shell.r1-admin-invoice-list .invoice-table .empty-state { padding: 24px; text-align: center; font-size: 14px; line-height: 20px; }
 .app-shell.r1-admin-invoice-list .invoice-table .empty-state strong { font-weight: 600; color: var(--r1-text); }
 .app-shell.r1-admin-invoice-list .invoice-table .empty-state p { margin: 6px 0 0; font-size: 13px; line-height: 20px; }
+
+.r1-admin-invoice-list:not(.r1-admin-sc-invoices) .r1-invoice-table-scroll {
+  container: service-invoice-list / inline-size;
+}
+
+/* Share wide-screen space without changing narrow layouts or SC Invoices. */
+@container service-invoice-list (min-width: 1200px) {
+  .app-shell.r1-admin-invoice-list .invoice-table {
+    --invoice-extra: calc(100cqw - 1200px);
+    table-layout: fixed;
+  }
+  .r1-admin-invoice-list .invoice-table th:nth-child(1) { width: calc(250px + var(--invoice-extra) * .20); }
+  .r1-admin-invoice-list .invoice-table th:nth-child(2) { width: calc(280px + var(--invoice-extra) * .25); }
+  .r1-admin-invoice-list .invoice-table th:nth-child(4) { width: calc(100px + var(--invoice-extra) * .15); }
+  .r1-admin-invoice-list .invoice-table th:nth-child(5) { width: calc(112px + var(--invoice-extra) * .20); }
+  .r1-admin-invoice-list .invoice-table th:nth-child(6) { width: 168px; }
+  .app-shell.r1-admin-invoice-list .invoice-table :is(th, td).numeric-cell {
+    padding-inline-end: calc(16px + min(48px, var(--invoice-extra) * .04) + min(144px, var(--invoice-extra) * .067));
+  }
+}
+
 @media (min-width: 761px) and (max-width: 1199px) {
   .app-shell.r1-admin-invoice-list .invoice-filter-bar { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .app-shell.r1-admin-invoice-list .invoice-filter-bar > .button { grid-column: 3; }
