@@ -38,7 +38,7 @@
 /* Name keeps the remaining space after the other content columns have grown. */
 @container support-item-list (min-width: 1200px) {
   .r1-support-items .table-card table { --item-extra: calc(100cqw - 1200px); }
-  .r1-support-items .table-card th:nth-child(1) { width: calc(180px + var(--item-extra) * .15); }
+  .r1-support-items .table-card th:nth-child(1) { width: calc(180px + var(--item-extra) * .15 - min(128px, var(--item-extra) * .132)); }
   .r1-support-items .table-card th:nth-child(3) { width: calc(170px + var(--item-extra) * .17); }
   .r1-support-items .table-card th:nth-child(4) { width: calc(112px + var(--item-extra) * .13); }
   .r1-support-items .table-card th:nth-child(5) { width: calc(118px + var(--item-extra) * .10); }
