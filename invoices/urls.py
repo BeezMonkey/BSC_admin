@@ -1,5 +1,7 @@
 from django.urls import path
 
+from .workbench_views import weekly_billing
+
 from .views import (
     exports_placeholder,
     invoice_cancel,
@@ -17,6 +19,7 @@ from .views import (
 )
 
 urlpatterns = [
+    path('billing/weekly/', weekly_billing, name='weekly_billing'),
     path("invoices/", invoice_list, name="invoice_placeholder"),
     path("invoices/settings/", invoice_settings, name="invoice_settings"),
     path("invoices/new/", invoice_create, name="invoice_create"),

@@ -172,6 +172,11 @@ def admin_dashboard(request):
     ]
     module_links = [
         {
+            "label": "Weekly Billing",
+            "description": "Review the weekly billing workbench",
+            "url_name": "weekly_billing",
+        },
+        {
             "label": "Add participant",
             "description": "Create a client record",
             "url_name": "participant_create",

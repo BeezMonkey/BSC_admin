@@ -1,0 +1,71 @@
+{% extends "admin_base.html" %}
+{% load static %}
+{% block title %}Weekly Billing - Brisbane Star Care{% endblock %}
+{% block extra_styles %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
+<link rel="stylesheet" href="{% static 'css/r1_shell.css' %}">
+<link rel="stylesheet" href="{% static 'css/weekly_billing.css' %}">
+{% endblock %}
+{% block r1_shell_class %} r1-ui r1-admin weekly-billing-shell{% endblock %}
+{% block sidebar_account %}
+<div class="r1-account"><span class="r1-account-name">{{ request.user.get_username }}</span><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="r1-logout" type="submit">Logout</button></form></div>
+{% endblock %}
+{% block topbar_content %}<nav class="r1-breadcrumb" aria-label="Breadcrumb">Business / Weekly Billing</nav>{% endblock %}
+{% block content %}
+<div class="weekly-billing">
+<header class="wb-title"><h1>Weekly Billing</h1><p>Check roster coverage, review submitted logs, and see what is ready to bill.</p></header>
+<form method="get" class="wb-period">
+<fieldset><legend>Billing period</legend><div class="wb-filter-grid">
+{% for field in period_form %}<div class="wb-field">{{ field.label_tag }}{{ field }}{{ field.errors }}</div>{% endfor %}
+<button type="submit" class="button secondary">Apply period</button></div>
+{{ period_form.non_field_errors }}
+<p>Brisbane time · Monday to Sunday for weekly periods. Custom dates are inclusive. From and To apply to Custom only.</p>
+{% if period %}<p><strong>{{ period.start|date:"d M Y" }} – {{ period.end|date:"d M Y" }}</strong> · This period applies to all four steps.</p>{% endif %}
+</fieldset></form>
+{% if not workbench %}<p class="wb-callout" role="alert">Choose a valid complete billing period to see records. No records were loaded.</p>{% else %}
+<nav class="wb-steps" aria-label="Billing steps">
+<a href="#roster-check"><b>1 · Roster vs logs</b><small>{{ workbench.missing_log_count }} missing · {{ workbench.roster_rows|length }} roster/log rows</small></a>
+<a href="#submitted-logs"><b>2 · Submitted Logs</b><small>{{ workbench.submitted_rows|length }} logs · {{ workbench.pending_cancellation_count }} cancellations waiting</small></a>
+<a href="#participant-billing"><b>3 · Participant billing</b><small>{{ workbench.participant_rows|length }} participants in this period</small></a>
+<a href="#related-invoices"><b>4 · Related invoices</b><small>{{ workbench.invoice_rows|length }} saved service invoices</small></a>
+</nav>
+<p class="wb-notice">Read-only review. Approvals, billing adjustments, invoice creation and sending are not available in this workbench yet.</p>
+{% if workbench.earlier_unbilled_count %}<p class="wb-callout"><strong>Earlier unbilled:</strong> {{ workbench.earlier_unbilled_count }} approved service logs or cancellation charges before this period. <a href="{{ workbench.earlier_url }}">Review earlier service dates</a>.</p>{% endif %}
+<section class="wb-panel" id="roster-check" aria-labelledby="roster-heading">
+<header><span class="wb-number">1</span><div><h2 id="roster-heading">Roster vs logs</h2><p>Compare planned and reported time, breaks, net hours and kilometres. Missing means a finished scheduled shift without a service log.</p></div></header>
+<div class="wb-table-scroll" tabindex="0" role="region" aria-label="Roster and service log comparison"><table class="wb-roster-table"><thead><tr><th>Service / participant</th><th>Worker</th><th>Roster</th><th>Submitted log</th><th>Check / status</th></tr></thead><tbody>
+{% for row in workbench.roster_rows %}<tr>
+<td><a href="{{ row.shift.get_absolute_url }}">{{ row.shift.service_date|date:"D d M" }}</a><strong>{{ row.shift.participant.display_name }}</strong>{% if row.unscheduled %}<small>Unscheduled</small>{% endif %}</td>
+<td>{{ row.shift.worker.display_name }}</td>
+<td><span class="wb-times">{{ row.shift.start_time|time:"H:i" }}–{{ row.shift.end_time|time:"H:i" }}</span><small>Break {{ row.shift.break_minutes }} min · {{ row.shift.planned_hours }} h net</small></td>
+<td>{% if row.log %}<a href="{{ row.log.get_absolute_url }}"><span class="wb-times">{{ row.log.actual_start_time|time:"H:i" }}–{{ row.log.actual_end_time|time:"H:i" }}</span></a><small>Break {{ row.log.break_minutes }} min · {{ row.log.actual_hours }} h net · {{ row.log.kilometres }} km</small>{% if row.log.service_date != row.shift.service_date %}<small>Log service date: {{ row.log.service_date|date:"d M Y" }}</small>{% endif %}{% else %}<span class="wb-muted">No log in this period</span>{% endif %}</td>
+<td><span class="wb-badge">{{ row.status }}</span>{% if row.comparison.hours_differ %}<small>Hours differ: {{ row.comparison.hours_difference }} h</small>{% endif %}{% if row.comparison.time_window_differ %}<small>Time window differs</small>{% endif %}{% if row.comparison.break_differ %}<small>Break differs</small>{% endif %}{% if row.cancellation %}<small><a href="{% url 'participant_cancellation_detail' row.cancellation.pk %}">{{ row.cancellation.get_status_display }}</a></small>{% endif %}</td>
+</tr>{% empty %}<tr><td colspan="5">No roster shifts or service logs in this period.</td></tr>{% endfor %}
+</tbody></table></div></section>
+<section class="wb-panel" id="submitted-logs" aria-labelledby="logs-heading">
+<header><span class="wb-number">2</span><div><h2 id="logs-heading">Submitted Logs</h2><p>Original worker submissions, with roster context. Open the original record for full notes and existing review tools.</p></div></header>
+{% for row in workbench.submitted_rows %}{% include "invoices/workbench/submitted_log.html" %}{% empty %}<p class="wb-empty">No submitted service logs in this period.</p>{% endfor %}
+{% if workbench.cancellations %}<div class="wb-cancellations"><h3>Participant cancellations</h3>{% for cancellation in workbench.cancellations %}<details class="wb-record"><summary><span>{{ cancellation.shift.participant.display_name }} · {{ cancellation.shift.service_date|date:"d M" }}</span><span class="wb-badge">{{ cancellation.get_status_display }}</span></summary><div class="wb-record-content"><p>{{ cancellation.get_cancellation_type_display }} · {{ cancellation.shift.worker.display_name }}</p><p>{{ cancellation.details|truncatechars:300 }}</p><p>Planned {{ cancellation.shift.planned_hours }} h · {{ cancellation.shift.support_item.item_number }}</p><a href="{% url 'participant_cancellation_detail' cancellation.pk %}">Open original cancellation</a></div></details>{% endfor %}</div>{% endif %}
+</section>
+<section class="wb-panel" id="participant-billing" aria-labelledby="billing-heading">
+<header><span class="wb-number">3</span><div><h2 id="billing-heading">Participant billing</h2><p>Approved unbilled logs and approved unbilled cancellation charges. Service-only estimates use original hours and current existing item rates. Travel claim not included.</p></div></header>
+<div class="wb-table-scroll" tabindex="0" role="region" aria-label="Participant billing status"><table class="wb-client-table"><thead><tr><th>Participant</th><th>Plan manager / delivery</th><th>Sources</th><th>Service estimate</th><th>Readiness</th></tr></thead><tbody>
+{% for row in workbench.participant_rows %}<tr>
+<td><a href="#participant-{{ row.participant.pk }}">{{ row.participant.display_name }}</a><small>{{ row.participant.get_status_display }}</small></td>
+<td>{{ row.participant.plan_manager_name|default:"Plan manager not set" }}<small>{{ row.delivery }}</small><small>{{ row.participant.get_management_type_display|default:"Management type not set" }}</small></td>
+<td>{{ row.approved_log_count }} approved unbilled logs<small>{{ row.approved_cancellation_count }} approved unbilled cancellation charges</small><small>{{ row.missing_count }} missing · {{ row.pending_count }} pending · {{ row.rejected_count }} rejected logs</small></td>
+<td class="wb-numeric">${{ row.service_estimate|floatformat:2 }}<small>Travel claim not included</small></td>
+<td><span class="wb-badge {% if row.readiness == 'Ready' %}wb-good{% elif row.readiness == 'Partial' or row.readiness == 'Waiting' %}wb-warning{% endif %}">{{ row.readiness }}</span><small>{{ row.invoice_count }} related invoices</small></td>
+</tr>{% empty %}<tr><td colspan="5">No participant sources in this period.</td></tr>{% endfor %}
+</tbody></table></div>
+{% for row in workbench.participant_rows %}{% include "invoices/workbench/participant.html" %}{% empty %}<p class="wb-empty">No participant sources in this period.</p>{% endfor %}
+</section>
+<section class="wb-panel" id="related-invoices" aria-labelledby="invoices-heading">
+<header><span class="wb-number">4</span><div><h2 id="invoices-heading">Related invoices</h2><p>Invoices covering services in this period, with their saved status and current participant delivery information.</p></div></header>
+<div class="wb-table-scroll" tabindex="0" role="region" aria-label="Related service invoices"><table class="wb-invoice-table"><thead><tr><th>Invoice / participant</th><th>Saved period / source coverage</th><th>Status</th><th>Total</th><th>PM email readiness</th></tr></thead><tbody>
+{% for row in workbench.invoice_rows %}<tr><td><a href="{{ row.invoice.get_absolute_url }}">{{ row.invoice.invoice_number }}</a><strong>{{ row.invoice.participant.display_name }}</strong></td><td>{{ row.invoice.period_start|date:"d M Y" }}–{{ row.invoice.period_end|date:"d M Y" }}<small>Source dates: {{ row.source_start|date:"d M Y" }}–{{ row.source_end|date:"d M Y" }}</small></td><td><span class="wb-badge">{{ row.invoice.get_status_display }}</span></td><td class="wb-numeric">${{ row.total|floatformat:2 }}</td><td>{{ row.delivery }}<small>{{ row.invoice.participant.get_management_type_display|default:"Management type not set" }}</small></td></tr>{% empty %}<tr><td colspan="5">No related service invoices for these service dates.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endif %}
+</div>
+{% endblock %}

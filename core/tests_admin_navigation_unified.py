@@ -45,7 +45,7 @@ class UnifiedAdminNavigationTests(TestCase):
         names = ('admin_dashboard', 'participant_list', 'worker_list', 'coordinator_list',
                  'participant_create', 'worker_create', 'coordinator_create', 'roster_list',
                  'roster_planner', 'shift_create', 'recurring_shift_create', 'service_log_list',
-                 'coordination_log_list', 'invoice_placeholder', 'invoice_create', 'invoice_settings',
+                 'coordination_log_list', 'invoice_placeholder', 'weekly_billing', 'invoice_create', 'invoice_settings',
                  'support_coordination_invoice_list', 'support_coordination_invoice_create',
                  'support_item_list', 'support_item_create', 'participant_cancellation_list', 'audit_log_list')
         targets = [(name, ()) for name in names]
@@ -58,7 +58,7 @@ class UnifiedAdminNavigationTests(TestCase):
                     ('coordinator_assign_participant', (self.coordinator.pk,))]
         expected = [reverse(name) for name in (
             'admin_dashboard', 'participant_list', 'worker_list', 'roster_list', 'service_log_list',
-            'participant_cancellation_list', 'invoice_placeholder', 'support_item_list',
+            'participant_cancellation_list', 'invoice_placeholder', 'weekly_billing', 'support_item_list',
             'coordinator_list', 'coordination_log_list', 'support_coordination_invoice_list', 'audit_log_list')]
         for name, args in targets:
             with self.subTest(page=name):

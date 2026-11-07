@@ -1,0 +1,11 @@
+<details class="wb-record wb-participant" id="participant-{{ row.participant.pk }}">
+<summary><span>{{ row.participant.display_name }} <small>{{ row.participant.get_status_display }}</small></span><span class="wb-badge">{{ row.readiness }} · {{ row.billable_count }} approved unbilled sources</span></summary>
+<div class="wb-record-content">
+<p>{{ row.approved_log_count }} approved unbilled logs · {{ row.approved_cancellation_count }} approved unbilled cancellation charges · {{ row.invoice_count }} related invoices</p>
+<p class="wb-muted">{{ row.missing_count }} missing · {{ row.pending_count }} pending logs/cancellations · {{ row.rejected_count }} rejected logs</p>
+<div class="wb-date-pair"><div><strong>Selected billing period</strong><p>{{ period.start|date:"d M Y" }}–{{ period.end|date:"d M Y" }}</p></div><div><strong>Actual approved source coverage</strong><p>{% if row.actual_start %}{{ row.actual_start|date:"d M Y" }}–{{ row.actual_end|date:"d M Y" }}{% else %}No approved unbilled sources{% endif %}</p></div></div>
+<div class="wb-estimate"><strong>Service-only estimate: ${{ row.service_estimate|floatformat:2 }}</strong><span>{{ row.hours }} h including cancellation hours · {{ row.kilometres }} recorded km · Travel claim not included</span></div>
+<p>{% if row.readiness == 'Partial' %}Some sources are ready; missing, pending or rejected records still need follow-up.{% elif row.readiness == 'Additional' %}Fresh approved sources remain despite an existing related invoice.{% elif row.readiness == 'Ready' %}Approved sources are available with no missing, pending or rejected blockers in this period.{% elif row.readiness == 'Upcoming' %}Scheduled services are still upcoming. No review is needed yet.{% else %}No approved unbilled sources are available. Review the counts above for follow-up.{% endif %}</p>
+<p>Delivery: {{ row.delivery }} · {{ row.participant.get_management_type_display|default:"Management type not set" }}</p>
+<p><a href="{{ row.participant.get_absolute_url }}">Open participant</a> · <a href="{% url 'service_log_list' %}?participant={{ row.participant.pk }}&amp;date_range=custom&amp;date_from={{ period.start|date:'Y-m-d' }}&amp;date_to={{ period.end|date:'Y-m-d' }}">Review original service logs</a></p>
+</div></details>
