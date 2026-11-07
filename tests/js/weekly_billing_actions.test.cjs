@@ -30,6 +30,23 @@ test('same-page Review opens and focuses its exact record and rejects unrelated 
   assert.equal(a.openReview(scope, '#participant-24'), false);
   assert.equal(a.openReview(scope, '#invalid['), false);
 });
+
+test('delegated Review owns fragment navigation even when activating the same anchor again', () => {
+  const root = node('div', { weeklyBilling: '' });
+  const detail = { open: false, querySelector: () => ({ focus() {} }), scrollIntoView() {} };
+  const query = root.querySelector.bind(root);
+  root.querySelector = selector => selector === '#review-cancellation-4' ? detail : query(selector);
+  const h = controller(root, node());
+  h.window.history = { pushState(state, title, hash) { h.window.location.hash = hash; } };
+  const link = { getAttribute: () => '#review-cancellation-4' };
+  let prevented = 0;
+  const event = { target: { closest: () => link }, preventDefault() { prevented++; } };
+  root.listeners.click(event);
+  root.listeners.click(event);
+  assert.equal(prevented, 2, 'native fragment navigation must not steal summary focus');
+  assert.equal(h.window.location.hash, '#review-cancellation-4');
+  assert.equal(detail.open, true);
+});
 test('period choice selects its own signed preview token without changing adjustment inputs', () => {
   const a = api();
   const controls = {
