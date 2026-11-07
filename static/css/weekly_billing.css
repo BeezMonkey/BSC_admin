@@ -38,7 +38,8 @@
 .weekly-billing .wb-roster-table .wb-col-actions { width: 9%; }
 .weekly-billing .wb-roster-table :is(th, td) { overflow-wrap: anywhere; }
 .weekly-billing .wb-roster-table th:nth-child(5) { text-align: right; }
-.weekly-billing .wb-roster-table th:last-child, .weekly-billing .wb-roster-actions { text-align: right; }
+.weekly-billing .wb-roster-table th:nth-child(6), .weekly-billing .wb-roster-check { padding-left: 28px; }
+.weekly-billing .wb-roster-table th:last-child, .weekly-billing .wb-roster-actions { text-align: left; }
 .weekly-billing .wb-roster-date > a, .weekly-billing .wb-roster-hours { white-space: nowrap; }
 .weekly-billing .wb-roster-person strong { margin-top: 0; font-weight: 600; }
 .weekly-billing .wb-roster-differences { color: var(--r1-warning); font-size: 12px; line-height: 18px; }

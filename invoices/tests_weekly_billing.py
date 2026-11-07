@@ -71,7 +71,7 @@ class WeeklyBillingTests(TestCase):
         waived = self.cancellation(ParticipantCancellation.Status.WAIVED)
         response = self.get_workbench()
         html = self.roster_html(response)
-        for header in ('Service date', 'Participant / worker', 'Roster', 'Service log', 'Km', 'Check / status', 'Actions'):
+        for header in ('Service date', 'Participant / worker', 'Roster', 'Service log', 'KM', 'Check / Status', 'Actions'):
             self.assertInHTML(f'<th scope="col">{header}</th>', html)
         for target in (f'review-log-{submitted.pk}', f'review-cancellation-{pending.pk}'):
             self.assertIn(f'href="#{target}" data-wb-review-link', html)
