@@ -100,6 +100,7 @@ html .app-shell[data-admin-theme] .sidebar-link:is([href$="/participants/"], [hr
 html .app-shell[data-admin-theme] .sidebar-link:is([href$="/roster/"], [href$="/participant-cancellations/"]) { --admin-navigation-icon: url("../img/r1/icons/admin-calendar.svg"); }
 html .app-shell[data-admin-theme] .sidebar-link:is([href$="/service-logs/"], [href$="/coordination-logs/"]) { --admin-navigation-icon: url("../img/r1/icons/admin-file.svg"); }
 html .app-shell[data-admin-theme] .sidebar-link:is([href$="/invoices/"], [href$="/support-coordination/"]) { --admin-navigation-icon: url("../img/r1/icons/admin-receipt.svg"); }
+html .app-shell[data-admin-theme] .sidebar-link[href$="/billing/weekly/"] { --admin-navigation-icon: url("../img/r1/icons/admin-receipt.svg"); }
 html .app-shell[data-admin-theme] .sidebar-link[href$="/support-items/"] { --admin-navigation-icon: url("../img/r1/icons/admin-layers.svg"); }
 html .app-shell[data-admin-theme] .sidebar-link[href$="/audit-logs/"] { --admin-navigation-icon: url("../img/r1/icons/admin-shield.svg"); }
 
