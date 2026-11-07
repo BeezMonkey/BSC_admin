@@ -1,12 +1,15 @@
 /* Drawer-only presentation adapter. Original named time inputs own all values and validation. */
 (() => {
   "use strict";
-  const shell = document.querySelector(".r1-admin-invoice-create");
+  if (window.R1InvoiceAdjustmentTime) { window.R1InvoiceAdjustmentTime.initWithin(document); return; }
+  const shell = document.querySelector(".r1-admin-invoice-create") || document.querySelector("[data-weekly-billing]");
   const drawer = shell && shell.querySelector("[data-billing-drawer]");
   if (!drawer || typeof drawer.showModal !== "function") return;
   const desktop = window.matchMedia("(min-width: 761px) and (hover: hover) and (pointer: fine)");
   const pad = value => String(value).padStart(2, "0");
-  const controls = [];
+  let controls = [];
+  const initialized = new WeakMap();
+  let nextId = 0;
   let active = null;
 
   function element(tag, className, text) {
@@ -52,7 +55,9 @@
   }
   function syncAll() { controls.forEach(control => control.sync()); position(); }
 
-  shell.querySelectorAll("[data-billing-time-fields] input[type=time]").forEach((input, index) => {
+  function initWithin(scope) {
+  scope.querySelectorAll("[data-billing-time-fields] input[type=time]").forEach(input => {
+    if (initialized.has(input)) return;
     const root = input.parentElement;
     root.classList.add("r1-invoice-time");
     const caption = root.querySelector("label").textContent.replace(/:\s*$/, "");
@@ -64,7 +69,7 @@
     trigger.setAttribute("title", `Choose ${caption.toLowerCase()}`);
     const panel = element("div", "r1-invoice-time-panel");
     panel.dataset.r1TimePanel = "";
-    panel.id = `r1-invoice-time-${index}`;
+    panel.id = `r1-invoice-time-${nextId++}`;
     panel.hidden = true;
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-label", `Choose ${caption.toLowerCase()}`);
@@ -104,6 +109,7 @@
       if (active === control && (!enhanced || input.disabled || !drawer.open || !trigger.getClientRects().length)) close(false);
     } };
     controls.push(control);
+    initialized.set(input, control);
     trigger.addEventListener("click", () => {
       control.sync();
       if (!desktop.matches || trigger.disabled || !drawer.open) return;
@@ -131,9 +137,24 @@
       control.sync();
       close();
     });
-    new MutationObserver(control.sync).observe(input, { attributes: true, attributeFilter: ["disabled", "required"] });
+    control.observer = new MutationObserver(control.sync);
+    control.observer.observe(input, { attributes: true, attributeFilter: ["disabled", "required"] });
     control.sync();
   });
+  }
+  function destroyWithin(scope) {
+    controls = controls.filter(control => {
+      if (!scope.contains(control.input)) return true;
+      if (active === control) close(false);
+      control.observer.disconnect();
+      initialized.delete(control.input);
+      control.trigger.remove(); control.panel.remove();
+      control.input.parentElement.classList.toggle("is-enhanced", false);
+      return false;
+    });
+  }
+  window.R1InvoiceAdjustmentTime = { initWithin, destroyWithin };
+  initWithin(shell);
   new MutationObserver(syncAll).observe(drawer, { attributes: true, attributeFilter: ["open"], childList: true });
   shell.addEventListener("input", syncAll);
   shell.addEventListener("change", syncAll);

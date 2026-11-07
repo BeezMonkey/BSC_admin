@@ -1,11 +1,16 @@
 (function () {
   "use strict";
+  if (globalThis.InvoiceBilling) { globalThis.InvoiceBilling.initWithin(document); return; }
   var drawer = document.querySelector("[data-billing-drawer]");
   if (!drawer || typeof drawer.showModal !== "function") return;
   var body = drawer.querySelector("[data-drawer-body]");
   var discard = document.querySelector("[data-billing-discard]");
   var active = null;
   var controllers = [];
+  var initialized = new WeakMap();
+  var formListeners = new Map();
+  var drawerHome = drawer.parentElement;
+  function travelPrice(form) { return form.dataset.travelPrice || drawer.dataset.travelPrice; }
 
   function cents(value) {
     // Number inputs accept forms such as .50 and 1e2; normalize before integer arithmetic.
@@ -52,6 +57,7 @@
     active = null;
     current.update();
     drawer.close();
+    drawerHome.appendChild(drawer);
     document.body.classList.remove("invoice-drawer-open");
     current.opener.focus();
   }
@@ -98,16 +104,25 @@
     finish(true);
   };
 
-  document.querySelectorAll("[data-invoice-row]").forEach(function (row) {
+  function initWithin(root) {
+  var added = [];
+  root.querySelectorAll("[data-invoice-row]").forEach(function (row) {
+    if (initialized.has(row)) return;
     var form = row.closest("form");
     var claim = row.querySelector("[data-billing-claim] input");
+    var cleanups = [];
+    function listen(target, event, handler) {
+      target.addEventListener(event, handler);
+      cleanups.push(function () { target.removeEventListener(event, handler); });
+    }
+    initialized.set(row, cleanups);
     if (!row.hasAttribute("data-billing-row")) {
       function legacyTotal() {
-        row.dataset.lineTotal = decimal(serviceTotal(row.dataset.price, row.dataset.hours) + serviceTotal(drawer.dataset.travelPrice, claim && claim.value));
+        row.dataset.lineTotal = decimal(serviceTotal(row.dataset.price, row.dataset.hours) + serviceTotal(travelPrice(form), claim && claim.value));
         row.querySelector("[data-billing-total]").textContent = row.dataset.lineTotal;
         updateForm(form);
       }
-      if (claim) claim.addEventListener("input", legacyTotal);
+      if (claim) listen(claim, "input", legacyTotal);
       legacyTotal();
       return;
     }
@@ -186,11 +201,11 @@
       fields.querySelector("[data-billing-rate-preview]").textContent = "$" + Number(price).toFixed(2) + "/hr";
       var service = serviceTotal(price, hours);
       fields.querySelector("[data-billing-service-preview]").textContent = validTime ? "Service $" + decimal(service) : "-";
-      row.dataset.lineTotal = decimal(service + serviceTotal(drawer.dataset.travelPrice, claim.value));
+      row.dataset.lineTotal = decimal(service + serviceTotal(travelPrice(form), claim.value));
       row.querySelector("[data-billing-total]").textContent = controller.valid ? row.dataset.lineTotal : "-";
       if (active === controller) {
         drawer.querySelector("[data-drawer-after]").textContent = controller.valid ? "$" + row.dataset.lineTotal : "-";
-        textAt(drawer, "[data-drawer-breakdown]", controller.valid ? "$" + decimal(service) + " service + $" + decimal(serviceTotal(drawer.dataset.travelPrice, claim.value)) + " travel" : "-");
+        textAt(drawer, "[data-drawer-breakdown]", controller.valid ? "$" + decimal(service) + " service + $" + decimal(serviceTotal(travelPrice(form), claim.value)) + " travel" : "-");
         var dirty = controller.controls.some(function (control, index) { return fieldState(control) !== controller.snapshot[index]; });
         textAt(drawer, "[data-drawer-change-status]", dirty ? "Unsaved changes" : "No changes");
         drawer.querySelector("[data-drawer-apply]").disabled = !dirty;
@@ -225,17 +240,50 @@
       item.value = ""; item.dispatchEvent(new Event("change", { bubbles: true }));
     };
     controller.controls.forEach(function (control) {
-      control.addEventListener("input", update);
-      control.addEventListener("change", update);
-      control.addEventListener("invalid", function () { if (!active) open(controller); });
+      listen(control, "input", update);
+      listen(control, "change", update);
+      listen(control, "invalid", function () { if (!active) open(controller); });
     });
     controllers.push(controller);
+    added.push(controller);
     update();
   });
-  document.querySelectorAll(".invoice-preview-table form").forEach(function (form) {
-    form.addEventListener("submit", function (event) { if (active) event.preventDefault(); });
+  root.querySelectorAll(".invoice-preview-table form").forEach(function (form) {
+    if (formListeners.has(form)) return;
+    var handler = function (event) { if (active) event.preventDefault(); };
+    form.addEventListener("submit", handler);
+    formListeners.set(form, handler);
     updateForm(form);
   });
-  var firstError = controllers.find(function (controller) { return controller.row.dataset.billingErrors === "true"; });
+  var firstError = added.find(function (controller) { return controller.row.dataset.billingErrors === "true"; });
   if (firstError) open(firstError);
+  }
+  function destroyWithin(root) {
+    if (active && root.contains(active.row)) finish(false);
+    root.querySelectorAll("[data-invoice-row]").forEach(function (row) {
+      var cleanups = initialized.get(row);
+      if (cleanups) cleanups.forEach(function (cleanup) { cleanup(); });
+      initialized.delete(row);
+    });
+    controllers = controllers.filter(function (controller) {
+      if (!root.contains(controller.row)) return true;
+      controller.opener.onclick = null;
+      controller.fields.querySelector("[data-billing-reset-item]").onclick = null;
+      ["[data-billing-edit-time]", "[data-billing-restore-time]"].forEach(function (selector) {
+        var control = controller.fields.querySelector(selector); if (control) control.onclick = null;
+      });
+      controller.row.classList.remove("invoice-drawer-ready");
+      controller.fields.classList.remove("invoice-fields-enhanced");
+      controller.opener.hidden = true;
+      return false;
+    });
+    formListeners.forEach(function (handler, form) {
+      if (root === form || root.contains(form)) { form.removeEventListener("submit", handler); formListeners.delete(form); }
+    });
+  }
+  globalThis.InvoiceBilling = { initWithin: initWithin, destroyWithin: destroyWithin,
+    isOpen: function () { return Boolean(active); },
+    hasUnappliedChanges: function () { return Boolean(active && active.controls.some(function (control, index) { return fieldState(control) !== active.snapshot[index]; })); }
+  };
+  initWithin(document);
 })();

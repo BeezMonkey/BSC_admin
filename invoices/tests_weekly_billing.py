@@ -76,12 +76,12 @@ class WeeklyBillingTests(TestCase):
     def test_anonymous_redirects_to_login(self):
         self.assertEqual(self.client.get('/billing/weekly/').status_code, 302)
 
-    def test_post_is_not_allowed_and_get_creates_no_billing_or_audit_records(self):
+    def test_unknown_post_is_rejected_and_get_creates_no_billing_or_audit_records(self):
         self.create_service_log()
         self.client.force_login(self.admin_user)
         before = (Invoice.objects.count(), InvoiceLine.objects.count(),
                   InvoiceSettings.objects.count(), AuditLog.objects.count())
-        self.assertEqual(self.client.post('/billing/weekly/', {'action': 'approve'}).status_code, 405)
+        self.assertEqual(self.client.post('/billing/weekly/', {'action': 'unknown'}).status_code, 400)
         self.assertEqual(self.get_workbench().status_code, 200)
         self.assertEqual(before, (Invoice.objects.count(), InvoiceLine.objects.count(),
                                  InvoiceSettings.objects.count(), AuditLog.objects.count()))
@@ -179,8 +179,9 @@ class WeeklyBillingTests(TestCase):
                      'Original worker note evidence', log.get_absolute_url(),
                      'Travel claim not included'):
             self.assertContains(response, text)
-        self.assertNotContains(response, 'name="action"')
-        self.assertNotContains(response, 'disabled')
+        self.assertContains(response, 'name="action" value="approve"')
+        self.assertContains(response, 'name="action" value="return"')
+        self.assertContains(response, f'name="source_id" value="{log.pk}"')
 
     def test_approved_unbilled_sources_estimate_and_blockers(self):
         self.create_service_log()

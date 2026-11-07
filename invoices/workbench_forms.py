@@ -46,3 +46,16 @@ class WeeklyBillingPeriodForm(forms.Form):
                 cleaned.get('end').isoformat() if cleaned.get('end') else '', today=self.today,
             )
         return cleaned
+
+
+class WeeklyBillingActionForm(forms.Form):
+    action = forms.ChoiceField(choices=[(value, value) for value in (
+        'approve', 'return', 'cancel_approve', 'cancel_waive', 'cancel_reject', 'preview', 'create')])
+    participant_id = forms.IntegerField(min_value=1, max_value=9223372036854775807)
+    source_id = forms.IntegerField(required=False, min_value=1, max_value=9223372036854775807)
+
+    def clean(self):
+        data = super().clean()
+        if data.get('action') not in ('preview', 'create', None) and not data.get('source_id'):
+            self.add_error('source_id', 'Choose a source to review.')
+        return data

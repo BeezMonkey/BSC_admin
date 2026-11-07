@@ -1,12 +1,18 @@
 (function () {
   "use strict";
+  if (window.SupportItemPicker) { window.SupportItemPicker.initWithin(document); return; }
 
   var pickerSequence = 0;
+  var controllers = new WeakMap();
 
   function initSupportItemPicker(select) {
     if (!select || select.dataset.supportItemPickerReady === "true") {
       return;
     }
+    var originalAriaHidden = select.getAttribute("aria-hidden");
+    var originalTabIndex = select.tabIndex;
+    var originalTabAttribute = select.getAttribute("tabindex");
+    var focusTimer = null;
 
     var selectableOptions = Array.from(select.options).filter(function (option) {
       return option.value;
@@ -360,22 +366,49 @@
     });
 
     select.addEventListener("change", updateTrigger);
-    select.addEventListener("invalid", function () {
+    function onInvalid() {
       trigger.classList.add("has-error");
-      window.setTimeout(function () {
+      focusTimer = window.setTimeout(function () {
         trigger.focus();
       }, 0);
-    });
+    }
+    select.addEventListener("invalid", onInvalid);
 
-    document.addEventListener("click", function (event) {
+    function onOutsideClick(event) {
       if (!panel.hidden && !picker.contains(event.target)) {
         closePicker(false);
       }
+    }
+    document.addEventListener("click", onOutsideClick);
+    controllers.set(select, function () {
+      document.removeEventListener("click", onOutsideClick);
+      select.removeEventListener("change", updateTrigger);
+      select.removeEventListener("invalid", onInvalid);
+      if (focusTimer !== null) window.clearTimeout(focusTimer);
+      picker.remove();
+      select.classList.remove("support-item-picker-native");
+      if (originalAriaHidden === null) select.removeAttribute("aria-hidden");
+      else select.setAttribute("aria-hidden", originalAriaHidden);
+      select.tabIndex = originalTabIndex;
+      if (originalTabAttribute === null) select.removeAttribute("tabindex");
+      else select.setAttribute("tabindex", originalTabAttribute);
+      delete select.dataset.supportItemPickerReady;
+      controllers.delete(select);
     });
 
     renderOptions("");
     updateTrigger();
   }
+
+  function destroyWithin(root) {
+    var selects = Array.from(root.querySelectorAll ? root.querySelectorAll("select[data-support-item-picker]") : []);
+    if (root.matches && root.matches("select[data-support-item-picker]")) selects.push(root);
+    selects.forEach(function (select) {
+      var cleanup = controllers.get(select);
+      if (cleanup) cleanup();
+    });
+  }
+  window.SupportItemPicker = { initWithin: initWithin, destroyWithin: destroyWithin };
 
   function initWithin(root) {
     if (root.matches && root.matches("select[data-support-item-picker]")) {
@@ -392,6 +425,10 @@
     initWithin(document);
     var observer = new MutationObserver(function (mutations) {
       mutations.forEach(function (mutation) {
+        mutation.removedNodes.forEach(function (node) {
+          // Reparented controls are still connected and keep their one picker.
+          if (node.nodeType === Node.ELEMENT_NODE && !node.isConnected) destroyWithin(node);
+        });
         mutation.addedNodes.forEach(function (node) {
           if (node.nodeType === Node.ELEMENT_NODE) {
             initWithin(node);
