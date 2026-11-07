@@ -86,7 +86,11 @@
         if (freshRefresh && oldRefresh) oldRefresh.replaceWith(freshRefresh);
         freshSlot.replaceWith(oldSlot);
         const preview = oldSlot.querySelector("[data-wb-preview]");
-        if (preview && freshRefresh) freshRefresh.querySelector("button[type=submit]").disabled = false;
+        if (preview && freshRefresh) {
+          const refreshButton = freshRefresh.querySelector("button[type=submit]");
+          refreshButton.disabled = false;
+          refreshButton.textContent = "Refresh preview";
+        }
         if (preview && (old.dataset.sourceKey !== participant.dataset.sourceKey || (targeted && status === 409))) markStale(preview);
       }
     });
