@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q, Sum
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.dateparse import parse_date
@@ -31,6 +31,10 @@ from .forms import (
     SupportItemForm,
 )
 from .billing_views import ATTENTION_STATUSES, BILLING_STATUS_CHOICES
+from .cancellation_review import (
+    CancellationReviewConflict,
+    review_participant_cancellation as review_cancellation,
+)
 from .planner_billing import billing_summary, with_billing_relations
 from .models import ParticipantCancellation, PlannedMultiWorkerSupport, Shift, SupportItem
 from .multi_worker import (
@@ -1288,21 +1292,12 @@ def participant_cancellation_detail(request, cancellation_id):
 def review_participant_cancellation(request, cancellation_id, decision):
     decisions = {
         "approve": {
-            "status": ParticipantCancellation.Status.APPROVED,
-            "shift_status": Shift.Status.CANCELLED,
-            "audit_action": AuditLog.Action.PARTICIPANT_CANCELLATION_APPROVED,
             "message": "Cancellation approved for charging.",
         },
         "waive": {
-            "status": ParticipantCancellation.Status.WAIVED,
-            "shift_status": Shift.Status.CANCELLED,
-            "audit_action": AuditLog.Action.PARTICIPANT_CANCELLATION_WAIVED,
             "message": "Cancellation recorded and charge waived.",
         },
         "reject": {
-            "status": ParticipantCancellation.Status.REJECTED,
-            "shift_status": None,
-            "audit_action": AuditLog.Action.PARTICIPANT_CANCELLATION_REJECTED,
             "message": "Cancellation report rejected.",
         },
     }
@@ -1321,38 +1316,13 @@ def review_participant_cancellation(request, cancellation_id, decision):
             cancellation_id=cancellation_id,
         )
 
-    with transaction.atomic():
-        cancellation = get_object_or_404(
-            ParticipantCancellation.objects.select_for_update().select_related("shift"),
-            id=cancellation_id,
-            status=ParticipantCancellation.Status.PENDING,
+    try:
+        review_cancellation(
+            actor=request.user, cancellation_id=cancellation_id,
+            decision=decision, admin_note=form.cleaned_data["admin_note"],
         )
-        shift = Shift.objects.select_for_update().get(id=cancellation.shift_id)
-        cancellation.status = decision_config["status"]
-        cancellation.admin_note = form.cleaned_data["admin_note"].strip()
-        cancellation.reviewed_by = request.user
-        cancellation.reviewed_at = timezone.now()
-        cancellation.save(
-            update_fields=[
-                "status",
-                "admin_note",
-                "reviewed_by",
-                "reviewed_at",
-                "updated_at",
-            ]
-        )
-        shift.status = (
-            cancellation.previous_shift_status
-            if decision == "reject"
-            else decision_config["shift_status"]
-        )
-        shift.save(update_fields=["status", "updated_at"])
-        write_audit_log(
-            request.user,
-            decision_config["audit_action"],
-            cancellation,
-            f"{decision_config['message']} Shift {shift.id}.",
-        )
+    except CancellationReviewConflict as exc:
+        raise Http404(str(exc)) from exc
 
     messages.success(request, decision_config["message"])
     return redirect("participant_cancellation_list")
