@@ -21,6 +21,7 @@
     if (!detail) return false;
     detail.open = true;
     detail.querySelector("summary")?.focus({ preventScroll: true });
+    detail.scrollIntoView({ block: "start" });
     return true;
   }
   const api = { requiresReason, selectToken, markStale, openReview };
@@ -211,10 +212,10 @@
       // Native repeated fragment navigation can move keyboard focus back to body.
       event.preventDefault();
       if (window.location.hash !== hash) window.history.pushState(null, "", hash);
-      root.querySelector(hash).scrollIntoView({ block: "start" });
     }
   });
   window.addEventListener("hashchange", () => openReview(root, window.location.hash));
+  window.addEventListener("pageshow", () => window.requestAnimationFrame(() => openReview(root, window.location.hash)));
   document.addEventListener("submit", event => {
     if (root.contains(event.target) || event.defaultPrevented) return;
     if (hasChanges() && !window.confirm("Leave the workbench and discard unsaved billing changes?")) event.preventDefault();
