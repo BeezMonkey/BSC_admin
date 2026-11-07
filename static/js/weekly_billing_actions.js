@@ -205,7 +205,14 @@
   // Delegate because review rows are replaced after same-page decisions.
   root.addEventListener("click", event => {
     const link = event.target.closest("a[data-wb-review-link]");
-    if (link && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) openReview(root, link.getAttribute("href"));
+    if (!link || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    const hash = link.getAttribute("href");
+    if (openReview(root, hash)) {
+      // Native repeated fragment navigation can move keyboard focus back to body.
+      event.preventDefault();
+      if (window.location.hash !== hash) window.history.pushState(null, "", hash);
+      root.querySelector(hash).scrollIntoView({ block: "start" });
+    }
   });
   window.addEventListener("hashchange", () => openReview(root, window.location.hash));
   document.addEventListener("submit", event => {
