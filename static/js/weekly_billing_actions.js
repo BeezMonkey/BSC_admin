@@ -164,10 +164,15 @@
     inFlight = true; disabled.forEach(([button]) => { button.disabled = true; });
     feedback("Working…");
     try {
-      const response = await fetch(form.action || window.location.href, { method: "POST", body,
+      // Named action buttons/inputs can shadow HTMLFormElement.action.
+      const response = await fetch(form.getAttribute("action") || window.location.href, { method: "POST", body,
         credentials: "same-origin", headers: { "X-Requested-With": "XMLHttpRequest", "Accept": "application/json" } });
       if (response.status === 403) throw new Error("This action is no longer authorized. Reload the page and sign in again before retrying.");
-      const payload = await response.json();
+      const invalidResponse = "The workbench could not load its response. Your inputs are retained. Please retry; if this continues, reload the page.";
+      if (!(response.headers.get("content-type") || "").toLowerCase().includes("application/json")) throw new Error(invalidResponse);
+      let payload;
+      try { payload = await response.json(); }
+      catch (_) { throw new Error(invalidResponse); }
       if (payload.html) refresh(payload, response.status);
       else throw new Error(payload.message || "The workbench response was incomplete. Please retry.");
     } catch (error) {
