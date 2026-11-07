@@ -1,0 +1,10 @@
+<details class="wb-record">
+<summary><span>{{ row.log.participant.display_name }} · {{ row.log.service_date|date:"D d M" }} · {{ row.log.worker.display_name }}</span><span class="wb-badge">Submitted{% if row.unscheduled %} · Unscheduled{% endif %}</span></summary>
+<div class="wb-record-content">
+<div class="wb-log-facts"><div><strong>Roster</strong><p>{{ row.shift.start_time|time:"H:i" }}–{{ row.shift.end_time|time:"H:i" }} · break {{ row.shift.break_minutes }} min · {{ row.shift.planned_hours }} h net</p><small>{{ row.shift.support_item.item_number }} · {{ row.shift.support_item.name }}</small></div><div><strong>Logged</strong><p>{{ row.log.actual_start_time|time:"H:i" }}–{{ row.log.actual_end_time|time:"H:i" }} · break {{ row.log.break_minutes }} min · {{ row.log.actual_hours }} h net</p></div><div><strong>Support item</strong><p>{{ row.log.support_item.item_number }}</p><small>{{ row.log.support_item.name }} · ${{ row.log.support_item.price_limit }}/{{ row.log.support_item.get_unit_display }}</small></div><div><strong>Kilometres</strong><p>{{ row.log.kilometres }} km</p><small>Original worker entry</small></div></div>
+{% if row.hours_differ or row.time_window_differ or row.break_differ %}<p class="wb-callout">{% if row.hours_differ %}Hours differ: {{ row.hours_difference }} h. {% endif %}{% if row.time_window_differ %}Time window differs. {% endif %}{% if row.break_differ %}Break differs.{% endif %}</p>{% endif %}
+<p><strong>Worker notes</strong></p><p>{{ row.log.worker_notes|default:"No worker notes supplied."|truncatechars:300|linebreaksbr }}</p>
+<p><strong>Case notes</strong></p><p>{{ row.log.case_notes|truncatechars:300|linebreaksbr }}</p>
+{% if row.unscheduled %}<p><strong>Unscheduled reason:</strong> {{ row.log.unscheduled_reason|default:"Not supplied"|truncatechars:300 }}</p>{% endif %}
+<p><a href="{{ row.log.get_absolute_url }}">Open original service log</a> · <a href="{{ row.shift.get_absolute_url }}">Open roster shift</a></p>
+</div></details>

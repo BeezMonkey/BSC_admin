@@ -38,10 +38,18 @@ class R1AdminDashboardTests(TestCase):
         self.assertEqual(positions, sorted(positions))
         self.assertNotContains(response, 'r1_shell.css')
 
-    def test_original_four_counts_six_workflow_steps_and_six_actions_remain(self):
+    def test_original_counts_workflow_and_six_actions_remain_with_one_weekly_billing_shortcut(self):
         response = self.dashboard()
-        for key, count in (('operations_overview', 4), ('workflow_checklist', 6), ('module_links', 6)):
+        for key, count in (('operations_overview', 4), ('workflow_checklist', 6), ('module_links', 7)):
             self.assertEqual(len(response.context[key]), count)
+        actions = [item['url_name'] for item in response.context['module_links']]
+        self.assertEqual([name for name in actions if name != 'weekly_billing'], [
+            'participant_create', 'worker_create', 'shift_create',
+            'service_log_list', 'invoice_create', 'document_create',
+        ])
+        self.assertEqual(actions.count('weekly_billing'), 1)
+        self.assertContains(response,
+            f'class="common-action-item" href="{reverse("weekly_billing")}"', count=1)
         for item in response.context['operations_overview']:
             self.assertContains(response, item['label'])
             self.assertContains(response, item['description'])

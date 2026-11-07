@@ -151,6 +151,7 @@
 .r1-admin .sidebar-link:is([href$="/roster/"], [href$="/participant-cancellations/"]) { --r1-nav-icon: url("../img/r1/icons/admin-calendar.svg"); }
 .r1-admin .sidebar-link:is([href$="/service-logs/"], [href$="/coordination-logs/"]) { --r1-nav-icon: url("../img/r1/icons/admin-file.svg"); }
 .r1-admin .sidebar-link:is([href$="/invoices/"], [href$="/support-coordination/"]) { --r1-nav-icon: url("../img/r1/icons/admin-receipt.svg"); }
+.r1-admin .sidebar-link[href$="/billing/weekly/"] { --r1-nav-icon: url("../img/r1/icons/admin-receipt.svg"); }
 .r1-admin .sidebar-link[href$="/support-items/"] { --r1-nav-icon: url("../img/r1/icons/admin-layers.svg"); }
 .r1-admin .sidebar-link[href$="/audit-logs/"] { --r1-nav-icon: url("../img/r1/icons/admin-shield.svg"); }
 
