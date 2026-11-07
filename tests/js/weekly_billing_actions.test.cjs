@@ -110,9 +110,12 @@ test('partial refresh keeps exact input nodes, marks changed source previews sta
   const create = form.append(node('button', { wbCreate: '' }, { disabled: false }));
   const warning = preview.append(node('p', { wbStale: '' }, { hidden: true }));
   const incoming = node(); const next = incoming.append(node('div', { wbResults: '' })); const fresh = participant(next, 'after');
+  fresh.button.textContent = 'Preview approved sources'; fresh.button.disabled = true;
   const h = controller(root, incoming);
   h.api.refresh({ html: '<server response>', participant_id: 99, action: 'approve' }, 200);
   assert.equal(fresh.p.querySelector('input'), claim); assert.equal(claim.value, '23.50');
+  const refreshButton = fresh.p.querySelector('[data-wb-refresh]').querySelector('button');
+  assert.equal(refreshButton.textContent, 'Refresh preview'); assert.equal(refreshButton.disabled, false);
   assert.equal(create.disabled, true); assert.equal(warning.hidden, false);
   assert.equal(h.destroyed.length, 1); assert.equal(h.destroyed[0].contains(claim), false);
 });
