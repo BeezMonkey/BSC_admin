@@ -19,13 +19,16 @@ test('only return and cancellation rejection require a review reason', () => {
 test('same-page Review opens and focuses its exact record and rejects unrelated or absent targets', () => {
   const a = api();
   const calls = [];
+  const scrolls = [];
   const summary = { focus: options => calls.push(options) };
-  const detail = { open: false, querySelector: selector => selector === 'summary' ? summary : null };
+  const detail = { open: false, querySelector: selector => selector === 'summary' ? summary : null,
+    scrollIntoView: options => scrolls.push(options) };
   const scope = { querySelector: selector => selector === '#review-log-24' ? detail : null };
   assert.equal(a.openReview(scope, '#review-log-24'), true);
   assert.equal(detail.open, true);
   assert.equal(calls.length, 1);
   assert.equal(calls[0].preventScroll, true);
+  assert.equal(scrolls[0]?.block, 'start', 'direct fragment entry must also scroll to the opened record');
   assert.equal(a.openReview(scope, '#review-cancellation-999'), false);
   assert.equal(a.openReview(scope, '#participant-24'), false);
   assert.equal(a.openReview(scope, '#invalid['), false);
@@ -45,6 +48,19 @@ test('delegated Review owns fragment navigation even when activating the same an
   root.listeners.click(event);
   assert.equal(prevented, 2, 'native fragment navigation must not steal summary focus');
   assert.equal(h.window.location.hash, '#review-cancellation-4');
+  assert.equal(detail.open, true);
+});
+
+test('direct review fragment is repositioned after browser scroll restoration', () => {
+  const root = node('div', { weeklyBilling: '' });
+  const detail = { open: false, querySelector: () => ({ focus() {} }), scrollIntoView() {} };
+  const query = root.querySelector.bind(root);
+  root.querySelector = selector => selector === '#review-log-24' ? detail : query(selector);
+  const h = controller(root, node());
+  h.window.location.hash = '#review-log-24';
+  h.window.listeners.pageshow();
+  assert.equal(detail.open, false, 'wait until the restoration event finishes');
+  h.window.nextFrame();
   assert.equal(detail.open, true);
 });
 test('period choice selects its own signed preview token without changing adjustment inputs', () => {
@@ -105,7 +121,7 @@ function node(tag = 'div', dataset = {}, properties = {}) {
 function controller(root, incoming, overrides = {}) {
   const destroyed = [];
   const document = { querySelector: () => root, addEventListener() {} };
-  const window = { addEventListener() {}, confirm: () => true, location: { href: 'https://qa.example.invalid/billing/weekly/' }, scrollX: 3, scrollY: 410, scrollTo(x, y) { this.position = [x, y]; },
+  const window = { listeners: {}, addEventListener(type, callback) { this.listeners[type] = callback; }, requestAnimationFrame(callback) { this.nextFrame = callback; }, confirm: () => true, location: { href: 'https://qa.example.invalid/billing/weekly/' }, scrollX: 3, scrollY: 410, scrollTo(x, y) { this.position = [x, y]; },
     InvoiceBilling: { initWithin() {}, destroyWithin(scope) { destroyed.push(scope); }, hasUnappliedChanges: () => false, isOpen: () => false } };
   const context = { document, window, DOMParser: class { parseFromString() { return incoming; } },
     FormData: class { constructor(form) { this.values = new Map(form.querySelectorAll('input[name], select[name], textarea[name]').map(input => [input.name, input.value])); } set(name, value) { this.values.set(name, value); } }, ...overrides };
