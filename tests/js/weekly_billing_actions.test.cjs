@@ -15,6 +15,21 @@ test('only return and cancellation rejection require a review reason', () => {
   for (const action of ['return', 'cancel_reject']) assert.equal(a.requiresReason(action), true);
   for (const action of ['approve', 'cancel_approve', 'cancel_waive']) assert.equal(a.requiresReason(action), false);
 });
+
+test('same-page Review opens and focuses its exact record and rejects unrelated or absent targets', () => {
+  const a = api();
+  const calls = [];
+  const summary = { focus: options => calls.push(options) };
+  const detail = { open: false, querySelector: selector => selector === 'summary' ? summary : null };
+  const scope = { querySelector: selector => selector === '#review-log-24' ? detail : null };
+  assert.equal(a.openReview(scope, '#review-log-24'), true);
+  assert.equal(detail.open, true);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].preventScroll, true);
+  assert.equal(a.openReview(scope, '#review-cancellation-999'), false);
+  assert.equal(a.openReview(scope, '#participant-24'), false);
+  assert.equal(a.openReview(scope, '#invalid['), false);
+});
 test('period choice selects its own signed preview token without changing adjustment inputs', () => {
   const a = api();
   const controls = {
