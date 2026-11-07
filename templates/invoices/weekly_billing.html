@@ -15,12 +15,14 @@
 {% block content %}
 <div class="weekly-billing">
 <header class="wb-title"><h1>Weekly Billing</h1><p>Check roster coverage, review submitted logs, and see what is ready to bill.</p></header>
-<form method="get" class="wb-period">
+<form method="get" class="wb-period" data-invoice-filters data-weekly-billing-filters>
 <fieldset><legend>Billing period</legend><div class="wb-filter-grid">
-{% for field in period_form %}<div class="wb-field">{{ field.label_tag }}{{ field }}{{ field.errors }}</div>{% endfor %}
+{% for field in period_form %}{% if field.name == 'period' %}<div class="wb-field">{{ field.label_tag }}{{ field }}{{ field.errors }}</div>{% endif %}{% endfor %}
+{% include "invoices/partials/filter_date.html" with name="start" value=period_form.start.value caption="From" date_errors=period_form.start.errors %}
+{% include "invoices/partials/filter_date.html" with name="end" value=period_form.end.value caption="To" date_errors=period_form.end.errors %}
 <button type="submit" class="button secondary">Apply period</button></div>
 {{ period_form.non_field_errors }}
-<p>Brisbane time · Monday to Sunday for weekly periods. Custom dates are inclusive. From and To apply to Custom only.</p>
+<p>Brisbane time · Monday to Sunday for weekly periods. Custom dates are inclusive. Editing From or To selects Custom.</p>
 {% if period %}<p><strong>{{ period.start|date:"d M Y" }} – {{ period.end|date:"d M Y" }}</strong> · This period applies to all four steps.</p>{% endif %}
 </fieldset></form>
 {% if not workbench %}<p class="wb-callout" role="alert">Choose a valid complete billing period to see records. No records were loaded.</p>{% else %}
@@ -68,4 +70,7 @@
 </tbody></table></div></section>
 {% endif %}
 </div>
+<script src="{% static 'js/date_time_picker.js' %}" defer></script>
+<script src="{% static 'js/r1_admin_invoice_filters.js' %}" defer></script>
+<script src="{% static 'js/weekly_billing.js' %}" defer></script>
 {% endblock %}

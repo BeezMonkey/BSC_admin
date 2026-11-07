@@ -386,3 +386,46 @@ class WeeklyBillingTests(TestCase):
         workbench = self.get_workbench(start=day.isoformat(), end=day.isoformat()).context['workbench']
         self.assertEqual(workbench['roster_rows'][0]['status'], 'Upcoming')
         self.assertEqual(workbench['participant_rows'][0]['upcoming_count'], 1)
+
+    def test_period_filters_reuse_accepted_calendar_with_one_named_field_each(self):
+        from html.parser import HTMLParser
+        from django.templatetags.static import static
+        class Controls(HTMLParser):
+            def __init__(self, html):
+                super().__init__()
+                self.ids, self.named, self.proxies = [], [], []
+                self.feed(html)
+            def handle_starttag(self, tag, attrs):
+                attrs = dict(attrs)
+                if attrs.get('id'):
+                    self.ids.append(attrs['id'])
+                if tag in ('input', 'select') and attrs.get('name') in ('period', 'start', 'end'):
+                    self.named.append(attrs['name'])
+                if 'data-invoice-date-proxy' in attrs:
+                    self.proxies.append(attrs)
+        response = self.get_workbench()
+        html = response.content.decode()
+        controls = Controls(html)
+        self.assertCountEqual(controls.named, ['period', 'start', 'end'])
+        self.assertEqual(len(controls.ids), len(set(controls.ids)))
+        self.assertEqual(len(controls.proxies), 2)
+        self.assertTrue(all('name' not in proxy for proxy in controls.proxies))
+        self.assertContains(response, 'data-invoice-filters')
+        self.assertContains(response, 'data-weekly-billing-filters')
+        scripts = [static('js/' + name) for name in (
+            'date_time_picker.js', 'r1_admin_invoice_filters.js', 'weekly_billing.js')]
+        for script in scripts:
+            self.assertContains(response, script, count=1)
+        self.assertEqual([html.index(script) for script in scripts],
+                         sorted(html.index(script) for script in scripts))
+        self.assertNotContains(response, 'css/r1_admin_invoice_list.')
+
+    def test_invalid_period_dates_retain_values_with_connected_server_errors(self):
+        response = self.get_workbench(start='2026-06-07', end='2026-06-01')
+        self.assertTrue(response.context['period_form'].errors)
+        self.assertContains(response, 'name="start" value="2026-06-07"')
+        self.assertContains(response, 'name="end" value="2026-06-01"')
+        self.assertContains(response, 'id="invoice-end-server-error"')
+        self.assertContains(response, 'aria-describedby="invoice-end-client-error invoice-end-server-error"', count=2)
+        self.assertContains(response, 'aria-invalid="true"', count=2)
+        self.assertContains(response, 'The end date must be on or after the start date.')

@@ -9,13 +9,13 @@
 .weekly-billing small, .weekly-billing .wb-muted, .weekly-billing .wb-title p { color: var(--r1-muted); }
 .weekly-billing small { font-size: 12px; }
 .weekly-billing .wb-period { margin: 20px 0 16px; }
-.weekly-billing fieldset { min-inline-size: 0; margin: 0; padding: 12px 16px; background: var(--r1-subtle); border: 1px solid var(--r1-border); border-radius: 8px; }
+.weekly-billing fieldset { min-inline-size: 0; margin: 0; padding: 12px; background: var(--r1-subtle); border: 0; border-radius: 8px; }
 .weekly-billing legend { font-weight: 600; padding: 0 5px; }
 .weekly-billing .wb-period p { font-size: 12px; color: var(--r1-muted); margin: 10px 0 0; }
 .weekly-billing .wb-filter-grid { display: grid; grid-template-columns: minmax(150px, 1fr) repeat(2, minmax(130px, 1fr)) auto; gap: 12px; align-items: end; max-width: 900px; }
-.weekly-billing .wb-field { display: grid; gap: 5px; min-width: 0; }
-.weekly-billing label { font-size: 12px; color: var(--r1-muted); }
-.weekly-billing :is(input, select) { min-width: 0; width: 100%; min-height: 40px; padding: 8px 10px; color: var(--r1-text); background: var(--r1-surface); border: 1px solid var(--r1-strong-border); border-radius: 6px; font: inherit; }
+.weekly-billing .wb-field { display: grid; gap: 6px; min-width: 0; }
+.weekly-billing .wb-period label { font-size: 12px; line-height: 16px; font-weight: 400; color: var(--r1-muted); }
+.app-shell .weekly-billing .wb-period :is(input, select) { box-sizing: border-box; min-width: 0; width: 100%; height: 40px; min-height: 40px; padding: 9px 12px; color: var(--r1-text); background: var(--r1-surface); border: 1px solid var(--r1-strong-border); border-radius: var(--r1-control-radius); font-size: 14px; line-height: 20px; font-weight: 400; }
 .weekly-billing .errorlist { color: var(--r1-danger); padding-left: 18px; margin: 0; font-size: 12px; }
 .weekly-billing .wb-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0 0 14px; }
 .weekly-billing .wb-steps a { display: grid; gap: 3px; min-height: 70px; border: 1px solid var(--r1-border); border-radius: 8px; padding: 10px 12px; color: var(--r1-text); text-decoration: none; }
@@ -67,3 +67,59 @@
 .weekly-billing .wb-good { background: #eef7f2; color: var(--r1-success); }
 .weekly-billing .wb-warning { background: var(--r1-warning-soft); color: var(--r1-warning); }
 @media (max-width: 900px) { .weekly-billing .wb-log-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Match accepted desktop log filters without changing shared/native controls. */
+@supports (appearance: base-select) and selector(select::picker(select)) {
+  @media (min-width: 761px) and (hover: hover) and (pointer: fine) {
+    .weekly-billing [data-invoice-filters] select,
+    .weekly-billing [data-invoice-filters] select::picker(select) { appearance: base-select; }
+    .weekly-billing [data-invoice-filters] select { align-items: center; }
+    .app-shell.r1-ui .weekly-billing .wb-period[data-invoice-filters] select { line-height: normal; }
+    .weekly-billing [data-invoice-filters] select::picker(select) {
+      box-sizing: border-box; max-height: 280px; overflow-y: auto; margin: 4px 0;
+      border: 1px solid var(--r1-border); border-radius: 8px; padding: 4px;
+      color: var(--r1-text); background: var(--r1-surface); box-shadow: 0 6px 16px rgb(23 33 43 / 12%);
+    }
+    .weekly-billing [data-invoice-filters] select option { min-height: 32px; padding: 6px 8px; border-radius: 4px; font-size: 13px; line-height: 18px; white-space: normal; overflow-wrap: anywhere; }
+    .weekly-billing [data-invoice-filters] select option:is(:checked, :hover, :focus) { color: var(--r1-accent); background: var(--r1-blue-soft); }
+    .weekly-billing [data-invoice-filters] select option::checkmark { color: var(--r1-accent); }
+  }
+}
+.app-shell .weekly-billing .invoice-filter-date { display: grid; gap: 6px; min-width: 0; position: relative; }
+.weekly-billing .invoice-filter-date [hidden] { display: none !important; }
+.app-shell .weekly-billing .invoice-filter-date.is-enhanced > input[type=date] { position: absolute; width: 1px; height: 1px; min-height: 0; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); opacity: 0; pointer-events: none; }
+.app-shell .weekly-billing .invoice-filter-date .invoice-date-trigger {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; box-sizing: border-box;
+  width: 100%; min-width: 0; min-height: 40px; margin: 0; padding: 8px 12px;
+  border: 1px solid var(--r1-strong-border); border-radius: 8px;
+  background: var(--r1-surface); color: var(--r1-text); font-size: 14px; font-weight: 400; line-height: 20px; text-align: left;
+}
+.weekly-billing .invoice-date-trigger > .r1-icon { width: 16px; height: 16px; flex: 0 0 16px; }
+.app-shell .weekly-billing .invoice-filter-date .invoice-date-trigger[aria-expanded=true] { border-color: var(--r1-accent); box-shadow: 0 0 0 3px var(--r1-blue-soft); }
+.app-shell .weekly-billing .invoice-filter-date .invoice-date-trigger[aria-invalid=true] { border-color: var(--r1-danger); }
+.weekly-billing .invoice-date-error { color: var(--r1-danger); font-size: 12px; line-height: 16px; }
+.weekly-billing .invoice-calendar {
+  position: fixed; z-index: 20; box-sizing: border-box; width: 292px; padding: 10px;
+  border: 1px solid var(--r1-border); border-radius: 8px; overflow-y: auto;
+  background: var(--r1-surface); color: var(--r1-text); box-shadow: 0 8px 18px rgb(23 33 43 / 14%);
+}
+.weekly-billing .invoice-calendar .calendar-picker-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 4px; }
+.weekly-billing .invoice-calendar .calendar-picker-header strong { font-size: 13px; font-weight: 600; line-height: 20px; }
+.weekly-billing .invoice-calendar .calendar-picker-navigation { display: flex; gap: 4px; }
+.weekly-billing .invoice-calendar :is(.calendar-picker-weekdays, .calendar-picker-grid) { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; padding: 4px 0; }
+.weekly-billing .invoice-calendar .calendar-picker-weekdays span { color: var(--r1-muted); font-size: 11px; line-height: 16px; text-align: center; }
+.app-shell .weekly-billing .invoice-calendar button { min-width: 0; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--r1-text); font-size: 12px; font-weight: 400; line-height: 18px; }
+.app-shell .weekly-billing .wb-period .invoice-calendar button { min-height: 28px; padding: 4px; white-space: nowrap; }
+.app-shell .weekly-billing .invoice-calendar .calendar-picker-navigation button { width: 28px; color: var(--r1-accent); font-size: 20px; }
+.weekly-billing .invoice-calendar .calendar-day.outside { color: var(--r1-muted); }
+.weekly-billing .invoice-calendar .calendar-day.weekend { background: var(--r1-warning-soft); }
+.weekly-billing .invoice-calendar .calendar-day.today { border-color: var(--r1-strong-border); }
+.app-shell .weekly-billing .invoice-calendar button:hover { color: var(--r1-accent); background: var(--r1-blue-soft); }
+.app-shell .weekly-billing .invoice-calendar .calendar-day.selected { color: var(--r1-surface); background: var(--r1-accent); }
+.weekly-billing .invoice-calendar .date-picker-footer { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--r1-border); }
+.app-shell .weekly-billing .invoice-calendar .date-picker-footer button { color: var(--r1-accent); padding-inline: 6px; }
+.app-shell .weekly-billing .wb-period button[type=submit] { min-height: 40px; margin: 0; padding: 9px 12px; }
+@media (max-width: 760px) {
+  .app-shell .weekly-billing .wb-period :is(input, select) { height: 44px; min-height: 44px; font-size: 16px; padding: 10px 8px; }
+  .app-shell .weekly-billing .wb-period :is(.invoice-date-trigger, button[type=submit]) { min-height: 44px; }
+}

@@ -1,9 +1,11 @@
 <div class="invoice-filter-date" data-invoice-date>
   <label id="invoice-{{ name }}-label" for="invoice-{{ name }}">{{ caption }}</label>
-  <input id="invoice-{{ name }}" type="date" name="{{ name }}" value="{{ value }}">
+  <input id="invoice-{{ name }}" type="date" name="{{ name }}" value="{{ value|default_if_none:'' }}"
+         aria-describedby="invoice-{{ name }}-client-error{% if date_errors %} invoice-{{ name }}-server-error{% endif %}"{% if date_errors %} aria-invalid="true"{% endif %}>
   <input type="hidden" data-invoice-date-proxy>
   <button type="button" class="invoice-date-trigger" data-picker-trigger hidden
           aria-expanded="false" aria-controls="invoice-{{ name }}-calendar"
+          aria-describedby="invoice-{{ name }}-client-error{% if date_errors %} invoice-{{ name }}-server-error{% endif %}"{% if date_errors %} aria-invalid="true"{% endif %}
           aria-labelledby="invoice-{{ name }}-label invoice-{{ name }}-display">
     <span id="invoice-{{ name }}-display" data-picker-display>dd/mm/yyyy</span>
     {% include "r1/partials/icon.html" with name="calendar" size=16 %}
@@ -26,5 +28,6 @@
       <button type="button" data-calendar-today>Today</button>
     </footer>
   </div>
-  <span class="invoice-date-error" data-invoice-date-error hidden></span>
+  <span id="invoice-{{ name }}-client-error" class="invoice-date-error" data-invoice-date-error hidden></span>
+  {% if date_errors %}<div id="invoice-{{ name }}-server-error" class="invoice-date-error" data-invoice-date-server-error>{{ date_errors }}</div>{% endif %}
 </div>
