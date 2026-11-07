@@ -50,7 +50,7 @@
 </tr>{% empty %}<tr><td colspan="5">No roster shifts or service logs in this period.</td></tr>{% endfor %}
 </tbody></table></div></section>
 <section class="wb-panel" id="submitted-logs" aria-labelledby="logs-heading">
-<header><span class="wb-number">2</span><div><h2 id="logs-heading">Submitted Logs</h2><p>Original worker submissions, with roster context. Open the original record for full notes and existing review tools.</p></div></header>
+<header><span class="wb-number">2</span><div><h2 id="logs-heading">Submitted Logs</h2><p>Approve or return submitted logs here. Open the original record for full notes; adjust billing after approval.</p></div></header>
 {% for row in workbench.submitted_rows %}{% include "invoices/workbench/submitted_log.html" %}{% empty %}<p class="wb-empty">No submitted service logs in this period.</p>{% endfor %}
 {% if workbench.cancellations %}<div class="wb-cancellations"><h3>Participant cancellations</h3>{% for cancellation in workbench.cancellations %}{% include "invoices/workbench/cancellation.html" %}{% endfor %}</div>{% endif %}
 </section>

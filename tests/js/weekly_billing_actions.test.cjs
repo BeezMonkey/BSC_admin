@@ -147,3 +147,40 @@ test('an unsent review note stays dirty after an unrelated partial refresh', () 
   assert.equal(nextNote.value, 'Check this time with the worker');
   assert.equal(h.api.hasChanges(), true);
 });
+for (const [action, tag] of [['preview', 'button'], ['create', 'input']]) {
+  test(`${action} posts to the current endpoint when named action controls shadow form.action`, async () => {
+    const root = node('div', { weeklyBilling: '' }); const previous = root.append(node('div', { wbResults: '' }));
+    previous.append(node('p', { wbFeedback: '' })); const old = participant(previous);
+    const form = old.refresh;
+    form.reportValidity = () => true;
+    const namedAction = form.append(node(tag, {}, { name: 'action', value: action, type: tag === 'input' ? 'hidden' : 'submit' }));
+    // HTMLFormElement named access exposes this control instead of the native URL property.
+    form.action = namedAction; form.elements.action = namedAction;
+    const incoming = node(); const next = incoming.append(node('div', { wbResults: '' })); const fresh = participant(next);
+    if (action === 'preview') fresh.slot.append(node('section', { wbPreview: '' }));
+    let submittedUrl;
+    const h = controller(root, incoming, { fetch: async (url, options) => {
+      submittedUrl = url;
+      assert.equal(options.body.values.get('action'), action);
+      return { status: 200, headers: { get: () => 'application/json' }, json: async () => ({ html: '<server response>', action, participant_id: 7 }) };
+    } });
+    await root.listeners.submit({ target: form, submitter: tag === 'button' ? namedAction : undefined, defaultPrevented: false, preventDefault() { this.defaultPrevented = true; } });
+    assert.equal(form.getAttribute('action'), null);
+    assert.equal(submittedUrl, h.window.location.href);
+    if (action === 'preview') assert.ok(root.querySelector('[data-wb-preview]'));
+  });
+}
+test('an HTML response gives retry guidance while retaining inputs and restoring the preview button', async () => {
+  const root = node('div', { weeklyBilling: '' }); const previous = root.append(node('div', { wbResults: '' }));
+  const feedback = previous.append(node('p', { wbFeedback: '' })); const old = participant(previous);
+  old.refresh.reportValidity = () => true;
+  const button = old.button; button.name = 'action'; button.value = 'preview'; button.isConnected = true;
+  old.refresh.elements.action = button;
+  const input = old.refresh.append(node('input', {}, { name: 'participant_id', value: '7' }));
+  controller(root, undefined, { fetch: async () => ({ status: 404, headers: { get: () => 'text/html; charset=utf-8' },
+    json: async () => { throw new SyntaxError('Unexpected token <, <!doctype html> is not valid JSON'); } }) });
+  await root.listeners.submit({ target: old.refresh, submitter: button, defaultPrevented: false, preventDefault() { this.defaultPrevented = true; } });
+  assert.equal(input.value, '7'); assert.equal(button.disabled, false);
+  assert.match(feedback.textContent, /retry/i); assert.match(feedback.textContent, /retained/i);
+  assert.doesNotMatch(feedback.textContent, /Unexpected token|doctype|SyntaxError/);
+});
