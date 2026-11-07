@@ -43,6 +43,7 @@ from .follow_up import missing_log_summary
 from .forms import ServiceLogForm, UnscheduledServiceLogForm
 from .models import ServiceLog
 from .notifications import notify_admin_service_log_submitted
+from .review import ServiceLogReviewConflict, review_service_log
 from .submissions import (
     SavedSubmissionRace,
     is_submission_key_conflict,
@@ -538,30 +539,12 @@ def service_log_pdf(request, service_log_id):
 @admin_required
 @require_POST
 def service_log_approve(request, service_log_id):
-    service_log = get_object_or_404(
-        ServiceLog,
-        id=service_log_id,
-        status=ServiceLog.Status.SUBMITTED,
-    )
-    service_log.status = ServiceLog.Status.APPROVED
-    service_log.reviewed_by = request.user
-    service_log.reviewed_at = timezone.now()
-    service_log.rejection_reason = ""
-    service_log.save(
-        update_fields=[
-            "status",
-            "reviewed_by",
-            "reviewed_at",
-            "rejection_reason",
-            "updated_at",
-        ],
-    )
-    write_audit_log(
-        request.user,
-        AuditLog.Action.SERVICE_LOG_APPROVED,
-        service_log,
-        f"Approved service log {service_log.id}.",
-    )
+    try:
+        service_log = review_service_log(
+            actor=request.user, service_log_id=service_log_id, decision="approve",
+        )
+    except ServiceLogReviewConflict as exc:
+        raise Http404(str(exc)) from exc
     messages.success(request, "Service log approved.")
     return redirect("service_log_detail", service_log_id=service_log.id)
 
@@ -579,25 +562,13 @@ def service_log_reject(request, service_log_id):
         messages.error(request, "Rejection reason is required.")
         return redirect("service_log_detail", service_log_id=service_log.id)
 
-    service_log.status = ServiceLog.Status.REJECTED
-    service_log.reviewed_by = request.user
-    service_log.reviewed_at = timezone.now()
-    service_log.rejection_reason = rejection_reason
-    service_log.save(
-        update_fields=[
-            "status",
-            "reviewed_by",
-            "reviewed_at",
-            "rejection_reason",
-            "updated_at",
-        ],
-    )
-    write_audit_log(
-        request.user,
-        AuditLog.Action.SERVICE_LOG_REJECTED,
-        service_log,
-        f"Rejected service log {service_log.id}.",
-    )
+    try:
+        service_log = review_service_log(
+            actor=request.user, service_log_id=service_log_id,
+            decision="reject", reason=rejection_reason,
+        )
+    except ServiceLogReviewConflict as exc:
+        raise Http404(str(exc)) from exc
     messages.success(request, "Service log rejected.")
     return redirect("service_log_detail", service_log_id=service_log.id)
 

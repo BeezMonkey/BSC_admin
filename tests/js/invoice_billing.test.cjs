@@ -84,6 +84,8 @@ function element(tag = "div", properties = {}) {
       return child;
     },
     addEventListener(type, listener) { (this.listeners[type] ||= []).push(listener); },
+    removeEventListener(type, listener) { this.listeners[type] = (this.listeners[type] || []).filter(item => item !== listener); },
+    contains(node) { return node === this || this.children.some(child => child.contains(node)); },
     dispatchEvent(event) {
       event.target ||= this;
       event.currentTarget = this;
@@ -209,9 +211,34 @@ function setup(options = {}) {
   ui.keep = marked(discard, "discardKeep", "button");
   ui.discard = marked(discard, "discardConfirm", "button");
   if (!dialogSupported) drawer.showModal = undefined;
-  vm.runInNewContext(source, { document, Event: MockEvent }, { filename });
-  return { document, drawer, discard, ui, forms, rows, ...rows[0] };
+  const context = { document, Event: MockEvent };
+  vm.runInNewContext(source, context, { filename });
+  return { document, drawer, discard, ui, forms, rows, api: context.InvoiceBilling, ...rows[0] };
 }
+
+test("dynamic previews initialize once, destroy their listeners, and reinitialize without duplicating POST fields", () => {
+  const state = setup({ originalKm: "12" });
+  assert.ok(state.api, "billing must expose its partial-page lifecycle");
+  state.api.initWithin(state.document);
+  assert.equal(state.fields.claim.listeners.input.length, 1);
+  state.fields.open.fire("click");
+  assert.equal(state.drawer.open, true);
+  state.api.destroyWithin(state.form);
+  assert.equal(state.drawer.open, false);
+  assert.equal(state.fields.claim.listeners.input.length, 0);
+  assert.equal(state.fields.fields.parentElement, state.fields.details);
+  state.api.initWithin(state.document);
+  assert.equal(state.fields.claim.listeners.input.length, 1);
+  assert.equal(postedValues(state.form, state.fields.claim).length, 1);
+});
+test("repeat initialization leaves a closed validation drawer closed", () => {
+  const state = setup({ errors: true });
+  assert.equal(state.drawer.open, true);
+  state.ui.cancel.fire("click");
+  assert.equal(state.drawer.open, false);
+  state.api.initWithin(state.document);
+  assert.equal(state.drawer.open, false);
+});
 
 test("prototype time control edits and restores the same original time fields", () => {
   const state = setup();

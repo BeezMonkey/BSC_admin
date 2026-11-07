@@ -23,6 +23,7 @@ function target(properties = {}) {
       if (!listeners.has(type)) listeners.set(type, []);
       listeners.get(type).push(listener);
     },
+    removeEventListener(type, listener) { listeners.set(type, (listeners.get(type) || []).filter(item => item !== listener)); },
     dispatchEvent(event) {
       event.target ||= this;
       this.events.push(event);
@@ -61,6 +62,7 @@ function setup({ desktop = true, supported = true, value = "09:17", boundInvalid
       append(...children) {
         for (const child of children) { child.parentElement = this; this.children.push(child); }
       },
+      remove() { this.parentElement.children = this.parentElement.children.filter(child => child !== this); this.parentElement = null; },
       add(option) { this.options.push(option); },
       contains(node) { return node === this || this.children.some(child => child.contains(node)); },
       focus() { document.activeElement = this; this.fire("focus"); },
@@ -141,11 +143,11 @@ function setup({ desktop = true, supported = true, value = "09:17", boundInvalid
   vm.runInNewContext(source, {
     window, document, Event: MockEvent, setTimeout,
     Option: function (text, value) { Object.assign(this, { text, value }); },
-    MutationObserver: class { observe() {} },
+    MutationObserver: class { observe() {} disconnect() {} },
   }, { filename });
   const byClass = className => created.find(node => node.className === className);
   return {
-    native, root, label, form, drawer, shell, document, created,
+    native, root, label, form, drawer, shell, document, created, api: window.R1InvoiceAdjustmentTime,
     trigger: byClass("r1-invoice-time-trigger"), panel: byClass("r1-invoice-time-panel"),
     apply: byClass("r1-invoice-time-apply"), cancel: byClass("r1-invoice-time-cancel"),
     parts: Object.fromEntries(created.filter(node => node.dataset.r1TimePart)
@@ -153,6 +155,17 @@ function setup({ desktop = true, supported = true, value = "09:17", boundInvalid
     setDesktop(matches) { media.matches = matches; media.fire("change"); },
   };
 }
+
+test("time controls support repeat-safe preview initialization and clean teardown", () => {
+  const h = setup();
+  assert.ok(h.api, "time adapter must expose its partial-page lifecycle");
+  h.api.initWithin(h.shell);
+  assert.equal(h.created.filter(node => node.className === "r1-invoice-time-trigger").length, 1);
+  h.api.destroyWithin(h.shell);
+  assert.equal(h.root.children.some(node => node.className === "r1-invoice-time-trigger"), false);
+  h.api.initWithin(h.shell);
+  assert.equal(h.root.children.filter(node => node.className === "r1-invoice-time-trigger").length, 1);
+});
 
 test("missing dialog capability leaves the native time completely unenhanced", () => {
   const h = setup({ supported: false });

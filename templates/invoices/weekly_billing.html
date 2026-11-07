@@ -5,6 +5,8 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/r1_tokens.css' %}">
 <link rel="stylesheet" href="{% static 'css/r1_shell.css' %}">
+<link rel="stylesheet" href="{% static 'css/invoice_billing.css' %}">
+<link rel="stylesheet" href="{% static 'css/weekly_billing_drawer.css' %}">
 <link rel="stylesheet" href="{% static 'css/weekly_billing.css' %}">
 {% endblock %}
 {% block r1_shell_class %} r1-ui r1-admin weekly-billing-shell{% endblock %}
@@ -13,7 +15,7 @@
 {% endblock %}
 {% block topbar_content %}<nav class="r1-breadcrumb" aria-label="Breadcrumb">Business / Weekly Billing</nav>{% endblock %}
 {% block content %}
-<div class="weekly-billing">
+<div class="weekly-billing" data-weekly-billing>
 <header class="wb-title"><h1>Weekly Billing</h1><p>Check roster coverage, review submitted logs, and see what is ready to bill.</p></header>
 <form method="get" class="wb-period" data-invoice-filters data-weekly-billing-filters>
 <fieldset><legend>Billing period</legend><div class="wb-filter-grid">
@@ -25,6 +27,7 @@
 <p>Brisbane time · Monday to Sunday for weekly periods. Custom dates are inclusive. Editing From or To selects Custom.</p>
 {% if period %}<p><strong>{{ period.start|date:"d M Y" }} – {{ period.end|date:"d M Y" }}</strong> · This period applies to all four steps.</p>{% endif %}
 </fieldset></form>
+<div data-wb-results>
 {% if not workbench %}<p class="wb-callout" role="alert">Choose a valid complete billing period to see records. No records were loaded.</p>{% else %}
 <nav class="wb-steps" aria-label="Billing steps">
 <a href="#roster-check"><b>1 · Roster vs logs</b><small>{{ workbench.missing_log_count }} missing · {{ workbench.roster_rows|length }} roster/log rows</small></a>
@@ -32,7 +35,8 @@
 <a href="#participant-billing"><b>3 · Participant billing</b><small>{{ workbench.participant_rows|length }} participants in this period</small></a>
 <a href="#related-invoices"><b>4 · Related invoices</b><small>{{ workbench.invoice_rows|length }} saved service invoices</small></a>
 </nav>
-<p class="wb-notice">Read-only review. Approvals, billing adjustments, invoice creation and sending are not available in this workbench yet.</p>
+<div data-wb-feedback tabindex="-1" role="status" aria-live="polite" class="wb-feedback{% if action_error %} wb-error{% endif %}"{% if not action_message %} hidden{% endif %}>{{ action_message }}{% if created_invoice %} <a href="{{ created_invoice.get_absolute_url }}">Open draft {{ created_invoice.invoice_number }}</a>{% endif %}</div>
+<p class="wb-notice">Review submitted records, preview approved sources, and confirm one draft per participant. Open a saved invoice to continue its existing workflow.</p>
 {% if workbench.earlier_unbilled_count %}<p class="wb-callout"><strong>Earlier unbilled:</strong> {{ workbench.earlier_unbilled_count }} approved service logs or cancellation charges before this period. <a href="{{ workbench.earlier_url }}">Review earlier service dates</a>.</p>{% endif %}
 <section class="wb-panel" id="roster-check" aria-labelledby="roster-heading">
 <header><span class="wb-number">1</span><div><h2 id="roster-heading">Roster vs logs</h2><p>Compare planned and reported time, breaks, net hours and kilometres. Missing means a finished scheduled shift without a service log.</p></div></header>
@@ -48,7 +52,7 @@
 <section class="wb-panel" id="submitted-logs" aria-labelledby="logs-heading">
 <header><span class="wb-number">2</span><div><h2 id="logs-heading">Submitted Logs</h2><p>Original worker submissions, with roster context. Open the original record for full notes and existing review tools.</p></div></header>
 {% for row in workbench.submitted_rows %}{% include "invoices/workbench/submitted_log.html" %}{% empty %}<p class="wb-empty">No submitted service logs in this period.</p>{% endfor %}
-{% if workbench.cancellations %}<div class="wb-cancellations"><h3>Participant cancellations</h3>{% for cancellation in workbench.cancellations %}<details class="wb-record"><summary><span>{{ cancellation.shift.participant.display_name }} · {{ cancellation.shift.service_date|date:"d M" }}</span><span class="wb-badge">{{ cancellation.get_status_display }}</span></summary><div class="wb-record-content"><p>{{ cancellation.get_cancellation_type_display }} · {{ cancellation.shift.worker.display_name }}</p><p>{{ cancellation.details|truncatechars:300 }}</p><p>Planned {{ cancellation.shift.planned_hours }} h · {{ cancellation.shift.support_item.item_number }}</p><a href="{% url 'participant_cancellation_detail' cancellation.pk %}">Open original cancellation</a></div></details>{% endfor %}</div>{% endif %}
+{% if workbench.cancellations %}<div class="wb-cancellations"><h3>Participant cancellations</h3>{% for cancellation in workbench.cancellations %}{% include "invoices/workbench/cancellation.html" %}{% endfor %}</div>{% endif %}
 </section>
 <section class="wb-panel" id="participant-billing" aria-labelledby="billing-heading">
 <header><span class="wb-number">3</span><div><h2 id="billing-heading">Participant billing</h2><p>Approved unbilled logs and approved unbilled cancellation charges. Service-only estimates use original hours and current existing item rates. Travel claim not included.</p></div></header>
@@ -70,7 +74,13 @@
 </tbody></table></div></section>
 {% endif %}
 </div>
+<div data-wb-dialog-home>{% include "invoices/invoice_adjustment_drawer.html" %}</div>
+</div>
 <script src="{% static 'js/date_time_picker.js' %}" defer></script>
 <script src="{% static 'js/r1_admin_invoice_filters.js' %}" defer></script>
 <script src="{% static 'js/weekly_billing.js' %}" defer></script>
+<script src="{% static 'js/support_item_picker.js' %}" defer data-support-item-picker-script></script>
+<script src="{% static 'js/invoice_billing.js' %}" defer></script>
+<script src="{% static 'js/r1_invoice_adjustment_time.js' %}" defer></script>
+<script src="{% static 'js/weekly_billing_actions.js' %}" defer></script>
 {% endblock %}

@@ -1,4 +1,5 @@
-<details class="wb-record wb-participant" id="participant-{{ row.participant.pk }}">
+{% load l10n %}
+<details class="wb-record wb-participant" id="participant-{{ row.participant.pk }}" data-wb-participant="{{ row.participant.pk }}" data-source-key="{{ row.source_key }}"{% if row.preview %} open{% endif %}>
 <summary><span>{{ row.participant.display_name }} <small>{{ row.participant.get_status_display }}</small></span><span class="wb-badge">{{ row.readiness }} · {{ row.billable_count }} approved unbilled sources</span></summary>
 <div class="wb-record-content">
 <p>{{ row.approved_log_count }} approved unbilled logs · {{ row.approved_cancellation_count }} approved unbilled cancellation charges · {{ row.invoice_count }} related invoices</p>
@@ -8,4 +9,26 @@
 <p>{% if row.readiness == 'Partial' %}Some sources are ready; missing, pending or rejected records still need follow-up.{% elif row.readiness == 'Additional' %}Fresh approved sources remain despite an existing related invoice.{% elif row.readiness == 'Ready' %}Approved sources are available with no missing, pending or rejected blockers in this period.{% elif row.readiness == 'Upcoming' %}Scheduled services are still upcoming. No review is needed yet.{% else %}No approved unbilled sources are available. Review the counts above for follow-up.{% endif %}</p>
 <p>Delivery: {{ row.delivery }} · {{ row.participant.get_management_type_display|default:"Management type not set" }}</p>
 <p><a href="{{ row.participant.get_absolute_url }}">Open participant</a> · <a href="{% url 'service_log_list' %}?participant={{ row.participant.pk }}&amp;date_range=custom&amp;date_from={{ period.start|date:'Y-m-d' }}&amp;date_to={{ period.end|date:'Y-m-d' }}">Review original service logs</a></p>
+<div data-wb-preview-slot>
+<form method="post" data-wb-action data-wb-refresh>
+{% csrf_token %}{% include "invoices/workbench/period_fields.html" %}
+<input type="hidden" name="participant_id" value="{{ row.participant.pk }}">
+<button type="submit" name="action" value="preview" class="button secondary"{% if not row.billable_count %} disabled{% endif %}>{% if row.preview %}Refresh preview{% else %}Preview approved sources{% endif %}</button>
+</form>
+{% if row.preview %}{% with preview=row.preview %}
+<section class="invoice-preview-table wb-preview" data-wb-preview data-stale="{% if preview.stale %}true{% else %}false{% endif %}" aria-label="Invoice preview for {{ row.participant.display_name }}">
+<h3>Draft preview · {{ row.participant.display_name }}</h3>
+<p class="wb-callout" data-wb-stale role="alert"{% if not preview.stale %} hidden{% endif %}>Sources or rates changed. Your inputs are retained for reference. Refresh this preview before creating a draft.</p>
+<form method="post" data-wb-action data-wb-create-form{% if action_error %} data-wb-unsaved="true"{% endif %} data-travel-price="{{ preview.travel_unit_price|unlocalize }}" data-participant-name="{{ row.participant.display_name }}">
+{% csrf_token %}{% include "invoices/workbench/period_fields.html" %}
+<input type="hidden" name="participant_id" value="{{ row.participant.pk }}"><input type="hidden" name="action" value="create">
+<input type="hidden" name="preview_token_workbench" value="{{ preview.tokens.workbench }}"><input type="hidden" name="preview_token_actual" value="{{ preview.tokens.actual }}">
+<input type="hidden" name="preview_token" value="{% if preview.period_mode == 'actual' %}{{ preview.tokens.actual }}{% else %}{{ preview.tokens.workbench }}{% endif %}">
+<div class="wb-invoice-period"><label for="invoice-period-{{ row.participant.pk }}">Period shown on invoice</label><select id="invoice-period-{{ row.participant.pk }}" name="period_mode"><option value="workbench"{% if preview.period_mode != 'actual' %} selected{% endif %}>Selected workbench period · {{ period.start|date:'d M Y' }}–{{ period.end|date:'d M Y' }}</option><option value="actual"{% if preview.period_mode == 'actual' %} selected{% endif %}>Actual source coverage · {{ preview.actual_start|date:'d M Y' }}–{{ preview.actual_end|date:'d M Y' }}</option></select><small>Actual approved source dates: {{ preview.actual_start|date:'d M Y' }}–{{ preview.actual_end|date:'d M Y' }}. Source selection stays within this workbench period.</small></div>
+<p class="wb-muted">Travel claim is an admin-approved amount. Recorded kilometres do not automatically calculate a claim.{% if not preview.travel_available %} Travel billing is unavailable until the travel support item is configured.{% endif %}</p>
+<div class="invoice-preview-scroll" role="region" tabindex="0" aria-label="Approved billing records for {{ row.participant.display_name }}"><table><thead><tr><th>Date</th><th>Worker</th><th>Support item</th><th>Rate / hr</th><th>Hours</th><th>Travel km</th><th>Travel claim</th><th>Line total</th><th>Actions</th></tr></thead><tbody>{% for billing_row in preview.rows %}{% include "invoices/invoice_billing_row.html" with row=billing_row r1_invoice_create=True only %}{% endfor %}</tbody></table></div>
+<div class="invoice-preview-actions"><span class="invoice-form-total" data-invoice-total aria-live="polite">Invoice total: ${{ preview.total|floatformat:2 }}</span><button type="submit" data-wb-create{% if preview.stale %} disabled{% endif %}>Create draft for {{ row.participant.display_name }}</button></div>
+<p class="wb-muted">Apply changes updates this preview. Create draft saves the adjustments and creates one invoice for this participant.</p>
+</form></section>{% endwith %}{% endif %}
+</div>
 </div></details>

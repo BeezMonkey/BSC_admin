@@ -123,3 +123,49 @@
   .app-shell .weekly-billing .wb-period :is(input, select) { height: 44px; min-height: 44px; font-size: 16px; padding: 10px 8px; }
   .app-shell .weekly-billing .wb-period :is(.invoice-date-trigger, button[type=submit]) { min-height: 44px; }
 }
+
+.weekly-billing [hidden] { display: none !important; }
+.weekly-billing .wb-feedback { margin: 16px 0; padding: 12px 16px; border: 1px solid var(--r1-border); border-radius: 8px; background: #eef7f2; color: var(--r1-success); }
+.weekly-billing .wb-feedback.wb-error { color: var(--r1-danger); background: #fff2f2; }
+.weekly-billing .wb-action-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+.weekly-billing [data-wb-review] { margin: 16px 0 0; padding: 16px; border: 1px solid var(--r1-border); border-radius: 8px; background: var(--r1-subtle); }
+.weekly-billing [data-wb-review] label { display: block; margin: 0 0 6px; font-weight: 500; }
+.weekly-billing [data-wb-review] label small { display: inline; margin-left: 6px; font-weight: 400; }
+.weekly-billing [data-wb-review] textarea { box-sizing: border-box; width: 100%; max-width: 760px; min-height: 72px; border: 1px solid var(--r1-strong-border); border-radius: 6px; background: var(--r1-surface); padding: 9px 12px; font: inherit; }
+.weekly-billing .wb-preview { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--r1-border); }
+.weekly-billing .wb-preview h3 { margin: 0 0 16px; font-size: 16px; line-height: 24px; }
+.weekly-billing .wb-invoice-period { display: grid; gap: 6px; max-width: 720px; margin: 16px 0; }
+.weekly-billing .wb-invoice-period select { width: 100%; min-height: 40px; border: 1px solid var(--r1-strong-border); border-radius: 6px; padding: 9px 12px; background: var(--r1-surface); color: var(--r1-text); font: inherit; }
+.weekly-billing .invoice-preview-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+.weekly-billing .invoice-preview-table table { width: 100%; margin: 0; border-collapse: collapse; }
+.weekly-billing .invoice-preview-table th { padding: 12px 10px; background: var(--r1-subtle); color: var(--r1-muted); font-size: 12px; line-height: 16px; font-weight: 500; white-space: normal; }
+.weekly-billing .invoice-preview-table td { padding: 20px 10px; border-bottom: 1px solid var(--r1-border); vertical-align: middle; font-size: 14px; line-height: 20px; }
+.weekly-billing .invoice-preview-table .invoice-billing-row > td { font-size: 14px; }
+.weekly-billing .invoice-billing-row :is(small, .invoice-billing-original) { font-size: 12px; line-height: 16px; }
+.weekly-billing .invoice-billing-row .invoice-travel-claim { padding-left: 10px; }
+.weekly-billing .invoice-billing-row .invoice-travel-claim input { width: 80px; height: 30px; min-height: 30px; padding: 4px 6px; font-size: 14px; line-height: 20px; }
+.weekly-billing .invoice-billing-row .invoice-travel-claim [data-billing-claim-field] > small { font-size: 12px; line-height: 16px; }
+.weekly-billing .invoice-claim-help-inline { display: none; }
+.weekly-billing .invoice-travel-claim .invoice-claim-help-inline { display: inline; }
+.weekly-billing .invoice-travel-claim .invoice-claim-help-full { display: none; }
+.weekly-billing .invoice-billing-row .invoice-adjust-button { box-sizing: border-box; width: 36px; height: 36px; min-height: 36px; padding: 0; border: 1px solid var(--r1-border); border-radius: 6px; background: var(--r1-surface) url('../img/r1/icons/invoice-adjust.svg') center / 18px 18px no-repeat; }
+.weekly-billing .invoice-adjust-button > svg { visibility: hidden; }
+.weekly-billing .invoice-preview-actions { display: flex; align-items: center; gap: 16px; padding: 20px; margin-top: 24px; border-radius: 8px; background: var(--r1-subtle); }
+.weekly-billing .invoice-form-total { font-size: 18px; line-height: 24px; font-weight: 600; }
+.weekly-billing .invoice-preview-actions > button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+@media (max-width: 1200px) {
+  .weekly-billing .invoice-preview-table .invoice-billing-row { gap: 16px; padding: 20px 0; }
+  .weekly-billing .invoice-preview-table .invoice-billing-row td { height: auto; min-height: 0; padding: 0; border: 0; }
+  .weekly-billing .invoice-preview-table .invoice-billing-row td::before { margin-bottom: 4px; color: var(--r1-muted); font-size: 12px; line-height: 16px; }
+}
+@media (max-width: 760px) {
+  .weekly-billing [data-wb-review] textarea, .weekly-billing .wb-invoice-period select { min-height: 44px; font-size: 16px; }
+  .weekly-billing .wb-action-row button { min-height: 44px; }
+  .weekly-billing .invoice-preview-actions { padding: 16px; }
+  .weekly-billing .invoice-form-total { width: 100%; margin: 0; }
+  .weekly-billing .invoice-preview-actions > button { width: 100%; min-height: 44px; }
+  .weekly-billing .invoice-preview-table .invoice-billing-row td { grid-column: span 3; }
+  .weekly-billing .invoice-preview-table .invoice-billing-row td:nth-child(3), .weekly-billing .invoice-preview-table .invoice-billing-row td:nth-child(7) { grid-column: 1 / -1; }
+  .weekly-billing .invoice-billing-row .invoice-travel-claim input { min-height: 44px; height: 44px; font-size: 16px; }
+  .weekly-billing .invoice-billing-row .invoice-adjust-button { width: 44px; height: 44px; min-height: 44px; }
+}

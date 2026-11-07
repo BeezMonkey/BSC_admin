@@ -13,6 +13,7 @@ from service_logs.follow_up import missing_log_summary
 from service_logs.models import ServiceLog
 
 from .billing import service_total
+from .workbench_actions import billing_catalog, source_fingerprint
 from .models import Invoice, InvoiceLine
 from .selectors import billable_cancellations_in_period, billable_logs_in_period
 
@@ -100,6 +101,7 @@ def build_weekly_workbench(period_start, period_end):
             'service_estimate': Decimal('0.00'), 'hours': Decimal('0.00'),
             'kilometres': Decimal('0.00'), 'source_dates': [], 'invoice_count': 0,
             'delivery': _delivery(participant), 'upcoming_count': 0,
+            '_logs': [], '_cancellations': [],
         })
     for shift in shifts:
         row = group_for(shift.participant)
@@ -121,6 +123,7 @@ def build_weekly_workbench(period_start, period_end):
         row['hours'] += log.actual_hours
         row['kilometres'] += log.kilometres
         row['source_dates'].append(log.service_date)
+        row['_logs'].append(log)
     for cancellation in billable_cancellations:
         shift = cancellation.shift
         row = group_for(shift.participant)
@@ -128,6 +131,7 @@ def build_weekly_workbench(period_start, period_end):
         row['service_estimate'] += service_total(shift.planned_hours, shift.support_item.price_limit)
         row['hours'] += shift.planned_hours
         row['source_dates'].append(shift.service_date)
+        row['_cancellations'].append(cancellation)
     invoice_rows = []
     for invoice in invoices:
         group_for(invoice.participant)['invoice_count'] += 1
@@ -139,7 +143,10 @@ def build_weekly_workbench(period_start, period_end):
                              'total': sum((line.line_total for line in lines), Decimal('0.00')),
                              'source_start': min(dates) if dates else None,
                              'source_end': max(dates) if dates else None})
+    catalog = billing_catalog()
     for row in groups.values():
+        row['source_key'] = source_fingerprint(sorted(row.pop('_logs'), key=lambda obj: obj.pk),
+            sorted(row.pop('_cancellations'), key=lambda obj: obj.pk), catalog=catalog)
         row['billable_count'] = row['approved_log_count'] + row['approved_cancellation_count']
         row['blocker_count'] = row['missing_count'] + row['pending_count'] + row['rejected_count']
         if row['billable_count']:

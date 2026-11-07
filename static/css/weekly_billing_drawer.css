@@ -1,0 +1,103 @@
+/* Drawer and time-control subset of the accepted R1 invoice styles. */
+ .weekly-billing-shell { --line: var(--r1-border); --ink: var(--r1-text); --muted: var(--r1-muted); --brand-dark: var(--r1-accent); }
+/* The existing controller moves the original fields into this modal. */
+.app-shell.weekly-billing-shell .invoice-adjustment-drawer { width: 640px; height: 100dvh; max-height: 100dvh; max-width: 100%; border-radius: 0; }
+.app-shell.weekly-billing-shell .invoice-adjustment-drawer > header { padding: 24px 28px 16px; align-items: flex-start; }
+.app-shell.weekly-billing-shell .invoice-adjustment-drawer > header h2 { margin: 0; min-height: 0; padding: 0; border: 0; font-size: 24px; line-height: 32px; }
+.app-shell.weekly-billing-shell .invoice-adjustment-drawer > header p { margin: 6px 0 0; font-size: 12px; line-height: 16px; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer > header button { flex: 0 0 36px; width: 36px; height: 36px; min-height: 36px; padding: 0; border: 0; font-size: 24px; line-height: 32px; }
+.app-shell.weekly-billing-shell .invoice-drawer-body { padding: 0 28px; }
+.app-shell.weekly-billing-shell .invoice-billing-fields { font-size: 14px; line-height: 20px; }
+.app-shell.weekly-billing-shell :is(.invoice-drawer-identity, .invoice-drawer-section) { padding: 20px 0; }
+.app-shell.weekly-billing-shell .invoice-drawer-identity > strong { display: block; overflow-wrap: anywhere; font-size: 16px; line-height: 24px; font-weight: 600; }
+.app-shell.weekly-billing-shell .invoice-identity-meta { flex-wrap: wrap; margin-top: 8px; font-size: 12px; line-height: 16px; }
+.app-shell.weekly-billing-shell .invoice-drawer-status { padding: 4px 8px; border-radius: 4px; font-size: 12px; line-height: 16px; color: var(--r1-success); background: #edf5f0; }
+.app-shell.weekly-billing-shell .invoice-drawer-section h3 { align-items: center; margin: 0 0 12px; font-size: 16px; line-height: 24px; font-weight: 600; }
+.app-shell.weekly-billing-shell .invoice-drawer-section h3 small { padding: 2px 6px; border-radius: 4px; background: var(--r1-subtle); color: var(--r1-muted); font-size: 12px; line-height: 16px; text-transform: none; }
+.app-shell.weekly-billing-shell .invoice-time-source { align-items: baseline; flex-wrap: wrap; gap: 6px 12px; margin-bottom: 12px; font-size: 12px; line-height: 16px; }
+.app-shell.weekly-billing-shell .invoice-time-summary { flex-wrap: wrap; gap: 12px; }
+.app-shell.weekly-billing-shell .invoice-time-summary strong { font-size: 14px; line-height: 20px; font-weight: 500; }
+.app-shell.weekly-billing-shell .invoice-time-summary p { font-size: 12px; line-height: 16px; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .invoice-correct-time { height: 36px; min-height: 36px; padding: 7px 12px; border-color: var(--r1-strong-border); color: var(--r1-text); font-size: 14px; line-height: 20px; }
+.app-shell.weekly-billing-shell .invoice-billing-fields label { margin-bottom: 6px; color: var(--r1-muted); font-size: 12px; line-height: 16px; font-weight: 400; }
+.app-shell.weekly-billing-shell .invoice-adjustment-drawer .invoice-billing-fields :is(input:not([type=checkbox]), select, textarea) { min-height: 40px; padding: 9px 12px; border: 1px solid var(--r1-strong-border); border-radius: 6px; color: var(--r1-text); background: var(--r1-surface); font-size: 14px; line-height: 20px; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .support-item-picker-native { position: absolute; width: 1px; height: 1px; min-height: 0; padding: 0; border: 0; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .support-item-picker-trigger { min-height: 60px; padding: 10px 12px; border-radius: 6px; }
+.app-shell.weekly-billing-shell .invoice-adjustment-drawer .support-item-picker-trigger-label[data-invoice-item-name]::before { font-size: 14px; line-height: 20px; }
+.app-shell.weekly-billing-shell .invoice-adjustment-drawer .support-item-picker-trigger-label[data-invoice-item-code]::after { font-size: 12px; line-height: 16px; }
+.app-shell.weekly-billing-shell .invoice-adjustment-drawer .support-item-picker-panel { border-radius: 6px; border-color: var(--r1-border); }
+.app-shell.weekly-billing-shell .invoice-adjustment-drawer .support-item-picker-option { font-size: 14px; line-height: 20px; }
+/* Approved drawer menu states; other support-item pickers retain their own theme. */
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .support-item-picker-search { font-size: 13px; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .support-item-picker-results { padding: 4px; overflow-x: hidden; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .support-item-picker-group { min-height: 36px; padding: 8px 10px; border-radius: 4px; color: var(--r1-text); background: var(--r1-subtle); font-size: 12px; line-height: 18px; font-weight: 500; white-space: normal; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .support-item-picker-group-count { color: var(--r1-muted); font-size: 12px; font-weight: 400; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .support-item-picker-option { min-height: 36px; padding: 8px 12px; border-radius: 4px; border-top: 0; color: var(--r1-text); background: var(--r1-surface); font-size: 13px; font-weight: 400; line-height: 18px; white-space: normal; overflow-wrap: anywhere; box-shadow: inset 3px 0 transparent; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer :is(.support-item-picker-group, .support-item-picker-option):focus { outline: none; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer :is(.support-item-picker-group, .support-item-picker-option):hover { color: var(--r1-text); background: #f0f4f8; outline: none; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .support-item-picker-option[aria-selected=true] { color: #2449a3; background: #eaf0ff; box-shadow: inset 3px 0 var(--r1-accent); }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .support-item-picker-option[aria-selected=true]:hover { background: #e1eaff; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer :is(.support-item-picker-group, .support-item-picker-option):focus-visible { outline: 2px solid var(--r1-accent); outline-offset: -2px; }
+
+.weekly-billing-shell .r1-invoice-time { position: relative; min-width: 0; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .r1-invoice-time.is-enhanced > input[type=time] { padding-right: 40px; }
+.weekly-billing-shell .r1-invoice-time.is-enhanced > input[type=time]::-webkit-calendar-picker-indicator { display: none; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .r1-invoice-time-trigger { position: absolute; right: 4px; bottom: 4px; display: block; width: 32px; min-width: 32px; height: 32px; min-height: 32px; margin: 0; padding: 0; border: 1px solid transparent; border-radius: 4px; color: var(--r1-text); background: var(--r1-surface) url('../img/r1/icons/clock.svg') center / 16px 16px no-repeat; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .r1-invoice-time-trigger[aria-expanded=true] { border-color: var(--r1-accent); }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .r1-invoice-time-trigger[aria-invalid=true] { border-color: var(--r1-danger); }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .r1-invoice-time-panel { position: fixed; z-index: 30; width: 248px; max-width: calc(100vw - 32px); padding: 10px; overflow-y: auto; border: 1px solid var(--r1-border); border-radius: 8px; background: var(--r1-surface); box-shadow: 0 6px 16px rgb(23 33 43 / 12%); }
+.weekly-billing-shell .r1-invoice-time-parts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .r1-invoice-time-parts label { display: grid; gap: 3px; margin: 0; color: var(--r1-muted); font-size: 11px; line-height: 16px; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .r1-invoice-time-parts select { width: 100%; min-width: 0; min-height: 30px; height: 30px; margin: 0; padding: 4px 6px; font-size: 12px; line-height: 18px; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .r1-invoice-time-parts select option { min-height: 28px; padding: 4px 6px; font-size: 12px; line-height: 18px; }
+.weekly-billing-shell .r1-invoice-time-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--r1-border); }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .r1-invoice-time-actions button { min-height: 28px; height: 28px; padding: 4px 8px; border: 1px solid var(--r1-border); border-radius: 4px; color: var(--r1-text); background: var(--r1-surface); font-size: 12px; font-weight: 400; line-height: 18px; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .r1-invoice-time-actions button:hover { background: #f0f4f8; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .r1-invoice-time-actions .r1-invoice-time-apply { color: var(--r1-surface); background: var(--r1-accent); border-color: var(--r1-accent); }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .r1-invoice-time-actions .r1-invoice-time-apply:hover { color: var(--r1-surface); background: #2449a3; border-color: #2449a3; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .r1-invoice-time-trigger[hidden],
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .r1-invoice-time-panel[hidden] { display: none; }
+.app-shell.weekly-billing-shell .invoice-billing-reset-item { min-height: 32px; padding: 6px 0; font-size: 12px; line-height: 20px; }
+.app-shell.weekly-billing-shell .invoice-travel-fields { gap: 16px; }
+.app-shell.weekly-billing-shell .invoice-billing-fields .invoice-travel-fields input { height: 40px; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .invoice-billing-fields .invoice-km-input input { padding-right: 42px; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .invoice-billing-fields .invoice-money-input input { padding-left: 28px; }
+.app-shell.weekly-billing-shell :is(.invoice-input-suffix, .invoice-input-prefix, .invoice-billing-original, .invoice-drawer-audit) { font-size: 12px; line-height: 16px; }
+.app-shell.weekly-billing-shell .invoice-travel-fields [data-billing-claim-field] > small { font-size: 12px; line-height: 16px; }
+.app-shell.weekly-billing-shell #invoice-adjustment-drawer .invoice-drawer-subtotal { font-size: 12px; line-height: 16px; }
+.app-shell.weekly-billing-shell .invoice-source-notes { margin: 16px 0; }
+.app-shell.weekly-billing-shell .invoice-source-notes > summary { padding: 12px; border: 1px solid var(--r1-border); border-radius: 6px; background: var(--r1-subtle); font-size: 14px; line-height: 20px; }
+.app-shell.weekly-billing-shell .invoice-source-notes :is(p, li) { font-size: 14px; line-height: 20px; overflow-wrap: anywhere; }
+.app-shell.weekly-billing-shell .invoice-billing-history-meta { color: var(--r1-muted); font-size: 12px; line-height: 16px; }
+.app-shell.weekly-billing-shell .invoice-adjustment-drawer > footer { padding: 16px 28px 20px; }
+.app-shell.weekly-billing-shell .invoice-drawer-comparison { font-size: 12px; line-height: 16px; }
+.app-shell.weekly-billing-shell .invoice-drawer-comparison strong { margin-top: 4px; font-size: 20px; line-height: 28px; font-weight: 600; }
+.app-shell.weekly-billing-shell .invoice-drawer-comparison small { font-size: 12px; line-height: 16px; }
+.app-shell.weekly-billing-shell .invoice-drawer-footer-row > span { font-size: 12px; line-height: 16px; }
+.app-shell.weekly-billing-shell .invoice-drawer-actions button { min-height: 40px; padding: 9px 16px; font-size: 14px; line-height: 20px; }
+.app-shell.weekly-billing-shell .invoice-adjustment-drawer > footer > .invoice-drawer-save-note { font-size: 12px; line-height: 16px; }
+.app-shell.weekly-billing-shell .invoice-discard-dialog { box-sizing: border-box; width: 480px; max-width: calc(100% - 32px); padding: 24px; border-radius: 8px; }
+.app-shell.weekly-billing-shell .invoice-discard-dialog h2 { margin: 0 0 8px; font-size: 20px; line-height: 28px; }
+.app-shell.weekly-billing-shell .invoice-discard-dialog p { font-size: 14px; line-height: 20px; }
+@media (max-width: 760px) {
+  .app-shell.weekly-billing-shell #invoice-adjustment-drawer .support-item-picker-search { font-size: 16px; }
+  .app-shell.weekly-billing-shell #invoice-adjustment-drawer .support-item-picker-group { min-height: 44px; font-size: 13px; line-height: 20px; }
+  .app-shell.weekly-billing-shell #invoice-adjustment-drawer .support-item-picker-option { min-height: 44px; padding: 10px 12px; font-size: 14px; line-height: 20px; }
+  .app-shell.weekly-billing-shell .invoice-adjustment-drawer .invoice-billing-fields :is(input:not([type=checkbox]), select, textarea) { min-height: 44px; font-size: 16px; }
+  .app-shell.weekly-billing-shell .invoice-adjustment-drawer { width: 100%; border: 0; }
+  .app-shell.weekly-billing-shell .invoice-adjustment-drawer > header { padding: 20px 20px 12px; }
+  .app-shell.weekly-billing-shell #invoice-adjustment-drawer > header button { flex-basis: 44px; width: 44px; height: 44px; min-height: 44px; }
+  .app-shell.weekly-billing-shell .invoice-drawer-body { padding: 0 20px; }
+  .app-shell.weekly-billing-shell .invoice-drawer-section h3 { flex-wrap: wrap; gap: 6px; }
+  .app-shell.weekly-billing-shell .invoice-travel-fields { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .app-shell.weekly-billing-shell .invoice-time-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .app-shell.weekly-billing-shell .invoice-time-fields > div:nth-child(3) { grid-column: 1 / -1; max-width: 8rem; }
+  .app-shell.weekly-billing-shell #invoice-adjustment-drawer .invoice-correct-time { min-height: 44px; height: 44px; }
+  .app-shell.weekly-billing-shell .invoice-billing-reset-item { min-height: 44px; }
+  .app-shell.weekly-billing-shell .invoice-adjustment-drawer > footer { padding: 16px 20px max(20px, env(safe-area-inset-bottom)); }
+  .app-shell.weekly-billing-shell .invoice-drawer-footer-row { flex-wrap: wrap; gap: 12px; }
+  .app-shell.weekly-billing-shell .invoice-drawer-footer-row > span { width: 100%; }
+  .app-shell.weekly-billing-shell .invoice-drawer-actions { width: 100%; flex-wrap: wrap; }
+  .app-shell.weekly-billing-shell .invoice-drawer-actions button { min-height: 44px; }
+}
+

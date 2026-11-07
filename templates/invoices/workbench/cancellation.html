@@ -1,0 +1,9 @@
+<details class="wb-record" id="review-cancellation-{{ cancellation.pk }}"><summary><span>{{ cancellation.shift.participant.display_name }} · {{ cancellation.shift.service_date|date:"d M" }}</span><span class="wb-badge">{{ cancellation.get_status_display }}</span></summary><div class="wb-record-content"><p>{{ cancellation.get_cancellation_type_display }} · {{ cancellation.shift.worker.display_name }}</p><p>{{ cancellation.details|truncatechars:300 }}</p><p>Planned {{ cancellation.shift.planned_hours }} h · {{ cancellation.shift.support_item.item_number }}</p><a href="{% url 'participant_cancellation_detail' cancellation.pk %}">Open original cancellation</a>
+{% if cancellation.status == 'pending' %}
+<form method="post" data-wb-action data-wb-review>
+{% csrf_token %}{% include "invoices/workbench/period_fields.html" %}
+<input type="hidden" name="participant_id" value="{{ cancellation.shift.participant_id }}"><input type="hidden" name="source_id" value="{{ cancellation.pk }}">
+<label for="cancellation-note-{{ cancellation.pk }}">Admin note <small>Required when rejecting; optional for approve or waive</small></label>
+<textarea id="cancellation-note-{{ cancellation.pk }}" name="admin_note" rows="2" data-wb-reason>{% if action_error and action_participant_id == cancellation.shift.participant_id and request.POST.source_id == cancellation.pk|stringformat:'s' and request.POST.action == 'cancel_reject' %}{{ request.POST.admin_note }}{% endif %}</textarea>
+<div class="wb-action-row"><button type="submit" name="action" value="cancel_approve">Approve charge</button><button type="submit" class="button secondary" name="action" value="cancel_waive">Waive</button><button type="submit" class="button secondary" name="action" value="cancel_reject" data-wb-needs-reason>Reject</button></div>
+</form>{% endif %}</div></details>

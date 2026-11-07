@@ -1,4 +1,4 @@
-<details class="wb-record">
+<details class="wb-record" id="review-log-{{ row.log.pk }}">
 <summary><span>{{ row.log.participant.display_name }} · {{ row.log.service_date|date:"D d M" }} · {{ row.log.worker.display_name }}</span><span class="wb-badge">Submitted{% if row.unscheduled %} · Unscheduled{% endif %}</span></summary>
 <div class="wb-record-content">
 <div class="wb-log-facts"><div><strong>Roster</strong><p>{{ row.shift.start_time|time:"H:i" }}–{{ row.shift.end_time|time:"H:i" }} · break {{ row.shift.break_minutes }} min · {{ row.shift.planned_hours }} h net</p><small>{{ row.shift.support_item.item_number }} · {{ row.shift.support_item.name }}</small></div><div><strong>Logged</strong><p>{{ row.log.actual_start_time|time:"H:i" }}–{{ row.log.actual_end_time|time:"H:i" }} · break {{ row.log.break_minutes }} min · {{ row.log.actual_hours }} h net</p></div><div><strong>Support item</strong><p>{{ row.log.support_item.item_number }}</p><small>{{ row.log.support_item.name }} · ${{ row.log.support_item.price_limit }}/{{ row.log.support_item.get_unit_display }}</small></div><div><strong>Kilometres</strong><p>{{ row.log.kilometres }} km</p><small>Original worker entry</small></div></div>
@@ -7,4 +7,11 @@
 <p><strong>Case notes</strong></p><p>{{ row.log.case_notes|truncatechars:300|linebreaksbr }}</p>
 {% if row.unscheduled %}<p><strong>Unscheduled reason:</strong> {{ row.log.unscheduled_reason|default:"Not supplied"|truncatechars:300 }}</p>{% endif %}
 <p><a href="{{ row.log.get_absolute_url }}">Open original service log</a> · <a href="{{ row.shift.get_absolute_url }}">Open roster shift</a></p>
+<form method="post" data-wb-action data-wb-review>
+{% csrf_token %}{% include "invoices/workbench/period_fields.html" %}
+<input type="hidden" name="participant_id" value="{{ row.log.participant_id }}"><input type="hidden" name="source_id" value="{{ row.log.pk }}">
+<label for="review-reason-{{ row.log.pk }}">Review note <small>Required when returning to worker</small></label>
+<textarea id="review-reason-{{ row.log.pk }}" name="reason" rows="2" data-wb-reason>{% if action_error and action_participant_id == row.log.participant_id and request.POST.source_id == row.log.pk|stringformat:'s' and request.POST.action == 'return' %}{{ request.POST.reason }}{% endif %}</textarea>
+<div class="wb-action-row"><button type="submit" name="action" value="approve">Approve {{ row.log.actual_hours }} h</button><button type="submit" class="button secondary" name="action" value="return" data-wb-needs-reason>Return to worker</button></div>
+</form>
 </div></details>
