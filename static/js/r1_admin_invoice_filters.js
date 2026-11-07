@@ -1,7 +1,7 @@
-/* Invoice-only adapter; native named dates remain the submitted fields. */
+/* Invoice and weekly billing filter adapter; native named dates remain the submitted fields. */
 (() => {
   "use strict";
-  const form = document.querySelector(".r1-admin-invoice-list [data-invoice-filters]");
+  const form = document.querySelector(".r1-admin-invoice-list [data-invoice-filters], .weekly-billing [data-invoice-filters]");
   if (!form || typeof window.initDateTimePickers !== "function") return;
   const desktop = window.matchMedia("(min-width: 761px) and (hover: hover) and (pointer: fine)");
   form.querySelectorAll("[data-invoice-date]").forEach(root => {
@@ -11,6 +11,8 @@
     const display = root.querySelector("[data-picker-display]");
     const panel = root.querySelector("[data-picker-popover]");
     const error = root.querySelector("[data-invoice-date-error]");
+    const serverError = root.querySelector("[data-invoice-date-server-error]");
+    let serverInvalid = native.getAttribute("aria-invalid") === "true";
     let initialized = false;
 
     const sync = () => {
@@ -18,7 +20,9 @@
       const parts = native.value.split("-");
       display.textContent = native.value ? `${parts[2]}/${parts[1]}/${parts[0]}` : "dd/mm/yyyy";
       trigger.disabled = native.disabled;
-      trigger.setAttribute("aria-invalid", String(!native.validity.valid));
+      const invalid = serverInvalid || !native.validity.valid;
+      trigger.setAttribute("aria-invalid", String(invalid));
+      native.setAttribute("aria-invalid", String(invalid));
       if (native.validity.valid) { error.hidden = true; error.textContent = ""; }
     };
     const enhance = () => {
@@ -48,15 +52,22 @@
       sync();
       trigger.focus({ preventScroll: true });
     });
-    native.addEventListener("input", sync);
-    native.addEventListener("change", sync);
+    const edited = () => {
+      serverInvalid = false;
+      if (serverError) { serverError.hidden = true; serverError.textContent = ""; }
+      sync();
+    };
+    native.addEventListener("input", edited);
+    native.addEventListener("change", edited);
+    native.addEventListener("invoice-date-sync", sync);
+    native.addEventListener("invoice-date-clear-error", edited);
     native.addEventListener("invalid", event => {
       if (!desktop.matches) return;
       event.preventDefault();
       error.textContent = native.validationMessage;
       error.hidden = false;
       trigger.setAttribute("aria-invalid", "true");
-      if (form.querySelector(":invalid") === native) trigger.focus();
+      if (form.querySelector("input:invalid, select:invalid, textarea:invalid") === native) trigger.focus();
     });
     root.querySelector("label").addEventListener("click", event => {
       if (desktop.matches) { event.preventDefault(); trigger.focus(); }
