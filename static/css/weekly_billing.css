@@ -29,7 +29,24 @@
 .weekly-billing .wb-number { display: grid; place-items: center; flex: 0 0 24px; height: 24px; border: 1px solid var(--r1-border); border-radius: 4px; color: var(--r1-muted); font-size: 12px; }
 .weekly-billing .wb-table-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
 .weekly-billing table { width: 100%; border-collapse: collapse; text-align: left; }
-.weekly-billing .wb-roster-table { min-width: 780px; }
+.weekly-billing .wb-roster-table { min-width: 1120px; table-layout: fixed; }
+.weekly-billing .wb-roster-table .wb-col-date { width: 10%; }
+.weekly-billing .wb-roster-table .wb-col-person { width: 20%; }
+.weekly-billing .wb-roster-table .wb-col-time { width: 17%; }
+.weekly-billing .wb-roster-table .wb-col-km { width: 7%; }
+.weekly-billing .wb-roster-table .wb-col-check { width: 20%; }
+.weekly-billing .wb-roster-table .wb-col-actions { width: 9%; }
+.weekly-billing .wb-roster-table :is(th, td) { overflow-wrap: anywhere; }
+.weekly-billing .wb-roster-table th:nth-child(5) { text-align: right; }
+.weekly-billing .wb-roster-table th:last-child, .weekly-billing .wb-roster-actions { text-align: right; }
+.weekly-billing .wb-roster-date > a, .weekly-billing .wb-roster-hours { white-space: nowrap; }
+.weekly-billing .wb-roster-person strong { margin-top: 0; font-weight: 600; }
+.weekly-billing .wb-roster-differences { color: var(--r1-warning); font-size: 12px; line-height: 18px; }
+.weekly-billing .wb-roster-differences > span { display: block; }
+.weekly-billing .wb-roster-table .wb-roster-status { margin-top: 4px; }
+.weekly-billing .wb-roster-actions a { display: inline-block; white-space: nowrap; }
+.weekly-billing .wb-record { scroll-margin-top: 16px; }
+.weekly-billing .wb-record:target { outline: 2px solid var(--r1-accent); outline-offset: -2px; }
 .weekly-billing .wb-invoice-table { min-width: 720px; }
 .weekly-billing :is(th, td) { padding: 11px 12px; border-top: 1px solid var(--r1-border); vertical-align: middle; }
 .weekly-billing th { background: var(--r1-subtle); font-size: 12px; font-weight: 500; color: var(--r1-muted); }

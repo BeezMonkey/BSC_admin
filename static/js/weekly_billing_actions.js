@@ -15,7 +15,15 @@
     if (create) create.disabled = true;
     if (warning) warning.hidden = false;
   }
-  const api = { requiresReason, selectToken, markStale };
+  function openReview(scope, hash) {
+    if (!/^#review-(log|cancellation)-\d+$/.test(hash)) return false;
+    const detail = scope.querySelector(hash);
+    if (!detail) return false;
+    detail.open = true;
+    detail.querySelector("summary")?.focus({ preventScroll: true });
+    return true;
+  }
+  const api = { requiresReason, selectToken, markStale, openReview };
   window.WeeklyBillingActions = api;
   const root = document.querySelector("[data-weekly-billing]");
   if (!root || root.dataset.actionsReady) return;
@@ -194,6 +202,12 @@
     if (hasChanges() && !window.confirm("Leave the workbench and discard unsaved billing changes?")) event.preventDefault();
     else leaving = true;
   });
+  // Delegate because review rows are replaced after same-page decisions.
+  root.addEventListener("click", event => {
+    const link = event.target.closest("a[data-wb-review-link]");
+    if (link && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) openReview(root, link.getAttribute("href"));
+  });
+  window.addEventListener("hashchange", () => openReview(root, window.location.hash));
   document.addEventListener("submit", event => {
     if (root.contains(event.target) || event.defaultPrevented) return;
     if (hasChanges() && !window.confirm("Leave the workbench and discard unsaved billing changes?")) event.preventDefault();
@@ -203,4 +217,5 @@
     if (!leaving && (inFlight || hasChanges())) { event.preventDefault(); event.returnValue = ""; }
   });
   initialize(root);
+  openReview(root, window.location.hash);
 })();

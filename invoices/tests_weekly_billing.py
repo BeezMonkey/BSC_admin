@@ -61,6 +61,57 @@ class WeeklyBillingTests(TestCase):
         self.assertEqual(reverse('weekly_billing'), '/billing/weekly/')
         self.assertContains(response, 'Weekly Billing')
 
+    def roster_html(self, response):
+        return response.content.decode().split('id="roster-check"', 1)[1].split('</section>', 1)[0]
+
+    def test_roster_review_links_target_only_pending_records_and_keep_original_links(self):
+        submitted = self.create_service_log(status=ServiceLog.Status.SUBMITTED)
+        approved = self.create_service_log(status=ServiceLog.Status.APPROVED)
+        pending = self.cancellation(ParticipantCancellation.Status.PENDING)
+        waived = self.cancellation(ParticipantCancellation.Status.WAIVED)
+        response = self.get_workbench()
+        html = self.roster_html(response)
+        for header in ('Service date', 'Participant / worker', 'Roster', 'Service log', 'Km', 'Check / status', 'Actions'):
+            self.assertInHTML(f'<th scope="col">{header}</th>', html)
+        for target in (f'review-log-{submitted.pk}', f'review-cancellation-{pending.pk}'):
+            self.assertIn(f'href="#{target}" data-wb-review-link', html)
+            self.assertContains(response, f'id="{target}"')
+        self.assertNotIn(f'href="#review-log-{approved.pk}"', html)
+        self.assertNotIn(f'href="#review-cancellation-{waived.pk}"', html)
+        for url in (submitted.get_absolute_url(), approved.get_absolute_url(),
+                    reverse('participant_cancellation_detail', args=[waived.pk])):
+            self.assertIn(f'href="{url}"', html)
+
+    def test_roster_zero_km_is_distinct_from_no_log_and_matches_status_is_separate(self):
+        self.create_service_log(kilometres=Decimal('0.00'))
+        self.create_shift()
+        html = self.roster_html(self.get_workbench())
+        self.assertInHTML('<td class="wb-numeric wb-roster-km">0.00</td>', html)
+        self.assertInHTML('<td class="wb-numeric wb-roster-km">—</td>', html)
+        self.assertIn('Matches roster', html)
+        self.assertIn('Approved', html)
+
+    def test_roster_keeps_all_difference_details_without_false_match(self):
+        log = self.create_service_log(status=ServiceLog.Status.SUBMITTED)
+        log.actual_end_time = time(12, 30)
+        log.break_minutes = 10
+        log.actual_hours = Decimal('3.33')
+        log.save()
+        html = self.roster_html(self.get_workbench())
+        for text in ('Hours differ:', 'Time window differs', 'Break differs'):
+            self.assertIn(text, html)
+        self.assertNotIn('Matches roster', html)
+
+    def test_roster_cancellation_and_upcoming_are_not_labelled_as_absent_logs(self):
+        today = timezone.localdate()
+        self.cancellation(ParticipantCancellation.Status.PENDING, service_date=today)
+        self.create_shift(service_date=today + timedelta(days=1))
+        html = self.roster_html(self.get_workbench(start=today.isoformat(), end=(today + timedelta(days=1)).isoformat()))
+        self.assertIn('Cancellation awaiting review', html)
+        self.assertIn('Shift has not finished', html)
+        self.assertNotIn('No log in this period', html)
+        self.assertNotIn('Matches roster', html)
+
     def test_all_non_admin_roles_are_forbidden(self):
         for role in (UserProfile.Role.ACCOUNTANT, UserProfile.Role.SUPPORT_WORKER,
                      UserProfile.Role.SUPPORT_COORDINATOR):
